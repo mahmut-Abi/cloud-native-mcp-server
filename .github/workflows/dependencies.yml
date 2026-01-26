@@ -9,6 +9,9 @@ jobs:
   update-dependencies:
     name: Update Dependencies
     runs-on: ubuntu-latest
+    permissions:
+      contents: write
+      pull-requests: write
     
     steps:
     - name: Checkout code
@@ -50,6 +53,9 @@ jobs:
   check-outdated:
     name: Check Outdated Dependencies
     runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      issues: write
     
     steps:
     - name: Checkout code
