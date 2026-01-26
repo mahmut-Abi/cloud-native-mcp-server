@@ -6,6 +6,8 @@ import (
 	"sync"
 	"sync/atomic"
 	"time"
+
+	"github.com/mahmut-Abi/k8s-mcp-server/internal/constants"
 )
 
 // LRUCacheEntry represents an entry in the LRU cache
@@ -31,7 +33,7 @@ func NewLRUMemoryCache() *LRUMemoryCache {
 	return &LRUMemoryCache{
 		list:    list.New(),
 		map_:    make(map[string]*list.Element, 1024),
-		maxSize: 10000,
+		maxSize: constants.DefaultCacheSize,
 	}
 }
 
