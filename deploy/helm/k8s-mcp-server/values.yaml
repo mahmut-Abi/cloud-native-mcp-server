@@ -1,0 +1,351 @@
+# Default configuration values
+# Can be overridden via helm install/upgrade --set parameters
+
+# Global configuration
+global:
+  # Image registry configuration
+  imageRegistry: ""
+  imagePullSecrets: []
+  storageClass: ""
+
+# Image configuration
+image:
+  registry: "docker.io"
+  repository: mahmutabi/k8s-mcp-server
+  tag: "latest"
+  pullPolicy: IfNotPresent
+  pullSecrets: []
+
+# Replica count configuration
+replicaCount: 3
+
+# Resource configuration
+resources:
+  limits:
+    cpu: 500m
+    memory: 512Mi
+  requests:
+    cpu: 100m
+    memory: 128Mi
+
+# Autoscaling configuration
+autoscaling:
+  enabled: false
+  minReplicas: 1
+  maxReplicas: 100
+  targetCPUUtilizationPercentage: 80
+  # targetMemoryUtilizationPercentage: 80
+
+# Service configuration
+service:
+  type: ClusterIP
+  port: 8080
+  targetPort: 8080
+  annotations: {}
+
+# Ingress configuration
+ingress:
+  enabled: false
+  className: ""
+  annotations: {}
+    # kubernetes.io/ingress.class: nginx
+    # kubernetes.io/tls-acme: "true"
+  hosts:
+    - host: k8s-mcp-server.local
+      paths:
+        - path: /
+          pathType: Prefix
+  tls: []
+  #  - secretName: k8s-mcp-server-tls
+  #    hosts:
+  #      - k8s-mcp-server.local
+
+# Service account configuration
+serviceAccount:
+  # Whether to create service account
+  create: true
+  # Service account name
+  name: mcp-server-admin
+  # Service account annotations
+  annotations: {}
+  # Whether to automount service account token
+  automountServiceAccountToken: true
+
+# RBAC configuration
+rbac:
+  # Whether to create RBAC rules
+  create: true
+  # Use cluster-admin role
+  useClusterAdmin: true
+  # Custom rules (effective when useClusterAdmin: false)
+  rules: []
+
+# Pod configuration
+podAnnotations:
+  checksum/config: ""
+
+podSecurityContext:
+  fsGroup: 2000
+
+securityContext:
+  capabilities:
+    drop:
+    - ALL
+  readOnlyRootFilesystem: false
+  runAsNonRoot: true
+  runAsUser: 1000
+
+# Node selector
+nodeSelector: {}
+
+# Tolerations
+tolerations: []
+
+# Affinity
+affinity: {}
+
+# Environment variables
+env: []
+
+# Extra volume mounts
+extraVolumes:
+  - name: audit-log-volume
+    emptyDir: {}
+
+extraVolumeMounts:
+  - name: audit-log-volume
+    mountPath: /var/log/k8s-mcp-server
+
+# Init containers
+initContainers: []
+# - name: init-myservice
+#   image: busybox:1.28
+#   command: ['sh', '-c', "until nslookup myservice.$(cat /var/run/secrets/kubernetes.io/serviceaccount/namespace).svc.cluster.local; do echo waiting for myservice; sleep 2; done"]
+
+# Extra sidecar containers
+sidecars: []
+# - name: sidecar
+#   image: sidecar-image:latest
+#   command: ["/bin/sh", "-c", "while true; do echo hello; sleep 10;done"]
+
+# Health checks
+livenessProbe:
+  httpGet:
+    path: /health
+    port: http
+  initialDelaySeconds: 30
+  periodSeconds: 10
+  timeoutSeconds: 5
+  failureThreshold: 3
+
+readinessProbe:
+  httpGet:
+    path: /health
+    port: http
+  initialDelaySeconds: 5
+  periodSeconds: 5
+  timeoutSeconds: 3
+  failureThreshold: 3
+
+# Startup probe
+startupProbe:
+  httpGet:
+    path: /health
+    port: http
+  initialDelaySeconds: 10
+  periodSeconds: 10
+  timeoutSeconds: 5
+  failureThreshold: 30
+
+# Application configuration
+config:
+  # Server configuration
+  server:
+    mode: "sse"
+    addr: "0.0.0.0:8080"
+    readTimeoutSec: 30
+    writeTimeoutSec: 0
+    idleTimeoutSec: 60
+    ssePaths:
+      kubernetes: "/api/kubernetes/sse"
+      grafana: "/api/grafana/sse"
+      prometheus: "/api/prometheus/sse"
+      kibana: "/api/kibana/sse"
+      helm: "/api/helm/sse"
+      elasticsearch: "/api/elasticsearch/sse"
+      aggregate: "/api/aggregate/sse"
+
+  # Logging configuration
+  logging:
+    level: "info"
+    json: false
+
+  # Kubernetes client configuration
+  kubernetes:
+    kubeconfig: ""
+    timeoutSec: 30
+    qps: 100.0
+    burst: 200
+
+  # Prometheus configuration
+  prometheus:
+    enabled: false
+    address: "http://localhost:9090"
+    bearerToken: ""
+    tlsSkipVerify: true
+    timeoutSec: 30
+    username: ""
+    password: ""
+    tlsCertFile: ""
+    tlsKeyFile: ""
+    tlsCAFile: ""
+
+  # Grafana configuration
+  grafana:
+    enabled: false
+    url: "http://localhost:3000"
+    apiKey: ""
+    username: ""
+    password: ""
+    timeoutSec: 30
+
+  # Kibana configuration
+  kibana:
+    enabled: false
+    url: "https://localhost:5601"
+    apiKey: ""
+    username: ""
+    password: ""
+    skipVerify: true
+    space: "default"
+    timeoutSec: 30
+
+  # Helm configuration
+  helm:
+    enabled: true
+    kubeconfigPath: ""
+    namespace: "default"
+    debug: true
+    timeoutSec: 300
+    maxRetries: 3
+    useMirrors: false
+    httpProxy: ""
+    httpsProxy: ""
+    mirrors: {}
+
+  # Elasticsearch configuration
+  elasticsearch:
+    enabled: false
+    addresses:
+      - "http://localhost:9200"
+    address: ""
+    username: ""
+    password: ""
+    bearerToken: ""
+    apiKey: ""
+    timeoutSec: 30
+    tlsSkipVerify: true
+    tlsCertFile: ""
+    tlsKeyFile: ""
+    tlsCAFile: ""
+
+  # Authentication configuration
+  auth:
+    enabled: true
+    mode: "apikey"
+    apiKey: "12345678"
+    bearerToken: ""
+    username: ""
+    password: ""
+    jwtSecret: ""
+    jwtAlgorithm: "HS256"
+
+  # Audit configuration
+  audit:
+    enabled: true
+    level: "info"
+    storage: "file"
+    format: "json"
+    file:
+      path: "/var/log/k8s-mcp-server/audit.log"
+      maxSizeMB: 100
+      maxBackups: 10
+      maxAgeDays: 30
+      compress: true
+    database:
+      type: "sqlite"
+      sqlitePath: "/var/lib/k8s-mcp-server/audit.db"
+      connectionString: ""
+      tableName: "audit_logs"
+      poolSize: 10
+    fields:
+      timestamp: true
+      clientIP: true
+      user: true
+      toolName: true
+      serviceName: true
+      arguments: true
+      result: false
+      duration: true
+      status: true
+      error: true
+    masking:
+      enabled: false
+      fields: "password,token,apiKey,secret,passwd,pwd,authorization"
+      maskValue: "***REDACTED***"
+    sampling:
+      enabled: false
+      rate: 1.0
+    query:
+      enabled: true
+      maxResults: 1000
+      timeRangeDays: 90
+    alerts:
+      enabled: false
+      failureThreshold: 5
+      checkIntervalSec: 60
+      method: "webhook"
+      webhookURL: ""
+
+# Network policy
+networkPolicy:
+  enabled: false
+  ingress: []
+  egress: []
+
+# Pod disruption budget
+podDisruptionBudget:
+  enabled: false
+  minAvailable: 1
+  # maxUnavailable: 1
+
+# Persistent volume configuration
+persistence:
+  enabled: false
+  # storageClass: ""
+  # accessModes: ["ReadWriteOnce"]
+  # size: 1Gi
+  # annotations: {}
+
+# Monitoring configuration
+monitoring:
+  enabled: false
+  serviceMonitor:
+    enabled: false
+    namespace: ""
+    labels: {}
+    annotations: {}
+    interval: 30s
+    scrapeTimeout: 10s
+  prometheusRule:
+    enabled: false
+    namespace: ""
+    labels: {}
+    annotations: {}
+    rules: []
+
+# Debug configuration
+debug:
+  enabled: false
+  # Whether to keep debug tools in container
+  debugContainer: false

@@ -1,0 +1,68 @@
+# Patterns to ignore when building Helm packages.
+# This file is sourced by `helm package` using `plutil` to merge files.
+
+# Git related
+.git
+.gitignore
+
+# Documentation
+README.md
+docs/
+*.md
+
+# CI/CD
+.gitlab-ci.yml
+.github/
+
+# Development files
+Makefile
+Dockerfile
+docker-compose.yml
+*.test
+*_test.go
+
+# IDE files
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Logs
+*.log
+logs/
+
+# Temporary files
+tmp/
+temp/
+*.tmp
+
+# Build artifacts
+dist/
+build/
+bin/
+*.exe
+*.tar.gz
+*.zip
+
+# Dependency directories
+vendor/
+node_modules/
+
+# Environment files
+.env
+.env.local
+.env.*.local
+
+# Coverage reports
+coverage.out
+coverage.html
+
+# Configuration files that should not be in the chart
+config.example.yaml
+*.yaml.example
+*.yml.example
