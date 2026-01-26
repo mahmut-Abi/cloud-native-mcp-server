@@ -35,6 +35,9 @@ jobs:
         registry: ${{ env.REGISTRY }}
         username: ${{ github.actor }}
         password: ${{ secrets.GITHUB_TOKEN }}
+      # Alternative: Use PAT token if GITHUB_TOKEN doesn't work
+      # Create a PAT with write:packages scope and add it as GHCR_TOKEN secret
+      # password: ${{ secrets.GHCR_TOKEN }}
 
     - name: Extract metadata
       id: meta
