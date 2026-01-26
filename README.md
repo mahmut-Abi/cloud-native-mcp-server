@@ -17,7 +17,9 @@ A high-performance Model Context Protocol (MCP) server for Kubernetes and cloud-
 - **Multi-Protocol Support**: SSE, HTTP, and stdio modes
 - **Smart Caching**: LRU cache with TTL support for optimal performance
 - **Performance Optimized**: JSON encoding pool, response size control, intelligent limits
-- **Authentication**: API Key, Bearer Token, Basic Auth support
+- **Enhanced Authentication**: API Key (with complexity requirements), Bearer Token (JWT validation), Basic Auth
+- **Secrets Management**: Secure credential storage and rotation
+- **Input Sanitization**: Protection against injection attacks
 - **Audit Logging**: Track all tool calls and operations
 - **LLM-Optimized**: Summary tools and pagination to prevent context overflow
 
@@ -99,6 +101,61 @@ make build
 ### HTTP Mode
 
 Replace `/sse` with `/http` in the endpoints above.
+
+---
+
+## Authentication & Security
+
+### API Key Authentication
+
+API keys must meet the following complexity requirements:
+- **Minimum length**: 16 characters
+- **Character classes**: At least 3 of the following 4 types:
+  - Uppercase letters (A-Z)
+  - Lowercase letters (a-z)
+  - Digits (0-9)
+  - Special characters (!@#$%^&*()_+-=[]{}|;:,.<>?)
+
+**Valid examples**:
+- `Abc123!@#Xyz789!@#` (uppercase, lowercase, digits, special)
+- `Abc123Xyz789Abc123` (uppercase, lowercase, digits)
+- `ABC123!@#XYZ789!@#` (uppercase, digits, special)
+
+### Bearer Token Authentication
+
+Bearer tokens must follow JWT structure:
+- **Format**: `header.payload.signature`
+- **Minimum length**: 32 characters
+- **Encoding**: Base64URL encoded parts
+
+**Valid example**:
+```
+eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxMjM0NTY3ODkwIiwibmFtZSI6IkpvaG4gRG9lIiwiaWF0IjoxNTE2MjM5MDIyfQ.SflKxwRJSMeKKF2QT4fwpMeJf36POk6yJV_adQssw5c
+```
+
+### Secrets Management
+
+The server includes a secrets management module for secure credential storage:
+- **Secure Storage**: In-memory storage with expiration support
+- **Secret Rotation**: Automatic rotation for API keys and bearer tokens
+- **Secret Generation**: Built-in generators for complex API keys and JWT-like tokens
+- **Environment Variables**: Support for loading secrets from environment variables
+
+### Input Sanitization
+
+All user inputs are sanitized to prevent injection attacks:
+- **Filter Values**: Remove dangerous characters (SQL injection, XSS, command injection)
+- **URL Validation**: Only allow http/https schemes for web fetch
+- **Length Limits**: Maximum string length enforcement
+- **Special Character Removal**: Remove semicolons, quotes, and other injection vectors
+
+### Alert Sorting
+
+Alertmanager alerts can be sorted by:
+- `severity` / `severity_desc` - By alert severity (critical > warning > info)
+- `startsAt` / `startsAt_desc` - By alert start time
+- `endsAt` / `endsAt_desc` - By alert end time
+- `fingerprint` / `fingerprint_desc` - By alert fingerprint
 
 ---
 
@@ -267,9 +324,12 @@ k8s-mcp-server/
 │   └── server/              # Main entry point
 ├── internal/
 │   ├── config/              # Configuration management
+│   ├── constants/           # Application constants
+│   ├── errors/              # Error handling
 │   ├── logging/             # Logging utilities
 │   ├── middleware/          # HTTP middleware (auth, audit, metrics)
 │   ├── observability/       # Metrics and monitoring
+│   ├── secrets/             # Secrets management module
 │   ├── services/            # Service implementations
 │   │   ├── kubernetes/      # Kubernetes service (28 tools)
 │   │   ├── helm/            # Helm service (31 tools)
@@ -286,7 +346,8 @@ k8s-mcp-server/
 │   └── util/                # Utilities
 │       ├── circuitbreaker/  # Circuit breaker pattern
 │       ├── performance/     # Performance optimizations
-│       └── pool/            # Object pooling
+│       ├── pool/            # Object pooling
+│       └── sanitize/        # Input sanitization utilities
 ├── docs/                    # Documentation
 │   └── TOOLS.md            # Complete tools reference
 └── deploy/                  # Deployment files
@@ -330,6 +391,9 @@ make docker-build
 - **Circuit Breaker**: Prevent cascading failures
 - **Pagination**: Support for large datasets
 - **Summary Tools**: Optimized tools for LLM consumption
+- **Input Sanitization**: Protection against injection attacks
+- **Secrets Management**: Secure credential storage with rotation support
+- **Enhanced Validation**: Strict API key and token validation
 
 ---
 

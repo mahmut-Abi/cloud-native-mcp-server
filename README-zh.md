@@ -14,7 +14,9 @@
 - **多协议支持**: SSE、HTTP 和 stdio 模式
 - **智能缓存**: 支持 TTL 的 LRU 缓存以优化性能
 - **性能优化**: JSON 编码池、响应大小控制、智能限制
-- **身份验证**: 支持 API Key、Bearer Token、Basic Auth
+- **增强的身份验证**: 支持 API Key（复杂度要求）、Bearer Token（JWT 验证）、Basic Auth
+- **密钥管理**: 安全的凭证存储和轮换
+- **输入清理**: 防止注入攻击
 - **审计日志**: 跟踪所有工具调用和操作
 - **LLM 优化**: 摘要工具和分页以防止上下文溢出
 
@@ -161,6 +163,63 @@ export MCP_K8S_KUBECONFIG=~/.kube/config
   --log-level=info
 ```
 
+---
+
+## 身份验证与安全
+
+### API 密钥认证
+
+API 密钥必须满足以下复杂度要求：
+- **最小长度**: 16 个字符
+- **字符类型**: 至少包含以下 4 种类型中的 3 种：
+  - 大写字母（A-Z）
+  - 小写字母（a-z）
+  - 数字（0-9）
+  - 特殊字符（!@#$%^&*()_+-=[]{}|;:,.<>?）
+
+**有效示例**：
+- `Abc123!@#Xyz789!@#`（大写、小写、数字、特殊字符）
+- `Abc123Xyz789Abc123`（大写、小写、数字）
+- `ABC123!@#XYZ789!@#`（大写、数字、特殊字符）
+
+### Bearer Token 认证
+
+Bearer Token 必须遵循 JWT 结构：
+- **格式**: `header.payload.signature`
+- **最小长度**: 32 个字符
+- **编码**: Base64URL 编码部分
+
+**有效示例**：
+```
+eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxMjM0NTY3ODkwIiwibmFtZSI6IkpvaG4gRG9lIiwiaWF0IjoxNTE2MjM5MDIyfQ.SflKxwRJSMeKKF2QT4fwpMeJf36POk6yJV_adQssw5c
+```
+
+### 密钥管理
+
+服务器包含密钥管理模块，用于安全凭证存储：
+- **安全存储**: 支持过期的内存存储
+- **密钥轮换**: API 密钥和 bearer token 的自动轮换
+- **密钥生成**: 内置复杂 API 密钥和 JWT 类 token 的生成器
+- **环境变量**: 支持从环境变量加载密钥
+
+### 输入清理
+
+所有用户输入都经过清理以防止注入攻击：
+- **过滤值**: 移除危险字符（SQL 注入、XSS、命令注入）
+- **URL 验证**: 仅允许 http/https 协议进行 web fetch
+- **长度限制**: 最大字符串长度强制执行
+- **特殊字符移除**: 移除分号、引号和其他注入向量
+
+### 告警排序
+
+Alertmanager 告警可以按以下方式排序：
+- `severity` / `severity_desc` - 按告警严重性（critical > warning > info）
+- `startsAt` / `startsAt_desc` - 按告警开始时间
+- `endsAt` / `endsAt_desc` - 按告警结束时间
+- `fingerprint` / `fingerprint_desc` - 按告警指纹
+
+---
+
 ## 可用工具
 
 完整的工具列表和详细说明，请参阅 [TOOLS.md](docs/TOOLS.md)。
@@ -238,9 +297,12 @@ k8s-mcp-server/
 │   └── server/              # 主入口
 ├── internal/
 │   ├── config/              # 配置管理
+│   ├── constants/           # 应用常量
+│   ├── errors/              # 错误处理
 │   ├── logging/             # 日志工具
 │   ├── middleware/          # HTTP 中间件（auth、audit、metrics）
 │   ├── observability/       # 指标和监控
+│   ├── secrets/             # 密钥管理模块
 │   ├── services/            # 服务实现
 │   │   ├── kubernetes/      # Kubernetes 服务
 │   │   ├── helm/            # Helm 服务
@@ -257,7 +319,8 @@ k8s-mcp-server/
 │   └── util/                # 工具
 │       ├── circuitbreaker/  # 熔断器模式
 │       ├── performance/     # 性能优化
-│       └── pool/            # 对象池
+│       ├── pool/            # 对象池
+│       └── sanitize/        # 输入清理工具
 ├── docs/                    # 文档
 │   └── TOOLS.md            # 完整工具参考
 └── deploy/                  # 部署文件
@@ -297,6 +360,9 @@ make docker-build
 - **熔断器**: 防止级联故障
 - **分页**: 支持大数据集
 - **摘要工具**: 为 LLM 消费优化的工具
+- **输入清理**: 防止注入攻击
+- **密钥管理**: 支持轮换的安全凭证存储
+- **增强验证**: 严格的 API 密钥和 token 验证
 
 ## 文档
 
