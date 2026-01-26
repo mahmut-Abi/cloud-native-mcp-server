@@ -1,0 +1,80 @@
+name: Security
+
+on:
+  schedule:
+    - cron: '0 0 * * 0'  # Run every Sunday at midnight
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+
+jobs:
+  vulnerability-scan:
+    name: Vulnerability Scan
+    runs-on: ubuntu-latest
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+
+    - name: Set up Go
+      uses: actions/setup-go@v5
+      with:
+        go-version: '1.24'
+        cache: true
+
+    - name: Run Govulncheck
+      run: |
+        go install golang.org/x/vuln/cmd/govulncheck@latest
+        govulncheck ./...
+
+    - name: Run Gosec Security Scanner
+      uses: securego/gosec@v2.21.4
+      with:
+        args: '-no-fail -fmt sarif -out gosec-results.sarif ./...'
+
+    - name: Upload Gosec results to GitHub Security
+      uses: github/codeql-action/upload-sarif@v3
+      if: always()
+      with:
+        sarif_file: 'gosec-results.sarif'
+
+  dependency-review:
+    name: Dependency Review
+    runs-on: ubuntu-latest
+    if: github.event_name == 'pull_request'
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+
+    - name: Dependency Review
+      uses: actions/dependency-review-action@v4
+      with:
+        fail-on-severity: moderate
+
+  license-scan:
+    name: License Scan
+    runs-on: ubuntu-latest
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+
+    - name: Set up Go
+      uses: actions/setup-go@v5
+      with:
+        go-version: '1.24'
+        cache: true
+
+    - name: Run go-licenses
+      run: |
+        go install github.com/google/go-licenses@latest
+        go-licenses check ./... --disallowed_types=forbidden,unknown
+        go-licenses save ./... --save_path=licenses
+
+    - name: Upload licenses
+      uses: actions/upload-artifact@v4
+      with:
+        name: licenses
+        path: licenses/

@@ -1,0 +1,67 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  labels:
+    app: k8s-mcp
+  name: k8s-mcp
+  namespace: default
+spec:
+  progressDeadlineSeconds: 600
+  replicas: 3
+  revisionHistoryLimit: 10
+  selector:
+    matchLabels:
+      app: k8s-mcp
+  template:
+    metadata:
+      annotations:
+        checksum/config: 029ac4dc6d70900413270b6011edb5c7cae3a234873e1042f3d1da725f3daf31
+      labels:
+        app: k8s-mcp
+    spec:
+      containers:
+      - args:
+        - --config
+        - /config.yaml
+        command:
+        - /usr/local/bin/k8s-mcp-server
+        image: docker.io/mahmutabi/k8s-mcp-server:latest
+        imagePullPolicy: IfNotPresent
+        name: k8s-mcp-server
+        ports:
+        - containerPort: 8080
+          name: http
+          protocol: TCP
+        livenessProbe:
+          httpGet:
+            path: /health
+            port: 8080
+          initialDelaySeconds: 30
+          periodSeconds: 10
+          timeoutSeconds: 5
+          failureThreshold: 3
+        readinessProbe:
+          httpGet:
+            path: /health
+            port: 8080
+          initialDelaySeconds: 5
+          periodSeconds: 5
+          timeoutSeconds: 3
+          failureThreshold: 3
+        volumeMounts:
+        - mountPath: /config.yaml
+          name: config-volume
+          subPath: config.yaml
+          readOnly: true
+        - mountPath: /var/log/k8s-mcp-server
+          name: audit-log-volume
+      restartPolicy: Always
+      schedulerName: default-scheduler
+      serviceAccountName: k8s-mcp-server
+      volumes:
+      - configMap:
+          defaultMode: 420
+          name: mcp-server-config
+        name: config-volume
+      - emptyDir:
+        name: audit-log-volume

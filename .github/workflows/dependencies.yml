@@ -1,0 +1,83 @@
+name: Dependencies
+
+on:
+  schedule:
+    - cron: '0 0 * * 1'  # Run every Monday at midnight
+  workflow_dispatch:
+
+jobs:
+  update-dependencies:
+    name: Update Dependencies
+    runs-on: ubuntu-latest
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+      with:
+        token: ${{ secrets.GITHUB_TOKEN }}
+
+    - name: Set up Go
+      uses: actions/setup-go@v5
+      with:
+        go-version: '1.24'
+        cache: true
+
+    - name: Update Go dependencies
+      run: |
+        go get -u ./...
+        go mod tidy
+        go mod verify
+
+    - name: Run tests
+      run: go test -v ./...
+
+    - name: Create Pull Request
+      uses: peter-evans/create-pull-request@v6
+      with:
+        token: ${{ secrets.GITHUB_TOKEN }}
+        commit-message: 'chore: update Go dependencies'
+        title: 'chore: update Go dependencies'
+        body: |
+          Automated dependency update
+          
+          This PR updates Go dependencies to their latest versions.
+          
+          - All dependencies have been updated
+          - Tests have been run and passed
+        branch: deps/update-go-dependencies
+        delete-branch: true
+
+  check-outdated:
+    name: Check Outdated Dependencies
+    runs-on: ubuntu-latest
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+
+    - name: Set up Go
+      uses: actions/setup-go@v5
+      with:
+        go-version: '1.24'
+        cache: true
+
+    - name: Install go-mod-outdated
+      run: go install github.com/psampaz/go-mod-outdated@latest
+
+    - name: Check for outdated dependencies
+      run: go list -u -m -json all | go-mod-outdated -update -direct
+
+    - name: Comment on PR with outdated dependencies
+      if: github.event_name == 'pull_request'
+      uses: actions/github-script@v7
+      with:
+        script: |
+          const result = require('child_process').execSync('go list -u -m -json all | go-mod-outdated -update -direct').toString();
+          if (result.trim()) {
+            github.rest.issues.createComment({
+              issue_number: context.issue.number,
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              body: `### Outdated Dependencies\n\n\`\`\`\n${result}\n\`\`\``
+            });
+          }

@@ -1,0 +1,607 @@
+# K8s MCP Server Configuration File Example
+# Complete configuration with all available options
+
+################################################################################
+# Server Configuration
+################################################################################
+server:
+  # Running mode: sse (Server-Sent Events) | streamable-http (MCP 2025-11-25 spec) | http (legacy) | stdio (Standard I/O)
+  # Recommended: stdio for dev, streamable-http for production (modern MCP spec)
+  # Environment variable: MCP_MODE
+  mode: "sse"
+
+  # Server listen address
+  # Environment variable: MCP_ADDR
+  addr: "0.0.0.0:8080"
+
+  # HTTP read timeout (seconds)
+  # 0 = no timeout (not recommended for production)
+  # Recommended: 30-60 seconds
+  # Environment variable: MCP_READ_TIMEOUT
+  readTimeoutSec: 30
+
+  # HTTP write timeout (seconds)
+  # Should be 0 for SSE connections to keep connections alive
+  # Environment variable: MCP_WRITE_TIMEOUT
+  writeTimeoutSec: 0
+
+  # HTTP idle timeout (seconds)
+  # Default: 60 seconds
+  # Environment variable: MCP_IDLE_TIMEOUT
+  idleTimeoutSec: 60
+
+  # Server-Sent Events (SSE) service route configuration
+  ssePaths:
+    # Kubernetes SSE endpoint
+    # Environment variable: MCP_SSE_PATH_KUBERNETES
+    kubernetes: "/api/kubernetes/sse"
+
+    # Grafana SSE endpoint
+    # Environment variable: MCP_SSE_PATH_GRAFANA
+    grafana: "/api/grafana/sse"
+
+    # Prometheus SSE endpoint
+    # Environment variable: MCP_SSE_PATH_PROMETHEUS
+    prometheus: "/api/prometheus/sse"
+
+    # Kibana SSE endpoint
+    # Environment variable: MCP_SSE_PATH_KIBANA
+    kibana: "/api/kibana/sse"
+
+    # Helm SSE endpoint
+    # Environment variable: MCP_SSE_PATH_HELM
+    helm: "/api/helm/sse"
+
+    # Alertmanager SSE endpoint
+    # Environment variable: MCP_SSE_PATH_ALERTMANAGER
+    alertmanager: "/api/alertmanager/sse"
+
+    # Elasticsearch SSE endpoint
+    # Environment variable: MCP_SSE_PATH_ELASTICSEARCH
+    elasticsearch: "/api/elasticsearch/sse"
+
+    # Utilities SSE endpoint
+    # Environment variable: MCP_SSE_PATH_UTILITIES
+    utilities: "/api/utilities/sse"
+
+    # Aggregate all services SSE endpoint
+    # Environment variable: MCP_SSE_PATH_AGGREGATE
+    aggregate: "/api/aggregate/sse"
+
+  # Streamable-HTTP service route configuration (MCP specification 2025-11-25)
+  # Streamable-HTTP is the modern replacement for legacy SSE+HTTP pattern
+  # Uses a single endpoint for both request/response and streaming
+  # Environment variables: MCP_STREAMABLE_HTTP_PATH_*
+  streamableHttpPaths:
+    # Kubernetes Streamable-HTTP endpoint
+    kubernetes: "/api/kubernetes/streamable-http"
+
+    # Grafana Streamable-HTTP endpoint
+    grafana: "/api/grafana/streamable-http"
+
+    # Prometheus Streamable-HTTP endpoint
+    prometheus: "/api/prometheus/streamable-http"
+
+    # Kibana Streamable-HTTP endpoint
+    kibana: "/api/kibana/streamable-http"
+
+    # Helm Streamable-HTTP endpoint
+    helm: "/api/helm/streamable-http"
+
+    # Alertmanager Streamable-HTTP endpoint
+    alertmanager: "/api/alertmanager/streamable-http"
+
+    # Elasticsearch Streamable-HTTP endpoint
+    elasticsearch: "/api/elasticsearch/streamable-http"
+
+    # Utilities Streamable-HTTP endpoint
+    utilities: "/api/utilities/streamable-http"
+
+    # Aggregate all services Streamable-HTTP endpoint
+    aggregate: "/api/aggregate/streamable-http"
+
+################################################################################
+# Logging Configuration
+################################################################################
+logging:
+  # Log level: debug | info | warn | error
+  # Environment variable: MCP_LOG_LEVEL
+  level: "info"
+
+  # Use JSON format for logs
+  # Useful for log aggregation systems (ELK, Splunk, etc.)
+  # Environment variable: MCP_LOG_JSON (1, true, yes, on)
+  json: false
+
+################################################################################
+# Kubernetes Client Configuration
+################################################################################
+kubernetes:
+  # kubeconfig file path
+  # If empty, uses default: $KUBECONFIG → ~/.kube/config → service account
+  # Environment variable: MCP_KUBECONFIG
+  kubeconfig: ""
+
+  # Single API call timeout (seconds)
+  # Environment variable: MCP_K8S_TIMEOUT
+  timeoutSec: 30
+
+  # API client queries per second (QPS)
+  # Environment variable: MCP_K8S_QPS
+  qps: 100.0
+
+  # API client burst rate
+  # Environment variable: MCP_K8S_BURST
+  burst: 200
+
+################################################################################
+# Prometheus Configuration
+################################################################################
+prometheus:
+  # Enable/disable Prometheus service
+  # Environment variable: MCP_PROM_ENABLED (1, true, yes, on)
+  enabled: false
+
+  # Prometheus server address
+  # Format: http://host:port or https://host:port
+  # Environment variable: MCP_PROM_ADDRESS
+  address: "http://localhost:9090"
+
+  # Request timeout (seconds)
+  # Environment variable: MCP_PROM_TIMEOUT
+  timeoutSec: 30
+
+  # Basic auth username (optional)
+  # Environment variable: MCP_PROM_USERNAME
+  username: ""
+
+  # Basic auth password (optional)
+  # Environment variable: MCP_PROM_PASSWORD
+  password: ""
+
+  # Bearer token auth (optional, takes precedence over Basic Auth)
+  # Environment variable: MCP_PROM_BEARER_TOKEN
+  bearerToken: ""
+
+  # Skip TLS certificate verification
+  # DO NOT use in production!
+  # Environment variable: MCP_PROM_TLS_SKIP_VERIFY (1, true, yes, on)
+  tlsSkipVerify: false
+
+  # TLS client certificate file path (for mTLS auth)
+  # Environment variable: MCP_PROM_TLS_CERT_FILE
+  tlsCertFile: ""
+
+  # TLS client key file path
+  # Environment variable: MCP_PROM_TLS_KEY_FILE
+  tlsKeyFile: ""
+
+  # TLS CA certificate file path
+  # Environment variable: MCP_PROM_TLS_CA_FILE
+  tlsCAFile: ""
+
+################################################################################
+# Grafana Configuration
+################################################################################
+grafana:
+  # Enable/disable Grafana service
+  # Environment variable: MCP_GRAFANA_ENABLED (1, true, yes, on)
+  enabled: false
+
+  # Grafana server URL
+  # Format: http://host:port or https://host:port
+  # Environment variable: MCP_GRAFANA_URL
+  url: "http://localhost:3000"
+
+  # Grafana API Key (recommended)
+  # Create in Grafana: Administration → API Keys
+  # Environment variable: MCP_GRAFANA_API_KEY
+  apiKey: ""
+
+  # Basic auth username (alternative to API Key)
+  # Environment variable: MCP_GRAFANA_USERNAME
+  username: ""
+
+  # Basic auth password
+  # Environment variable: MCP_GRAFANA_PASSWORD
+  password: ""
+
+  # Request timeout (seconds)
+  # Environment variable: MCP_GRAFANA_TIMEOUT
+  timeoutSec: 30
+
+################################################################################
+# Kibana Configuration
+################################################################################
+kibana:
+  # Enable/disable Kibana service
+  # Environment variable: MCP_KIBANA_ENABLED (1, true, yes, on)
+  enabled: false
+
+  # Kibana server URL
+  # Format: http://host:port or https://host:port
+  # Environment variable: MCP_KIBANA_URL
+  url: "https://localhost:5601"
+
+  # Kibana API Key (recommended)
+  # Create in Kibana: Stack Management → API Keys
+  # Environment variable: MCP_KIBANA_API_KEY
+  apiKey: ""
+
+  # Basic auth username (alternative to API Key)
+  # Environment variable: MCP_KIBANA_USERNAME
+  username: ""
+
+  # Basic auth password
+  # Environment variable: MCP_KIBANA_PASSWORD
+  password: ""
+
+  # Request timeout (seconds)
+  # Environment variable: MCP_KIBANA_TIMEOUT
+  timeoutSec: 30
+
+  # Skip TLS certificate verification
+  # DO NOT use in production!
+  # Environment variable: MCP_KIBANA_SKIP_VERIFY (1, true, yes, on)
+  skipVerify: false
+
+  # Kibana Space name
+  # Default: "default"
+  # Environment variable: MCP_KIBANA_SPACE
+  space: "default"
+
+################################################################################
+# Helm Configuration
+################################################################################
+helm:
+  # Enable/disable Helm service
+  # Environment variable: MCP_HELM_ENABLED (1, true, yes, on)
+  enabled: false
+
+  # Helm operation kubeconfig path
+  # If empty, uses same kubeconfig as Kubernetes client
+  # Environment variable: MCP_HELM_KUBECONFIG
+  kubeconfigPath: ""
+
+  # Helm operation default namespace
+  # Environment variable: MCP_HELM_NAMESPACE
+  namespace: "default"
+
+  # Enable Helm debug mode
+  # Environment variable: MCP_HELM_DEBUG (1, true, yes, on)
+  debug: false
+
+  # Repository update timeout (seconds)
+  # Default: 300 (5 minutes)
+  # Recommended: 600-900 for domestic environments
+  # Environment variable: MCP_HELM_TIMEOUT
+  timeoutSec: 300
+
+  # Max retry count
+  # Retry count for failed repository updates
+  # Default: 3
+  # Recommended: 3-5
+  # Environment variable: MCP_HELM_MAX_RETRIES
+  maxRetries: 3
+
+  # Enable mirrors
+  # For accelerating Helm repository pulls
+  # Default: false
+  # Environment variable: MCP_HELM_USE_MIRRORS (1, true, yes, on)
+  useMirrors: false
+
+  # Custom mirror mappings
+  # Format: original repo URL -> mirror URL
+  mirrors: {}
+
+################################################################################
+# Elasticsearch Configuration
+################################################################################
+elasticsearch:
+  # Enable/disable Elasticsearch service
+  # Environment variable: MCP_ELASTICSEARCH_ENABLED (1, true, yes, on)
+  enabled: false
+
+  # Elasticsearch server addresses (supports multiple nodes for HA)
+  # Environment variable: MCP_ELASTICSEARCH_ADDRESSES (comma-separated)
+  addresses:
+    - "http://localhost:9200"
+
+  # Single Elasticsearch server address (alternative)
+  # Used if addresses is empty
+  # Environment variable: MCP_ELASTICSEARCH_ADDRESS
+  address: ""
+
+  # Basic auth username
+  # Environment variable: MCP_ELASTICSEARCH_USERNAME
+  username: ""
+
+  # Basic auth password
+  # Environment variable: MCP_ELASTICSEARCH_PASSWORD
+  password: ""
+
+  # Bearer token auth (optional, takes precedence over Basic Auth)
+  # Environment variable: MCP_ELASTICSEARCH_BEARER_TOKEN
+  bearerToken: ""
+
+  # API Key auth (optional, highest priority)
+  # Format: id:api_key
+  # Environment variable: MCP_ELASTICSEARCH_API_KEY
+  apiKey: ""
+
+  # Request timeout (seconds)
+  # Environment variable: MCP_ELASTICSEARCH_TIMEOUT
+  timeoutSec: 30
+
+  # Skip TLS certificate verification
+  # DO NOT use in production!
+  # Environment variable: MCP_ELASTICSEARCH_TLS_SKIP_VERIFY (1, true, yes, on)
+  tlsSkipVerify: false
+
+  # TLS client certificate file path (for mTLS auth)
+  # Environment variable: MCP_ELASTICSEARCH_TLS_CERT_FILE
+  tlsCertFile: ""
+
+  # TLS client key file path
+  # Environment variable: MCP_ELASTICSEARCH_TLS_KEY_FILE
+  tlsKeyFile: ""
+
+  # TLS CA certificate file path
+  # Environment variable: MCP_ELASTICSEARCH_TLS_CA_FILE
+  tlsCAFile: ""
+
+################################################################################
+# Alertmanager Configuration
+################################################################################
+alertmanager:
+  # Enable/disable Alertmanager service
+  # Environment variable: MCP_ALERTMANAGER_ENABLED (1, true, yes, on)
+  enabled: false
+
+  # Alertmanager server address
+  # Format: http://host:port or https://host:port
+  # Environment variable: MCP_ALERTMANAGER_ADDRESS
+  address: "http://localhost:9093"
+
+  # Request timeout (seconds)
+  # Environment variable: MCP_ALERTMANAGER_TIMEOUT
+  timeoutSec: 30
+
+  # Basic auth username (optional)
+  # Environment variable: MCP_ALERTMANAGER_USERNAME
+  username: ""
+
+  # Basic auth password (optional)
+  # Environment variable: MCP_ALERTMANAGER_PASSWORD
+  password: ""
+
+  # Bearer token auth (optional, takes precedence over Basic Auth)
+  # Environment variable: MCP_ALERTMANAGER_BEARER_TOKEN
+  bearerToken: ""
+
+  # Skip TLS certificate verification
+  # DO NOT use in production!
+  # Environment variable: MCP_ALERTMANAGER_TLS_SKIP_VERIFY (1, true, yes, on)
+  tlsSkipVerify: false
+
+  # TLS client certificate file path (for mTLS auth)
+  # Environment variable: MCP_ALERTMANAGER_TLS_CERT_FILE
+  tlsCertFile: ""
+
+  # TLS client key file path
+  # Environment variable: MCP_ALERTMANAGER_TLS_KEY_FILE
+  tlsKeyFile: ""
+
+  # TLS CA certificate file path
+  # Environment variable: MCP_ALERTMANAGER_TLS_CA_FILE
+  tlsCAFile: ""
+
+################################################################################
+# Authentication Configuration
+################################################################################
+auth:
+  # Enable/disable authentication
+  # Environment variable: MCP_AUTH_ENABLED (1, true, yes, on)
+  enabled: false
+
+  # Authentication mode: apikey | bearer | basic
+  # apikey: X-API-Key simple API key auth
+  # bearer: Bearer Token (JWT) auth
+  # basic: HTTP Basic Auth
+  # Environment variable: MCP_AUTH_MODE
+  mode: "apikey"
+
+  # API Key for apikey mode
+  # Minimum 8 characters recommended
+  # Environment variable: MCP_AUTH_API_KEY
+  apiKey: ""
+
+  # Bearer token for bearer mode
+  # Minimum 16 characters recommended (JWT token)
+  # Environment variable: MCP_AUTH_BEARER_TOKEN
+  bearerToken: ""
+
+  # Username for Basic Auth
+  # Environment variable: MCP_AUTH_USERNAME
+  username: ""
+
+  # Password for Basic Auth
+  # Environment variable: MCP_AUTH_PASSWORD
+  password: ""
+
+  # JWT secret key (for JWT validation)
+  # Environment variable: MCP_AUTH_JWT_SECRET
+  jwtSecret: ""
+
+  # JWT algorithm (HS256, RS256, etc.)
+  # Environment variable: MCP_AUTH_JWT_ALGORITHM
+  jwtAlgorithm: "HS256"
+
+################################################################################
+# Audit Logging Configuration
+################################################################################
+audit:
+  # Enable/disable audit logging
+  # Environment variable: MCP_AUDIT_ENABLED (1, true, yes, on)
+  enabled: false
+
+  # Audit log level: debug | info | warn | error
+  # Environment variable: MCP_AUDIT_LEVEL
+  level: "info"
+
+  # Audit log storage: stdout | file | database | all
+  # Environment variable: MCP_AUDIT_STORAGE
+  storage: "memory"
+
+  # Log format: text | json
+  # json: structured JSON format for log aggregation
+  # text: human-readable text format
+  # Environment variable: MCP_AUDIT_FORMAT
+  format: "json"
+
+  # Maximum query results
+  # Environment variable: MCP_AUDIT_MAX_RESULTS
+  maxResults: 1000
+
+  # Query time range in days
+  # Environment variable: MCP_AUDIT_TIME_RANGE
+  timeRange: 90
+
+  # File storage configuration
+  file:
+    # Log file path
+    # Environment variable: MCP_AUDIT_FILE_PATH
+    path: "/var/log/k8s-mcp-server/audit.log"
+
+    # Max log file size (MB)
+    # Environment variable: MCP_AUDIT_FILE_MAX_SIZE
+    maxSizeMB: 100
+
+    # Max backup files to keep
+    # Environment variable: MCP_AUDIT_FILE_MAX_BACKUPS
+    maxBackups: 10
+
+    # Max log file age (days)
+    # Environment variable: MCP_AUDIT_FILE_MAX_AGE_DAYS
+    maxAgeDays: 30
+
+    # Compress rotated log files
+    # Environment variable: MCP_AUDIT_FILE_COMPRESS (1, true, yes, on)
+    compress: true
+
+    # Max logs for memory storage
+    # Environment variable: MCP_AUDIT_FILE_MAX_LOGS
+    maxLogs: 10000
+
+  # Database storage configuration
+  database:
+    # Database type: sqlite | postgresql | mysql
+    # Environment variable: MCP_AUDIT_DB_TYPE
+    type: "sqlite"
+
+    # SQLite database file path
+    # Only used when type="sqlite"
+    # Environment variable: MCP_AUDIT_DB_SQLITE_PATH
+    sqlitePath: "/var/lib/k8s-mcp-server/audit.db"
+
+    # PostgreSQL connection string
+    # Only used when type="postgresql"
+    # Format: postgresql://user:password@host:port/dbname
+    # Environment variable: MCP_AUDIT_DB_CONNECTION_STRING
+    connectionString: ""
+
+    # Database table name
+    # Environment variable: MCP_AUDIT_DB_TABLE_NAME
+    tableName: "audit_logs"
+
+    # Max records to keep
+    # Environment variable: MCP_AUDIT_DB_MAX_RECORDS
+    maxRecords: 100000
+
+    # Cleanup interval (hours)
+    # Environment variable: MCP_AUDIT_DB_CLEANUP_INTERVAL
+    cleanupInterval: 24
+
+  # Query API configuration
+  query:
+    # Enable query API
+    # Environment variable: MCP_AUDIT_QUERY_ENABLED (1, true, yes, on)
+    enabled: true
+
+    # Max results per query
+    # Environment variable: MCP_AUDIT_QUERY_MAX_RESULTS
+    maxResults: 1000
+
+    # Max time range in days
+    # Environment variable: MCP_AUDIT_QUERY_TIME_RANGE
+    timeRange: 90
+
+  # Alert configuration
+  alerts:
+    # Enable alerts
+    # Environment variable: MCP_AUDIT_ALERTS_ENABLED (1, true, yes, on)
+    enabled: false
+
+    # Failure threshold
+    # Environment variable: MCP_AUDIT_ALERTS_FAILURE_THRESHOLD
+    failureThreshold: 5
+
+    # Check interval (seconds)
+    # Environment variable: MCP_AUDIT_ALERTS_CHECK_INTERVAL
+    checkIntervalSec: 60
+
+    # Alert method: email | webhook | slack | none
+    # Environment variable: MCP_AUDIT_ALERTS_METHOD
+    method: "webhook"
+
+    # Webhook URL (for alerts)
+    # Environment variable: MCP_AUDIT_ALERTS_WEBHOOK_URL
+    webhookURL: ""
+
+  # Sensitive data masking configuration
+  masking:
+    # Enable masking
+    # Environment variable: MCP_AUDIT_MASKING_ENABLED (1, true, yes, on)
+    enabled: true
+
+    # Fields to mask (comma-separated)
+    # Environment variable: MCP_AUDIT_MASKING_FIELDS
+    fields:
+      - password
+      - token
+      - apiKey
+      - secret
+      - passwd
+      - pwd
+      - authorization
+
+    # Mask replacement value
+    # Environment variable: MCP_AUDIT_MASKING_VALUE
+    maskValue: "***REDACTED***"
+
+  # Sampling configuration (for high-traffic scenarios)
+  sampling:
+    # Enable sampling
+    # Environment variable: MCP_AUDIT_SAMPLING_ENABLED (1, true, yes, on)
+    enabled: false
+
+    # Sampling rate (0-1)
+    # 1.0 = log all, 0.1 = log 10%
+    # Environment variable: MCP_AUDIT_SAMPLING_RATE
+    rate: 1.0
+
+################################################################################
+# Service and Tool Filtering
+################################################################################
+enableDisable:
+  # Disabled services (comma-separated)
+  # Environment variable: MCP_DISABLED_SERVICES
+  disabledServices: []
+
+  # Enabled services (comma-separated, overrides disabled)
+  # Environment variable: MCP_ENABLED_SERVICES
+  enabledServices: []
+
+  # Disabled tools (comma-separated)
+  # Environment variable: MCP_DISABLED_TOOLS
+  disabledTools: []
