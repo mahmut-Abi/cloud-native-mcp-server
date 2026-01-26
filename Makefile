@@ -6,7 +6,7 @@ VERSION?=$(shell git describe --tags --always --dirty 2>/dev/null || echo "dev")
 BUILD_DIR=build
 DIST_DIR=dist
 MAIN_PACKAGE=./cmd/server
-GO_VERSION=1.24
+GO_VERSION=1.25
 
 # Go build flags
 LDFLAGS=-ldflags "-X main.version=$(VERSION) -s -w"
