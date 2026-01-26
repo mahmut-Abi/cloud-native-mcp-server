@@ -45,9 +45,6 @@ chmod +x k8s-mcp-server-linux-amd64
 
 # 以 SSE 模式运行（默认）
 ./k8s-mcp-server-linux-amd64 --mode=sse --addr=0.0.0.0:8080
-
-# 或 HTTP 模式
-./k8s-mcp-server-linux-amd64 --mode=http --addr=0.0.0.0:8080
 ```
 
 ### Docker
@@ -76,6 +73,7 @@ make build
 
 | 端点 | 描述 |
 |------|------|
+| `/api/aggregate/sse` | 所有服务（推荐）|
 | `/api/kubernetes/sse` | Kubernetes 服务 |
 | `/api/helm/sse` | Helm 服务 |
 | `/api/grafana/sse` | Grafana 服务 |
@@ -85,250 +83,19 @@ make build
 | `/api/alertmanager/sse` | Alertmanager 服务 |
 | `/api/jaeger/sse` | Jaeger 服务 |
 | `/api/utilities/sse` | Utilities 服务 |
-| `/api/aggregate/sse` | 所有服务（推荐）|
 
 ### HTTP 模式
 
 将上述端点中的 `/sse` 替换为 `/http`。
 
-## 配置
+## 文档
 
-### YAML 配置文件
-
-```yaml
-# config.yaml
-server:
-  mode: "sse"
-  addr: "0.0.0.0:8080"
-
-logging:
-  level: "info"
-
-kubernetes:
-  kubeconfig: ""
-  timeoutSec: 30
-
-auth:
-  enabled: false
-  mode: "apikey"
-  apiKey: "your-secret-key"
-
-grafana:
-  enabled: false
-  url: "http://grafana:3000"
-  apiKey: ""
-
-prometheus:
-  enabled: false
-  address: "http://prometheus:9090"
-
-kibana:
-  enabled: false
-  url: "http://kibana:5601"
-
-elasticsearch:
-  enabled: false
-  url: "http://elasticsearch:9200"
-
-alertmanager:
-  enabled: false
-  url: "http://alertmanager:9093"
-
-jaeger:
-  enabled: false
-  url: "http://jaeger:16686"
-
-audit:
-  enabled: false
-  maxLogs: 1000
-```
-
-### 环境变量
-
-```bash
-export MCP_MODE=sse
-export MCP_ADDR=0.0.0.0:8080
-export MCP_LOG_LEVEL=info
-export MCP_AUTH_ENABLED=false
-export MCP_K8S_KUBECONFIG=~/.kube/config
-```
-
-### 命令行参数
-
-```bash
-./k8s-mcp-server \
-  --mode=sse \
-  --addr=0.0.0.0:8080 \
-  --config=config.yaml \
-  --log-level=info
-```
-
----
-
-## 身份验证与安全
-
-### API 密钥认证
-
-API 密钥必须满足以下复杂度要求：
-- **最小长度**: 16 个字符
-- **字符类型**: 至少包含以下 4 种类型中的 3 种：
-  - 大写字母（A-Z）
-  - 小写字母（a-z）
-  - 数字（0-9）
-  - 特殊字符（!@#$%^&*()_+-=[]{}|;:,.<>?）
-
-**有效示例**：
-- `Abc123!@#Xyz789!@#`（大写、小写、数字、特殊字符）
-- `Abc123Xyz789Abc123`（大写、小写、数字）
-- `ABC123!@#XYZ789!@#`（大写、数字、特殊字符）
-
-### Bearer Token 认证
-
-Bearer Token 必须遵循 JWT 结构：
-- **格式**: `header.payload.signature`
-- **最小长度**: 32 个字符
-- **编码**: Base64URL 编码部分
-
-**有效示例**：
-```
-eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxMjM0NTY3ODkwIiwibmFtZSI6IkpvaG4gRG9lIiwiaWF0IjoxNTE2MjM5MDIyfQ.SflKxwRJSMeKKF2QT4fwpMeJf36POk6yJV_adQssw5c
-```
-
-### 密钥管理
-
-服务器包含密钥管理模块，用于安全凭证存储：
-- **安全存储**: 支持过期的内存存储
-- **密钥轮换**: API 密钥和 bearer token 的自动轮换
-- **密钥生成**: 内置复杂 API 密钥和 JWT 类 token 的生成器
-- **环境变量**: 支持从环境变量加载密钥
-
-### 输入清理
-
-所有用户输入都经过清理以防止注入攻击：
-- **过滤值**: 移除危险字符（SQL 注入、XSS、命令注入）
-- **URL 验证**: 仅允许 http/https 协议进行 web fetch
-- **长度限制**: 最大字符串长度强制执行
-- **特殊字符移除**: 移除分号、引号和其他注入向量
-
-### 告警排序
-
-Alertmanager 告警可以按以下方式排序：
-- `severity` / `severity_desc` - 按告警严重性（critical > warning > info）
-- `startsAt` / `startsAt_desc` - 按告警开始时间
-- `endsAt` / `endsAt_desc` - 按告警结束时间
-- `fingerprint` / `fingerprint_desc` - 按告警指纹
-
----
-
-## 可用工具
-
-完整的工具列表和详细说明，请参阅 [TOOLS.md](docs/TOOLS.md)。
-
-### 快速参考
-
-#### Kubernetes 工具
-- `kubernetes_list_resources_summary` - 列出资源（优化输出）
-- `kubernetes_get_resource_summary` - 获取单个资源摘要
-- `kubernetes_get_pod_logs` - 获取 Pod 日志
-- `kubernetes_get_events` - 获取集群事件
-- `kubernetes_describe_resource` - 详细描述资源
-
-#### Helm 工具
-- `helm_list_releases_paginated` - 列出发布（分页）
-- `helm_get_release_summary` - 获取发布摘要
-- `helm_search_charts` - 搜索 Helm charts
-- `helm_cluster_overview` - 获取集群概览
-
-#### Grafana 工具
-- `grafana_dashboards_summary` - 列出仪表板（最小输出）
-- `grafana_datasources_summary` - 列出数据源
-- `grafana_dashboard` - 获取特定仪表板
-- `grafana_alerts` - 列出告警规则
-
-#### Prometheus 工具
-- `prometheus_query` - 执行即时查询
-- `prometheus_query_range` - 执行范围查询
-- `prometheus_alerts_summary` - 获取告警摘要
-- `prometheus_targets_summary` - 获取目标摘要
-
-#### Kibana 工具
-- `kibana_search_saved_objects` - 搜索保存的对象
-- `kibana_get_index_patterns` - 获取索引模式
-- `kibana_get_spaces` - 获取 Kibana 空间
-
-#### Elasticsearch 工具
-- `elasticsearch_list_indices_paginated` - 列出索引（分页）
-- `elasticsearch_cluster_health_summary` - 获取集群健康状态
-- `elasticsearch_search_indices` - 搜索索引
-
-#### Alertmanager 工具
-- `alertmanager_alerts_summary` - 获取告警摘要
-- `alertmanager_silences_summary` - 获取静默摘要
-- `alertmanager_create_silence` - 创建静默
-
-#### Jaeger 工具
-- `jaeger_get_traces_summary` - 获取追踪摘要
-- `jaeger_get_trace` - 获取特定追踪
-- `jaeger_get_services` - 获取所有服务
-
-#### Utilities 工具
-- `utilities_get_time` - 获取当前时间
-- `utilities_get_timestamp` - 获取 Unix 时间戳
-- `utilities_web_fetch` - 获取 URL 内容
-
-## LLM 优化工具
-
-许多工具都有 LLM 优化版本，标记为 ⚠️ PRIORITY，提供：
-- 70-95% 更小的响应大小
-- 仅包含必要字段
-- 分页支持
-- 防止上下文溢出
-
-示例：
-- `kubernetes_list_resources_summary` vs `kubernetes_list_resources`
-- `grafana_dashboards_summary` vs `grafana_dashboards`
-- `prometheus_alerts_summary` vs `prometheus_get_alerts`
-
-## 项目结构
-
-```
-k8s-mcp-server/
-├── cmd/
-│   └── server/              # 主入口
-├── internal/
-│   ├── config/              # 配置管理
-│   ├── constants/           # 应用常量
-│   ├── errors/              # 错误处理
-│   ├── logging/             # 日志工具
-│   ├── middleware/          # HTTP 中间件（auth、audit、metrics）
-│   ├── observability/       # 指标和监控
-│   ├── secrets/             # 密钥管理模块
-│   ├── services/            # 服务实现
-│   │   ├── kubernetes/      # Kubernetes 服务
-│   │   ├── helm/            # Helm 服务
-│   │   ├── grafana/         # Grafana 服务
-│   │   ├── prometheus/      # Prometheus 服务
-│   │   ├── kibana/          # Kibana 服务
-│   │   ├── elasticsearch/   # Elasticsearch 服务
-│   │   ├── alertmanager/    # Alertmanager 服务
-│   │   ├── jaeger/          # Jaeger 服务
-│   │   ├── utilities/       # Utilities 服务
-│   │   ├── cache/           # LRU 缓存实现
-│   │   ├── framework/       # 服务初始化框架
-│   │   └── manager/         # 服务管理器
-│   └── util/                # 工具
-│       ├── circuitbreaker/  # 熔断器模式
-│       ├── performance/     # 性能优化
-│       ├── pool/            # 对象池
-│       └── sanitize/        # 输入清理工具
-├── docs/                    # 文档
-│   └── TOOLS.md            # 完整工具参考
-└── deploy/                  # 部署文件
-    ├── Dockerfile
-    ├── helm/
-    │   └── k8s-mcp-server/
-    └── kubernetes/
-```
+- [完整工具参考](docs/TOOLS.md) - 所有 210+ 工具的详细文档
+- [配置指南](docs/CONFIGURATION.md) - 配置选项和示例
+- [部署指南](docs/DEPLOYMENT.md) - 部署策略和最佳实践
+- [安全指南](docs/SECURITY.md) - 身份验证、密钥管理和安全最佳实践
+- [架构指南](docs/ARCHITECTURE.md) - 系统架构和设计
+- [性能指南](docs/PERFORMANCE.md) - 性能功能和调优
 
 ## 构建
 
@@ -336,14 +103,8 @@ k8s-mcp-server/
 # 为当前平台构建
 make build
 
-# 为所有平台构建
-make build-all
-
 # 运行测试
 make test
-
-# 运行竞态检测
-make test-race
 
 # 代码检查
 make lint
@@ -352,28 +113,10 @@ make lint
 make docker-build
 ```
 
-## 性能特性
-
-- **智能缓存**: 支持 TTL 的 LRU 缓存用于频繁访问的数据
-- **响应大小控制**: 自动截断和优化
-- **JSON 编码池**: 重用 JSON 编码器以提升性能
-- **熔断器**: 防止级联故障
-- **分页**: 支持大数据集
-- **摘要工具**: 为 LLM 消费优化的工具
-- **输入清理**: 防止注入攻击
-- **密钥管理**: 支持轮换的安全凭证存储
-- **增强验证**: 严格的 API 密钥和 token 验证
-
-## 文档
-
-- [完整工具参考](docs/TOOLS.md) - 所有工具的详细文档
-- [配置指南](docs/CONFIGURATION.md) - 配置选项和示例
-- [部署指南](docs/DEPLOYMENT.md) - 部署策略和最佳实践
-
 ## 贡献
 
 欢迎贡献！请阅读我们的贡献指南并提交拉取请求。
 
 ## 许可证
 
-MIT 许可证 - 详见 [LICENSE](LICENSE) 文件。
+MIT License - see [LICENSE](LICENSE) for details.

@@ -54,9 +54,6 @@ chmod +x k8s-mcp-server-linux-amd64
 
 # Run in SSE mode (default)
 ./k8s-mcp-server-linux-amd64 --mode=sse --addr=0.0.0.0:8080
-
-# Or HTTP mode
-./k8s-mcp-server-linux-amd64 --mode=http --addr=0.0.0.0:8080
 ```
 
 ### Docker
@@ -87,6 +84,7 @@ make build
 
 | Endpoint | Description |
 |----------|-------------|
+| `/api/aggregate/sse` | All services (recommended) |
 | `/api/kubernetes/sse` | Kubernetes service |
 | `/api/helm/sse` | Helm service |
 | `/api/grafana/sse` | Grafana service |
@@ -96,7 +94,6 @@ make build
 | `/api/alertmanager/sse` | Alertmanager service |
 | `/api/jaeger/sse` | Jaeger service |
 | `/api/utilities/sse` | Utilities service |
-| `/api/aggregate/sse` | All services (recommended) |
 
 ### HTTP Mode
 
@@ -104,258 +101,14 @@ Replace `/sse` with `/http` in the endpoints above.
 
 ---
 
-## Authentication & Security
+## Documentation
 
-### API Key Authentication
-
-API keys must meet the following complexity requirements:
-- **Minimum length**: 16 characters
-- **Character classes**: At least 3 of the following 4 types:
-  - Uppercase letters (A-Z)
-  - Lowercase letters (a-z)
-  - Digits (0-9)
-  - Special characters (!@#$%^&*()_+-=[]{}|;:,.<>?)
-
-**Valid examples**:
-- `Abc123!@#Xyz789!@#` (uppercase, lowercase, digits, special)
-- `Abc123Xyz789Abc123` (uppercase, lowercase, digits)
-- `ABC123!@#XYZ789!@#` (uppercase, digits, special)
-
-### Bearer Token Authentication
-
-Bearer tokens must follow JWT structure:
-- **Format**: `header.payload.signature`
-- **Minimum length**: 32 characters
-- **Encoding**: Base64URL encoded parts
-
-**Valid example**:
-```
-eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxMjM0NTY3ODkwIiwibmFtZSI6IkpvaG4gRG9lIiwiaWF0IjoxNTE2MjM5MDIyfQ.SflKxwRJSMeKKF2QT4fwpMeJf36POk6yJV_adQssw5c
-```
-
-### Secrets Management
-
-The server includes a secrets management module for secure credential storage:
-- **Secure Storage**: In-memory storage with expiration support
-- **Secret Rotation**: Automatic rotation for API keys and bearer tokens
-- **Secret Generation**: Built-in generators for complex API keys and JWT-like tokens
-- **Environment Variables**: Support for loading secrets from environment variables
-
-### Input Sanitization
-
-All user inputs are sanitized to prevent injection attacks:
-- **Filter Values**: Remove dangerous characters (SQL injection, XSS, command injection)
-- **URL Validation**: Only allow http/https schemes for web fetch
-- **Length Limits**: Maximum string length enforcement
-- **Special Character Removal**: Remove semicolons, quotes, and other injection vectors
-
-### Alert Sorting
-
-Alertmanager alerts can be sorted by:
-- `severity` / `severity_desc` - By alert severity (critical > warning > info)
-- `startsAt` / `startsAt_desc` - By alert start time
-- `endsAt` / `endsAt_desc` - By alert end time
-- `fingerprint` / `fingerprint_desc` - By alert fingerprint
-
----
-
-## Configuration
-
-### YAML Config File
-
-```yaml
-# config.yaml
-server:
-  mode: "sse"
-  addr: "0.0.0.0:8080"
-
-logging:
-  level: "info"
-
-kubernetes:
-  kubeconfig: ""
-  timeoutSec: 30
-
-auth:
-  enabled: false
-  mode: "apikey"
-  apiKey: "your-secret-key"
-
-grafana:
-  enabled: false
-  url: "http://grafana:3000"
-  apiKey: ""
-
-prometheus:
-  enabled: false
-  address: "http://prometheus:9090"
-
-kibana:
-  enabled: false
-  url: "http://kibana:5601"
-
-elasticsearch:
-  enabled: false
-  url: "http://elasticsearch:9200"
-
-alertmanager:
-  enabled: false
-  url: "http://alertmanager:9093"
-
-jaeger:
-  enabled: false
-  url: "http://jaeger:16686"
-
-audit:
-  enabled: false
-  maxLogs: 1000
-```
-
-### Environment Variables
-
-```bash
-export MCP_MODE=sse
-export MCP_ADDR=0.0.0.0:8080
-export MCP_LOG_LEVEL=info
-export MCP_AUTH_ENABLED=false
-export MCP_K8S_KUBECONFIG=~/.kube/config
-```
-
-### Command Line Flags
-
-```bash
-./k8s-mcp-server \
-  --mode=sse \
-  --addr=0.0.0.0:8080 \
-  --config=config.yaml \
-  --log-level=info
-```
-
----
-
-## Available Tools
-
-For a complete list of all 210+ tools with detailed descriptions, see [TOOLS.md](docs/TOOLS.md).
-
-### Quick Reference
-
-#### Kubernetes (28 tools)
-- `kubernetes_list_resources_summary` - List resources with optimized output
-- `kubernetes_get_resource_summary` - Get single resource summary
-- `kubernetes_get_pod_logs` - Get pod logs
-- `kubernetes_get_events` - Get cluster events
-- `kubernetes_describe_resource` - Describe resource in detail
-- And 23 more...
-
-#### Helm (31 tools)
-- `helm_list_releases_paginated` - List releases with pagination
-- `helm_get_release_summary` - Get release summary
-- `helm_search_charts` - Search Helm charts
-- `helm_cluster_overview` - Get cluster overview
-- And 27 more...
-
-#### Grafana (36 tools)
-- `grafana_dashboards_summary` - List dashboards with minimal output
-- `grafana_datasources_summary` - List data sources
-- `grafana_dashboard` - Get specific dashboard
-- `grafana_alerts` - List alert rules
-- And 32 more...
-
-#### Prometheus (20 tools)
-- `prometheus_query` - Execute instant query
-- `prometheus_query_range` - Execute range query
-- `prometheus_alerts_summary` - Get alerts summary
-- `prometheus_targets_summary` - Get targets summary
-- And 16 more...
-
-#### Kibana (52 tools)
-- `kibana_search_saved_objects` - Search saved objects
-- `kibana_get_index_patterns` - Get index patterns
-- `kibana_get_spaces` - Get Kibana spaces
-- And 49 more...
-
-#### Elasticsearch (14 tools)
-- `elasticsearch_list_indices_paginated` - List indices with pagination
-- `elasticsearch_cluster_health_summary` - Get cluster health
-- `elasticsearch_search_indices` - Search indices
-- And 11 more...
-
-#### Alertmanager (15 tools)
-- `alertmanager_alerts_summary` - Get alerts summary
-- `alertmanager_silences_summary` - Get silences summary
-- `alertmanager_create_silence` - Create silence
-- And 12 more...
-
-#### Jaeger (8 tools)
-- `jaeger_get_traces_summary` - Get traces summary
-- `jaeger_get_trace` - Get specific trace
-- `jaeger_get_services` - Get all services
-- And 5 more...
-
-#### Utilities (6 tools)
-- `utilities_get_time` - Get current time
-- `utilities_get_timestamp` - Get Unix timestamp
-- `utilities_web_fetch` - Fetch URL content
-- And 3 more...
-
----
-
-## LLM-Optimized Tools
-
-Many tools have LLM-optimized versions marked with ⚠️ PRIORITY that provide:
-- 70-95% smaller response sizes
-- Essential fields only
-- Pagination support
-- Context overflow prevention
-
-Examples:
-- `kubernetes_list_resources_summary` vs `kubernetes_list_resources`
-- `grafana_dashboards_summary` vs `grafana_dashboards`
-- `prometheus_alerts_summary` vs `prometheus_get_alerts`
-- `elasticsearch_indices_summary` vs `elasticsearch_list_indices`
-
----
-
-## Project Structure
-
-```
-k8s-mcp-server/
-├── cmd/
-│   └── server/              # Main entry point
-├── internal/
-│   ├── config/              # Configuration management
-│   ├── constants/           # Application constants
-│   ├── errors/              # Error handling
-│   ├── logging/             # Logging utilities
-│   ├── middleware/          # HTTP middleware (auth, audit, metrics)
-│   ├── observability/       # Metrics and monitoring
-│   ├── secrets/             # Secrets management module
-│   ├── services/            # Service implementations
-│   │   ├── kubernetes/      # Kubernetes service (28 tools)
-│   │   ├── helm/            # Helm service (31 tools)
-│   │   ├── grafana/         # Grafana service (36 tools)
-│   │   ├── prometheus/      # Prometheus service (20 tools)
-│   │   ├── kibana/          # Kibana service (52 tools)
-│   │   ├── elasticsearch/   # Elasticsearch service (14 tools)
-│   │   ├── alertmanager/    # Alertmanager service (15 tools)
-│   │   ├── jaeger/          # Jaeger service (8 tools)
-│   │   ├── utilities/       # Utilities service (6 tools)
-│   │   ├── cache/           # LRU cache implementation
-│   │   ├── framework/       # Service initialization framework
-│   │   └── manager/         # Service manager
-│   └── util/                # Utilities
-│       ├── circuitbreaker/  # Circuit breaker pattern
-│       ├── performance/     # Performance optimizations
-│       ├── pool/            # Object pooling
-│       └── sanitize/        # Input sanitization utilities
-├── docs/                    # Documentation
-│   └── TOOLS.md            # Complete tools reference
-└── deploy/                  # Deployment files
-    ├── Dockerfile
-    ├── helm/
-    │   └── k8s-mcp-server/
-    └── kubernetes/
-```
+- [Complete Tools Reference](docs/TOOLS.md) - Detailed documentation for all 210+ tools
+- [Configuration Guide](docs/CONFIGURATION.md) - Configuration options and examples
+- [Deployment Guide](docs/DEPLOYMENT.md) - Deployment strategies and best practices
+- [Security Guide](docs/SECURITY.md) - Authentication, secrets management, and security best practices
+- [Architecture Guide](docs/ARCHITECTURE.md) - System architecture and design
+- [Performance Guide](docs/PERFORMANCE.md) - Performance features and tuning
 
 ---
 
@@ -365,14 +118,8 @@ k8s-mcp-server/
 # Build for current platform
 make build
 
-# Build for all platforms
-make build-all
-
 # Run tests
 make test
-
-# Run with race detection
-make test-race
 
 # Code linting
 make lint
@@ -380,28 +127,6 @@ make lint
 # Docker build
 make docker-build
 ```
-
----
-
-## Performance Features
-
-- **Intelligent Caching**: LRU cache with TTL for frequently accessed data
-- **Response Size Control**: Automatic truncation and optimization
-- **JSON Encoding Pool**: Reuse JSON encoders for better performance
-- **Circuit Breaker**: Prevent cascading failures
-- **Pagination**: Support for large datasets
-- **Summary Tools**: Optimized tools for LLM consumption
-- **Input Sanitization**: Protection against injection attacks
-- **Secrets Management**: Secure credential storage with rotation support
-- **Enhanced Validation**: Strict API key and token validation
-
----
-
-## Documentation
-
-- [Complete Tools Reference](docs/TOOLS.md) - Detailed documentation for all 210+ tools
-- [Configuration Guide](docs/CONFIGURATION.md) - Configuration options and examples
-- [Deployment Guide](docs/DEPLOYMENT.md) - Deployment strategies and best practices
 
 ---
 
