@@ -6,12 +6,14 @@ import (
 	"fmt"
 	"io"
 	"net/http"
+	"net/url"
 	"time"
 
 	"github.com/mark3labs/mcp-go/mcp"
 	"github.com/sirupsen/logrus"
 
 	optimize "github.com/mahmut-Abi/k8s-mcp-server/internal/util/performance"
+	"github.com/mahmut-Abi/k8s-mcp-server/internal/util/sanitize"
 )
 
 // HandleGetTime returns the current time in a specified format.
@@ -242,13 +244,23 @@ func HandleSleep(ctx context.Context, request mcp.CallToolRequest) (*mcp.CallToo
 
 // HandleWebFetch fetches content from a URL.
 func HandleWebFetch(ctx context.Context, request mcp.CallToolRequest) (*mcp.CallToolResult, error) {
-	url := ""
+	targetURL := ""
 	timeout := 30 // seconds
 	maxChars := 10000
 
 	// Get required URL parameter
 	if u, ok := request.GetArguments()["url"].(string); ok && u != "" {
-		url = u
+		// Validate URL format
+		parsedURL, err := url.Parse(u)
+		if err != nil {
+			return nil, fmt.Errorf("invalid URL format: %w", err)
+		}
+		// Only allow http and https schemes
+		if parsedURL.Scheme != "http" && parsedURL.Scheme != "https" {
+			return nil, fmt.Errorf("only http and https URLs are allowed")
+		}
+		// Sanitize URL to prevent injection
+		targetURL = sanitize.SanitizeFilterValue(u)
 	} else {
 		return nil, fmt.Errorf("url parameter is required")
 	}
@@ -263,7 +275,7 @@ func HandleWebFetch(ctx context.Context, request mcp.CallToolRequest) (*mcp.Call
 
 	logrus.WithFields(logrus.Fields{
 		"tool":      "utilities_web_fetch",
-		"url":       url,
+		"url":       targetURL,
 		"timeout":   timeout,
 		"max_chars": maxChars,
 	}).Debug("Handler invoked")
@@ -274,7 +286,7 @@ func HandleWebFetch(ctx context.Context, request mcp.CallToolRequest) (*mcp.Call
 	}
 
 	// Make request
-	resp, err := client.Get(url)
+	resp, err := client.Get(targetURL)
 	if err != nil {
 		return nil, fmt.Errorf("failed to fetch URL: %w", err)
 	}
@@ -293,7 +305,7 @@ func HandleWebFetch(ctx context.Context, request mcp.CallToolRequest) (*mcp.Call
 	}
 
 	response := map[string]interface{}{
-		"url":            url,
+		"url":            targetURL,
 		"status_code":    resp.StatusCode,
 		"content_length": len(body),
 		"content_type":   resp.Header.Get("Content-Type"),

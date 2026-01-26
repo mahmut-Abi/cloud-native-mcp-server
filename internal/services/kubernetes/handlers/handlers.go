@@ -17,6 +17,7 @@ import (
 	"github.com/mahmut-Abi/k8s-mcp-server/internal/constants"
 	"github.com/mahmut-Abi/k8s-mcp-server/internal/services/kubernetes/client"
 	optimize "github.com/mahmut-Abi/k8s-mcp-server/internal/util/performance"
+	"github.com/mahmut-Abi/k8s-mcp-server/internal/util/sanitize"
 )
 
 // Type alias for PaginationInfo from client package
@@ -64,13 +65,13 @@ func requireStringParam(request mcp.CallToolRequest, param string) (string, erro
 	if !ok || value == "" {
 		return "", fmt.Errorf("%w: %s", ErrMissingRequiredParam, param)
 	}
-	return value, nil
+	return sanitize.SanitizeFilterValue(value), nil
 }
 
 // Helper function to get optional string parameter
 func getOptionalStringParam(request mcp.CallToolRequest, param string) string {
 	value, _ := request.GetArguments()[param].(string)
-	return value
+	return sanitize.SanitizeFilterValue(value)
 }
 
 // Helper function to marshal JSON response using pooled encoder
@@ -97,7 +98,7 @@ func createErrorResponse(message string) *mcp.CallToolResult {
 				Text: fmt.Sprintf(`{"code": 1, "data": null, "message": %s}`, string(mustMarshalJSON(message))),
 			},
 		},
-		IsError: false,
+		IsError: true,
 	}
 }
 

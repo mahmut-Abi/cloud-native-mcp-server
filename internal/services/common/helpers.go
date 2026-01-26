@@ -6,6 +6,7 @@ import (
 	"github.com/mark3labs/mcp-go/mcp"
 
 	optimize "github.com/mahmut-Abi/k8s-mcp-server/internal/util/performance"
+	"github.com/mahmut-Abi/k8s-mcp-server/internal/util/sanitize"
 )
 
 // MarshalJSON outputs JSON response using pooled encoder
@@ -35,4 +36,20 @@ func TextResponse(text string) (*mcp.CallToolResult, error) {
 // ErrorResponse returns error response
 func ErrorResponse(err error) (*mcp.CallToolResult, error) {
 	return nil, err
+}
+
+// GetSanitizedStringArg safely extracts and sanitizes a string argument from request
+func GetSanitizedStringArg(args map[string]interface{}, key string) (string, bool) {
+	if value, ok := args[key].(string); ok && value != "" {
+		return sanitize.SanitizeFilterValue(value), true
+	}
+	return "", false
+}
+
+// GetSanitizedStringArgWithDefault safely extracts and sanitizes a string argument with default value
+func GetSanitizedStringArgWithDefault(args map[string]interface{}, key, defaultValue string) string {
+	if value, ok := args[key].(string); ok && value != "" {
+		return sanitize.SanitizeFilterValue(value)
+	}
+	return defaultValue
 }
