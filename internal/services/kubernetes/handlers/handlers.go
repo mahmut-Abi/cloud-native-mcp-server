@@ -351,16 +351,13 @@ func HandleContainerLogs(client *client.Client) func(ctx context.Context, reques
 		if v, ok := request.GetArguments()["tailLines"]; ok {
 			if f, ok := v.(float64); ok {
 				tailLines = int64(f)
-				if tailLines < 0 || tailLines > 500 { // Reduced limit to prevent excessive output
-					if tailLines > 500 {
+				if tailLines < 0 || tailLines > 200 { // Maximum limit to prevent excessive output
+					if tailLines > 200 {
 						logrus.WithField("requested", tailLines).Warn("Log tail lines too high, resetting to safe maximum")
-						tailLines = 500
+						tailLines = 200
 					} else {
 						tailLines = defaultTailLines
 					}
-				}
-				if tailLines > 200 {
-					logrus.WithField("tailLines", tailLines).Warn("Large log tail lines may cause context overflow")
 				}
 			}
 		}
