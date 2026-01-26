@@ -11,6 +11,7 @@ import (
 
 	"github.com/mahmut-Abi/k8s-mcp-server/internal/services/elasticsearch/client"
 	optimize "github.com/mahmut-Abi/k8s-mcp-server/internal/util/performance"
+	"github.com/mahmut-Abi/k8s-mcp-server/internal/util/sanitize"
 )
 
 var (
@@ -126,6 +127,8 @@ func HandleIndexStats(c *client.Client) func(ctx context.Context, request mcp.Ca
 		if !ok || indexName == "" {
 			return mcp.NewToolResultError("index parameter is required"), nil
 		}
+		// Sanitize index name to prevent injection
+		indexName = sanitize.SanitizeFilterValue(indexName)
 		logrus.WithField("index", indexName).Debug("Handling es_index_stats tool")
 		stats, err := c.IndexStats(ctx, indexName)
 		if err != nil {

@@ -159,18 +159,27 @@ func TestAuthMiddleware_QuoteHandling(t *testing.T) {
 	}
 }
 
-// TestValidateAPIKey tests API key validation
+// TestValidateAPIKey tests API key validation with complexity requirements
 func TestValidateAPIKey(t *testing.T) {
 	tests := []struct {
 		name     string
 		key      string
 		expected bool
 	}{
-		{"valid_key", "12345678", true},
-		{"long_key", "this-is-a-very-long-api-key-123456789", true},
-		{"short_key", "1234567", false}, // Less than 8 chars
+		{"valid_key_complex", "Abc123!@#Xyz789!@#", true},             // Has uppercase, lowercase, digits, special chars
+		{"valid_key_upper_lower_digit", "Abc123Xyz789Abc123", true},   // Has uppercase, lowercase, digits
+		{"valid_key_upper_lower_special", "Abc!@#Xyz!@#Abc!@#", true}, // Has uppercase, lowercase, special chars
+		{"valid_key_upper_digit_special", "ABC123!@#XYZ789!@#", true}, // Has uppercase, digits, special chars
+		{"valid_key_lower_digit_special", "abc123!@#xyz789!@#", true}, // Has lowercase, digits, special chars
+		{"long_key", "ThisIsAVeryLongAPIKey123!@#WithSpecialChars", true},
+		{"short_key", "Ab1!", false}, // Less than 16 chars
 		{"empty_key", "", false},
-		{"exactly_8_chars", "abcdefgh", true},
+		{"exactly_16_chars_complex", "Abc123!@#Xyz789!@", true}, // Exactly 16 chars with complexity
+		{"exactly_16_chars_simple", "abcdefgh12345678", false},  // Exactly 16 chars but only lowercase and digits
+		{"only_uppercase", "ABCDEFGHIJKLMNOPQRSTUVWXYZ", false}, // Only uppercase
+		{"only_lowercase", "abcdefghijklmnopqrstuvwxyz", false}, // Only lowercase
+		{"only_digits", "12345678901234567890", false},          // Only digits
+		{"only_special", "!@#$%^&*()_+-=[]{}|;:,.<>?", false},   // Only special chars
 	}
 
 	for _, tt := range tests {
@@ -181,19 +190,21 @@ func TestValidateAPIKey(t *testing.T) {
 	}
 }
 
-// TestValidateBearerToken tests bearer token validation
+// TestValidateBearerToken tests bearer token validation with JWT structure checks
 func TestValidateBearerToken(t *testing.T) {
 	tests := []struct {
 		name     string
 		token    string
 		expected bool
 	}{
-		{"valid_token", "1234567890123456", true}, // 16 chars
-		{"long_token", "this-is-a-very-long-bearer-token-123456789", true},
-		{"short_token", "123456789012345", false}, // Less than 16 chars
+		{"valid_jwt_token", "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxMjM0NTY3ODkwIiwibmFtZSI6IkpvaG4gRG9lIiwiaWF0IjoxNTE2MjM5MDIyfQ.SflKxwRJSMeKKF2QT4fwpMeJf36POk6yJV_adQssw5c", true},
+		{"long_jwt_token", "eyJhbGciOiJSUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxMjM0NTY3ODkwIiwibmFtZSI6IkpvaG4gRG9lIiwiYWRtaW4iOnRydWUsImlhdCI6MTUxNjIzOTAyMn0.NHVaYe26MbtOYhSKkoKYdFVomg4i8ZJd8_-RU8VNbftc4TSMb4bXP3l3YlNWACwyXPGffz5aXHc6lty1Y2t4SWRqGteragsVdZufDn5BlnJl9pdR_kdVFUsra2rWKEofkZeIC4yWytE58sMIihvo9H1ScmmVwBcQP6XETqYd0aSHp1gOa9RdUPDvoXQ5oqygTqVtxaDr6wUFKrKItgBMzWIdNZ6y7O9E0DhEPTbE9rfBo6KTFsHAZnMg4k68CDp2woYIaXbmYTWcvbzIuHO7_37GT79XdIwkm95QJ7hYC9RiwrV7mesbY4PAahERJawntho0my942XheVLmGwLMBkQ", true},
+		{"short_token", "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxMjM0NTY3ODkwIiwibmFtZSI6IkpvaG4gRG9lIiwiaWF0IjoxNTE2MjM5MDIyfQ", false}, // Less than 32 chars total
 		{"empty_token", "", false},
-		{"exactly_16_chars", "abcdefgh12345678", true},
-		{"jwt_like_token", "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxMjM0NTY3ODkwIiwibmFtZSI6IkpvaG4gRG9lIiwiaWF0IjoxNTE2MjM5MDIyfQ", true},
+		{"simple_token_no_dots", "abcdefgh12345678abcdefgh12345678", false}, // No JWT structure
+		{"token_with_invalid_chars", "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxMjM0NTY3ODkwIiwibmFtZSI6IkpvaG4gRG9lIiwiaWF0IjoxNTE2MjM5MDIyfQ.SflKxwRJSMeKKF2QT4fwpMeJf36POk6yJV_adQssw5c$", false}, // Invalid char at end
+		{"token_with_space", "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxMjM0NTY3ODkwIiwibmFtZSI6IkpvaG4gRG9lIiwiaWF0IjoxNTE2MjM5MDIyfQ.SflKxwRJSMeKKF2QT4fwpMeJf36POk6yJV_adQssw5c ", false},         // Trailing space
+		{"token_with_plus", "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxMjM0NTY3ODkwIiwibmFtZSI6IkpvaG4gRG9lIiwiaWF0IjoxNTE2MjM5MDIyfQ.SflKxwRJSMeKKF2QT4fwpMeJf36POk6yJV+adQssw5c", true},            // Plus char is valid in base64url
 	}
 
 	for _, tt := range tests {

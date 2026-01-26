@@ -154,12 +154,86 @@ func authenticateBasic(r *http.Request, username, password string) bool {
 	return user == username && pass == password && username != "" && password != ""
 }
 
-// ValidateAPIKey validates an API key format
+// ValidateAPIKey validates an API key format with complexity requirements
 func ValidateAPIKey(key string) bool {
-	return key != "" && len(key) >= 8
+	if key == "" || len(key) < 16 {
+		return false
+	}
+
+	var (
+		hasUpper   bool
+		hasLower   bool
+		hasDigit   bool
+		hasSpecial bool
+	)
+
+	// Check for required character classes
+	for _, char := range key {
+		switch {
+		case char >= 'A' && char <= 'Z':
+			hasUpper = true
+		case char >= 'a' && char <= 'z':
+			hasLower = true
+		case char >= '0' && char <= '9':
+			hasDigit = true
+		case char == '!' || char == '@' || char == '#' || char == '$' ||
+			char == '%' || char == '^' || char == '&' || char == '*' ||
+			char == '(' || char == ')' || char == '-' || char == '_' ||
+			char == '+' || char == '=' || char == '[' || char == ']' ||
+			char == '{' || char == '}' || char == '|' || char == '\\' ||
+			char == ';' || char == ':' || char == '\'' || char == '"' ||
+			char == '<' || char == '>' || char == ',' || char == '.' ||
+			char == '?' || char == '/' || char == '~' || char == '`':
+			hasSpecial = true
+		}
+	}
+
+	// Require at least 3 of 4 character classes
+	classCount := 0
+	if hasUpper {
+		classCount++
+	}
+	if hasLower {
+		classCount++
+	}
+	if hasDigit {
+		classCount++
+	}
+	if hasSpecial {
+		classCount++
+	}
+
+	return classCount >= 3
 }
 
-// ValidateBearerToken validates a bearer token format
+// ValidateBearerToken validates a bearer token format with JWT structure checks
 func ValidateBearerToken(token string) bool {
-	return token != "" && len(token) >= 16
+	if token == "" || len(token) < 32 {
+		return false
+	}
+
+	// Check if token follows JWT structure (header.payload.signature)
+	parts := strings.Split(token, ".")
+	if len(parts) != 3 {
+		return false
+	}
+
+	// Validate each part is base64url encoded
+	for _, part := range parts {
+		if part == "" {
+			return false
+		}
+		// Check for valid base64url characters
+		for _, char := range part {
+			valid := (char >= 'A' && char <= 'Z') ||
+				(char >= 'a' && char <= 'z') ||
+				(char >= '0' && char <= '9') ||
+				char == '-' || char == '_' || char == '+'
+			if !valid {
+				return false
+			}
+		}
+	}
+
+	return true
 }

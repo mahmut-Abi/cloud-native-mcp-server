@@ -5,6 +5,7 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
+	"sort"
 	"strconv"
 	"time"
 
@@ -13,6 +14,7 @@ import (
 
 	"github.com/mahmut-Abi/k8s-mcp-server/internal/services/alertmanager/client"
 	optimize "github.com/mahmut-Abi/k8s-mcp-server/internal/util/performance"
+	"github.com/mahmut-Abi/k8s-mcp-server/internal/util/sanitize"
 )
 
 var logger = logrus.WithField("component", "alertmanager-handlers")
@@ -66,8 +68,9 @@ func HandleGetAlerts(client *client.Client) func(ctx context.Context, request mc
 			if filtersMap, ok := filtersArg.(map[string]interface{}); ok {
 				filters = make(map[string]string)
 				for k, v := range filtersMap {
+					// Sanitize filter values to prevent injection attacks
 					if s, ok := v.(string); ok {
-						filters[k] = s
+						filters[k] = sanitize.SanitizeFilterValue(s)
 					}
 				}
 			}
@@ -328,8 +331,10 @@ func HandleQueryAlerts(client *client.Client) func(ctx context.Context, request 
 			return nil, fmt.Errorf("failed to query alerts: %w", err)
 		}
 
-		// TODO: Implement sorting if sortBy is specified
-		// This would require additional processing of the alerts slice
+		// Implement sorting if sortBy is specified
+		if sortBy, ok := request.GetArguments()["sortBy"].(string); ok {
+			sortAlerts(alerts, sortBy)
+		}
 
 		content, err := marshalIndentJSON(alerts)
 		if err != nil {
@@ -342,6 +347,104 @@ func HandleQueryAlerts(client *client.Client) func(ctx context.Context, request 
 			},
 		}, nil
 	}
+}
+
+// sortAlerts sorts alerts based on the specified field
+func sortAlerts(alerts []map[string]interface{}, sortBy string) {
+	if len(alerts) == 0 {
+		return
+	}
+
+	// Supported sort fields
+	switch sortBy {
+	case "severity", "severity_desc":
+		sortBySeverity(alerts, sortBy == "severity_desc")
+	case "startsAt", "startsAt_desc":
+		sortByStartsAt(alerts, sortBy == "startsAt_desc")
+	case "endsAt", "endsAt_desc":
+		sortByEndsAt(alerts, sortBy == "endsAt_desc")
+	case "fingerprint", "fingerprint_desc":
+		sortByFingerprint(alerts, sortBy == "fingerprint_desc")
+	default:
+		logger.WithField("sortBy", sortBy).Warn("Unsupported sort field, skipping sort")
+	}
+}
+
+// sortBySeverity sorts alerts by severity (critical > warning > info)
+func sortBySeverity(alerts []map[string]interface{}, desc bool) {
+	sort.Slice(alerts, func(i, j int) bool {
+		severityI := getSeverity(alerts[i])
+		severityJ := getSeverity(alerts[j])
+
+		if desc {
+			return severityI > severityJ
+		}
+		return severityI < severityJ
+	})
+}
+
+// getSeverity extracts severity from alert labels
+func getSeverity(alert map[string]interface{}) int {
+	labels, ok := alert["labels"].(map[string]interface{})
+	if !ok {
+		return 0
+	}
+
+	severity, ok := labels["severity"].(string)
+	if !ok {
+		return 0
+	}
+
+	// Severity priority: critical=3, warning=2, info=1, other=0
+	switch severity {
+	case "critical":
+		return 3
+	case "warning":
+		return 2
+	case "info":
+		return 1
+	default:
+		return 0
+	}
+}
+
+// sortByStartsAt sorts alerts by start time
+func sortByStartsAt(alerts []map[string]interface{}, desc bool) {
+	sort.Slice(alerts, func(i, j int) bool {
+		startsAtI, _ := time.Parse(time.RFC3339, alerts[i]["startsAt"].(string))
+		startsAtJ, _ := time.Parse(time.RFC3339, alerts[j]["startsAt"].(string))
+
+		if desc {
+			return startsAtI.After(startsAtJ)
+		}
+		return startsAtI.Before(startsAtJ)
+	})
+}
+
+// sortByEndsAt sorts alerts by end time
+func sortByEndsAt(alerts []map[string]interface{}, desc bool) {
+	sort.Slice(alerts, func(i, j int) bool {
+		endsAtI, _ := time.Parse(time.RFC3339, alerts[i]["endsAt"].(string))
+		endsAtJ, _ := time.Parse(time.RFC3339, alerts[j]["endsAt"].(string))
+
+		if desc {
+			return endsAtI.After(endsAtJ)
+		}
+		return endsAtI.Before(endsAtJ)
+	})
+}
+
+// sortByFingerprint sorts alerts by fingerprint
+func sortByFingerprint(alerts []map[string]interface{}, desc bool) {
+	sort.Slice(alerts, func(i, j int) bool {
+		fingerprintI := alerts[i]["fingerprint"].(string)
+		fingerprintJ := alerts[j]["fingerprint"].(string)
+
+		if desc {
+			return fingerprintI > fingerprintJ
+		}
+		return fingerprintI < fingerprintJ
+	})
 }
 
 // Helper function to validate and parse limit parameter with warnings
