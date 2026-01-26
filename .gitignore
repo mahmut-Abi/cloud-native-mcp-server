@@ -13,6 +13,6 @@ bin/
 *.tgz
 charts/*/charts/
 charts/*/requirements.lock
-k8s-mcp-server
+/k8s-mcp-server
 /server
 TODO.md

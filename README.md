@@ -4,6 +4,8 @@
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 [![Go Version](https://img.shields.io/badge/Go-1.24+-blue.svg)](https://golang.org)
 
+[🇨🇳 中文文档](README-zh.md) | [🇬🇧 English](README.md)
+
 A high-performance Model Context Protocol (MCP) server for Kubernetes and cloud-native infrastructure management with 9 integrated services and 210+ tools.
 
 ---

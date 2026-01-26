@@ -1,0 +1,24 @@
+apiVersion: v2
+name: k8s-mcp-server
+description: Kubernetes MCP Server - Intelligent cloud-native management platform
+type: application
+version: 0.1.0
+appVersion: "latest"
+home: https://github.com/mahmut-Abi/k8s-mcp-server
+sources:
+  - https://github.com/mahmut-Abi/k8s-mcp-server
+maintainers:
+  - name: mahmut-Abi
+    email: mahmut@example.com
+keywords:
+  - kubernetes
+  - mcp
+  - ai
+  - monitoring
+  - management
+  - cloud-native
+annotations:
+  category: Infrastructure
+  licenses: MIT
+dependencies: []
+kubeVersion: ">=1.20.0-0"
