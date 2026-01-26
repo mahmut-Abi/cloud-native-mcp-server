@@ -14,7 +14,7 @@ import (
 func TestHandler(t *testing.T) {
 	// Reset registry for clean test
 	Registry = prometheus.NewRegistry()
-	Init("test", "test", "go1.24", "sse", "0.0.0.0:8080")
+	Init("test", "test", "go1.25", "sse", "0.0.0.0:8080")
 
 	handler := Handler()
 	if handler == nil {
@@ -57,7 +57,7 @@ func TestHandler(t *testing.T) {
 func TestRecordHTTPRequest(t *testing.T) {
 	// Reset registry for clean test
 	Registry = prometheus.NewRegistry()
-	Init("test", "test", "go1.24", "sse", "0.0.0.0:8080")
+	Init("test", "test", "go1.25", "sse", "0.0.0.0:8080")
 
 	tests := []struct {
 		name         string
@@ -175,7 +175,7 @@ func TestRecordHTTPRequest(t *testing.T) {
 func TestIncDecActiveConnections(t *testing.T) {
 	// Reset registry for clean test
 	Registry = prometheus.NewRegistry()
-	Init("test", "test", "go1.24", "sse", "0.0.0.0:8080")
+	Init("test", "test", "go1.25", "sse", "0.0.0.0:8080")
 
 	// Initial value should be 0
 	initialValue := getGaugeValue("http_connections_active")
@@ -215,7 +215,7 @@ func TestIncDecActiveConnections(t *testing.T) {
 func TestRecordHTTPRequest_MultipleRequests(t *testing.T) {
 	// Reset registry for clean test
 	Registry = prometheus.NewRegistry()
-	Init("test", "test", "go1.24", "sse", "0.0.0.0:8080")
+	Init("test", "test", "go1.25", "sse", "0.0.0.0:8080")
 
 	// Record multiple requests
 	for i := 0; i < 5; i++ {

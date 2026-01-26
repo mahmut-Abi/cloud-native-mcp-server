@@ -152,7 +152,7 @@ func (g *Generator) addHealthEndpoint() {
 								"services": map[string]interface{}{
 									"kubernetes": map[string]interface{}{
 										"status":  "healthy",
-										"version": "1.24.0",
+										"version": "1.25.0",
 									},
 									"prometheus": map[string]interface{}{
 										"status":  "healthy",
