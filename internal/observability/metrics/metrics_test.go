@@ -19,13 +19,13 @@ func TestInit(t *testing.T) {
 			name:      "basic initialization",
 			version:   "1.0.0",
 			commit:    "abc123",
-			goVersion: "go1.24",
+			goVersion: "go1.25",
 			mode:      "sse",
 			addr:      "0.0.0.0:8080",
 			wantLabels: map[string]string{
 				"version":    "1.0.0",
 				"commit":     "abc123",
-				"go_version": "go1.24",
+				"go_version": "go1.25",
 			},
 		},
 		{

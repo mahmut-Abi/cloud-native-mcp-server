@@ -11,7 +11,7 @@ import (
 
 func init() {
 	// Initialize metrics for all tests
-	metrics.Init("test", "test", "go1.24", "sse", "0.0.0.0:8080")
+	metrics.Init("test", "test", "go1.25", "sse", "0.0.0.0:8080")
 }
 
 func TestSessionRegisterHookFunc(t *testing.T) {

@@ -2,7 +2,7 @@
 
 [![Go Report Card](https://goreportcard.com/badge/github.com/mahmut-Abi/k8s-mcp-server)](https://goreportcard.com/report/github.com/mahmut-Abi/k8s-mcp-server)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
-[![Go Version](https://img.shields.io/badge/Go-1.24+-blue.svg)](https://golang.org)
+[![Go Version](https://img.shields.io/badge/Go-1.25+-blue.svg)](https://golang.org)
 
 [🇨🇳 中文文档](README-zh.md) | [🇬🇧 English](README.md)
 

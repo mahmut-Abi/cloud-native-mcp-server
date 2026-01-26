@@ -28,7 +28,7 @@ This guide covers various deployment strategies and best practices for the K8s M
 
 ### Software Requirements
 
-- **Go**: 1.24+ (for building from source)
+- **Go**: 1.25+ (for building from source)
 - **Docker**: 20.10+ (for containerized deployment)
 - **kubectl**: Configured with cluster access
 - **Helm**: 3.0+ (for Helm deployment)
@@ -298,7 +298,7 @@ docker-compose restart
 Build your own image:
 
 ```dockerfile
-FROM golang:1.24-alpine AS builder
+FROM golang:1.25-alpine AS builder
 
 WORKDIR /app
 COPY go.mod go.sum ./

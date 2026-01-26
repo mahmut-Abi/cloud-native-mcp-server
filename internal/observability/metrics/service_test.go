@@ -9,7 +9,7 @@ import (
 func TestRecordToolCall(t *testing.T) {
 	// Reset registry for clean test
 	Registry = prometheus.NewRegistry()
-	Init("test", "test", "go1.24", "sse", "0.0.0.0:8080")
+	Init("test", "test", "go1.25", "sse", "0.0.0.0:8080")
 
 	tests := []struct {
 		name        string
@@ -113,7 +113,7 @@ func TestRecordToolCall(t *testing.T) {
 func TestRecordToolCall_MultipleCalls(t *testing.T) {
 	// Reset registry for clean test
 	Registry = prometheus.NewRegistry()
-	Init("test", "test", "go1.24", "sse", "0.0.0.0:8080")
+	Init("test", "test", "go1.25", "sse", "0.0.0.0:8080")
 
 	// Record multiple calls
 	for i := 0; i < 3; i++ {
@@ -147,7 +147,7 @@ func TestRecordToolCall_MultipleCalls(t *testing.T) {
 func TestRecordExternalAPICall(t *testing.T) {
 	// Reset registry for clean test
 	Registry = prometheus.NewRegistry()
-	Init("test", "test", "go1.24", "sse", "0.0.0.0:8080")
+	Init("test", "test", "go1.25", "sse", "0.0.0.0:8080")
 
 	tests := []struct {
 		name        string
@@ -212,7 +212,7 @@ func TestRecordExternalAPICall(t *testing.T) {
 func TestRecordCacheHit(t *testing.T) {
 	// Reset registry for clean test
 	Registry = prometheus.NewRegistry()
-	Init("test", "test", "go1.24", "sse", "0.0.0.0:8080")
+	Init("test", "test", "go1.25", "sse", "0.0.0.0:8080")
 
 	RecordCacheHit("kubernetes", "tools")
 
@@ -247,7 +247,7 @@ func TestRecordCacheHit(t *testing.T) {
 func TestRecordCacheMiss(t *testing.T) {
 	// Reset registry for clean test
 	Registry = prometheus.NewRegistry()
-	Init("test", "test", "go1.24", "sse", "0.0.0.0:8080")
+	Init("test", "test", "go1.25", "sse", "0.0.0.0:8080")
 
 	RecordCacheMiss("grafana", "dashboards")
 
@@ -282,7 +282,7 @@ func TestRecordCacheMiss(t *testing.T) {
 func TestSetCircuitBreakerState(t *testing.T) {
 	// Reset registry for clean test
 	Registry = prometheus.NewRegistry()
-	Init("test", "test", "go1.24", "sse", "0.0.0.0:8080")
+	Init("test", "test", "go1.25", "sse", "0.0.0.0:8080")
 
 	tests := []struct {
 		name               string
@@ -347,7 +347,7 @@ func TestSetCircuitBreakerState(t *testing.T) {
 func TestRecordCircuitBreakerFailure(t *testing.T) {
 	// Reset registry for clean test
 	Registry = prometheus.NewRegistry()
-	Init("test", "test", "go1.24", "sse", "0.0.0.0:8080")
+	Init("test", "test", "go1.25", "sse", "0.0.0.0:8080")
 
 	RecordCircuitBreakerFailure("kubernetes", "api")
 	RecordCircuitBreakerFailure("kubernetes", "api")
@@ -384,7 +384,7 @@ func TestRecordCircuitBreakerFailure(t *testing.T) {
 func TestCacheMetrics_MultipleOperations(t *testing.T) {
 	// Reset registry for clean test
 	Registry = prometheus.NewRegistry()
-	Init("test", "test", "go1.24", "sse", "0.0.0.0:8080")
+	Init("test", "test", "go1.25", "sse", "0.0.0.0:8080")
 
 	// Record multiple cache operations
 	RecordCacheHit("kubernetes", "tools")
