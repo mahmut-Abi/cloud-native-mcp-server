@@ -1,0 +1,165 @@
+package middleware
+
+import (
+	"fmt"
+	"net/http"
+	"strings"
+
+	"github.com/sirupsen/logrus"
+)
+
+const authComponent = "auth"
+
+type AuthConfig struct {
+	Enabled     bool
+	Mode        string // apikey, bearer, basic
+	APIKey      string
+	BearerToken string
+	Username    string
+	Password    string
+}
+
+// AuthMiddleware creates an HTTP middleware for authentication
+func AuthMiddleware(config AuthConfig) func(http.Handler) http.Handler {
+	return func(next http.Handler) http.Handler {
+		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+			// Log auth middleware entry
+			logrus.WithFields(logrus.Fields{
+				"component": authComponent,
+				"enabled":   config.Enabled,
+				"mode":      config.Mode,
+				"path":      r.URL.Path,
+			}).Debug("Auth middleware processing request")
+
+			if !config.Enabled {
+				logrus.Debug("Authentication disabled, proceeding")
+				next.ServeHTTP(w, r)
+				return
+			}
+
+			if !authenticate(r, config) {
+				logrus.Error("Authentication failed - returning 401")
+				logrus.Warnf("Authentication failed for request from %s to %s", r.RemoteAddr, r.RequestURI)
+				w.WriteHeader(http.StatusUnauthorized)
+				logrus.WithFields(logrus.Fields{
+					"component":   authComponent,
+					"operation":   "authenticate",
+					"http_method": r.Method,
+					"http_path":   r.URL.Path,
+					"remote_addr": r.RemoteAddr,
+					"status":      "failed",
+				}).Warn("Authentication failed")
+				_, _ = fmt.Fprint(w, "{\"error\":\"unauthorized\"}")
+				return
+			}
+
+			next.ServeHTTP(w, r)
+			logrus.Debug("Authentication successful, proceeding")
+		})
+	}
+}
+
+// authenticate checks if the request has valid authentication
+func authenticate(r *http.Request, config AuthConfig) bool {
+	logrus.WithFields(logrus.Fields{
+		"component":   authComponent,
+		"mode":        config.Mode,
+		"has_api_key": getAPIKeyFromRequest(r) != "",
+	}).Debug("Starting authentication process")
+
+	switch config.Mode {
+	case "apikey":
+		providedKey := getAPIKeyFromRequest(r)
+		logrus.WithFields(logrus.Fields{
+			"component":           authComponent,
+			"mode":                config.Mode,
+			"provided_key_length": len(providedKey),
+			"expected_key_length": len(config.APIKey),
+			"match":               providedKey == config.APIKey,
+		}).Debug("API Key auth attempt")
+		return authenticateAPIKey(r, config.APIKey)
+	case "bearer":
+		logrus.Debug("Processing Bearer token authentication")
+		return authenticateBearer(r, config.BearerToken)
+	case "basic":
+		logrus.Debug("Processing Basic authentication")
+		return authenticateBasic(r, config.Username, config.Password)
+	default:
+		logrus.WithFields(logrus.Fields{
+			"component": authComponent,
+			"mode":      config.Mode,
+		}).Error("Unknown authentication mode")
+		return false
+	}
+}
+
+// getAPIKeyFromRequest extracts API key from request headers or query params
+// Supports multiple case variations: X-API-Key, X-Api-Key, x-api-key
+// Cleans the key by removing quotes and whitespace
+func getAPIKeyFromRequest(r *http.Request) string {
+	// Check various header case variations
+	headerNames := []string{"X-API-Key", "X-Api-Key", "x-api-key", "X-api-key"}
+	for _, headerName := range headerNames {
+		if key := r.Header.Get(headerName); key != "" {
+			// Clean the key by trimming whitespace and quotes
+			cleanKey := strings.TrimSpace(key)
+			cleanKey = strings.Trim(cleanKey, "'\"") // Remove single and double quotes
+			if cleanKey != "" {
+				return cleanKey
+			}
+		}
+	}
+
+	// Fallback to query parameter
+	queryKey := r.URL.Query().Get("api_key")
+	if queryKey != "" {
+		// Clean the key by trimming whitespace and quotes
+		cleanKey := strings.TrimSpace(queryKey)
+		cleanKey = strings.Trim(cleanKey, "'\"") // Remove single and double quotes
+		return cleanKey
+	}
+
+	return ""
+}
+
+// authenticateAPIKey checks API key authentication
+func authenticateAPIKey(r *http.Request, expectedKey string) bool {
+	key := getAPIKeyFromRequest(r)
+	logrus.WithFields(logrus.Fields{
+		"component":           authComponent,
+		"provided_key_length": len(key),
+		"expected_key_length": len(expectedKey),
+		"keys_match":          key == expectedKey,
+		"expected_empty":      expectedKey == "",
+	}).Debug("API key authentication check")
+	return key == expectedKey && expectedKey != ""
+}
+
+// authenticateBearer checks Bearer token authentication
+func authenticateBearer(r *http.Request, expectedToken string) bool {
+	auth := r.Header.Get("Authorization")
+	if !strings.HasPrefix(auth, "Bearer ") {
+		return false
+	}
+	token := strings.TrimPrefix(auth, "Bearer ")
+	return token == expectedToken && expectedToken != ""
+}
+
+// authenticateBasic checks Basic authentication
+func authenticateBasic(r *http.Request, username, password string) bool {
+	user, pass, ok := r.BasicAuth()
+	if !ok {
+		return false
+	}
+	return user == username && pass == password && username != "" && password != ""
+}
+
+// ValidateAPIKey validates an API key format
+func ValidateAPIKey(key string) bool {
+	return key != "" && len(key) >= 8
+}
+
+// ValidateBearerToken validates a bearer token format
+func ValidateBearerToken(token string) bool {
+	return token != "" && len(token) >= 16
+}

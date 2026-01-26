@@ -1,0 +1,102 @@
+apiVersion: v1
+data:
+  config.yaml: |
+
+    kubernetes:
+      kubeconfig: ""
+
+    server:
+        mode: "sse"
+        addr: "0.0.0.0:8080"
+        ssePaths:
+            aggregate: "/api/aggregate/sse"
+    logging:
+        level: "debug"
+        json: false
+
+    prometheus:
+        enabled: false
+        address: "http://localhost:9090"
+        bearerToken: ""
+        tlsSkipVerify: true
+
+    grafana:
+        enabled: false
+        url: "http://localhost:3000"
+        apiKey: ""
+        username: ""
+        password: ""
+
+    kibana:
+        enabled: false
+        url: "https://localhost:5601"
+        apiKey: ""
+        username: ""
+        password: ""
+        skipVerify: true
+        space: "default"
+
+    helm:
+        enabled: true
+        kubeconfigPath: ""
+        namespace: "default"
+        debug: true
+        timeoutSec: 300
+        maxRetries: 3
+        useMirrors: false
+        httpProxy: ""
+        httpsProxy: ""
+
+        mirrors: {}
+
+    elasticsearch:
+        enabled: false
+        addresses:
+            - "http://localhost:9200"
+        username: ""
+        password: ""
+        bearerToken: ""
+        apiKey: ""
+        tlsSkipVerify: true
+
+    auth:
+        enabled: true
+        mode: "apikey"
+        apiKey: "12345678"
+
+    audit:
+        enabled: true
+        level: "info"
+        storage: "file"
+        format: "json"
+        file:
+            path: "/var/log/k8s-mcp-server/audit.log"
+            maxSizeMB: 100
+            maxBackups: 10
+            maxAgeDays: 30
+            compress: true
+        fields:
+            timestamp: true
+            clientIP: true
+            user: true
+            toolName: true
+            serviceName: true
+            arguments: true
+            result: false
+            duration: true
+            status: true
+            error: true
+
+        masking:
+            enabled: false
+        sampling:
+            enabled: false
+
+        query:
+            enabled: true
+            maxResults: 1000
+            timeRangeDays: 90
+kind: ConfigMap
+metadata:
+  name: mcp-server-config
+  namespace: mcp-server
