@@ -46,6 +46,8 @@ jobs:
     name: Dependency Review
     runs-on: ubuntu-latest
     if: github.event_name == 'pull_request'
+    permissions:
+      contents: read
     
     steps:
     - name: Checkout code
@@ -59,6 +61,8 @@ jobs:
   license-scan:
     name: License Scan
     runs-on: ubuntu-latest
+    permissions:
+      contents: read
     
     steps:
     - name: Checkout code
