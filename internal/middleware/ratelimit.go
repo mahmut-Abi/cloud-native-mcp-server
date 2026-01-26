@@ -2,9 +2,12 @@ package middleware
 
 import (
 	"container/heap"
+	"context"
 	"net/http"
 	"sync"
 	"time"
+
+	"github.com/mahmut-Abi/k8s-mcp-server/internal/constants"
 )
 
 // rateLimitEntry represents a rate limit entry for a client
@@ -54,6 +57,8 @@ type RateLimiter struct {
 	cleanupThreshold int           // Threshold for triggering cleanup
 	cleanupBatch     int           // Number of entries to clean in one batch
 	staleDuration    time.Duration // Duration after which an entry is considered stale
+	ctx              context.Context
+	cancel           context.CancelFunc
 }
 
 // NewRateLimiter creates a new rate limiter
@@ -61,44 +66,54 @@ func NewRateLimiter(rps float64, burst int) *RateLimiter {
 	h := &rateLimitHeap{}
 	heap.Init(h)
 
+	ctx, cancel := context.WithCancel(context.Background())
+
 	rl := &RateLimiter{
 		entries:          make(map[string]*rateLimitEntry),
 		heap:             h,
 		rps:              rps,
 		burst:            burst,
-		cleanupThreshold: 10000,
-		cleanupBatch:     1000,
-		staleDuration:    time.Hour,
+		cleanupThreshold: constants.RateLimitCleanupThreshold,
+		cleanupBatch:     constants.RateLimitCleanupBatch,
+		staleDuration:    constants.RateLimitStaleDuration,
+		ctx:              ctx,
+		cancel:           cancel,
 	}
 	// Start background cleanup
-	rl.cleanupTicker = time.NewTicker(5 * time.Minute)
+	rl.cleanupTicker = time.NewTicker(constants.RateLimitCleanupInterval)
 	go rl.cleanupOldEntries()
 	return rl
 }
 
 // cleanupOldEntries removes stale entries using the heap for efficient cleanup
 func (rl *RateLimiter) cleanupOldEntries() {
-	for range rl.cleanupTicker.C {
-		rl.mu.Lock()
-		if len(rl.entries) > rl.cleanupThreshold {
-			now := time.Now()
-			deleted := 0
+	for {
+		select {
+		case <-rl.cleanupTicker.C:
+			rl.mu.Lock()
+			if len(rl.entries) > rl.cleanupThreshold {
+				now := time.Now()
+				deleted := 0
 
-			// Remove stale entries from the heap (oldest first)
-			for rl.heap.Len() > 0 && deleted < rl.cleanupBatch {
-				entry := (*rl.heap)[0]
-				if now.Sub(entry.lastSeen) > rl.staleDuration {
-					heap.Pop(rl.heap)
-					delete(rl.entries, entry.clientID)
-					deleted++
-				} else {
-					// Since heap is ordered by lastSeen, if the oldest entry is not stale,
-					// no other entries will be stale either
-					break
+				// Remove stale entries from the heap (oldest first)
+				for rl.heap.Len() > 0 && deleted < rl.cleanupBatch {
+					entry := (*rl.heap)[0]
+					if now.Sub(entry.lastSeen) > rl.staleDuration {
+						heap.Pop(rl.heap)
+						delete(rl.entries, entry.clientID)
+						deleted++
+					} else {
+						// Since heap is ordered by lastSeen, if the oldest entry is not stale,
+						// no other entries will be stale either
+						break
+					}
 				}
 			}
+			rl.mu.Unlock()
+		case <-rl.ctx.Done():
+			// Context cancelled, stop cleanup goroutine
+			return
 		}
-		rl.mu.Unlock()
 	}
 }
 
@@ -143,6 +158,9 @@ func (rl *RateLimiter) Allow(clientID string) bool {
 
 // Close stops the cleanup goroutine and releases resources
 func (rl *RateLimiter) Close() {
+	if rl.cancel != nil {
+		rl.cancel()
+	}
 	if rl.cleanupTicker != nil {
 		rl.cleanupTicker.Stop()
 	}

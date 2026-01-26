@@ -6,6 +6,8 @@ import (
 	"sync"
 	"sync/atomic"
 	"time"
+
+	"github.com/mahmut-Abi/k8s-mcp-server/internal/constants"
 )
 
 // SegmentedCache implements Cache interface with segmented locking for better concurrency
@@ -30,7 +32,7 @@ func NewSegmentedCache() *SegmentedCache {
 	cache := &SegmentedCache{
 		segments:   make([]*cacheSegment, defaultSegmentCount),
 		segmentNum: defaultSegmentCount,
-		maxSize:    10000,
+		maxSize:    constants.DefaultCacheSize,
 	}
 
 	for i := 0; i < defaultSegmentCount; i++ {

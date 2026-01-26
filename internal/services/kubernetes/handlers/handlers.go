@@ -14,19 +14,13 @@ import (
 	"github.com/sirupsen/logrus"
 	"k8s.io/client-go/util/jsonpath"
 
+	"github.com/mahmut-Abi/k8s-mcp-server/internal/constants"
 	"github.com/mahmut-Abi/k8s-mcp-server/internal/services/kubernetes/client"
 	optimize "github.com/mahmut-Abi/k8s-mcp-server/internal/util/performance"
 )
 
 // Type alias for PaginationInfo from client package
 type PaginationInfo = client.PaginationInfo
-
-const (
-	defaultTailLines = 50
-	defaultLimit     = 30 // Further reduce default limit to prevent context overflow
-	maxLimit         = 80 // Reduce maximum allowed limit to enhance security
-	warningLimit     = 40 // Threshold to warn users about high limits
-)
 
 var (
 	ErrMissingRequiredParam = errors.New("missing required parameter")
@@ -262,19 +256,19 @@ func HandleGetEvents(client *client.Client) func(ctx context.Context, request mc
 		fieldSelector := getOptionalStringParam(request, "fieldSelector")
 		debug := getOptionalStringParam(request, "debug")
 
-		limit := int64(defaultLimit)
+		limit := int64(constants.DefaultLimit)
 		if v, ok := request.GetArguments()["limit"]; ok {
 			if f, ok := v.(float64); ok {
 				limit = int64(f)
-				if limit <= 0 || limit > maxLimit {
-					if limit > maxLimit {
-						logrus.WithField("requested", limit).WithField("max", maxLimit).Warn("Event limit too high, resetting to safe maximum")
-						limit = maxLimit
+				if limit <= 0 || limit > constants.MaxLimit {
+					if limit > constants.MaxLimit {
+						logrus.WithField("requested", limit).WithField("max", constants.MaxLimit).Warn("Event limit too high, resetting to safe maximum")
+						limit = constants.MaxLimit
 					} else {
-						limit = defaultLimit
+						limit = constants.DefaultLimit
 					}
 				}
-				if limit > warningLimit {
+				if limit > constants.WarningLimit {
 					logrus.WithField("limit", limit).Warn("Large event limit may cause context overflow, consider using get_recent_events for critical events only")
 				}
 			}
@@ -347,7 +341,7 @@ func HandleContainerLogs(client *client.Client) func(ctx context.Context, reques
 		container := getOptionalStringParam(request, "container")
 		logrus.WithFields(logrus.Fields{"tool": "get_pod_logs", "pod": name, "ns": namespace, "container": container}).Debug("Handler invoked")
 
-		tailLines := int64(defaultTailLines)
+		tailLines := int64(constants.DefaultTailLines)
 		if v, ok := request.GetArguments()["tailLines"]; ok {
 			if f, ok := v.(float64); ok {
 				tailLines = int64(f)
@@ -356,7 +350,7 @@ func HandleContainerLogs(client *client.Client) func(ctx context.Context, reques
 						logrus.WithField("requested", tailLines).Warn("Log tail lines too high, resetting to safe maximum")
 						tailLines = 200
 					} else {
-						tailLines = defaultTailLines
+						tailLines = constants.DefaultTailLines
 					}
 				}
 			}
@@ -675,19 +669,19 @@ func HandleListResources(client *client.Client) func(ctx context.Context, reques
 		debug := getOptionalStringParam(request, "debug")
 
 		// Parse limit parameter with conservative default to prevent context overflow
-		limit := int64(defaultLimit)
+		limit := int64(constants.DefaultLimit)
 		if v, ok := request.GetArguments()["limit"]; ok {
 			if f, ok := v.(float64); ok {
 				limit = int64(f)
-				if limit <= 0 || limit > maxLimit {
-					if limit > maxLimit {
-						logrus.WithField("requested", limit).WithField("max", maxLimit).Warn("Limit too high, resetting to safe maximum")
-						limit = maxLimit
+				if limit <= 0 || limit > constants.MaxLimit {
+					if limit > constants.MaxLimit {
+						logrus.WithField("requested", limit).WithField("max", constants.MaxLimit).Warn("Limit too high, resetting to safe maximum")
+						limit = constants.MaxLimit
 					} else {
-						limit = defaultLimit // Reset to default if out of bounds
+						limit = constants.DefaultLimit // Reset to default if out of bounds
 					}
 				}
-				if limit > warningLimit {
+				if limit > constants.WarningLimit {
 					logrus.WithField("limit", limit).Warn("Large limit may cause context overflow, consider using summary tools or pagination")
 				}
 			}
@@ -808,16 +802,16 @@ func HandleListResourcesSummary(client *client.Client) func(ctx context.Context,
 		limitStr := getOptionalStringParam(request, "limit")
 		continueToken := getOptionalStringParam(request, "continueToken")
 
-		limit := int64(defaultLimit)
+		limit := int64(constants.DefaultLimit)
 		if limitStr != "" {
 			if l, err := strconv.Atoi(limitStr); err == nil && l > 0 {
-				if l > maxLimit {
-					logrus.WithField("requested", l).WithField("max", maxLimit).Warn("Summary limit too high, resetting to safe maximum")
-					limit = maxLimit
+				if l > constants.MaxLimit {
+					logrus.WithField("requested", l).WithField("max", constants.MaxLimit).Warn("Summary limit too high, resetting to safe maximum")
+					limit = constants.MaxLimit
 				} else {
 					limit = int64(l)
 				}
-				if l > warningLimit {
+				if l > constants.WarningLimit {
 					logrus.WithField("limit", l).Warn("Large summary limit may cause context overflow")
 				}
 			}
