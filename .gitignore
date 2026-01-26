@@ -14,5 +14,5 @@ bin/
 charts/*/charts/
 charts/*/requirements.lock
 k8s-mcp-server
-server
+/server
 TODO.md
