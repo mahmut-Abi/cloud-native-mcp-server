@@ -21,10 +21,10 @@ func TestOpenTelemetryServiceIsEnabled(t *testing.T) {
 
 func TestOpenTelemetryServiceInitialize(t *testing.T) {
 	svc := NewService()
-	
+
 	appConfig := &config.AppConfig{}
 	appConfig.OpenTelemetry.Enabled = false
-	
+
 	err := svc.Initialize(appConfig)
 	_ = err
 }

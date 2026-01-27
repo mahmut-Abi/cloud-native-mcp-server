@@ -134,24 +134,24 @@ type AppConfig struct {
 
 	// OTEL configuration for server's own observability
 	OTEL struct {
-		Enabled        bool   `yaml:"enabled"`                 // Enable server OpenTelemetry
-		ServiceName    string `yaml:"serviceName"`             // Service name
-		ServiceVersion string `yaml:"serviceVersion"`          // Service version
-		Environment    string `yaml:"environment"`             // Deployment environment
-		Endpoint       string `yaml:"endpoint"`                // OTLP collector endpoint
-		Insecure       bool   `yaml:"insecure"`                // Skip TLS for OTLP
+		Enabled        bool   `yaml:"enabled"`        // Enable server OpenTelemetry
+		ServiceName    string `yaml:"serviceName"`    // Service name
+		ServiceVersion string `yaml:"serviceVersion"` // Service version
+		Environment    string `yaml:"environment"`    // Deployment environment
+		Endpoint       string `yaml:"endpoint"`       // OTLP collector endpoint
+		Insecure       bool   `yaml:"insecure"`       // Skip TLS for OTLP
 		Tracing        struct {
-			Enabled            bool   `yaml:"enabled"`             // Enable tracing
-			SampleRate         float64 `yaml:"sampleRate"`          // Trace sampling rate
-			ExportTimeoutSec   int    `yaml:"exportTimeoutSec"`    // Export timeout
-			BatchTimeoutSec    int    `yaml:"batchTimeoutSec"`     // Batch timeout
-			MaxExportBatchSize int    `yaml:"maxExportBatchSize"`  // Max batch size
+			Enabled            bool    `yaml:"enabled"`            // Enable tracing
+			SampleRate         float64 `yaml:"sampleRate"`         // Trace sampling rate
+			ExportTimeoutSec   int     `yaml:"exportTimeoutSec"`   // Export timeout
+			BatchTimeoutSec    int     `yaml:"batchTimeoutSec"`    // Batch timeout
+			MaxExportBatchSize int     `yaml:"maxExportBatchSize"` // Max batch size
 		} `yaml:"tracing"`
 		Metrics struct {
-			Enabled         bool   `yaml:"enabled"`          // Enable metrics
-			ExportIntervalSec int   `yaml:"exportIntervalSec"` // Export interval
-			ExportTimeoutSec  int   `yaml:"exportTimeoutSec"`  // Export timeout
-			Temporality      string `yaml:"temporality"`      // Temporality type
+			Enabled           bool   `yaml:"enabled"`           // Enable metrics
+			ExportIntervalSec int    `yaml:"exportIntervalSec"` // Export interval
+			ExportTimeoutSec  int    `yaml:"exportTimeoutSec"`  // Export timeout
+			Temporality       string `yaml:"temporality"`       // Temporality type
 		} `yaml:"metrics"`
 	} `yaml:"otel"`
 
