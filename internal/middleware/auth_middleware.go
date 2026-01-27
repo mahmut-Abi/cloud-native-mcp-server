@@ -29,13 +29,11 @@ func AuthMiddleware(config AuthConfig) func(http.Handler) http.Handler {
 	return func(next http.Handler) http.Handler {
 		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 			// Log auth middleware entry
-			if authLogger.IsLevelEnabled(logrus.DebugLevel) {
-				authLogger.WithFields(logrus.Fields{
-					"enabled": config.Enabled,
-					"mode":    config.Mode,
-					"path":    r.URL.Path,
-				}).Debug("Auth middleware processing request")
-			}
+			authLogger.WithFields(logrus.Fields{
+				"enabled": config.Enabled,
+				"mode":    config.Mode,
+				"path":    r.URL.Path,
+			}).Debug("Auth middleware processing request")
 
 			if !config.Enabled {
 				authLogger.Debug("Authentication disabled, proceeding")
@@ -47,15 +45,13 @@ func AuthMiddleware(config AuthConfig) func(http.Handler) http.Handler {
 				authLogger.Error("Authentication failed - returning 401")
 				authLogger.Warnf("Authentication failed for request from %s to %s", r.RemoteAddr, r.RequestURI)
 				w.WriteHeader(http.StatusUnauthorized)
-				if authLogger.IsLevelEnabled(logrus.WarnLevel) {
-					authLogger.WithFields(logrus.Fields{
-						"operation":   "authenticate",
-						"http_method": r.Method,
-						"http_path":   r.URL.Path,
-						"remote_addr": r.RemoteAddr,
-						"status":      "failed",
-					}).Warn("Authentication failed")
-				}
+				authLogger.WithFields(logrus.Fields{
+					"operation":   "authenticate",
+					"http_method": r.Method,
+					"http_path":   r.URL.Path,
+					"remote_addr": r.RemoteAddr,
+					"status":      "failed",
+				}).Warn("Authentication failed")
 				_, _ = fmt.Fprint(w, "{\"error\":\"unauthorized\"}")
 				return
 			}
@@ -68,24 +64,20 @@ func AuthMiddleware(config AuthConfig) func(http.Handler) http.Handler {
 
 // authenticate checks if the request has valid authentication
 func authenticate(r *http.Request, config AuthConfig) bool {
-	if authLogger.IsLevelEnabled(logrus.DebugLevel) {
-		authLogger.WithFields(logrus.Fields{
-			"mode":        config.Mode,
-			"has_api_key": getAPIKeyFromRequest(r) != "",
-		}).Debug("Starting authentication process")
-	}
+	authLogger.WithFields(logrus.Fields{
+		"mode":        config.Mode,
+		"has_api_key": getAPIKeyFromRequest(r) != "",
+	}).Debug("Starting authentication process")
 
 	switch config.Mode {
 	case "apikey":
 		providedKey := getAPIKeyFromRequest(r)
-		if authLogger.IsLevelEnabled(logrus.DebugLevel) {
-			authLogger.WithFields(logrus.Fields{
-				"mode":                config.Mode,
-				"provided_key_length": len(providedKey),
-				"expected_key_length": len(config.APIKey),
-				"match":               providedKey == config.APIKey,
-			}).Debug("API Key auth attempt")
-		}
+		authLogger.WithFields(logrus.Fields{
+			"mode":                config.Mode,
+			"provided_key_length": len(providedKey),
+			"expected_key_length": len(config.APIKey),
+			"match":               providedKey == config.APIKey,
+		}).Debug("API Key auth attempt")
 		return authenticateAPIKey(r, config.APIKey)
 	case "bearer":
 		authLogger.Debug("Processing Bearer token authentication")
@@ -100,16 +92,22 @@ func authenticate(r *http.Request, config AuthConfig) bool {
 }
 
 // getAPIKeyFromRequest extracts API key from request headers or query params
-// Uses canonical header name for efficiency
+// Uses canonical header name for efficiency and cleans the key by removing quotes
 func getAPIKeyFromRequest(r *http.Request) string {
 	// Check canonical header name first
 	if key := r.Header.Get("X-Api-Key"); key != "" {
-		return strings.TrimSpace(key)
+		// Clean the key by trimming whitespace and quotes
+		cleanKey := strings.TrimSpace(key)
+		cleanKey = strings.Trim(cleanKey, "'\"") // Remove single and double quotes
+		return cleanKey
 	}
 
 	// Fallback to query parameter
 	if queryKey := r.URL.Query().Get("api_key"); queryKey != "" {
-		return strings.TrimSpace(queryKey)
+		// Clean the key by trimming whitespace and quotes
+		cleanKey := strings.TrimSpace(queryKey)
+		cleanKey = strings.Trim(cleanKey, "'\"") // Remove single and double quotes
+		return cleanKey
 	}
 
 	return ""
@@ -118,14 +116,12 @@ func getAPIKeyFromRequest(r *http.Request) string {
 // authenticateAPIKey checks API key authentication
 func authenticateAPIKey(r *http.Request, expectedKey string) bool {
 	key := getAPIKeyFromRequest(r)
-	if authLogger.IsLevelEnabled(logrus.DebugLevel) {
-		authLogger.WithFields(logrus.Fields{
-			"provided_key_length": len(key),
-			"expected_key_length": len(expectedKey),
-			"keys_match":          key == expectedKey,
-			"expected_empty":      expectedKey == "",
-		}).Debug("API key authentication check")
-	}
+	authLogger.WithFields(logrus.Fields{
+		"provided_key_length": len(key),
+		"expected_key_length": len(expectedKey),
+		"keys_match":          key == expectedKey,
+		"expected_empty":      expectedKey == "",
+	}).Debug("API key authentication check")
 	return key == expectedKey && expectedKey != ""
 }
 

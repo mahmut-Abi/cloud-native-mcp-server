@@ -61,7 +61,9 @@ func (h *ResponseHandler) handleErrorResponse(resp *http.Response, body []byte) 
 
 	switch statusCode {
 	case 400:
-		return h.createError("BAD_REQUEST", "bad request", fmt.Errorf(bodyStr), 400)
+		return errors.New(h.prefixCode("BAD_REQUEST"), fmt.Sprintf("bad request: %s", bodyStr)).
+			WithHTTPStatus(400).
+			WithContext("service", h.serviceName)
 	case 401:
 		return errors.New(h.prefixCode("UNAUTHORIZED"), "unauthorized access").
 			WithHTTPStatus(401)
@@ -72,20 +74,32 @@ func (h *ResponseHandler) handleErrorResponse(resp *http.Response, body []byte) 
 		return errors.NotFoundError("resource").
 			WithHTTPStatus(404)
 	case 409:
-		return h.createError("CONFLICT", "resource conflict", fmt.Errorf(bodyStr), 409)
+		return errors.New(h.prefixCode("CONFLICT"), fmt.Sprintf("resource conflict: %s", bodyStr)).
+			WithHTTPStatus(409).
+			WithContext("service", h.serviceName)
 	case 422:
-		return h.createError("UNPROCESSABLE_ENTITY", "unprocessable entity", fmt.Errorf(bodyStr), 422)
+		return errors.New(h.prefixCode("UNPROCESSABLE_ENTITY"), fmt.Sprintf("unprocessable entity: %s", bodyStr)).
+			WithHTTPStatus(422).
+			WithContext("service", h.serviceName)
 	case 429:
 		return errors.New(h.prefixCode("RATE_LIMITED"), "rate limit exceeded").
 			WithHTTPStatus(429)
 	case 500:
-		return h.createError("SERVER_ERROR", "server error", fmt.Errorf(bodyStr), 500)
+		return errors.New(h.prefixCode("SERVER_ERROR"), fmt.Sprintf("server error: %s", bodyStr)).
+			WithHTTPStatus(500).
+			WithContext("service", h.serviceName)
 	case 502:
-		return h.createError("BAD_GATEWAY", "bad gateway", fmt.Errorf(bodyStr), 502)
+		return errors.New(h.prefixCode("BAD_GATEWAY"), fmt.Sprintf("bad gateway: %s", bodyStr)).
+			WithHTTPStatus(502).
+			WithContext("service", h.serviceName)
 	case 503:
-		return h.createError("SERVICE_UNAVAILABLE", "service unavailable", fmt.Errorf(bodyStr), 503)
+		return errors.New(h.prefixCode("SERVICE_UNAVAILABLE"), fmt.Sprintf("service unavailable: %s", bodyStr)).
+			WithHTTPStatus(503).
+			WithContext("service", h.serviceName)
 	case 504:
-		return h.createError("GATEWAY_TIMEOUT", "gateway timeout", fmt.Errorf(bodyStr), 504)
+		return errors.New(h.prefixCode("GATEWAY_TIMEOUT"), fmt.Sprintf("gateway timeout: %s", bodyStr)).
+			WithHTTPStatus(504).
+			WithContext("service", h.serviceName)
 	default:
 		return errors.New(h.prefixCode("API_ERROR"), fmt.Sprintf("API error (status %d): %s", statusCode, bodyStr)).
 			WithHTTPStatus(statusCode).
