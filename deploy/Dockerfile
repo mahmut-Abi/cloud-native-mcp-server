@@ -15,6 +15,9 @@ RUN CGO_ENABLED=0 GOOS=linux go build \
 
 FROM alpine:3.21
 
+# Upgrade all packages to fix CVE-2024-58251 and other security vulnerabilities
+RUN apk upgrade --no-cache
+
 COPY --from=builder /app/k8s-mcp-server /usr/local/bin/k8s-mcp-server
 
 # Create directory for audit logs with proper permissions
