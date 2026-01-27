@@ -443,6 +443,78 @@ opentelemetry:
   tlsCAFile: ""
 
 ################################################################################
+# OpenTelemetry (OTEL) Configuration for Server Observability
+################################################################################
+otel:
+  # Enable/disable server's own OpenTelemetry instrumentation
+  # This enables distributed tracing and metrics export from the MCP server itself
+  # Environment variable: MCP_OTEL_ENABLED (1, true, yes, on)
+  enabled: false
+
+  # Service name for tracing/metrics
+  # Environment variable: MCP_OTEL_SERVICE_NAME
+  serviceName: "cloud-native-mcp-server"
+
+  # Service version
+  # Environment variable: MCP_OTEL_SERVICE_VERSION
+  serviceVersion: "1.0.0"
+
+  # Deployment environment (production, staging, dev)
+  # Environment variable: MCP_OTEL_ENVIRONMENT
+  environment: "production"
+
+  # OTLP collector endpoint for traces and metrics export
+  # Format: host:port or http://host:port
+  # Environment variable: MCP_OTEL_ENDPOINT
+  endpoint: "localhost:4317"
+
+  # Skip TLS verification for OTLP connection
+  # DO NOT use in production!
+  # Environment variable: MCP_OTEL_INSECURE (1, true, yes, on)
+  insecure: true
+
+  # Tracing configuration
+  tracing:
+    # Enable/disable distributed tracing
+    # Environment variable: MCP_OTEL_TRACING_ENABLED
+    enabled: true
+
+    # Trace sampling rate (0.0 to 1.0)
+    # 1.0 = sample all traces, 0.1 = sample 10% of traces
+    # Environment variable: MCP_OTEL_TRACING_SAMPLE_RATE
+    sampleRate: 0.1
+
+    # Trace export timeout (seconds)
+    # Environment variable: MCP_OTEL_TRACING_EXPORT_TIMEOUT
+    exportTimeoutSec: 30
+
+    # Trace batch export timeout (seconds)
+    # Environment variable: MCP_OTEL_TRACING_BATCH_TIMEOUT
+    batchTimeoutSec: 5
+
+    # Maximum batch size for trace exports
+    # Environment variable: MCP_OTEL_TRACING_MAX_BATCH_SIZE
+    maxExportBatchSize: 512
+
+  # Metrics configuration
+  metrics:
+    # Enable/disable metrics export
+    # Environment variable: MCP_OTEL_METRICS_ENABLED
+    enabled: true
+
+    # Metrics export interval (seconds)
+    # Environment variable: MCP_OTEL_METRICS_EXPORT_INTERVAL
+    exportIntervalSec: 15
+
+    # Metrics export timeout (seconds)
+    # Environment variable: MCP_OTEL_METRICS_EXPORT_TIMEOUT
+    exportTimeoutSec: 30
+
+    # Metrics temporality: cumulative | delta
+    # Environment variable: MCP_OTEL_METRICS_TEMPORALITY
+    temporality: "cumulative"
+
+################################################################################
 # Authentication Configuration
 ################################################################################
 auth:
