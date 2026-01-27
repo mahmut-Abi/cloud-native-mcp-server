@@ -85,29 +85,6 @@ title: "Cloud Native MCP Server"
   font-size: 2.5rem;
   margin-bottom: 1rem;
 }
-table {
-  width: 100%;
-  border-collapse: collapse;
-  margin: 2rem 0;
-  background: white;
-  border-radius: 8px;
-  overflow: hidden;
-  box-shadow: 0 2px 4px rgba(0,0,0,0.1);
-}
-th {
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-  color: white;
-  padding: 1rem;
-  text-align: left;
-  font-weight: 600;
-}
-td {
-  padding: 1rem;
-  border-bottom: 1px solid #e2e8f0;
-}
-tr:hover td {
-  background: #f7fafc;
-}
 pre {
   background: #2d3748;
   color: #e2e8f0;
@@ -144,14 +121,6 @@ h3 {
 p {
   line-height: 1.8;
   margin-bottom: 1rem;
-}
-ul, ol {
-  margin: 1rem 0;
-  padding-left: 2rem;
-}
-li {
-  margin-bottom: 0.5rem;
-  line-height: 1.6;
 }
 a {
   color: #667eea;
@@ -191,35 +160,12 @@ a:hover {
 
 ## 快速开始
 
-### 使用二进制文件
-
-```bash
-# 下载最新版本
-curl -LO https://github.com/mahmut-Abi/cloud-native-mcp-server/releases/latest/download/cloud-native-mcp-server-linux-amd64
-chmod +x cloud-native-mcp-server-linux-amd64
-
-# 以 SSE 模式运行（默认）
-./cloud-native-mcp-server-linux-amd64 --mode=sse --addr=0.0.0.0:8080
-```
-
-### 使用 Docker
-
 ```bash
 docker run -d \
   --name cloud-native-mcp-server \
   -p 8080:8080 \
   -v ~/.kube:/root/.kube:ro \
   mahmutabi/cloud-native-mcp-server:latest
-```
-
-### 从源码构建
-
-```bash
-git clone https://github.com/mahmut-Abi/cloud-native-mcp-server.git
-cd cloud-native-mcp-server
-
-make build
-./cloud-native-mcp-server --mode=sse --addr=0.0.0.0:8080
 ```
 
 ## 核心特性
@@ -250,84 +196,11 @@ make build
   <p>支持 SSE、HTTP、stdio 多种模式，适配各种使用场景</p>
 </div>
 
-<div class="feature-card">
-  <div class="feature-icon">📝</div>
-  <h3>审计日志</h3>
-  <p>完整的操作审计和日志记录，支持多种存储方式</p>
 </div>
 
-<div class="feature-card">
-  <div class="feature-icon">🤖</div>
-  <h3>AI 优化</h3>
-  <p>专为 LLM 设计，包含摘要工具和分页功能，防止上下文溢出</p>
-</div>
+## 了解更多
 
-</div>
-
-## 服务概览
-
-| 服务 | 工具数量 | 描述 |
-|------|---------|------|
-| **Kubernetes** | 28 | 容器编排和资源管理 |
-| **Helm** | 31 | 应用包管理和部署 |
-| **Grafana** | 36 | 可视化、监控仪表板和告警 |
-| **Prometheus** | 20 | 指标收集、查询和监控 |
-| **Kibana** | 52 | 日志分析、可视化和数据探索 |
-| **Elasticsearch** | 14 | 日志存储、搜索和数据索引 |
-| **Alertmanager** | 15 | 告警规则管理和通知 |
-| **Jaeger** | 8 | 分布式追踪和性能分析 |
-| **OpenTelemetry** | 9 | 指标、追踪和日志收集分析 |
-| **Utilities** | 6 | 通用工具集 |
-
-**总计：220+ 工具**
-
-## API 端点
-
-### SSE 模式
-
-| 端点 | 描述 |
-|------|------|
-| `/api/aggregate/sse` | 所有服务（推荐） |
-| `/api/kubernetes/sse` | Kubernetes 服务 |
-| `/api/helm/sse` | Helm 服务 |
-| `/api/grafana/sse` | Grafana 服务 |
-| `/api/prometheus/sse` | Prometheus 服务 |
-| `/api/kibana/sse` | Kibana 服务 |
-| `/api/elasticsearch/sse` | Elasticsearch 服务 |
-| `/api/alertmanager/sse` | Alertmanager 服务 |
-| `/api/jaeger/sse` | Jaeger 服务 |
-| `/api/opentelemetry/sse` | OpenTelemetry 服务 |
-| `/api/utilities/sse` | Utilities 服务 |
-
-### HTTP 模式
-
-将上述端点中的 `/sse` 替换为 `/http` 即可。
-
-## 文档
-
+- [查看所有服务](/services/) - 了解 10 个集成服务的详细信息
 - [完整工具参考](/docs/tools/) - 所有 220+ 工具的详细文档
-- [配置指南](/docs/configuration/) - 配置选项和示例
 - [部署指南](/docs/deployment/) - 部署策略和最佳实践
-- [安全指南](/docs/security/) - 认证、密钥管理和安全最佳实践
-- [架构指南](/docs/architecture/) - 系统架构和设计
-- [性能指南](/docs/performance/) - 性能特性和调优
-
-## 构建
-
-```bash
-# 构建当前平台
-make build
-
-# 运行测试
-make test
-
-# 代码检查
-make lint
-
-# Docker 构建
-make docker-build
-```
-
-## 许可证
-
-MIT License - 详见 [LICENSE](https://github.com/mahmut-Abi/cloud-native-mcp-server/blob/main/LICENSE)
+- [配置指南](/docs/configuration/) - 配置选项和示例
