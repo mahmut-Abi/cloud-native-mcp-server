@@ -19,6 +19,7 @@ type AppConfig struct {
 			Elasticsearch string `yaml:"elasticsearch"` // SSE path for Elasticsearch service
 			Alertmanager  string `yaml:"alertmanager"`  // SSE path for Alertmanager service
 			Jaeger        string `yaml:"jaeger"`        // SSE path for Jaeger service
+			OpenTelemetry string `yaml:"opentelemetry"` // SSE path for OpenTelemetry service
 			Aggregate     string `yaml:"aggregate"`     // SSE path for aggregated service
 			Utilities     string `yaml:"utilities"`     // SSE path for Utilities service
 		} `yaml:"ssePaths"`
@@ -31,6 +32,7 @@ type AppConfig struct {
 			Elasticsearch string `yaml:"elasticsearch"` // Streamable-HTTP path for Elasticsearch service
 			Alertmanager  string `yaml:"alertmanager"`  // Streamable-HTTP path for Alertmanager service
 			Jaeger        string `yaml:"jaeger"`        // Streamable-HTTP path for Jaeger service
+			OpenTelemetry string `yaml:"opentelemetry"` // Streamable-HTTP path for OpenTelemetry service
 			Aggregate     string `yaml:"aggregate"`     // Streamable-HTTP path for aggregated service
 			Utilities     string `yaml:"utilities"`     // Streamable-HTTP path for Utilities service
 		} `yaml:"streamableHttpPaths"`
@@ -116,6 +118,19 @@ type AppConfig struct {
 		Address    string `yaml:"address"`    // Jaeger server address
 		TimeoutSec int    `yaml:"timeoutSec"` // Request timeout in seconds
 	} `yaml:"jaeger"`
+
+	OpenTelemetry struct {
+		Enabled       bool   `yaml:"enabled"`       // Enable OpenTelemetry service
+		Address       string `yaml:"address"`       // OpenTelemetry Collector address
+		TimeoutSec    int    `yaml:"timeoutSec"`    // Request timeout in seconds
+		Username      string `yaml:"username"`      // Basic auth username
+		Password      string `yaml:"password"`      // Basic auth password
+		BearerToken   string `yaml:"bearerToken"`   // Bearer token for auth
+		TLSSkipVerify bool   `yaml:"tlsSkipVerify"` // Skip TLS verification
+		TLSCertFile   string `yaml:"tlsCertFile"`   // TLS certificate file
+		TLSKeyFile    string `yaml:"tlsKeyFile"`    // TLS key file
+		TLSCAFile     string `yaml:"tlsCAFile"`     // TLS CA file
+	} `yaml:"opentelemetry"`
 
 	// Service and tool filtering
 
@@ -290,6 +305,9 @@ func (c *AppConfig) Validate() error {
 	}
 	if c.Jaeger.Enabled && c.Jaeger.Address == "" {
 		return fmt.Errorf("jaeger address is required when service is enabled")
+	}
+	if c.OpenTelemetry.Enabled && c.OpenTelemetry.Address == "" {
+		return fmt.Errorf("opentelemetry address is required when service is enabled")
 	}
 	if c.Elasticsearch.Enabled && len(c.Elasticsearch.Addresses) == 0 && c.Elasticsearch.Address == "" {
 		return fmt.Errorf("elasticsearch address or addresses is required when service is enabled")

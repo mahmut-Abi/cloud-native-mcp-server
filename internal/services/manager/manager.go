@@ -17,6 +17,7 @@ import (
 	"github.com/mahmut-Abi/k8s-mcp-server/internal/services/jaeger"
 	"github.com/mahmut-Abi/k8s-mcp-server/internal/services/kibana"
 	"github.com/mahmut-Abi/k8s-mcp-server/internal/services/kubernetes"
+	"github.com/mahmut-Abi/k8s-mcp-server/internal/services/opentelemetry"
 	"github.com/mahmut-Abi/k8s-mcp-server/internal/services/prometheus"
 	"github.com/mahmut-Abi/k8s-mcp-server/internal/services/utilities"
 )
@@ -34,6 +35,7 @@ type Manager struct {
 	alertmanagerService  *alertmanager.Service
 	elasticsearchService *elasticsearch.Service
 	jaegerService        *jaeger.Service
+	opentelemetryService *opentelemetry.Service
 	utilitiesService     *utilities.Service
 	disabledTools        map[string]bool
 	disabledToolsMutex   sync.RWMutex     // Protect disabledTools from concurrent access
@@ -80,6 +82,7 @@ func (m *Manager) Initialize(appConfig *config.AppConfig) error {
 	m.alertmanagerService = alertmanager.NewService()
 	m.elasticsearchService = elasticsearch.NewService()
 	m.jaegerService = jaeger.NewService()
+	m.opentelemetryService = opentelemetry.NewService()
 	m.utilitiesService = utilities.NewService()
 
 	// Register services
@@ -91,6 +94,7 @@ func (m *Manager) Initialize(appConfig *config.AppConfig) error {
 	m.registry.Register(m.alertmanagerService)
 	m.registry.Register(m.elasticsearchService)
 	m.registry.Register(m.jaegerService)
+	m.registry.Register(m.opentelemetryService)
 	m.registry.Register(m.utilitiesService)
 
 	// Define empty config as default
@@ -126,6 +130,7 @@ func (m *Manager) Initialize(appConfig *config.AppConfig) error {
 		{"helm", func() error { return m.helmService.Initialize(cfg) }},
 		{"alertmanager", func() error { return m.alertmanagerService.Initialize(cfg) }},
 		{"jaeger", func() error { return m.jaegerService.Initialize(cfg) }},
+		{"opentelemetry", func() error { return m.opentelemetryService.Initialize(cfg) }},
 		{"utilities", func() error { return m.utilitiesService.Initialize(cfg) }},
 	}
 
@@ -175,6 +180,7 @@ func (m *Manager) InitializeParallel(appConfig *config.AppConfig) error {
 	m.alertmanagerService = alertmanager.NewService()
 	m.elasticsearchService = elasticsearch.NewService()
 	m.jaegerService = jaeger.NewService()
+	m.opentelemetryService = opentelemetry.NewService()
 	m.utilitiesService = utilities.NewService()
 
 	// Register services
@@ -186,6 +192,7 @@ func (m *Manager) InitializeParallel(appConfig *config.AppConfig) error {
 	m.registry.Register(m.alertmanagerService)
 	m.registry.Register(m.elasticsearchService)
 	m.registry.Register(m.jaegerService)
+	m.registry.Register(m.opentelemetryService)
 	m.registry.Register(m.utilitiesService)
 
 	// Block on critical Kubernetes service (must be initialized first)
@@ -208,6 +215,7 @@ func (m *Manager) InitializeParallel(appConfig *config.AppConfig) error {
 		{"helm", func() error { return m.helmService.Initialize(appConfig) }},
 		{"alertmanager", func() error { return m.alertmanagerService.Initialize(appConfig) }},
 		{"jaeger", func() error { return m.jaegerService.Initialize(appConfig) }},
+		{"opentelemetry", func() error { return m.opentelemetryService.Initialize(appConfig) }},
 		{"utilities", func() error { return m.utilitiesService.Initialize(appConfig) }},
 	}
 
@@ -365,6 +373,11 @@ func (m *Manager) GetJaegerService() *jaeger.Service {
 	return m.jaegerService
 }
 
+// GetOpenTelemetryService returns the OpenTelemetry service
+func (m *Manager) GetOpenTelemetryService() *opentelemetry.Service {
+	return m.opentelemetryService
+}
+
 // GetUtilitiesService returns the Utilities service
 func (m *Manager) GetUtilitiesService() *utilities.Service {
 	return m.utilitiesService
@@ -506,7 +519,7 @@ func (m *Manager) ApplyServiceFilters(disabled, enabled []string) {
 		enabledMap[svc] = true
 	}
 
-	allServices := []string{"kubernetes", "grafana", "prometheus", "kibana", "helm", "elasticsearch", "alertmanager", "jaeger", "utilities"}
+	allServices := []string{"kubernetes", "grafana", "prometheus", "kibana", "helm", "elasticsearch", "alertmanager", "jaeger", "opentelemetry", "utilities"}
 
 	// If specific services are enabled, disable all others
 	if len(enabled) > 0 {
@@ -541,6 +554,9 @@ func (m *Manager) ApplyServiceFilters(disabled, enabled []string) {
 	}
 	if disabledMap["jaeger"] && m.jaegerService != nil {
 		m.jaegerService = nil
+	}
+	if disabledMap["opentelemetry"] && m.opentelemetryService != nil {
+		m.opentelemetryService = nil
 	}
 	if disabledMap["utilities"] && m.utilitiesService != nil {
 		m.utilitiesService = nil
@@ -641,6 +657,7 @@ func (m *Manager) Shutdown() error {
 		{"alertmanager", m.alertmanagerService},
 		{"elasticsearch", m.elasticsearchService},
 		{"jaeger", m.jaegerService},
+		{"opentelemetry", m.opentelemetryService},
 		{"utilities", m.utilitiesService},
 	}
 
