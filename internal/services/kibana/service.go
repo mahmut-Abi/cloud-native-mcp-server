@@ -8,12 +8,12 @@ import (
 	"github.com/mark3labs/mcp-go/mcp"
 	server "github.com/mark3labs/mcp-go/server"
 
-	"github.com/mahmut-Abi/k8s-mcp-server/internal/config"
-	"github.com/mahmut-Abi/k8s-mcp-server/internal/services/cache"
-	"github.com/mahmut-Abi/k8s-mcp-server/internal/services/framework"
-	"github.com/mahmut-Abi/k8s-mcp-server/internal/services/kibana/client"
-	"github.com/mahmut-Abi/k8s-mcp-server/internal/services/kibana/handlers"
-	"github.com/mahmut-Abi/k8s-mcp-server/internal/services/kibana/tools"
+	"github.com/mahmut-Abi/cloud-native-mcp-server/internal/config"
+	"github.com/mahmut-Abi/cloud-native-mcp-server/internal/services/cache"
+	"github.com/mahmut-Abi/cloud-native-mcp-server/internal/services/framework"
+	"github.com/mahmut-Abi/cloud-native-mcp-server/internal/services/kibana/client"
+	"github.com/mahmut-Abi/cloud-native-mcp-server/internal/services/kibana/handlers"
+	"github.com/mahmut-Abi/cloud-native-mcp-server/internal/services/kibana/tools"
 )
 
 // Service implements the Kibana service for MCP server integration.

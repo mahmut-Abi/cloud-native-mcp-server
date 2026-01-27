@@ -8,12 +8,12 @@ import (
 	"github.com/mark3labs/mcp-go/mcp"
 	server "github.com/mark3labs/mcp-go/server"
 
-	"github.com/mahmut-Abi/k8s-mcp-server/internal/config"
-	"github.com/mahmut-Abi/k8s-mcp-server/internal/services/alertmanager/client"
-	"github.com/mahmut-Abi/k8s-mcp-server/internal/services/alertmanager/handlers"
-	"github.com/mahmut-Abi/k8s-mcp-server/internal/services/alertmanager/tools"
-	"github.com/mahmut-Abi/k8s-mcp-server/internal/services/cache"
-	"github.com/mahmut-Abi/k8s-mcp-server/internal/services/framework"
+	"github.com/mahmut-Abi/cloud-native-mcp-server/internal/config"
+	"github.com/mahmut-Abi/cloud-native-mcp-server/internal/services/alertmanager/client"
+	"github.com/mahmut-Abi/cloud-native-mcp-server/internal/services/alertmanager/handlers"
+	"github.com/mahmut-Abi/cloud-native-mcp-server/internal/services/alertmanager/tools"
+	"github.com/mahmut-Abi/cloud-native-mcp-server/internal/services/cache"
+	"github.com/mahmut-Abi/cloud-native-mcp-server/internal/services/framework"
 )
 
 // Service implements the Alertmanager service for MCP server integration.

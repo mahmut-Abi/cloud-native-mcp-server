@@ -6,7 +6,7 @@ import (
 	"testing"
 	"time"
 
-	appconfig "github.com/mahmut-Abi/k8s-mcp-server/internal/config"
+	appconfig "github.com/mahmut-Abi/cloud-native-mcp-server/internal/config"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )

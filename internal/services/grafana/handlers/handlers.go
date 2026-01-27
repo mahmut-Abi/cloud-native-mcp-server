@@ -14,9 +14,9 @@ import (
 	"github.com/mark3labs/mcp-go/mcp"
 	"github.com/sirupsen/logrus"
 
-	"github.com/mahmut-Abi/k8s-mcp-server/internal/constants"
-	"github.com/mahmut-Abi/k8s-mcp-server/internal/services/grafana/client"
-	optimize "github.com/mahmut-Abi/k8s-mcp-server/internal/util/performance"
+	"github.com/mahmut-Abi/cloud-native-mcp-server/internal/constants"
+	"github.com/mahmut-Abi/cloud-native-mcp-server/internal/services/grafana/client"
+	optimize "github.com/mahmut-Abi/cloud-native-mcp-server/internal/util/performance"
 )
 
 var (

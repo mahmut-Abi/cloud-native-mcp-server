@@ -397,6 +397,52 @@ alertmanager:
   tlsCAFile: ""
 
 ################################################################################
+# OpenTelemetry Configuration
+################################################################################
+opentelemetry:
+  # Enable/disable OpenTelemetry service
+  # Environment variable: MCP_OPENTELEMETRY_ENABLED (1, true, yes, on)
+  enabled: false
+
+  # OpenTelemetry Collector address
+  # Format: http://host:port or https://host:port
+  # Environment variable: MCP_OPENTELEMETRY_ADDRESS
+  address: "http://localhost:4318"
+
+  # Request timeout (seconds)
+  # Environment variable: MCP_OPENTELEMETRY_TIMEOUT
+  timeoutSec: 30
+
+  # Basic auth username (optional)
+  # Environment variable: MCP_OPENTELEMETRY_USERNAME
+  username: ""
+
+  # Basic auth password (optional)
+  # Environment variable: MCP_OPENTELEMETRY_PASSWORD
+  password: ""
+
+  # Bearer token auth (optional, takes precedence over Basic Auth)
+  # Environment variable: MCP_OPENTELEMETRY_BEARER_TOKEN
+  bearerToken: ""
+
+  # Skip TLS certificate verification
+  # DO NOT use in production!
+  # Environment variable: MCP_OPENTELEMETRY_TLS_SKIP_VERIFY (1, true, yes, on)
+  tlsSkipVerify: false
+
+  # TLS client certificate file path (for mTLS auth)
+  # Environment variable: MCP_OPENTELEMETRY_TLS_CERT_FILE
+  tlsCertFile: ""
+
+  # TLS client key file path
+  # Environment variable: MCP_OPENTELEMETRY_TLS_KEY_FILE
+  tlsKeyFile: ""
+
+  # TLS CA certificate file path
+  # Environment variable: MCP_OPENTELEMETRY_TLS_CA_FILE
+  tlsCAFile: ""
+
+################################################################################
 # Authentication Configuration
 ################################################################################
 auth:
@@ -471,7 +517,7 @@ audit:
   file:
     # Log file path
     # Environment variable: MCP_AUDIT_FILE_PATH
-    path: "/var/log/k8s-mcp-server/audit.log"
+    path: "/var/log/cloud-native-mcp-server/audit.log"
 
     # Max log file size (MB)
     # Environment variable: MCP_AUDIT_FILE_MAX_SIZE
@@ -502,7 +548,7 @@ audit:
     # SQLite database file path
     # Only used when type="sqlite"
     # Environment variable: MCP_AUDIT_DB_SQLITE_PATH
-    sqlitePath: "/var/lib/k8s-mcp-server/audit.db"
+    sqlitePath: "/var/lib/cloud-native-mcp-server/audit.db"
 
     # PostgreSQL connection string
     # Only used when type="postgresql"

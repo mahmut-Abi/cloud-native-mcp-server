@@ -12,32 +12,32 @@ Kubernetes MCP Server is an intelligent cloud-native management platform designe
 
 ```bash
 # Add repository
-helm repo add k8s-mcp-server https://charts.example.com/k8s-mcp-server
+helm repo add cloud-native-mcp-server https://charts.example.com/cloud-native-mcp-server
 helm repo update
 
 # View available versions
-helm search repo k8s-mcp-server
+helm search repo cloud-native-mcp-server
 ```
 
 ### Install Chart
 
 ```bash
 # Install latest version
-helm install my-release k8s-mcp-server/k8s-mcp-server
+helm install my-release cloud-native-mcp-server/cloud-native-mcp-server
 
 # Install specific version
-helm install my-release k8s-mcp-server/k8s-mcp-server --version 0.1.0
+helm install my-release cloud-native-mcp-server/cloud-native-mcp-server --version 0.1.0
 
 # Install to specific namespace
-helm install my-release k8s-mcp-server/k8s-mcp-server --namespace mcp-server --create-namespace
+helm install my-release cloud-native-mcp-server/cloud-native-mcp-server --namespace mcp-server --create-namespace
 ```
 
 ### Use Local Chart
 
 ```bash
 # Clone repository
-git clone https://github.com/mahmut-Abi/k8s-mcp-server.git
-cd k8s-mcp-server/helm/k8s-mcp-server
+git clone https://github.com/mahmut-Abi/cloud-native-mcp-server.git
+cd cloud-native-mcp-server/helm/cloud-native-mcp-server
 
 # Install
 helm install my-release . --namespace mcp-server --create-namespace
@@ -48,7 +48,7 @@ helm install my-release . --namespace mcp-server --create-namespace
 ### View Default Configuration
 
 ```bash
-helm show values k8s-mcp-server/k8s-mcp-server
+helm show values cloud-native-mcp-server/cloud-native-mcp-server
 ```
 
 ### Custom Configuration
@@ -89,13 +89,13 @@ config:
 Install with custom configuration:
 
 ```bash
-helm install my-release k8s-mcp-server/k8s-mcp-server -f values.yaml --namespace mcp-server
+helm install my-release cloud-native-mcp-server/cloud-native-mcp-server -f values.yaml --namespace mcp-server
 ```
 
 ### Override via Command Line
 
 ```bash
-helm install my-release k8s-mcp-server/k8s-mcp-server \
+helm install my-release cloud-native-mcp-server/cloud-native-mcp-server \
   --set replicaCount=5 \
   --set config.auth.apiKey="new-secret-key" \
   --set config.prometheus.enabled=true \
@@ -106,13 +106,13 @@ helm install my-release k8s-mcp-server/k8s-mcp-server \
 
 ```bash
 # Upgrade to latest version
-helm upgrade my-release k8s-mcp-server/k8s-mcp-server
+helm upgrade my-release cloud-native-mcp-server/cloud-native-mcp-server
 
 # Upgrade with custom configuration
-helm upgrade my-release k8s-mcp-server/k8s-mcp-server -f values.yaml
+helm upgrade my-release cloud-native-mcp-server/cloud-native-mcp-server -f values.yaml
 
 # Upgrade via command line
-helm upgrade my-release k8s-mcp-server/k8s-mcp-server \
+helm upgrade my-release cloud-native-mcp-server/cloud-native-mcp-server \
   --set replicaCount=5 \
   --set config.auth.apiKey="updated-secret-key"
 ```
@@ -142,7 +142,7 @@ kubectl delete pvc --namespace mcp-server -l app.kubernetes.io/instance=my-relea
 | Parameter | Description | Default |
 |-----------|-------------|---------|
 | `image.registry` | Image registry | `"docker.io"` |
-| `image.repository` | Image repository | `"mahmutabi/k8s-mcp-server"` |
+| `image.repository` | Image repository | `"mahmutabi/cloud-native-mcp-server"` |
 | `image.tag` | Image tag | `"latest"` |
 | `image.pullPolicy` | Image pull policy | `"IfNotPresent"` |
 | `image.pullSecrets` | Image pull secrets | `[]` |
@@ -173,7 +173,7 @@ kubectl delete pvc --namespace mcp-server -l app.kubernetes.io/instance=my-relea
 | `ingress.enabled` | Enable Ingress | `false` |
 | `ingress.className` | Ingress class name | `""` |
 | `ingress.annotations` | Ingress annotations | `{}` |
-| `ingress.hosts` | Host configuration | `[{"host": "k8s-mcp-server.local", "paths": [{"path": "/", "pathType": "Prefix"}]}]` |
+| `ingress.hosts` | Host configuration | `[{"host": "cloud-native-mcp-server.local", "paths": [{"path": "/", "pathType": "Prefix"}]}]` |
 | `ingress.tls` | TLS configuration | `[]` |
 
 ### RBAC Configuration
@@ -248,7 +248,7 @@ monitoring:
     enabled: true
     rules:
       - alert: K8sMcpServerDown
-        expr: up{job="k8s-mcp-server"} == 0
+        expr: up{job="cloud-native-mcp-server"} == 0
         for: 5m
         labels:
           severity: critical
@@ -262,10 +262,10 @@ monitoring:
 
 ```bash
 # View Pod status
-kubectl get pods -l app.kubernetes.io/name=k8s-mcp-server -n mcp-server
+kubectl get pods -l app.kubernetes.io/name=cloud-native-mcp-server -n mcp-server
 
 # View Service status
-kubectl get svc -l app.kubernetes.io/name=k8s-mcp-server -n mcp-server
+kubectl get svc -l app.kubernetes.io/name=cloud-native-mcp-server -n mcp-server
 
 # View events
 kubectl get events -n mcp-server --sort-by='.lastTimestamp'
@@ -275,10 +275,10 @@ kubectl get events -n mcp-server --sort-by='.lastTimestamp'
 
 ```bash
 # View all Pod logs
-kubectl logs -l app.kubernetes.io/name=k8s-mcp-server -n mcp-server -f
+kubectl logs -l app.kubernetes.io/name=cloud-native-mcp-server -n mcp-server -f
 
 # View specific Pod logs
-kubectl logs -f deployment/k8s-mcp-server -n mcp-server
+kubectl logs -f deployment/cloud-native-mcp-server -n mcp-server
 ```
 
 ### Debug Deployment
@@ -326,7 +326,7 @@ helm template test-release . --debug
 helm package .
 
 # Install local package
-helm install my-release ./k8s-mcp-server-0.1.0.tgz
+helm install my-release ./cloud-native-mcp-server-0.1.0.tgz
 ```
 
 ### Update Dependencies

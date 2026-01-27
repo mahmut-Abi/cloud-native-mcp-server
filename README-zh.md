@@ -1,6 +1,6 @@
 # Kubernetes MCP Server
 
-[![Go Report Card](https://goreportcard.com/badge/github.com/mahmut-Abi/k8s-mcp-server)](https://goreportcard.com/report/github.com/mahmut-Abi/k8s-mcp-server)
+[![Go Report Card](https://goreportcard.com/badge/github.com/mahmut-Abi/cloud-native-mcp-server)](https://goreportcard.com/report/github.com/mahmut-Abi/cloud-native-mcp-server)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 [![Go Version](https://img.shields.io/badge/Go-1.25+-blue.svg)](https://golang.org)
 
@@ -10,7 +10,7 @@
 
 ## 功能特性
 
-- **多服务集成**: Kubernetes、Grafana、Prometheus、Kibana、Elasticsearch、Helm、Alertmanager、Jaeger、Utilities
+- **多服务集成**: Kubernetes、Grafana、Prometheus、Kibana、Elasticsearch、Helm、Alertmanager、Jaeger、OpenTelemetry、Utilities
 - **多协议支持**: SSE、HTTP 和 stdio 模式
 - **智能缓存**: 支持 TTL 的 LRU 缓存以优化性能
 - **性能优化**: JSON 编码池、响应大小控制、智能限制
@@ -32,6 +32,7 @@
 | **elasticsearch** | 日志存储、搜索和数据索引 |
 | **alertmanager** | 告警规则管理和通知 |
 | **jaeger** | 分布式追踪和性能分析 |
+| **opentelemetry** | 指标、追踪和日志收集与分析 |
 | **utilities** | 通用工具 |
 
 ## 快速开始
@@ -40,31 +41,31 @@
 
 ```bash
 # 下载最新版本
-curl -LO https://github.com/mahmut-Abi/k8s-mcp-server/releases/latest/download/k8s-mcp-server-linux-amd64
-chmod +x k8s-mcp-server-linux-amd64
+curl -LO https://github.com/mahmut-Abi/cloud-native-mcp-server/releases/latest/download/cloud-native-mcp-server-linux-amd64
+chmod +x cloud-native-mcp-server-linux-amd64
 
 # 以 SSE 模式运行（默认）
-./k8s-mcp-server-linux-amd64 --mode=sse --addr=0.0.0.0:8080
+./cloud-native-mcp-server-linux-amd64 --mode=sse --addr=0.0.0.0:8080
 ```
 
 ### Docker
 
 ```bash
 docker run -d \
---name k8s-mcp-server \
+--name cloud-native-mcp-server \
 -p 8080:8080 \
 -v ~/.kube:/root/.kube:ro \
-mahmutabi/k8s-mcp-server:latest
+mahmutabi/cloud-native-mcp-server:latest
 ```
 
 ### 从源码构建
 
 ```bash
-git clone https://github.com/mahmut-Abi/k8s-mcp-server.git
-cd k8s-mcp-server
+git clone https://github.com/mahmut-Abi/cloud-native-mcp-server.git
+cd cloud-native-mcp-server
 
 make build
-./k8s-mcp-server --mode=sse --addr=0.0.0.0:8080
+./cloud-native-mcp-server --mode=sse --addr=0.0.0.0:8080
 ```
 
 ## API 端点
@@ -82,6 +83,7 @@ make build
 | `/api/elasticsearch/sse` | Elasticsearch 服务 |
 | `/api/alertmanager/sse` | Alertmanager 服务 |
 | `/api/jaeger/sse` | Jaeger 服务 |
+| `/api/opentelemetry/sse` | OpenTelemetry 服务 |
 | `/api/utilities/sse` | Utilities 服务 |
 
 ### HTTP 模式
@@ -90,7 +92,7 @@ make build
 
 ## 文档
 
-- [完整工具参考](docs/TOOLS.md) - 所有 210+ 工具的详细文档
+- [完整工具参考](docs/TOOLS.md) - 所有 220+ 工具的详细文档
 - [配置指南](docs/CONFIGURATION.md) - 配置选项和示例
 - [部署指南](docs/DEPLOYMENT.md) - 部署策略和最佳实践
 - [安全指南](docs/SECURITY.md) - 身份验证、密钥管理和安全最佳实践

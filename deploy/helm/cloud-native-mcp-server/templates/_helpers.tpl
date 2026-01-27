@@ -1,7 +1,7 @@
 {{/*
 Expand the name of the chart.
 */}}
-{{- define "k8s-mcp-server.name" -}}
+{{- define "cloud-native-mcp-server.name" -}}
 {{- default .Chart.Name .Values.nameOverride | trunc 63 | trimSuffix "-" }}
 {{- end }}
 
@@ -10,7 +10,7 @@ Create a default fully qualified app name.
 We truncate at 63 chars because some Kubernetes name fields are limited to this (by the DNS naming spec).
 If release name contains chart name it will be used as a full name.
 */}}
-{{- define "k8s-mcp-server.fullname" -}}
+{{- define "cloud-native-mcp-server.fullname" -}}
 {{- if .Values.fullnameOverride }}
 {{- .Values.fullnameOverride | trunc 63 | trimSuffix "-" }}
 {{- else }}
@@ -26,16 +26,16 @@ If release name contains chart name it will be used as a full name.
 {{/*
 Create chart name and version as used by the chart label.
 */}}
-{{- define "k8s-mcp-server.chart" -}}
+{{- define "cloud-native-mcp-server.chart" -}}
 {{- printf "%s-%s" .Chart.Name .Chart.Version | replace "+" "_" | trunc 63 | trimSuffix "-" }}
 {{- end }}
 
 {{/*
 Common labels
 */}}
-{{- define "k8s-mcp-server.labels" -}}
-helm.sh/chart: {{ include "k8s-mcp-server.chart" . }}
-{{ include "k8s-mcp-server.selectorLabels" . }}
+{{- define "cloud-native-mcp-server.labels" -}}
+helm.sh/chart: {{ include "cloud-native-mcp-server.chart" . }}
+{{ include "cloud-native-mcp-server.selectorLabels" . }}
 {{- if .Chart.AppVersion }}
 app.kubernetes.io/version: {{ .Chart.AppVersion | quote }}
 {{- end }}
@@ -45,17 +45,17 @@ app.kubernetes.io/managed-by: {{ .Release.Service }}
 {{/*
 Selector labels
 */}}
-{{- define "k8s-mcp-server.selectorLabels" -}}
-app.kubernetes.io/name: {{ include "k8s-mcp-server.name" . }}
+{{- define "cloud-native-mcp-server.selectorLabels" -}}
+app.kubernetes.io/name: {{ include "cloud-native-mcp-server.name" . }}
 app.kubernetes.io/instance: {{ .Release.Name }}
 {{- end }}
 
 {{/*
 Create the name of the service account to use
 */}}
-{{- define "k8s-mcp-server.serviceAccountName" -}}
+{{- define "cloud-native-mcp-server.serviceAccountName" -}}
 {{- if .Values.serviceAccount.create }}
-{{- default (include "k8s-mcp-server.fullname" .) .Values.serviceAccount.name }}
+{{- default (include "cloud-native-mcp-server.fullname" .) .Values.serviceAccount.name }}
 {{- else }}
 {{- default "default" .Values.serviceAccount.name }}
 {{- end }}
@@ -64,7 +64,7 @@ Create the name of the service account to use
 {{/*
 Create the image name
 */}}
-{{- define "k8s-mcp-server.image" -}}
+{{- define "cloud-native-mcp-server.image" -}}
 {{- $registry := .Values.global.imageRegistry | default .Values.image.registry -}}
 {{- $repository := .Values.image.repository -}}
 {{- $tag := .Values.image.tag | default .Chart.AppVersion -}}
@@ -78,22 +78,22 @@ Create the image name
 {{/*
 Return the proper Docker Image Registry Secret Names
 */}}
-{{- define "k8s-mcp-server.imagePullSecrets" -}}
+{{- define "cloud-native-mcp-server.imagePullSecrets" -}}
 {{- include "common.images.pullSecrets" (dict "images" (list .Values.image) "global" .Values.global) -}}
 {{- end }}
 
 {{/*
 Create the configmap checksum
 */}}
-{{- define "k8s-mcp-server.configChecksum" -}}
-{{- $config := include "k8s-mcp-server.config" . | fromYaml }}
+{{- define "cloud-native-mcp-server.configChecksum" -}}
+{{- $config := include "cloud-native-mcp-server.config" . | fromYaml }}
 {{- $config | toYaml | sha256sum }}
 {{- end }}
 
 {{/*
 Create the configuration
 */}}
-{{- define "k8s-mcp-server.config" -}}
+{{- define "cloud-native-mcp-server.config" -}}
 kubernetes:
   kubeconfig: {{ .Values.config.kubernetes.kubeconfig | quote }}
   timeoutSec: {{ .Values.config.kubernetes.timeoutSec }}

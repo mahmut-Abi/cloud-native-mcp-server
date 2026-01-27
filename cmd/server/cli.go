@@ -8,8 +8,8 @@ import (
 
 	"github.com/sirupsen/logrus"
 
-	appconfig "github.com/mahmut-Abi/k8s-mcp-server/internal/config"
-	"github.com/mahmut-Abi/k8s-mcp-server/internal/logging"
+	appconfig "github.com/mahmut-Abi/cloud-native-mcp-server/internal/config"
+	"github.com/mahmut-Abi/cloud-native-mcp-server/internal/logging"
 )
 
 // CLIConfig holds all command line configuration

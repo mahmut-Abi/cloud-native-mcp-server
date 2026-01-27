@@ -6,7 +6,7 @@ import (
 	"os"
 	"strings"
 
-	"github.com/mahmut-Abi/k8s-mcp-server/internal/services"
+	"github.com/mahmut-Abi/cloud-native-mcp-server/internal/services"
 	"github.com/mark3labs/mcp-go/mcp"
 	"github.com/sirupsen/logrus"
 	"golang.org/x/text/cases"
@@ -39,7 +39,7 @@ func (g *Generator) Generate() (*OpenAPISpec, error) {
 			Version:     "1.0.0",
 			Contact: &map[string]interface{}{
 				"name": "Kubernetes MCP Team",
-				"url":  "https://github.com/mahmut-Abi/k8s-mcp-server",
+				"url":  "https://github.com/mahmut-Abi/cloud-native-mcp-server",
 			},
 			License: &map[string]interface{}{
 				"name": "MIT",

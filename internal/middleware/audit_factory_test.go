@@ -3,7 +3,7 @@ package middleware
 import (
 	"testing"
 
-	appconfig "github.com/mahmut-Abi/k8s-mcp-server/internal/config"
+	appconfig "github.com/mahmut-Abi/cloud-native-mcp-server/internal/config"
 	"github.com/stretchr/testify/assert"
 )
 

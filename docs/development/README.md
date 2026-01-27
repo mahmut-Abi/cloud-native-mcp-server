@@ -1,6 +1,6 @@
 # Development Guide
 
-This directory contains guides and examples for developing services in k8s-mcp-server.
+This directory contains guides and examples for developing services in cloud-native-mcp-server.
 
 ## Documentation
 

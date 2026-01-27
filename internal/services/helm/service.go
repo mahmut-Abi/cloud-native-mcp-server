@@ -10,11 +10,11 @@ import (
 	server "github.com/mark3labs/mcp-go/server"
 	"github.com/sirupsen/logrus"
 
-	"github.com/mahmut-Abi/k8s-mcp-server/internal/config"
-	"github.com/mahmut-Abi/k8s-mcp-server/internal/services/cache"
-	"github.com/mahmut-Abi/k8s-mcp-server/internal/services/helm/client"
-	"github.com/mahmut-Abi/k8s-mcp-server/internal/services/helm/handlers"
-	"github.com/mahmut-Abi/k8s-mcp-server/internal/services/helm/tools"
+	"github.com/mahmut-Abi/cloud-native-mcp-server/internal/config"
+	"github.com/mahmut-Abi/cloud-native-mcp-server/internal/services/cache"
+	"github.com/mahmut-Abi/cloud-native-mcp-server/internal/services/helm/client"
+	"github.com/mahmut-Abi/cloud-native-mcp-server/internal/services/helm/handlers"
+	"github.com/mahmut-Abi/cloud-native-mcp-server/internal/services/helm/tools"
 )
 
 // Service implements the Helm service for MCP server integration.

@@ -5,7 +5,7 @@ import (
 	"strconv"
 	"time"
 
-	"github.com/mahmut-Abi/k8s-mcp-server/internal/observability/metrics"
+	"github.com/mahmut-Abi/cloud-native-mcp-server/internal/observability/metrics"
 	"github.com/sirupsen/logrus"
 )
 

@@ -41,11 +41,11 @@ import (
     "github.com/mark3labs/mcp-go/mcp"
     server "github.com/mark3labs/mcp-go/server"
 
-    "github.com/mahmut-Abi/k8s-mcp-server/internal/config"
-    "github.com/mahmut-Abi/k8s-mcp-server/internal/services/cache"
-    "github.com/mahmut-Abi/k8s-mcp-server/internal/services/time/client"
-    "github.com/mahmut-Abi/k8s-mcp-server/internal/services/time/handlers"
-    "github.com/mahmut-Abi/k8s-mcp-server/internal/services/time/tools"
+    "github.com/mahmut-Abi/cloud-native-mcp-server/internal/config"
+    "github.com/mahmut-Abi/cloud-native-mcp-server/internal/services/cache"
+    "github.com/mahmut-Abi/cloud-native-mcp-server/internal/services/time/client"
+    "github.com/mahmut-Abi/cloud-native-mcp-server/internal/services/time/handlers"
+    "github.com/mahmut-Abi/cloud-native-mcp-server/internal/services/time/tools"
 )
 
 // Service implements the Time MCP service
@@ -282,7 +282,7 @@ import (
     "github.com/mark3labs/mcp-go/mcp"
     "github.com/sirupsen/logrus"
 
-    "github.com/mahmut-Abi/k8s-mcp-server/internal/services/time/client"
+    "github.com/mahmut-Abi/cloud-native-mcp-server/internal/services/time/client"
 )
 
 // HandleGetCurrentTime handles getting the current time
@@ -799,7 +799,7 @@ Expected output:
 === RUN   TestHandlerExecution/time_get_in_zone_-_invalid
 --- PASS: TestHandlerExecution (0.00s)
 PASS
-ok      github.com/mahmut-Abi/k8s-mcp-server/internal/services/time   0.123s
+ok      github.com/mahmut-Abi/cloud-native-mcp-server/internal/services/time   0.123s
 ```
 
 ## Key Features Demonstrated

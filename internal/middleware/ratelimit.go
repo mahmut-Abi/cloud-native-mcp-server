@@ -7,7 +7,7 @@ import (
 	"sync"
 	"time"
 
-	"github.com/mahmut-Abi/k8s-mcp-server/internal/constants"
+	"github.com/mahmut-Abi/cloud-native-mcp-server/internal/constants"
 )
 
 // rateLimitEntry represents a rate limit entry for a client

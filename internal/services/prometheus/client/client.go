@@ -15,7 +15,7 @@ import (
 	"strings"
 	"time"
 
-	optimize "github.com/mahmut-Abi/k8s-mcp-server/internal/util/performance"
+	optimize "github.com/mahmut-Abi/cloud-native-mcp-server/internal/util/performance"
 	"github.com/sirupsen/logrus"
 )
 

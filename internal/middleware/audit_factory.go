@@ -5,7 +5,7 @@ import (
 	"strings"
 	"time"
 
-	appconfig "github.com/mahmut-Abi/k8s-mcp-server/internal/config"
+	appconfig "github.com/mahmut-Abi/cloud-native-mcp-server/internal/config"
 	"github.com/sirupsen/logrus"
 )
 
@@ -40,7 +40,7 @@ func CreateAuditStorage(config *appconfig.AppConfig) (AuditStorage, error) {
 	case "file":
 		filePath := config.Audit.File.Path
 		if filePath == "" {
-			filePath = "/var/log/k8s-mcp-server/audit.log"
+			filePath = "/var/log/cloud-native-mcp-server/audit.log"
 		}
 
 		maxSizeMB := config.Audit.File.MaxSizeMB
@@ -69,7 +69,7 @@ func CreateAuditStorage(config *appconfig.AppConfig) (AuditStorage, error) {
 		connectionString := config.Audit.Database.ConnectionString
 		sqlitePath := config.Audit.Database.SQLitePath
 		if dbType == "sqlite" && sqlitePath == "" {
-			sqlitePath = "/var/lib/k8s-mcp-server/audit.db"
+			sqlitePath = "/var/lib/cloud-native-mcp-server/audit.db"
 		}
 
 		tableName := config.Audit.Database.TableName

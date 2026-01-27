@@ -6,7 +6,7 @@ import (
 	"sync"
 	"time"
 
-	"github.com/mahmut-Abi/k8s-mcp-server/internal/util/circuitbreaker"
+	"github.com/mahmut-Abi/cloud-native-mcp-server/internal/util/circuitbreaker"
 	"github.com/sirupsen/logrus"
 )
 

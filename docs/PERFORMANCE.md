@@ -1,6 +1,6 @@
 # Performance
 
-This document describes the performance features and optimizations of the k8s-mcp-server.
+This document describes the performance features and optimizations of the cloud-native-mcp-server.
 
 ## Performance Features
 

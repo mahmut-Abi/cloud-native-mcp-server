@@ -5,7 +5,7 @@ import (
 	"net/http/httptest"
 	"testing"
 
-	"github.com/mahmut-Abi/k8s-mcp-server/internal/config"
+	"github.com/mahmut-Abi/cloud-native-mcp-server/internal/config"
 	server "github.com/mark3labs/mcp-go/server"
 	"github.com/stretchr/testify/assert"
 )

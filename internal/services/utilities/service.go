@@ -6,9 +6,9 @@ import (
 	"github.com/mark3labs/mcp-go/mcp"
 	server "github.com/mark3labs/mcp-go/server"
 
-	"github.com/mahmut-Abi/k8s-mcp-server/internal/services/cache"
-	"github.com/mahmut-Abi/k8s-mcp-server/internal/services/utilities/handlers"
-	"github.com/mahmut-Abi/k8s-mcp-server/internal/services/utilities/tools"
+	"github.com/mahmut-Abi/cloud-native-mcp-server/internal/services/cache"
+	"github.com/mahmut-Abi/cloud-native-mcp-server/internal/services/utilities/handlers"
+	"github.com/mahmut-Abi/cloud-native-mcp-server/internal/services/utilities/tools"
 )
 
 // Service implements the utilities service for MCP server integration.

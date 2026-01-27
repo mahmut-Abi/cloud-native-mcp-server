@@ -10,7 +10,7 @@ on:
 
 env:
   REGISTRY: ghcr.io
-  IMAGE_NAME: mahmut-abi/k8s-mcp-server
+  IMAGE_NAME: mahmut-abi/cloud-native-mcp-server
 
 jobs:
   build:

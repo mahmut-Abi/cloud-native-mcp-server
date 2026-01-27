@@ -6,7 +6,7 @@ import (
 	"sync/atomic"
 	"time"
 
-	"github.com/mahmut-Abi/k8s-mcp-server/internal/constants"
+	"github.com/mahmut-Abi/cloud-native-mcp-server/internal/constants"
 )
 
 // lruNode represents a node in the LRU doubly-linked list

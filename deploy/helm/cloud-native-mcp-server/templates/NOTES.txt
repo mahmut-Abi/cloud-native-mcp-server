@@ -26,19 +26,19 @@ To get the URL for your service, run:
 {{- end }}
 
 {{- else if contains "NodePort" .Values.service.type -}}
-export NODE_PORT=$(kubectl get --namespace {{ .Release.Namespace }} -o jsonpath="{.spec.ports[0].nodePort}" services {{ include "k8s-mcp-server.fullname" . }})
+export NODE_PORT=$(kubectl get --namespace {{ .Release.Namespace }} -o jsonpath="{.spec.ports[0].nodePort}" services {{ include "cloud-native-mcp-server.fullname" . }})
 export NODE_IP=$(kubectl get nodes --namespace {{ .Release.Namespace }} -o jsonpath="{.items[0].status.addresses[0].address}")
 echo "Access your service via: http://$NODE_IP:$NODE_PORT"
 
 {{- else if contains "LoadBalancer" .Values.service.type -}}
   NOTE: It may take a few minutes for the LoadBalancer IP to be available.
-        You can watch the status by running: 'kubectl get --namespace {{ .Release.Namespace }} svc -w {{ include "k8s-mcp-server.fullname" . }}'
+        You can watch the status by running: 'kubectl get --namespace {{ .Release.Namespace }} svc -w {{ include "cloud-native-mcp-server.fullname" . }}'
 
-  export SERVICE_IP=$(kubectl get svc --namespace {{ .Release.Namespace }} {{ include "k8s-mcp-server.fullname" . }} -o jsonpath='{.status.loadBalancer.ingress[0].ip}')
+  export SERVICE_IP=$(kubectl get svc --namespace {{ .Release.Namespace }} {{ include "cloud-native-mcp-server.fullname" . }} -o jsonpath='{.status.loadBalancer.ingress[0].ip}')
   echo "Access your service via: http://$SERVICE_IP:{{ .Values.service.port }}"
 
 {{- else if contains "ClusterIP" .Values.service.type -}}
-  export POD_NAME=$(kubectl get pods --namespace {{ .Release.Namespace }} -l "app.kubernetes.io/name={{ include "k8s-mcp-server.name" . }},app.kubernetes.io/instance={{ .Release.Name }}" -o jsonpath="{.items[0].metadata.name}")
+  export POD_NAME=$(kubectl get pods --namespace {{ .Release.Namespace }} -l "app.kubernetes.io/name={{ include "cloud-native-mcp-server.name" . }},app.kubernetes.io/instance={{ .Release.Name }}" -o jsonpath="{.items[0].metadata.name}")
   echo "Visit http://127.0.0.1:8080 to use your application"
   kubectl --namespace {{ .Release.Namespace }} port-forward $POD_NAME 8080:{{ .Values.service.targetPort }}
 
@@ -46,11 +46,11 @@ echo "Access your service via: http://$NODE_IP:$NODE_PORT"
 
 To check the status of your deployment, run:
 
-  kubectl get pods -l app.kubernetes.io/name={{ include "k8s-mcp-server.name" . }},app.kubernetes.io/instance={{ .Release.Name }} -n {{ .Release.Namespace }}
+  kubectl get pods -l app.kubernetes.io/name={{ include "cloud-native-mcp-server.name" . }},app.kubernetes.io/instance={{ .Release.Name }} -n {{ .Release.Namespace }}
 
 To view the logs, run:
 
-  kubectl logs -l app.kubernetes.io/name={{ include "k8s-mcp-server.name" . }},app.kubernetes.io/instance={{ .Release.Name }} -n {{ .Release.Namespace }} -f
+  kubectl logs -l app.kubernetes.io/name={{ include "cloud-native-mcp-server.name" . }},app.kubernetes.io/instance={{ .Release.Name }} -n {{ .Release.Namespace }} -f
 
 For more information about using Kubernetes MCP Server, visit:
-  https://github.com/mahmut-Abi/k8s-mcp-server
+  https://github.com/mahmut-Abi/cloud-native-mcp-server

@@ -6,7 +6,7 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/mahmut-Abi/k8s-mcp-server/internal/observability/metrics"
+	"github.com/mahmut-Abi/cloud-native-mcp-server/internal/observability/metrics"
 	dto "github.com/prometheus/client_model/go"
 )
 

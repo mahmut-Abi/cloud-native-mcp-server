@@ -89,7 +89,7 @@ jobs:
         GOARCH: ${{ matrix.goarch }}
         CGO_ENABLED: 0
       run: |
-        BINARY_NAME=k8s-mcp-server-${{ matrix.goos }}-${{ matrix.goarch }}
+        BINARY_NAME=cloud-native-mcp-server-${{ matrix.goos }}-${{ matrix.goarch }}
         if [ "${{ matrix.goos }}" = "windows" ]; then
           BINARY_NAME="${BINARY_NAME}.exe"
         fi
@@ -98,5 +98,5 @@ jobs:
     - name: Upload artifacts
       uses: actions/upload-artifact@v4
       with:
-        name: k8s-mcp-server-${{ matrix.goos }}-${{ matrix.goarch }}
+        name: cloud-native-mcp-server-${{ matrix.goos }}-${{ matrix.goarch }}
         path: dist/*

@@ -5,8 +5,8 @@ import (
 
 	"github.com/mark3labs/mcp-go/mcp"
 
-	optimize "github.com/mahmut-Abi/k8s-mcp-server/internal/util/performance"
-	"github.com/mahmut-Abi/k8s-mcp-server/internal/util/sanitize"
+	optimize "github.com/mahmut-Abi/cloud-native-mcp-server/internal/util/performance"
+	"github.com/mahmut-Abi/cloud-native-mcp-server/internal/util/sanitize"
 )
 
 // MarshalJSON outputs JSON response using pooled encoder

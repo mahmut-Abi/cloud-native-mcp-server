@@ -31,7 +31,7 @@ The K8s MCP Server supports three configuration methods (in order of precedence)
 # Environment variables override config file
 # Command line flags override everything
 
-./k8s-mcp-server \
+./cloud-native-mcp-server \
   --config=config.yaml \
   --log-level=debug
 ```
@@ -154,6 +154,48 @@ jaeger:
   cache_ttl: 120
 ```
 
+### OpenTelemetry
+
+```yaml
+opentelemetry:
+  enabled: false
+  address: "http://localhost:4318"
+  timeout_sec: 30
+  username: ""
+  password: ""
+  bearer_token: ""
+  tls_skip_verify: false
+  tls_cert_file: ""
+  tls_key_file: ""
+  tls_ca_file: ""
+```
+
+**Configuration Options:**
+
+- `enabled`: Enable/disable OpenTelemetry service
+- `address`: OpenTelemetry Collector address (http://host:port or https://host:port)
+- `timeout_sec`: Request timeout in seconds
+- `username`: Basic auth username (optional)
+- `password`: Basic auth password (optional)
+- `bearer_token`: Bearer token for authentication (optional, takes precedence over Basic Auth)
+- `tls_skip_verify`: Skip TLS certificate verification (DO NOT use in production!)
+- `tls_cert_file`: TLS client certificate file path (for mTLS auth)
+- `tls_key_file`: TLS client key file path
+- `tls_ca_file`: TLS CA certificate file path
+
+**Environment Variables:**
+
+- `MCP_OPENTELEMETRY_ENABLED`: Enable/disable service (1, true, yes, on)
+- `MCP_OPENTELEMETRY_ADDRESS`: Collector address
+- `MCP_OPENTELEMETRY_TIMEOUT`: Request timeout in seconds
+- `MCP_OPENTELEMETRY_USERNAME`: Basic auth username
+- `MCP_OPENTELEMETRY_PASSWORD`: Basic auth password
+- `MCP_OPENTELEMETRY_BEARER_TOKEN`: Bearer token
+- `MCP_OPENTELEMETRY_TLS_SKIP_VERIFY`: Skip TLS verification
+- `MCP_OPENTELEMETRY_TLS_CERT_FILE`: TLS certificate file
+- `MCP_OPENTELEMETRY_TLS_KEY_FILE`: TLS key file
+- `MCP_OPENTELEMETRY_TLS_CA_FILE`: TLS CA file
+
 ### Utilities
 
 ```yaml
@@ -248,7 +290,7 @@ logging:
 
 ```yaml
 logging:
-  output: "/var/log/k8s-mcp-server.log"
+  output: "/var/log/cloud-native-mcp-server.log"
   max_size: 100           # MB
   max_age: 30             # days
   max_backups: 10         # number of backups
@@ -544,7 +586,7 @@ export GRAFANA_URL="http://grafana:3000"
 export GRAFANA_API_KEY="your-api-key"
 export MCP_API_KEY="your-mcp-key"
 
-./k8s-mcp-server
+./cloud-native-mcp-server
 ```
 
 ---
@@ -554,7 +596,7 @@ export MCP_API_KEY="your-mcp-key"
 Test your configuration without starting the server:
 
 ```bash
-./k8s-mcp-server --config=config.yaml --validate-config
+./cloud-native-mcp-server --config=config.yaml --validate-config
 ```
 
 This will:
@@ -575,7 +617,7 @@ kill -TERM <pid>
 
 # Server will finish in-flight requests and exit
 # Then start with new configuration
-./k8s-mcp-server --config=new-config.yaml
+./cloud-native-mcp-server --config=new-config.yaml
 ```
 
 ---

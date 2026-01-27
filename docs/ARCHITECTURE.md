@@ -1,11 +1,11 @@
 # Architecture
 
-This document describes the architecture and design of the k8s-mcp-server.
+This document describes the architecture and design of the cloud-native-mcp-server.
 
 ## Project Structure
 
 ```
-k8s-mcp-server/
+cloud-native-mcp-server/
 ├── cmd/
 │   └── server/              # Main entry point
 │       ├── cli.go           # CLI flag parsing
@@ -52,6 +52,7 @@ k8s-mcp-server/
 │   │   ├── elasticsearch/   # Elasticsearch service
 │   │   ├── alertmanager/    # Alertmanager service
 │   │   ├── jaeger/          # Jaeger service
+│   │   ├── opentelemetry/   # OpenTelemetry service
 │   │   ├── utilities/       # Utilities service
 │   │   ├── cache/           # LRU cache
 │   │   ├── framework/       # Service framework
@@ -76,7 +77,7 @@ k8s-mcp-server/
 └── deploy/                  # Deployment files
     ├── Dockerfile
     ├── helm/
-    │   └── k8s-mcp-server/
+    │   └── cloud-native-mcp-server/
     └── kubernetes/
 ```
 
@@ -383,7 +384,7 @@ if len(response) > 1024 {
        │
        ▼
 ┌─────────────────┐
-│ k8s-mcp-server  │
+│ cloud-native-mcp-server  │
 │                 │
 │  ┌───────────┐  │
 │  │ Services  │  │

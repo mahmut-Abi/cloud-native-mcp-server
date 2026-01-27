@@ -1,6 +1,6 @@
 # Kubernetes MCP Server
 
-[![Go Report Card](https://goreportcard.com/badge/github.com/mahmut-Abi/k8s-mcp-server)](https://goreportcard.com/report/github.com/mahmut-Abi/k8s-mcp-server)
+[![Go Report Card](https://goreportcard.com/badge/github.com/mahmut-Abi/cloud-native-mcp-server)](https://goreportcard.com/report/github.com/mahmut-Abi/cloud-native-mcp-server)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 [![Go Version](https://img.shields.io/badge/Go-1.25+-blue.svg)](https://golang.org)
 
@@ -12,8 +12,8 @@ A high-performance Model Context Protocol (MCP) server for Kubernetes and cloud-
 
 ## Features
 
-- **9 Integrated Services**: Kubernetes, Grafana, Prometheus, Kibana, Elasticsearch, Helm, Alertmanager, Jaeger, Utilities
-- **210+ MCP Tools**: Comprehensive toolset for infrastructure operations
+- **10 Integrated Services**: Kubernetes, Grafana, Prometheus, Kibana, Elasticsearch, Helm, Alertmanager, Jaeger, OpenTelemetry, Utilities
+- **220+ MCP Tools**: Comprehensive toolset for infrastructure operations
 - **Multi-Protocol Support**: SSE, HTTP, and stdio modes
 - **Smart Caching**: LRU cache with TTL support for optimal performance
 - **Performance Optimized**: JSON encoding pool, response size control, intelligent limits
@@ -37,6 +37,7 @@ A high-performance Model Context Protocol (MCP) server for Kubernetes and cloud-
 | **elasticsearch** | 14 | Log storage, search, and data indexing |
 | **alertmanager** | 15 | Alert rules management and notifications |
 | **jaeger** | 8 | Distributed tracing and performance analysis |
+| **opentelemetry** | 9 | Metrics, traces, and logs collection and analysis |
 | **utilities** | 6 | General-purpose utility tools |
 
 **Total: 210+ tools**
@@ -49,31 +50,31 @@ A high-performance Model Context Protocol (MCP) server for Kubernetes and cloud-
 
 ```bash
 # Download the latest release
-curl -LO https://github.com/mahmut-Abi/k8s-mcp-server/releases/latest/download/k8s-mcp-server-linux-amd64
-chmod +x k8s-mcp-server-linux-amd64
+curl -LO https://github.com/mahmut-Abi/cloud-native-mcp-server/releases/latest/download/cloud-native-mcp-server-linux-amd64
+chmod +x cloud-native-mcp-server-linux-amd64
 
 # Run in SSE mode (default)
-./k8s-mcp-server-linux-amd64 --mode=sse --addr=0.0.0.0:8080
+./cloud-native-mcp-server-linux-amd64 --mode=sse --addr=0.0.0.0:8080
 ```
 
 ### Docker
 
 ```bash
 docker run -d \
-  --name k8s-mcp-server \
+  --name cloud-native-mcp-server \
   -p 8080:8080 \
   -v ~/.kube:/root/.kube:ro \
-  mahmutabi/k8s-mcp-server:latest
+  mahmutabi/cloud-native-mcp-server:latest
 ```
 
 ### From Source
 
 ```bash
-git clone https://github.com/mahmut-Abi/k8s-mcp-server.git
-cd k8s-mcp-server
+git clone https://github.com/mahmut-Abi/cloud-native-mcp-server.git
+cd cloud-native-mcp-server
 
 make build
-./k8s-mcp-server --mode=sse --addr=0.0.0.0:8080
+./cloud-native-mcp-server --mode=sse --addr=0.0.0.0:8080
 ```
 
 ---
@@ -93,6 +94,7 @@ make build
 | `/api/elasticsearch/sse` | Elasticsearch service |
 | `/api/alertmanager/sse` | Alertmanager service |
 | `/api/jaeger/sse` | Jaeger service |
+| `/api/opentelemetry/sse` | OpenTelemetry service |
 | `/api/utilities/sse` | Utilities service |
 
 ### HTTP Mode

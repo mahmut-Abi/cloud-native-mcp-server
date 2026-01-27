@@ -4,43 +4,43 @@
 apiVersion: rbac.authorization.k8s.io/v1
 kind: ClusterRoleBinding
 metadata:
-  name: {{ include "k8s-mcp-server.fullname" . }}-admin-binding
+  name: {{ include "cloud-native-mcp-server.fullname" . }}-admin-binding
   labels:
-    {{- include "k8s-mcp-server.labels" . | nindent 4 }}
+    {{- include "cloud-native-mcp-server.labels" . | nindent 4 }}
 roleRef:
   apiGroup: rbac.authorization.k8s.io
   kind: ClusterRole
   name: cluster-admin
 subjects:
   - kind: ServiceAccount
-    name: {{ include "k8s-mcp-server.serviceAccountName" . }}
+    name: {{ include "cloud-native-mcp-server.serviceAccountName" . }}
     namespace: {{ .Release.Namespace }}
 {{- else -}}
 ---
 apiVersion: rbac.authorization.k8s.io/v1
 kind: Role
 metadata:
-  name: {{ include "k8s-mcp-server.fullname" . }}
+  name: {{ include "cloud-native-mcp-server.fullname" . }}
   namespace: {{ .Release.Namespace }}
   labels:
-    {{- include "k8s-mcp-server.labels" . | nindent 4 }}
+    {{- include "cloud-native-mcp-server.labels" . | nindent 4 }}
 rules:
   {{- toYaml .Values.rbac.rules | nindent 2 }}
 ---
 apiVersion: rbac.authorization.k8s.io/v1
 kind: RoleBinding
 metadata:
-  name: {{ include "k8s-mcp-server.fullname" . }}
+  name: {{ include "cloud-native-mcp-server.fullname" . }}
   namespace: {{ .Release.Namespace }}
   labels:
-    {{- include "k8s-mcp-server.labels" . | nindent 4 }}
+    {{- include "cloud-native-mcp-server.labels" . | nindent 4 }}
 roleRef:
   apiGroup: rbac.authorization.k8s.io
   kind: Role
-  name: {{ include "k8s-mcp-server.fullname" . }}
+  name: {{ include "cloud-native-mcp-server.fullname" . }}
 subjects:
   - kind: ServiceAccount
-    name: {{ include "k8s-mcp-server.serviceAccountName" . }}
+    name: {{ include "cloud-native-mcp-server.serviceAccountName" . }}
     namespace: {{ .Release.Namespace }}
 {{- end -}}
 {{- end -}}

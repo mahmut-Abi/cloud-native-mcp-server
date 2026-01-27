@@ -1,4 +1,4 @@
-module github.com/mahmut-Abi/k8s-mcp-server
+module github.com/mahmut-Abi/cloud-native-mcp-server
 
 go 1.25.0
 

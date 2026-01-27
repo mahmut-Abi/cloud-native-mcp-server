@@ -1,7 +1,7 @@
 # Kubernetes MCP Server Makefile
 
 # Variables
-BINARY_NAME=k8s-mcp-server
+BINARY_NAME=cloud-native-mcp-server
 VERSION?=$(shell git describe --tags --always --dirty 2>/dev/null || echo "dev")
 BUILD_DIR=build
 DIST_DIR=dist
@@ -19,7 +19,7 @@ BUILD_FLAGS=-trimpath
 .PHONY: help
 help:
 	@echo
-	@printf "\033[1m🚀 Kubernetes MCP Server - Makefile Help\033[0m\n"
+	@printf "\033[1m🚀 Cloud Native MCP Server - Makefile Help\033[0m\n"
 	@echo
 	@printf "\033[1mProject Information:\033[0m\n"
 	@printf "  Binary Name:     $(BINARY_NAME)\n"
@@ -67,7 +67,7 @@ help:
 	@printf "\033[1mFor more information:\033[0m\n"
 	@printf "  - Documentation: docs/\n"
 	@printf "  - Configuration: config.example.yaml\n"
-	@printf "  - Issues: https://github.com/mahmut-Abi/k8s-mcp-server/issues\n"
+	@printf "  - Issues: https://github.com/mahmut-Abi/cloud-native-mcp-server/issues\n"
 	@echo
 
 ##@ Development

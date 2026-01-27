@@ -1,10 +1,10 @@
 # Creating a New Service
 
-This guide explains how to create a new service for the k8s-mcp-server.
+This guide explains how to create a new service for the cloud-native-mcp-server.
 
 ## Overview
 
-A service in k8s-mcp-server is a module that exposes MCP tools for interacting with an external system (like Grafana, Prometheus, etc.). Each service typically consists of:
+A service in cloud-native-mcp-server is a module that exposes MCP tools for interacting with an external system (like Grafana, Prometheus, etc.). Each service typically consists of:
 
 - A `service.go` file that implements the `Service` interface
 - A `client/` directory with HTTP client code
@@ -40,12 +40,12 @@ import (
     "github.com/mark3labs/mcp-go/mcp"
     server "github.com/mark3labs/mcp-go/server"
 
-    "github.com/mahmut-Abi/k8s-mcp-server/internal/config"
-    "github.com/mahmut-Abi/k8s-mcp-server/internal/services/cache"
-    "github.com/mahmut-Abi/k8s-mcp-server/internal/services/framework"
-    "github.com/mahmut-Abi/k8s-mcp-server/internal/services/yourservice/client"
-    "github.com/mahmut-Abi/k8s-mcp-server/internal/services/yourservice/handlers"
-    "github.com/mahmut-Abi/k8s-mcp-server/internal/services/yourservice/tools"
+    "github.com/mahmut-Abi/cloud-native-mcp-server/internal/config"
+    "github.com/mahmut-Abi/cloud-native-mcp-server/internal/services/cache"
+    "github.com/mahmut-Abi/cloud-native-mcp-server/internal/services/framework"
+    "github.com/mahmut-Abi/cloud-native-mcp-server/internal/services/yourservice/client"
+    "github.com/mahmut-Abi/cloud-native-mcp-server/internal/services/yourservice/handlers"
+    "github.com/mahmut-Abi/cloud-native-mcp-server/internal/services/yourservice/tools"
 )
 
 // Service implements the YourService MCP service
@@ -168,7 +168,7 @@ import (
 
     "github.com/sirupsen/logrus"
 
-    optimize "github.com/mahmut-Abi/k8s-mcp-server/internal/util/performance"
+    optimize "github.com/mahmut-Abi/cloud-native-mcp-server/internal/util/performance"
 )
 
 var logger = logrus.WithField("component", "yourservice-client")
@@ -386,7 +386,7 @@ import (
     "github.com/mark3labs/mcp-go/mcp"
     "github.com/sirupsen/logrus"
 
-    "github.com/mahmut-Abi/k8s-mcp-server/internal/services/yourservice/client"
+    "github.com/mahmut-Abi/cloud-native-mcp-server/internal/services/yourservice/client"
 )
 
 // HandleGetResource handles the get_resource tool
@@ -650,7 +650,7 @@ Implement pagination using the common types:
 
 ```go
 import (
-    "github.com/mahmut-Abi/k8s-mcp-server/internal/common"
+    "github.com/mahmut-Abi/cloud-native-mcp-server/internal/common"
 )
 
 func (c *Client) ListResources(ctx context.Context, opts *common.PaginationOptions) (*PaginatedResult, error) {
@@ -677,7 +677,7 @@ Use the common response handler:
 
 ```go
 import (
-    "github.com/mahmut-Abi/k8s-mcp-server/internal/common"
+    "github.com/mahmut-Abi/cloud-native-mcp-server/internal/common"
 )
 
 func (c *Client) makeRequest(ctx context.Context, method, path string, body interface{}) (*http.Response, error) {

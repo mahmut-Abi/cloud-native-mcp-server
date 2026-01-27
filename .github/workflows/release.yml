@@ -38,19 +38,19 @@ jobs:
         mkdir -p dist
         
         # Linux amd64
-        GOOS=linux GOARCH=amd64 go build -trimpath -ldflags="-s -w -X main.version=$VERSION" -o dist/k8s-mcp-server-linux-amd64 ./cmd/server
+        GOOS=linux GOARCH=amd64 go build -trimpath -ldflags="-s -w -X main.version=$VERSION" -o dist/cloud-native-mcp-server-linux-amd64 ./cmd/server
         
         # Linux arm64
-        GOOS=linux GOARCH=arm64 go build -trimpath -ldflags="-s -w -X main.version=$VERSION" -o dist/k8s-mcp-server-linux-arm64 ./cmd/server
+        GOOS=linux GOARCH=arm64 go build -trimpath -ldflags="-s -w -X main.version=$VERSION" -o dist/cloud-native-mcp-server-linux-arm64 ./cmd/server
         
         # macOS amd64
-        GOOS=darwin GOARCH=amd64 go build -trimpath -ldflags="-s -w -X main.version=$VERSION" -o dist/k8s-mcp-server-darwin-amd64 ./cmd/server
+        GOOS=darwin GOARCH=amd64 go build -trimpath -ldflags="-s -w -X main.version=$VERSION" -o dist/cloud-native-mcp-server-darwin-amd64 ./cmd/server
         
         # macOS arm64
-        GOOS=darwin GOARCH=arm64 go build -trimpath -ldflags="-s -w -X main.version=$VERSION" -o dist/k8s-mcp-server-darwin-arm64 ./cmd/server
+        GOOS=darwin GOARCH=arm64 go build -trimpath -ldflags="-s -w -X main.version=$VERSION" -o dist/cloud-native-mcp-server-darwin-arm64 ./cmd/server
         
         # Windows amd64
-        GOOS=windows GOARCH=amd64 go build -trimpath -ldflags="-s -w -X main.version=$VERSION" -o dist/k8s-mcp-server-windows-amd64.exe ./cmd/server
+        GOOS=windows GOARCH=amd64 go build -trimpath -ldflags="-s -w -X main.version=$VERSION" -o dist/cloud-native-mcp-server-windows-amd64.exe ./cmd/server
         
         # Create checksums
         cd dist
@@ -70,14 +70,14 @@ jobs:
         echo "" >> $GITHUB_OUTPUT
         echo "### Download" >> $GITHUB_OUTPUT
         echo "Choose the appropriate binary for your platform:" >> $GITHUB_OUTPUT
-        echo "- **Linux**: k8s-mcp-server-linux-amd64 or k8s-mcp-server-linux-arm64" >> $GITHUB_OUTPUT
-        echo "- **macOS**: k8s-mcp-server-darwin-amd64 or k8s-mcp-server-darwin-arm64" >> $GITHUB_OUTPUT
-        echo "- **Windows**: k8s-mcp-server-windows-amd64.exe" >> $GITHUB_OUTPUT
+        echo "- **Linux**: cloud-native-mcp-server-linux-amd64 or cloud-native-mcp-server-linux-arm64" >> $GITHUB_OUTPUT
+        echo "- **macOS**: cloud-native-mcp-server-darwin-amd64 or cloud-native-mcp-server-darwin-arm64" >> $GITHUB_OUTPUT
+        echo "- **Windows**: cloud-native-mcp-server-windows-amd64.exe" >> $GITHUB_OUTPUT
         echo "" >> $GITHUB_OUTPUT
         echo "### Verification" >> $GITHUB_OUTPUT
         echo "Verify the integrity of downloaded files using the provided SHA256 checksums:" >> $GITHUB_OUTPUT
         echo "\`\`\`bash" >> $GITHUB_OUTPUT
-        echo "sha256sum -c k8s-mcp-server-*.sha256" >> $GITHUB_OUTPUT
+        echo "sha256sum -c cloud-native-mcp-server-*.sha256" >> $GITHUB_OUTPUT
         echo "\`\`\`" >> $GITHUB_OUTPUT
         echo "EOF" >> $GITHUB_OUTPUT
 
@@ -88,7 +88,7 @@ jobs:
         draft: false
         prerelease: false
         files: |
-          dist/k8s-mcp-server-*
+          dist/cloud-native-mcp-server-*
         generate_release_notes: true
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
