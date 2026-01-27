@@ -1015,34 +1015,6 @@ func (rw *responseWriter) Flush() {
 	}
 }
 
-// filterSensitiveHeaders filters out sensitive information from HTTP headers
-// to prevent logging of credentials and other sensitive data
-func filterSensitiveHeaders(headers http.Header) http.Header {
-	sensitiveHeaders := map[string]bool{
-		"authorization":       true,
-		"cookie":              true,
-		"set-cookie":          true,
-		"proxy-authorization": true,
-		"www-authenticate":    true,
-		"x-auth-token":        true,
-		"x-api-key":           true,
-		"x-apikey":            true,
-		"access-token":        true,
-		"refresh-token":       true,
-	}
-
-	filtered := make(http.Header)
-	for key, values := range headers {
-		lowerKey := strings.ToLower(key)
-		if sensitiveHeaders[lowerKey] {
-			filtered[key] = []string{"[REDACTED]"}
-		} else {
-			filtered[key] = values
-		}
-	}
-	return filtered
-}
-
 func loggingMiddleware(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		start := time.Now()
@@ -1051,8 +1023,6 @@ func loggingMiddleware(next http.Handler) http.Handler {
 		// Avoid expensive debug logging unless enabled
 		if logrus.IsLevelEnabled(logrus.DebugLevel) {
 			logrus.WithField("client_ip", clientIP).Debugf("Request started: %s %s", r.Method, r.URL.Path)
-			filteredHeaders := filterSensitiveHeaders(r.Header)
-			logrus.WithField("client_ip", clientIP).Debugf("Request headers: %+v", filteredHeaders)
 		}
 
 		// Create a response writer wrapper to capture status code and body
