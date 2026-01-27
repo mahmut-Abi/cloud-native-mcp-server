@@ -61,7 +61,7 @@ func TestInitSSEServers(t *testing.T) {
 	sseServers := sc.InitSSEServers(mcpServer, "127.0.0.1:8080", appConfig)
 
 	assert.NotNil(t, sseServers)
-	assert.Len(t, sseServers, 10) // kubernetes, grafana, prometheus, kibana, helm, elasticsearch, alertmanager, jaeger, aggregate, utilities
+	assert.Len(t, sseServers, 11) // kubernetes, grafana, prometheus, kibana, helm, elasticsearch, alertmanager, jaeger, opentelemetry, aggregate, utilities
 	assert.Contains(t, sseServers, "kubernetes")
 	assert.Contains(t, sseServers, "grafana")
 	assert.Contains(t, sseServers, "prometheus")
@@ -70,6 +70,7 @@ func TestInitSSEServers(t *testing.T) {
 	assert.Contains(t, sseServers, "elasticsearch")
 	assert.Contains(t, sseServers, "alertmanager")
 	assert.Contains(t, sseServers, "jaeger")
+	assert.Contains(t, sseServers, "opentelemetry")
 	assert.Contains(t, sseServers, "aggregate")
 	assert.Contains(t, sseServers, "utilities")
 }
@@ -94,6 +95,7 @@ func TestInitSSEServersWithCustomPaths(t *testing.T) {
 				Elasticsearch string `yaml:"elasticsearch"`
 				Alertmanager  string `yaml:"alertmanager"`
 				Jaeger        string `yaml:"jaeger"`
+				OpenTelemetry string `yaml:"opentelemetry"`
 				Aggregate     string `yaml:"aggregate"`
 				Utilities     string `yaml:"utilities"`
 			} `yaml:"ssePaths"`
@@ -106,6 +108,7 @@ func TestInitSSEServersWithCustomPaths(t *testing.T) {
 				Elasticsearch string `yaml:"elasticsearch"`
 				Alertmanager  string `yaml:"alertmanager"`
 				Jaeger        string `yaml:"jaeger"`
+				OpenTelemetry string `yaml:"opentelemetry"`
 				Aggregate     string `yaml:"aggregate"`
 				Utilities     string `yaml:"utilities"`
 			} `yaml:"streamableHttpPaths"`
@@ -125,6 +128,7 @@ func TestInitSSEServersWithCustomPaths(t *testing.T) {
 				Elasticsearch string `yaml:"elasticsearch"`
 				Alertmanager  string `yaml:"alertmanager"`
 				Jaeger        string `yaml:"jaeger"`
+				OpenTelemetry string `yaml:"opentelemetry"`
 				Aggregate     string `yaml:"aggregate"`
 				Utilities     string `yaml:"utilities"`
 			}{
@@ -138,7 +142,7 @@ func TestInitSSEServersWithCustomPaths(t *testing.T) {
 	sseServers := sc.InitSSEServers(mcpServer, "127.0.0.1:8080", appConfig)
 
 	assert.NotNil(t, sseServers)
-	assert.Len(t, sseServers, 10)
+	assert.Len(t, sseServers, 11)
 }
 
 // Test InitStreamableHTTPServers
@@ -150,7 +154,7 @@ func TestInitStreamableHTTPServers(t *testing.T) {
 	httpServers := sc.InitStreamableHTTPServers(mcpServer, "127.0.0.1:8080", appConfig)
 
 	assert.NotNil(t, httpServers)
-	assert.Len(t, httpServers, 10) // Same services as SSE
+	assert.Len(t, httpServers, 11) // Same services as SSE
 	assert.Contains(t, httpServers, "kubernetes")
 	assert.Contains(t, httpServers, "grafana")
 	assert.Contains(t, httpServers, "prometheus")
@@ -159,6 +163,7 @@ func TestInitStreamableHTTPServers(t *testing.T) {
 	assert.Contains(t, httpServers, "elasticsearch")
 	assert.Contains(t, httpServers, "alertmanager")
 	assert.Contains(t, httpServers, "jaeger")
+	assert.Contains(t, httpServers, "opentelemetry")
 	assert.Contains(t, httpServers, "aggregate")
 	assert.Contains(t, httpServers, "utilities")
 }
@@ -183,6 +188,7 @@ func TestInitStreamableHTTPServersWithCustomPaths(t *testing.T) {
 				Elasticsearch string `yaml:"elasticsearch"`
 				Alertmanager  string `yaml:"alertmanager"`
 				Jaeger        string `yaml:"jaeger"`
+				OpenTelemetry string `yaml:"opentelemetry"`
 				Aggregate     string `yaml:"aggregate"`
 				Utilities     string `yaml:"utilities"`
 			} `yaml:"ssePaths"`
@@ -195,6 +201,7 @@ func TestInitStreamableHTTPServersWithCustomPaths(t *testing.T) {
 				Elasticsearch string `yaml:"elasticsearch"`
 				Alertmanager  string `yaml:"alertmanager"`
 				Jaeger        string `yaml:"jaeger"`
+				OpenTelemetry string `yaml:"opentelemetry"`
 				Aggregate     string `yaml:"aggregate"`
 				Utilities     string `yaml:"utilities"`
 			} `yaml:"streamableHttpPaths"`
@@ -214,6 +221,7 @@ func TestInitStreamableHTTPServersWithCustomPaths(t *testing.T) {
 				Elasticsearch string `yaml:"elasticsearch"`
 				Alertmanager  string `yaml:"alertmanager"`
 				Jaeger        string `yaml:"jaeger"`
+				OpenTelemetry string `yaml:"opentelemetry"`
 				Aggregate     string `yaml:"aggregate"`
 				Utilities     string `yaml:"utilities"`
 			}{
@@ -227,7 +235,7 @@ func TestInitStreamableHTTPServersWithCustomPaths(t *testing.T) {
 	httpServers := sc.InitStreamableHTTPServers(mcpServer, "127.0.0.1:8080", appConfig)
 
 	assert.NotNil(t, httpServers)
-	assert.Len(t, httpServers, 10)
+	assert.Len(t, httpServers, 11)
 }
 
 // Test SetupMultipleRoutes with SSE mode - only test mux creation, not actual HTTP handling
@@ -324,8 +332,9 @@ func TestCreateAggregateMCPServer(t *testing.T) {
 	elasticsearchServer := sc.createServiceMCPServer("elasticsearch", mcpServer)
 	alertmanagerServer := sc.createServiceMCPServer("alertmanager", mcpServer)
 	jaegerServer := sc.createServiceMCPServer("jaeger", mcpServer)
+	opentelemetryServer := sc.createServiceMCPServer("opentelemetry", mcpServer)
 
-	aggregateServer := sc.createAggregateMCPServer(mcpServer, k8sServer, grafanaServer, promServer, kibanaServer, helmServer, elasticsearchServer, alertmanagerServer, jaegerServer)
+	aggregateServer := sc.createAggregateMCPServer(mcpServer, k8sServer, grafanaServer, promServer, kibanaServer, helmServer, elasticsearchServer, alertmanagerServer, jaegerServer, opentelemetryServer)
 
 	assert.NotNil(t, aggregateServer)
 }

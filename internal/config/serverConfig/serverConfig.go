@@ -207,9 +207,10 @@ func (s *ServerConfig) InitSSEServers(mcpServer *server.MCPServer, addr string, 
 	elasticsearchServer := s.createServiceMCPServer("elasticsearch", mcpServer)
 	alertmanagerServer := s.createServiceMCPServer("alertmanager", mcpServer)
 	jaegerServer := s.createServiceMCPServer("jaeger", mcpServer)
+	opentelemetryServer := s.createServiceMCPServer("opentelemetry", mcpServer)
 
 	// Create aggregated MCP server with all services
-	aggregateServer := s.createAggregateMCPServer(mcpServer, kubernetesServer, grafanaServer, prometheusServer, kibanaServer, helmServer, elasticsearchServer, alertmanagerServer, jaegerServer)
+	aggregateServer := s.createAggregateMCPServer(mcpServer, kubernetesServer, grafanaServer, prometheusServer, kibanaServer, helmServer, elasticsearchServer, alertmanagerServer, jaegerServer, opentelemetryServer)
 
 	// Create SSE servers for each service
 	sseServers["kubernetes"] = server.NewSSEServer(kubernetesServer,
@@ -291,6 +292,20 @@ func (s *ServerConfig) InitSSEServers(mcpServer *server.MCPServer, addr string, 
 		server.WithStaticBasePath(""),
 		server.WithSSEEndpoint(jaegerPath),
 		server.WithMessageEndpoint(jaegerPath+"/message"),
+		server.WithKeepAlive(true),
+		server.WithKeepAliveInterval(30*time.Second),
+		server.WithUseFullURLForMessageEndpoint(true),
+	)
+
+	// Create opentelemetry SSE server
+	opentelemetryPath := appConfig.Server.SSEPaths.OpenTelemetry
+	if opentelemetryPath == "" {
+		opentelemetryPath = "/api/opentelemetry/sse"
+	}
+	sseServers["opentelemetry"] = server.NewSSEServer(opentelemetryServer,
+		server.WithStaticBasePath(""),
+		server.WithSSEEndpoint(opentelemetryPath),
+		server.WithMessageEndpoint(opentelemetryPath+"/message"),
 		server.WithKeepAlive(true),
 		server.WithKeepAliveInterval(30*time.Second),
 		server.WithUseFullURLForMessageEndpoint(true),
@@ -383,9 +398,10 @@ func (s *ServerConfig) InitStreamableHTTPServers(mcpServer *server.MCPServer, ad
 	elasticsearchServer := s.createServiceMCPServer("elasticsearch", mcpServer)
 	alertmanagerServer := s.createServiceMCPServer("alertmanager", mcpServer)
 	jaegerServer := s.createServiceMCPServer("jaeger", mcpServer)
+	opentelemetryServer := s.createServiceMCPServer("opentelemetry", mcpServer)
 
 	// Create aggregated MCP server with all services
-	aggregateServer := s.createAggregateMCPServer(mcpServer, kubernetesServer, grafanaServer, prometheusServer, kibanaServer, helmServer, elasticsearchServer, alertmanagerServer, jaegerServer)
+	aggregateServer := s.createAggregateMCPServer(mcpServer, kubernetesServer, grafanaServer, prometheusServer, kibanaServer, helmServer, elasticsearchServer, alertmanagerServer, jaegerServer, opentelemetryServer)
 
 	// Create utilities server
 	utilitiesServer := s.createServiceMCPServer("utilities", mcpServer)
@@ -445,6 +461,17 @@ func (s *ServerConfig) InitStreamableHTTPServers(mcpServer *server.MCPServer, ad
 		server.WithStateLess(true),
 	)
 
+	// Create opentelemetry StreamableHTTP server
+	opentelemetryPath := appConfig.Server.StreamableHTTPPaths.OpenTelemetry
+	if opentelemetryPath == "" {
+		opentelemetryPath = "/api/opentelemetry/streamable-http"
+	}
+	streamableHTTPServers["opentelemetry"] = server.NewStreamableHTTPServer(opentelemetryServer,
+		server.WithEndpointPath(opentelemetryPath),
+		server.WithHeartbeatInterval(60*time.Second),
+		server.WithStateLess(true),
+	)
+
 	streamableHTTPServers["utilities"] = server.NewStreamableHTTPServer(utilitiesServer,
 		server.WithEndpointPath(utilitiesPath),
 		server.WithHeartbeatInterval(60*time.Second),
@@ -460,6 +487,7 @@ func (s *ServerConfig) InitStreamableHTTPServers(mcpServer *server.MCPServer, ad
 		"elasticsearch_path": elasticsearchPath,
 		"alertmanager_path":  alertmanagerPath,
 		"jaeger_path":        jaegerPath,
+		"opentelemetry_path": opentelemetryPath,
 		"aggregate_path":     aggregatePath,
 		"utilities_path":     utilitiesPath,
 	}).Info("Multiple StreamableHTTP servers initialized successfully")
@@ -572,7 +600,7 @@ func (s *ServerConfig) createServiceMCPServer(serviceName string, baseMcpServer 
 }
 
 // createAggregateMCPServer creates an MCP server that aggregates all service capabilities
-func (s *ServerConfig) createAggregateMCPServer(baseMcpServer *server.MCPServer, kubernetesServer, grafanaServer, prometheusServer, kibanaServer, helmServer, elasticsearchServer, alertmanagerServer, jaegerServer *server.MCPServer) *server.MCPServer {
+func (s *ServerConfig) createAggregateMCPServer(baseMcpServer *server.MCPServer, kubernetesServer, grafanaServer, prometheusServer, kibanaServer, helmServer, elasticsearchServer, alertmanagerServer, jaegerServer, opentelemetryServer *server.MCPServer) *server.MCPServer {
 	logrus.Debug("Creating aggregated MCP server with all services")
 
 	// Create a new MCP server for aggregated services
