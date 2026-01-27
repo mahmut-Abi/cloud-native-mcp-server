@@ -4,24 +4,24 @@ import (
 	"context"
 	"fmt"
 
+	"github.com/sirupsen/logrus"
 	"go.opentelemetry.io/otel"
 	"go.opentelemetry.io/otel/attribute"
-	"go.opentelemetry.io/otel/exporters/otlp/otlptrace/otlptracegrpc"
 	"go.opentelemetry.io/otel/exporters/otlp/otlpmetric/otlpmetricgrpc"
+	"go.opentelemetry.io/otel/exporters/otlp/otlptrace/otlptracegrpc"
 	"go.opentelemetry.io/otel/metric"
 	sdkmetric "go.opentelemetry.io/otel/sdk/metric"
 	"go.opentelemetry.io/otel/sdk/resource"
 	sdktrace "go.opentelemetry.io/otel/sdk/trace"
 	semconv "go.opentelemetry.io/otel/semconv/v1.4.0"
 	"go.opentelemetry.io/otel/trace"
-	"github.com/sirupsen/logrus"
 )
 
 var (
 	globalTracerProvider *sdktrace.TracerProvider
 	globalMeterProvider  *sdkmetric.MeterProvider
-	tracer              trace.Tracer
-	meter               metric.Meter
+	tracer               trace.Tracer
+	meter                metric.Meter
 )
 
 // Init initializes OpenTelemetry with the given configuration

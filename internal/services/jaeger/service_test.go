@@ -21,10 +21,10 @@ func TestJaegerServiceIsEnabled(t *testing.T) {
 
 func TestJaegerServiceInitialize(t *testing.T) {
 	svc := NewService()
-	
+
 	appConfig := &config.AppConfig{}
 	appConfig.Jaeger.Enabled = false
-	
+
 	err := svc.Initialize(appConfig)
 	_ = err
 }

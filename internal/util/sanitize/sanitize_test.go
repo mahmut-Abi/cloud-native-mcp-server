@@ -194,25 +194,25 @@ func TestValidateString(t *testing.T) {
 		name      string
 		input     string
 		maxLength int
-		wantError  bool
+		wantError bool
 	}{
 		{
 			name:      "valid short string",
 			input:     "test",
 			maxLength: 100,
-			wantError:  false,
+			wantError: false,
 		},
 		{
 			name:      "too long string",
 			input:     string(make([]byte, 200)),
 			maxLength: 100,
-			wantError:  true,
+			wantError: true,
 		},
 		{
 			name:      "string with control chars",
 			input:     "test\x00data",
 			maxLength: 100,
-			wantError:  true,
+			wantError: true,
 		},
 	}
 
@@ -228,23 +228,23 @@ func TestValidateString(t *testing.T) {
 
 func TestValidateIdentifier(t *testing.T) {
 	tests := []struct {
-		name     string
-		input    string
+		name      string
+		input     string
 		wantError bool
 	}{
 		{
-			name:     "valid identifier",
-			input:    "test_user-123",
+			name:      "valid identifier",
+			input:     "test_user-123",
 			wantError: false,
 		},
 		{
-			name:     "empty identifier",
-			input:    "",
+			name:      "empty identifier",
+			input:     "",
 			wantError: true,
 		},
 		{
-			name:     "invalid characters",
-			input:    "test@user",
+			name:      "invalid characters",
+			input:     "test@user",
 			wantError: true,
 		},
 	}
