@@ -98,10 +98,7 @@ func TestSpanHelper(t *testing.T) {
 	ctx := context.Background()
 
 	// Test with disabled OTEL
-	_, span := helper.StartSpan(ctx, "test-span")
-	if span == nil {
-		t.Log("Span is nil when OTEL is disabled (expected)")
-	}
+	_, _ = helper.StartSpan(ctx, "test-span")
 }
 
 func TestWithSpan(t *testing.T) {
