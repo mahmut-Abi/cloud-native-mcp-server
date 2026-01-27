@@ -93,10 +93,16 @@ const (
 // Pagination constants
 const (
 	// DefaultPageSize is the default page size for paginated results
-	DefaultPageSize = 100
+	DefaultPageSize = 20
 
 	// MaxPageSize is the maximum page size allowed
-	MaxPageSize = 500
+	MaxPageSize = 100
+
+	// WarningPageSize is the limit at which a warning is logged for large requests
+	WarningPageSize = 50
+
+	// DefaultPageSizeNodes is the default page size for node-related requests
+	DefaultPageSizeNodes = 50
 )
 
 // Circuit breaker constants

@@ -86,9 +86,3 @@ func (s *Service) GetHandlers() map[string]server.ToolHandlerFunc {
 		"utilities_web_fetch": handlers.HandleWebFetch,
 	}
 }
-
-// GetConfigSchema returns the configuration schema for this service.
-// Utilities service has no configuration requirements.
-func (s *Service) GetConfigSchema() interface{} {
-	return nil
-}

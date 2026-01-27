@@ -157,12 +157,6 @@ func (s *Service) GetTools() []mcp.Tool {
 	})
 }
 
-// GetToolsEnhanced returns all available Grafana MCP tools with enhanced functionality.
-func (s *Service) GetToolsEnhanced() []mcp.Tool {
-	// For now, return the same as GetTools() since enhanced features are not yet implemented
-	return s.GetTools()
-}
-
 // GetHandlers returns all tool handlers mapped to their respective tool names.
 // Handlers are only returned if the service is enabled and properly initialized.
 // Organized with same order as GetTools for consistency.
@@ -241,12 +235,6 @@ func (s *Service) GetHandlers() map[string]server.ToolHandlerFunc {
 		"grafana_update_datasource": handlers.HandleUpdateDatasource(s.client),
 		"grafana_delete_datasource": handlers.HandleDeleteDatasource(s.client),
 	}
-}
-
-// GetHandlersEnhanced returns all tool handlers including enhanced functionality.
-func (s *Service) GetHandlersEnhanced() map[string]server.ToolHandlerFunc {
-	// For now, return the same as GetHandlers() since enhanced features are not yet implemented
-	return s.GetHandlers()
 }
 
 // IsEnabled returns whether the service is enabled and ready for use.

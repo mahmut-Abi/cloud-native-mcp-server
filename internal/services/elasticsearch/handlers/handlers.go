@@ -9,6 +9,7 @@ import (
 	"github.com/mark3labs/mcp-go/mcp"
 	"github.com/sirupsen/logrus"
 
+	"github.com/mahmut-Abi/k8s-mcp-server/internal/constants"
 	"github.com/mahmut-Abi/k8s-mcp-server/internal/services/elasticsearch/client"
 	optimize "github.com/mahmut-Abi/k8s-mcp-server/internal/util/performance"
 	"github.com/mahmut-Abi/k8s-mcp-server/internal/util/sanitize"
@@ -20,11 +21,12 @@ var (
 )
 
 // Response size limits for Elasticsearch - similar to other optimizations
+// Use constants from internal/constants package for consistency
 const (
-	defaultLimit      = 20  // Conservative default limit
-	maxLimit          = 100 // Maximum allowed limit
-	warningLimit      = 50  // Warning threshold for large requests
-	defaultLimitNodes = 50  // Default limit for nodes
+	defaultLimit      = constants.DefaultPageSize
+	maxLimit          = constants.MaxPageSize
+	warningLimit      = constants.WarningPageSize
+	defaultLimitNodes = constants.DefaultPageSizeNodes
 )
 
 // Helper function to validate and parse limit parameter with warnings
