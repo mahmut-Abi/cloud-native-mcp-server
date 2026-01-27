@@ -2,6 +2,8 @@ package opentelemetry
 
 import (
 	"testing"
+
+	"github.com/mahmut-Abi/cloud-native-mcp-server/internal/config"
 )
 
 func TestOpenTelemetryServiceNew(t *testing.T) {
@@ -19,7 +21,11 @@ func TestOpenTelemetryServiceIsEnabled(t *testing.T) {
 
 func TestOpenTelemetryServiceInitialize(t *testing.T) {
 	svc := NewService()
-	err := svc.Initialize(nil)
+	
+	appConfig := &config.AppConfig{}
+	appConfig.OpenTelemetry.Enabled = false
+	
+	err := svc.Initialize(appConfig)
 	_ = err
 }
 
@@ -40,5 +46,39 @@ func TestOpenTelemetryServiceGetHandlers(t *testing.T) {
 	handlers := svc.GetHandlers()
 	if len(handlers) > 0 {
 		_ = handlers
+	}
+}
+
+func TestOpenTelemetryServiceGetResources(t *testing.T) {
+	svc := NewService()
+	resources := svc.GetResources()
+	if len(resources) > 0 {
+		for _, resource := range resources {
+			if resource.URI == "" {
+				t.Error("Resource URI should not be empty")
+			}
+		}
+	}
+}
+
+func TestOpenTelemetryServiceGetResourceHandlers(t *testing.T) {
+	svc := NewService()
+	handlers := svc.GetResourceHandlers()
+	if len(handlers) > 0 {
+		_ = handlers
+	}
+}
+
+func TestOpenTelemetryServiceGetClient(t *testing.T) {
+	svc := NewService()
+	client := svc.GetClient()
+	_ = client
+}
+
+func TestOpenTelemetryServiceName(t *testing.T) {
+	svc := NewService()
+	name := svc.Name()
+	if name != "opentelemetry" {
+		t.Errorf("Expected service name 'opentelemetry', got '%s'", name)
 	}
 }
