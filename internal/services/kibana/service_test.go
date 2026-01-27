@@ -42,3 +42,11 @@ func TestKibanaServiceGetHandlers(t *testing.T) {
 		_ = handlers
 	}
 }
+
+func TestKibanaServiceName(t *testing.T) {
+	svc := NewService()
+	name := svc.Name()
+	if name != "kibana" {
+		t.Errorf("Expected service name 'kibana', got '%s'", name)
+	}
+}
