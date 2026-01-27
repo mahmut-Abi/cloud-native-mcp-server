@@ -86,7 +86,7 @@ func TestGetHealth(t *testing.T) {
 		}
 		w.Header().Set("Content-Type", "application/json")
 		w.WriteHeader(http.StatusOK)
-		w.Write([]byte(`{"status": "healthy"}`))
+		_, _ = w.Write([]byte(`{"status": "healthy"}`))
 	}))
 	defer server.Close()
 
@@ -110,7 +110,7 @@ func TestGetHealth(t *testing.T) {
 func TestGetHealthError(t *testing.T) {
 	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		w.WriteHeader(http.StatusServiceUnavailable)
-		w.Write([]byte(`{"error": "service unavailable"}`))
+		_, _ = w.Write([]byte(`{"error": "service unavailable"}`))
 	}))
 	defer server.Close()
 
@@ -133,7 +133,7 @@ func TestGetTraces(t *testing.T) {
 		}
 		w.Header().Set("Content-Type", "application/json")
 		w.WriteHeader(http.StatusOK)
-		w.Write([]byte(`{"resourceSpans": []}`))
+		_, _ = w.Write([]byte(`{"resourceSpans": []}`))
 	}))
 	defer server.Close()
 
@@ -143,7 +143,7 @@ func TestGetTraces(t *testing.T) {
 	})
 
 	ctx := context.Background()
-	
+
 	traces, err := client.GetTraces(ctx, nil, nil, nil, nil, nil)
 	if err != nil {
 		t.Errorf("GetTraces() error = %v", err)
@@ -162,7 +162,7 @@ func TestGetMetrics(t *testing.T) {
 		}
 		w.Header().Set("Content-Type", "application/json")
 		w.WriteHeader(http.StatusOK)
-		w.Write([]byte(`{"resourceMetrics": []}`))
+		_, _ = w.Write([]byte(`{"resourceMetrics": []}`))
 	}))
 	defer server.Close()
 
@@ -172,7 +172,7 @@ func TestGetMetrics(t *testing.T) {
 	})
 
 	ctx := context.Background()
-	
+
 	metrics, err := client.GetMetrics(ctx, nil, nil, nil)
 	if err != nil {
 		t.Errorf("GetMetrics() error = %v", err)
@@ -191,7 +191,7 @@ func TestGetLogs(t *testing.T) {
 		}
 		w.Header().Set("Content-Type", "application/json")
 		w.WriteHeader(http.StatusOK)
-		w.Write([]byte(`{"resourceLogs": []}`))
+		_, _ = w.Write([]byte(`{"resourceLogs": []}`))
 	}))
 	defer server.Close()
 
@@ -201,7 +201,7 @@ func TestGetLogs(t *testing.T) {
 	})
 
 	ctx := context.Background()
-	
+
 	logs, err := client.GetLogs(ctx, nil, nil, nil, nil, nil)
 	if err != nil {
 		t.Errorf("GetLogs() error = %v", err)

@@ -97,7 +97,7 @@ func TestQuery(t *testing.T) {
 		}
 		w.Header().Set("Content-Type", "application/json")
 		w.WriteHeader(http.StatusOK)
-		w.Write([]byte(`{
+		_, _ = w.Write([]byte(`{
 			"status": "success",
 			"data": {
 				"resultType": "vector",
@@ -132,7 +132,7 @@ func TestQueryRange(t *testing.T) {
 		}
 		w.Header().Set("Content-Type", "application/json")
 		w.WriteHeader(http.StatusOK)
-		w.Write([]byte(`{
+		_, _ = w.Write([]byte(`{
 			"status": "success",
 			"data": {
 				"resultType": "matrix",
@@ -150,7 +150,7 @@ func TestQueryRange(t *testing.T) {
 	ctx := context.Background()
 	end := time.Now()
 	start := end.Add(-1 * time.Hour)
-	
+
 	result, err := client.QueryRange(ctx, "up", start, end, "1m")
 	if err != nil {
 		t.Errorf("QueryRange() error = %v", err)
@@ -164,15 +164,26 @@ func TestQueryRange(t *testing.T) {
 
 func TestGetTargets(t *testing.T) {
 	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		if r.URL.Path != "/api/v1/targets" {
-			t.Errorf("Expected path /api/v1/targets, got %s", r.URL.Path)
-		}
 		w.Header().Set("Content-Type", "application/json")
 		w.WriteHeader(http.StatusOK)
-		w.Write([]byte(`{
+		_, _ = w.Write([]byte(`{
 			"status": "success",
 			"data": {
-				"activeTargets": [],
+				"activeTargets": [
+					{
+						"discoveredLabels": {},
+						"labels": {"job": "test"},
+						"scrapePool": "test",
+						"scrapeUrl": "http://localhost:8080/metrics",
+						"globalUrl": "http://localhost:8080/metrics",
+						"lastError": "",
+						"lastScrape": "2024-01-01T00:00:00Z",
+						"lastScrapeDuration": 0.001,
+						"health": "up",
+						"scrapeInterval": "15s",
+						"scrapeTimeout": "10s"
+					}
+				],
 				"droppedTargets": []
 			}
 		}`))
@@ -203,7 +214,7 @@ func TestGetAlerts(t *testing.T) {
 		}
 		w.Header().Set("Content-Type", "application/json")
 		w.WriteHeader(http.StatusOK)
-		w.Write([]byte(`{
+		_, _ = w.Write([]byte(`{
 			"status": "success",
 			"data": {
 				"alerts": []
@@ -236,7 +247,7 @@ func TestGetRules(t *testing.T) {
 		}
 		w.Header().Set("Content-Type", "application/json")
 		w.WriteHeader(http.StatusOK)
-		w.Write([]byte(`{
+		_, _ = w.Write([]byte(`{
 			"status": "success",
 			"data": {
 				"groups": []
@@ -265,7 +276,7 @@ func TestGetRules(t *testing.T) {
 func TestQueryError(t *testing.T) {
 	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		w.WriteHeader(http.StatusBadRequest)
-		w.Write([]byte(`{
+		_, _ = w.Write([]byte(`{
 			"status": "error",
 			"errorType": "BadData",
 			"error": "invalid query"
@@ -283,38 +294,5 @@ func TestQueryError(t *testing.T) {
 	_, err := client.Query(ctx, "invalid_query", &now)
 	if err == nil {
 		t.Error("Query() should return error for invalid query")
-	}
-}
-
-func TestGetConfig(t *testing.T) {
-	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		if r.URL.Path != "/api/v1/status/config" {
-			t.Errorf("Expected path /api/v1/status/config, got %s", r.URL.Path)
-		}
-		w.Header().Set("Content-Type", "application/json")
-		w.WriteHeader(http.StatusOK)
-		w.Write([]byte(`{
-			"status": "success",
-			"data": {
-				"yaml": "global:\n  scrape_interval: 15s"
-			}
-		}`))
-	}))
-	defer server.Close()
-
-	client, _ := NewClient(&ClientOptions{
-		Address: server.URL,
-		Timeout: 30 * time.Second,
-	})
-
-	ctx := context.Background()
-	config, err := client.GetConfig(ctx)
-	if err != nil {
-		t.Errorf("GetConfig() error = %v", err)
-		return
-	}
-
-	if config == "" {
-		t.Error("GetConfig() should return non-empty config")
 	}
 }

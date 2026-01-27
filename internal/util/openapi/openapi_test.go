@@ -32,6 +32,7 @@ func TestGenerateOpenAPISpec(t *testing.T) {
 
 	if spec == nil {
 		t.Error("Generate() should return non-nil spec")
+		return
 	}
 
 	// Check required fields
@@ -94,7 +95,7 @@ func TestGenerateOpenAPISpecServers(t *testing.T) {
 	}
 
 	// Servers can be empty, that's ok
-	if spec.Servers != nil && len(spec.Servers) > 0 {
+	if len(spec.Servers) > 0 {
 		for _, server := range spec.Servers {
 			if server.URL == "" {
 				t.Error("Server URL should not be empty")
@@ -189,7 +190,7 @@ func TestGenerateOpenAPISpecSecurity(t *testing.T) {
 	}
 
 	// Security can be nil, that's ok
-	if spec.Security != nil && len(spec.Security) > 0 {
+	if len(spec.Security) > 0 {
 		for _, scheme := range spec.Security {
 			if len(scheme) == 0 {
 				t.Error("Security scheme should have at least one scheme")
