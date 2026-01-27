@@ -53,6 +53,7 @@ jobs:
           type=raw,value=latest,enable={{is_default_branch}}
 
     - name: Build and push Docker image
+      id: docker_build
       uses: docker/build-push-action@v5
       with:
         context: .
@@ -63,6 +64,7 @@ jobs:
         cache-from: type=gha
         cache-to: type=gha,mode=max
         platforms: linux/amd64,linux/arm64
+        load: ${{ github.event_name == 'pull_request' }}
         build-args: |
           VERSION=${{ github.ref_name }}
           VCS_REF=${{ github.sha }}
@@ -71,7 +73,7 @@ jobs:
     - name: Scan image for vulnerabilities
       uses: aquasecurity/trivy-action@0.20.0
       with:
-        image-ref: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:${{ github.sha }}
+        image-ref: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:${{ github.event_name == 'pull_request' && github.sha || steps.meta.outputs.version }}
         format: 'sarif'
         output: 'trivy-results.sarif'
 
