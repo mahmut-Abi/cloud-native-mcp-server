@@ -9,20 +9,20 @@ import (
 
 func TestHandleGetTime(t *testing.T) {
 	ctx := context.Background()
-	
+
 	// Test with default format
 	request := mcp.CallToolRequest{
 		Params: mcp.CallToolParams{
 			Arguments: map[string]interface{}{},
 		},
 	}
-	
+
 	result, err := HandleGetTime(ctx, request)
 	if err != nil {
 		t.Errorf("HandleGetTime() error = %v", err)
 		return
 	}
-	
+
 	if result == nil {
 		t.Error("HandleGetTime() should return non-nil result")
 	}
@@ -30,7 +30,7 @@ func TestHandleGetTime(t *testing.T) {
 
 func TestHandleGetTimeWithCustomFormat(t *testing.T) {
 	ctx := context.Background()
-	
+
 	request := mcp.CallToolRequest{
 		Params: mcp.CallToolParams{
 			Arguments: map[string]interface{}{
@@ -38,13 +38,13 @@ func TestHandleGetTimeWithCustomFormat(t *testing.T) {
 			},
 		},
 	}
-	
+
 	result, err := HandleGetTime(ctx, request)
 	if err != nil {
 		t.Errorf("HandleGetTime() error = %v", err)
 		return
 	}
-	
+
 	if result == nil {
 		t.Error("HandleGetTime() should return non-nil result")
 	}
@@ -52,7 +52,7 @@ func TestHandleGetTimeWithCustomFormat(t *testing.T) {
 
 func TestHandleGetTimestamp(t *testing.T) {
 	ctx := context.Background()
-	
+
 	request := mcp.CallToolRequest{
 		Params: mcp.CallToolParams{
 			Arguments: map[string]interface{}{
@@ -60,13 +60,13 @@ func TestHandleGetTimestamp(t *testing.T) {
 			},
 		},
 	}
-	
+
 	result, err := HandleGetTimestamp(ctx, request)
 	if err != nil {
 		t.Errorf("HandleGetTimestamp() error = %v", err)
 		return
 	}
-	
+
 	if result == nil {
 		t.Error("HandleGetTimestamp() should return non-nil result")
 	}
@@ -74,7 +74,7 @@ func TestHandleGetTimestamp(t *testing.T) {
 
 func TestHandleGetTimestampWithMillis(t *testing.T) {
 	ctx := context.Background()
-	
+
 	request := mcp.CallToolRequest{
 		Params: mcp.CallToolParams{
 			Arguments: map[string]interface{}{
@@ -82,13 +82,13 @@ func TestHandleGetTimestampWithMillis(t *testing.T) {
 			},
 		},
 	}
-	
+
 	result, err := HandleGetTimestamp(ctx, request)
 	if err != nil {
 		t.Errorf("HandleGetTimestamp() error = %v", err)
 		return
 	}
-	
+
 	if result == nil {
 		t.Error("HandleGetTimestamp() should return non-nil result")
 	}
@@ -96,19 +96,19 @@ func TestHandleGetTimestampWithMillis(t *testing.T) {
 
 func TestHandleGetDate(t *testing.T) {
 	ctx := context.Background()
-	
+
 	request := mcp.CallToolRequest{
 		Params: mcp.CallToolParams{
 			Arguments: map[string]interface{}{},
 		},
 	}
-	
+
 	result, err := HandleGetDate(ctx, request)
 	if err != nil {
 		t.Errorf("HandleGetDate() error = %v", err)
 		return
 	}
-	
+
 	if result == nil {
 		t.Error("HandleGetDate() should return non-nil result")
 	}
@@ -116,7 +116,7 @@ func TestHandleGetDate(t *testing.T) {
 
 func TestHandleGetDateWithTime(t *testing.T) {
 	ctx := context.Background()
-	
+
 	request := mcp.CallToolRequest{
 		Params: mcp.CallToolParams{
 			Arguments: map[string]interface{}{
@@ -124,13 +124,13 @@ func TestHandleGetDateWithTime(t *testing.T) {
 			},
 		},
 	}
-	
+
 	result, err := HandleGetDate(ctx, request)
 	if err != nil {
 		t.Errorf("HandleGetDate() error = %v", err)
 		return
 	}
-	
+
 	if result == nil {
 		t.Error("HandleGetDate() should return non-nil result")
 	}
@@ -138,7 +138,7 @@ func TestHandleGetDateWithTime(t *testing.T) {
 
 func TestHandlePause(t *testing.T) {
 	ctx := context.Background()
-	
+
 	request := mcp.CallToolRequest{
 		Params: mcp.CallToolParams{
 			Arguments: map[string]interface{}{
@@ -146,13 +146,13 @@ func TestHandlePause(t *testing.T) {
 			},
 		},
 	}
-	
+
 	result, err := HandlePause(ctx, request)
 	if err != nil {
 		t.Errorf("HandlePause() error = %v", err)
 		return
 	}
-	
+
 	if result == nil {
 		t.Error("HandlePause() should return non-nil result")
 	}
@@ -160,7 +160,7 @@ func TestHandlePause(t *testing.T) {
 
 func TestHandleSleep(t *testing.T) {
 	ctx := context.Background()
-	
+
 	request := mcp.CallToolRequest{
 		Params: mcp.CallToolParams{
 			Arguments: map[string]interface{}{
@@ -169,13 +169,13 @@ func TestHandleSleep(t *testing.T) {
 			},
 		},
 	}
-	
+
 	result, err := HandleSleep(ctx, request)
 	if err != nil {
 		t.Errorf("HandleSleep() error = %v", err)
 		return
 	}
-	
+
 	if result == nil {
 		t.Error("HandleSleep() should return non-nil result")
 	}
@@ -183,7 +183,7 @@ func TestHandleSleep(t *testing.T) {
 
 func TestHandleWebFetch(t *testing.T) {
 	ctx := context.Background()
-	
+
 	request := mcp.CallToolRequest{
 		Params: mcp.CallToolParams{
 			Arguments: map[string]interface{}{
@@ -191,13 +191,13 @@ func TestHandleWebFetch(t *testing.T) {
 			},
 		},
 	}
-	
+
 	result, err := HandleWebFetch(ctx, request)
 	if err != nil {
 		t.Errorf("HandleWebFetch() error = %v", err)
 		return
 	}
-	
+
 	if result == nil {
 		t.Error("HandleWebFetch() should return non-nil result")
 	}
@@ -205,13 +205,13 @@ func TestHandleWebFetch(t *testing.T) {
 
 func TestHandleWebFetchWithoutURL(t *testing.T) {
 	ctx := context.Background()
-	
+
 	request := mcp.CallToolRequest{
 		Params: mcp.CallToolParams{
 			Arguments: map[string]interface{}{},
 		},
 	}
-	
+
 	_, err := HandleWebFetch(ctx, request)
 	if err == nil {
 		t.Error("HandleWebFetch() should return error when URL is missing")
@@ -220,7 +220,7 @@ func TestHandleWebFetchWithoutURL(t *testing.T) {
 
 func TestHandleWebFetchWithInvalidURL(t *testing.T) {
 	ctx := context.Background()
-	
+
 	request := mcp.CallToolRequest{
 		Params: mcp.CallToolParams{
 			Arguments: map[string]interface{}{
@@ -228,7 +228,7 @@ func TestHandleWebFetchWithInvalidURL(t *testing.T) {
 			},
 		},
 	}
-	
+
 	_, err := HandleWebFetch(ctx, request)
 	if err == nil {
 		t.Error("HandleWebFetch() should return error for non-HTTP URL")
