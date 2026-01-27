@@ -23,8 +23,8 @@ func TestNewClient(t *testing.T) {
 			wantErr: false,
 		},
 		{
-			name: "nil options",
-			opts: nil,
+			name:    "nil options",
+			opts:    nil,
 			wantErr: false,
 		},
 		{
@@ -97,7 +97,7 @@ func TestHealth(t *testing.T) {
 		}
 		w.Header().Set("Content-Type", "application/json")
 		w.WriteHeader(http.StatusOK)
-		w.Write([]byte(`{
+		_, _ = w.Write([]byte(`{
 			"cluster_name": "test-cluster",
 			"status": "green",
 			"number_of_nodes": 1
@@ -129,7 +129,7 @@ func TestIndices(t *testing.T) {
 		}
 		w.Header().Set("Content-Type", "application/json")
 		w.WriteHeader(http.StatusOK)
-		w.Write([]byte(`[]`))
+		_, _ = w.Write([]byte(`[]`))
 	}))
 	defer server.Close()
 
@@ -156,7 +156,7 @@ func TestIndexStats(t *testing.T) {
 		}
 		w.Header().Set("Content-Type", "application/json")
 		w.WriteHeader(http.StatusOK)
-		w.Write([]byte(`{
+		_, _ = w.Write([]byte(`{
 			"_all": {
 				"primaries": {
 					"docs": {"count": 100}
@@ -190,7 +190,7 @@ func TestNodes(t *testing.T) {
 		}
 		w.Header().Set("Content-Type", "application/json")
 		w.WriteHeader(http.StatusOK)
-		w.Write([]byte(`{
+		_, _ = w.Write([]byte(`{
 			"cluster_name": "test-cluster",
 			"nodes": {}
 		}`))
@@ -217,7 +217,7 @@ func TestNodes(t *testing.T) {
 func TestHealthError(t *testing.T) {
 	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		w.WriteHeader(http.StatusInternalServerError)
-		w.Write([]byte(`not valid json`))
+		_, _ = w.Write([]byte(`not valid json`))
 	}))
 	defer server.Close()
 
@@ -236,7 +236,7 @@ func TestHealthError(t *testing.T) {
 func TestIndicesError(t *testing.T) {
 	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		w.WriteHeader(http.StatusNotFound)
-		w.Write([]byte(`{"error": "Not found"}`))
+		_, _ = w.Write([]byte(`{"error": "Not found"}`))
 	}))
 	defer server.Close()
 

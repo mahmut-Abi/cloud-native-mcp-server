@@ -78,7 +78,7 @@ func TestGetTrace(t *testing.T) {
 		}
 		w.Header().Set("Content-Type", "application/json")
 		w.WriteHeader(http.StatusOK)
-		w.Write([]byte(`{"data": [{"traceID": "test-trace-id", "spans": [], "processes": []}]}`))
+		_, _ = w.Write([]byte(`{"data": [{"traceID": "test-trace-id", "spans": [], "processes": []}]}`))
 	}))
 	defer server.Close()
 
@@ -96,6 +96,7 @@ func TestGetTrace(t *testing.T) {
 
 	if trace == nil {
 		t.Error("GetTrace() should return non-nil trace")
+		return
 	}
 
 	if trace.TraceID != "test-trace-id" {
@@ -106,7 +107,7 @@ func TestGetTrace(t *testing.T) {
 func TestGetTraceNotFound(t *testing.T) {
 	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		w.WriteHeader(http.StatusNotFound)
-		w.Write([]byte(`{"error": "not found"}`))
+		_, _ = w.Write([]byte(`{"error": "not found"}`))
 	}))
 	defer server.Close()
 
@@ -126,7 +127,7 @@ func TestSearchTraces(t *testing.T) {
 	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		w.Header().Set("Content-Type", "application/json")
 		w.WriteHeader(http.StatusOK)
-		w.Write([]byte(`{"data": []}`))
+		_, _ = w.Write([]byte(`{"data": []}`))
 	}))
 	defer server.Close()
 
@@ -157,7 +158,7 @@ func TestGetServices(t *testing.T) {
 	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		w.Header().Set("Content-Type", "application/json")
 		w.WriteHeader(http.StatusOK)
-		w.Write([]byte(`{"data": ["service1", "service2"]}`))
+		_, _ = w.Write([]byte(`{"data": ["service1", "service2"]}`))
 	}))
 	defer server.Close()
 
@@ -186,7 +187,7 @@ func TestGetOperations(t *testing.T) {
 	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		w.Header().Set("Content-Type", "application/json")
 		w.WriteHeader(http.StatusOK)
-		w.Write([]byte(`{"data": ["op1", "op2"]}`))
+		_, _ = w.Write([]byte(`{"data": ["op1", "op2"]}`))
 	}))
 	defer server.Close()
 
@@ -215,7 +216,7 @@ func TestGetDependencies(t *testing.T) {
 	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		w.Header().Set("Content-Type", "application/json")
 		w.WriteHeader(http.StatusOK)
-		w.Write([]byte(`[]`))
+		_, _ = w.Write([]byte(`[]`))
 	}))
 	defer server.Close()
 
@@ -254,7 +255,7 @@ func TestHandleResponseError(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 				w.WriteHeader(tt.statusCode)
-				w.Write([]byte(`{"error": "test error"}`))
+				_, _ = w.Write([]byte(`{"error": "test error"}`))
 			}))
 			defer server.Close()
 

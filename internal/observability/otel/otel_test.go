@@ -208,7 +208,7 @@ func TestFromAppConfigDisabled(t *testing.T) {
 func TestMiddleware(t *testing.T) {
 	handler := http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		w.WriteHeader(http.StatusOK)
-		w.Write([]byte("OK"))
+		_, _ = w.Write([]byte("OK"))
 	})
 
 	mw := Middleware("test-service")
@@ -284,7 +284,7 @@ func TestInitWithTracing(t *testing.T) {
 	// Shutdown
 	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
 	defer cancel()
-	Shutdown(ctx)
+	_ = Shutdown(ctx)
 }
 
 func TestInitWithMetrics(t *testing.T) {
@@ -317,7 +317,7 @@ func TestInitWithMetrics(t *testing.T) {
 	// Shutdown
 	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
 	defer cancel()
-	Shutdown(ctx)
+	_ = Shutdown(ctx)
 }
 
 func TestSpanHelperRecordError(t *testing.T) {
