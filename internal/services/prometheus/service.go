@@ -119,34 +119,6 @@ func (s *Service) GetTools() []mcp.Tool {
 	})
 }
 
-// GetToolsEnhanced returns all available Prometheus MCP tools with enhancements.
-func (s *Service) GetToolsEnhanced() []mcp.Tool {
-	if !s.enabled || s.client == nil {
-		return nil
-	}
-
-	result := s.GetTools()
-
-	// Add enhanced tools
-	result = append(result, tools.GetServerInfoTool())
-	result = append(result, tools.GetMetricsMetadataTool())
-	result = append(result, tools.GetTargetMetadataTool())
-
-	// Add TSDB tools
-	result = append(result, tools.GetTSDBStatsTool())
-	result = append(result, tools.GetTSDBStatusTool())
-	result = append(result, tools.GetRuntimeInfoTool())
-	result = append(result, tools.CreateSnapshotTool())
-	result = append(result, tools.GetWALReplayStatusTool())
-
-	// Add summary tools (optimized versions)
-	result = append(result, tools.GetTargetsSummaryTool())
-	result = append(result, tools.GetAlertsSummaryTool())
-	result = append(result, tools.GetRulesSummaryTool())
-
-	return result
-}
-
 // GetHandlers returns all tool handlers mapped to their respective tool names.
 // Handlers are only returned if the service is enabled and properly initialized.
 func (s *Service) GetHandlers() map[string]server.ToolHandlerFunc {
@@ -174,32 +146,6 @@ func (s *Service) GetHandlers() map[string]server.ToolHandlerFunc {
 		// Connection and health
 		"prometheus_test_connection": handlers.HandleTestConnection(s.client),
 	}
-}
-
-// GetHandlersEnhanced returns enhanced handlers.
-func (s *Service) GetHandlersEnhanced() map[string]server.ToolHandlerFunc {
-	if !s.enabled || s.client == nil {
-		return nil
-	}
-
-	h := s.GetHandlers()
-	h["prometheus_get_server_info"] = handlers.HandleGetServerInfo(s.client)
-	h["prometheus_get_metrics_metadata"] = handlers.HandleGetMetricsMetadata(s.client)
-	h["prometheus_get_target_metadata"] = handlers.HandleGetTargetMetadata(s.client)
-
-	// Add TSDB handlers
-	h["prometheus_get_tsdb_stats"] = handlers.HandleGetTSDBStats(s.client)
-	h["prometheus_get_tsdb_status"] = handlers.HandleGetTSDBStatus(s.client)
-	h["prometheus_get_runtime_info"] = handlers.HandleGetRuntimeInfo(s.client)
-	h["prometheus_create_snapshot"] = handlers.HandleCreateSnapshot(s.client)
-	h["prometheus_get_wal_replay_status"] = handlers.HandleGetWALReplayStatus(s.client)
-
-	// Add summary tool handlers (optimized versions)
-	h["prometheus_targets_summary"] = handlers.HandleGetTargetsSummary(s.client)
-	h["prometheus_alerts_summary"] = handlers.HandleGetAlertsSummary(s.client)
-	h["prometheus_rules_summary"] = handlers.HandleGetRulesSummary(s.client)
-
-	return h
 }
 
 // IsEnabled returns whether the service is enabled and ready for use.

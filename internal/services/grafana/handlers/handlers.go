@@ -14,6 +14,7 @@ import (
 	"github.com/mark3labs/mcp-go/mcp"
 	"github.com/sirupsen/logrus"
 
+	"github.com/mahmut-Abi/k8s-mcp-server/internal/constants"
 	"github.com/mahmut-Abi/k8s-mcp-server/internal/services/grafana/client"
 	optimize "github.com/mahmut-Abi/k8s-mcp-server/internal/util/performance"
 )
@@ -24,11 +25,12 @@ var (
 )
 
 // Response size limits for Grafana - similar to Kubernetes optimizations
+// Use constants from internal/constants package for consistency
 const (
-	defaultLimit    = 20  // Conservative default limit
-	maxLimit        = 100 // Maximum allowed limit
-	warningLimit    = 50  // Warning threshold for large requests
-	datasourceLimit = 15  // Lower limit for datasources (they contain configs)
+	defaultLimit    = constants.DefaultPageSize
+	maxLimit        = constants.MaxPageSize
+	warningLimit    = constants.WarningPageSize
+	datasourceLimit = 15 // Lower limit for datasources (they contain configs)
 )
 
 // Helper function to validate and parse limit parameter with warnings
