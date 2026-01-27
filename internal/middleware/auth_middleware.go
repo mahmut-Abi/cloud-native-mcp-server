@@ -10,6 +10,11 @@ import (
 
 const authComponent = "auth"
 
+// Pre-compiled loggers with common fields
+var (
+	authLogger = logrus.WithField("component", authComponent)
+)
+
 type AuthConfig struct {
 	Enabled     bool
 	Mode        string // apikey, bearer, basic
@@ -24,99 +29,87 @@ func AuthMiddleware(config AuthConfig) func(http.Handler) http.Handler {
 	return func(next http.Handler) http.Handler {
 		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 			// Log auth middleware entry
-			logrus.WithFields(logrus.Fields{
-				"component": authComponent,
-				"enabled":   config.Enabled,
-				"mode":      config.Mode,
-				"path":      r.URL.Path,
-			}).Debug("Auth middleware processing request")
+			if authLogger.IsLevelEnabled(logrus.DebugLevel) {
+				authLogger.WithFields(logrus.Fields{
+					"enabled": config.Enabled,
+					"mode":    config.Mode,
+					"path":    r.URL.Path,
+				}).Debug("Auth middleware processing request")
+			}
 
 			if !config.Enabled {
-				logrus.Debug("Authentication disabled, proceeding")
+				authLogger.Debug("Authentication disabled, proceeding")
 				next.ServeHTTP(w, r)
 				return
 			}
 
 			if !authenticate(r, config) {
-				logrus.Error("Authentication failed - returning 401")
-				logrus.Warnf("Authentication failed for request from %s to %s", r.RemoteAddr, r.RequestURI)
+				authLogger.Error("Authentication failed - returning 401")
+				authLogger.Warnf("Authentication failed for request from %s to %s", r.RemoteAddr, r.RequestURI)
 				w.WriteHeader(http.StatusUnauthorized)
-				logrus.WithFields(logrus.Fields{
-					"component":   authComponent,
-					"operation":   "authenticate",
-					"http_method": r.Method,
-					"http_path":   r.URL.Path,
-					"remote_addr": r.RemoteAddr,
-					"status":      "failed",
-				}).Warn("Authentication failed")
+				if authLogger.IsLevelEnabled(logrus.WarnLevel) {
+					authLogger.WithFields(logrus.Fields{
+						"operation":   "authenticate",
+						"http_method": r.Method,
+						"http_path":   r.URL.Path,
+						"remote_addr": r.RemoteAddr,
+						"status":      "failed",
+					}).Warn("Authentication failed")
+				}
 				_, _ = fmt.Fprint(w, "{\"error\":\"unauthorized\"}")
 				return
 			}
 
 			next.ServeHTTP(w, r)
-			logrus.Debug("Authentication successful, proceeding")
+			authLogger.Debug("Authentication successful, proceeding")
 		})
 	}
 }
 
 // authenticate checks if the request has valid authentication
 func authenticate(r *http.Request, config AuthConfig) bool {
-	logrus.WithFields(logrus.Fields{
-		"component":   authComponent,
-		"mode":        config.Mode,
-		"has_api_key": getAPIKeyFromRequest(r) != "",
-	}).Debug("Starting authentication process")
+	if authLogger.IsLevelEnabled(logrus.DebugLevel) {
+		authLogger.WithFields(logrus.Fields{
+			"mode":        config.Mode,
+			"has_api_key": getAPIKeyFromRequest(r) != "",
+		}).Debug("Starting authentication process")
+	}
 
 	switch config.Mode {
 	case "apikey":
 		providedKey := getAPIKeyFromRequest(r)
-		logrus.WithFields(logrus.Fields{
-			"component":           authComponent,
-			"mode":                config.Mode,
-			"provided_key_length": len(providedKey),
-			"expected_key_length": len(config.APIKey),
-			"match":               providedKey == config.APIKey,
-		}).Debug("API Key auth attempt")
+		if authLogger.IsLevelEnabled(logrus.DebugLevel) {
+			authLogger.WithFields(logrus.Fields{
+				"mode":                config.Mode,
+				"provided_key_length": len(providedKey),
+				"expected_key_length": len(config.APIKey),
+				"match":               providedKey == config.APIKey,
+			}).Debug("API Key auth attempt")
+		}
 		return authenticateAPIKey(r, config.APIKey)
 	case "bearer":
-		logrus.Debug("Processing Bearer token authentication")
+		authLogger.Debug("Processing Bearer token authentication")
 		return authenticateBearer(r, config.BearerToken)
 	case "basic":
-		logrus.Debug("Processing Basic authentication")
+		authLogger.Debug("Processing Basic authentication")
 		return authenticateBasic(r, config.Username, config.Password)
 	default:
-		logrus.WithFields(logrus.Fields{
-			"component": authComponent,
-			"mode":      config.Mode,
-		}).Error("Unknown authentication mode")
+		authLogger.WithField("mode", config.Mode).Error("Unknown authentication mode")
 		return false
 	}
 }
 
 // getAPIKeyFromRequest extracts API key from request headers or query params
-// Supports multiple case variations: X-API-Key, X-Api-Key, x-api-key
-// Cleans the key by removing quotes and whitespace
+// Uses canonical header name for efficiency
 func getAPIKeyFromRequest(r *http.Request) string {
-	// Check various header case variations
-	headerNames := []string{"X-API-Key", "X-Api-Key", "x-api-key", "X-api-key"}
-	for _, headerName := range headerNames {
-		if key := r.Header.Get(headerName); key != "" {
-			// Clean the key by trimming whitespace and quotes
-			cleanKey := strings.TrimSpace(key)
-			cleanKey = strings.Trim(cleanKey, "'\"") // Remove single and double quotes
-			if cleanKey != "" {
-				return cleanKey
-			}
-		}
+	// Check canonical header name first
+	if key := r.Header.Get("X-Api-Key"); key != "" {
+		return strings.TrimSpace(key)
 	}
 
 	// Fallback to query parameter
-	queryKey := r.URL.Query().Get("api_key")
-	if queryKey != "" {
-		// Clean the key by trimming whitespace and quotes
-		cleanKey := strings.TrimSpace(queryKey)
-		cleanKey = strings.Trim(cleanKey, "'\"") // Remove single and double quotes
-		return cleanKey
+	if queryKey := r.URL.Query().Get("api_key"); queryKey != "" {
+		return strings.TrimSpace(queryKey)
 	}
 
 	return ""
@@ -125,13 +118,14 @@ func getAPIKeyFromRequest(r *http.Request) string {
 // authenticateAPIKey checks API key authentication
 func authenticateAPIKey(r *http.Request, expectedKey string) bool {
 	key := getAPIKeyFromRequest(r)
-	logrus.WithFields(logrus.Fields{
-		"component":           authComponent,
-		"provided_key_length": len(key),
-		"expected_key_length": len(expectedKey),
-		"keys_match":          key == expectedKey,
-		"expected_empty":      expectedKey == "",
-	}).Debug("API key authentication check")
+	if authLogger.IsLevelEnabled(logrus.DebugLevel) {
+		authLogger.WithFields(logrus.Fields{
+			"provided_key_length": len(key),
+			"expected_key_length": len(expectedKey),
+			"keys_match":          key == expectedKey,
+			"expected_empty":      expectedKey == "",
+		}).Debug("API key authentication check")
+	}
 	return key == expectedKey && expectedKey != ""
 }
 
