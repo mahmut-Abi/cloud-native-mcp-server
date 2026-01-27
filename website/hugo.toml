@@ -1,0 +1,44 @@
+baseURL = 'https://mahmut-abi.github.io/cloud-native-mcp-server/'
+languageCode = 'zh-cn'
+title = 'Cloud Native MCP Server'
+theme = 'ananke'
+
+[markup]
+  [markup.goldmark]
+    [markup.goldmark.renderer]
+      unsafe = true
+
+[params]
+  author = "Mahmut Abi"
+  description = "高性能 Kubernetes 和云原生基础设施管理 MCP 服务器，集成 10 个服务和 220+ 工具"
+  images = ["logo.png"]
+  text_color = ""
+  background_color = "#ffffff"
+  date_format = "2006-01-02"
+  favicon = "favicon.ico"
+  recent_posts_number = 5
+
+[[menu.main]]
+  name = "首页"
+  url = "/"
+  weight = 1
+
+[[menu.main]]
+  name = "特性"
+  url = "/features/"
+  weight = 2
+
+[[menu.main]]
+  name = "服务"
+  url = "/services/"
+  weight = 3
+
+[[menu.main]]
+  name = "文档"
+  url = "/docs/"
+  weight = 4
+
+[[menu.main]]
+  name = "GitHub"
+  url = "https://github.com/mahmut-Abi/cloud-native-mcp-server"
+  weight = 5
