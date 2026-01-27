@@ -1,6 +1,6 @@
 # Security
 
-This document describes the security features and best practices for the k8s-mcp-server.
+This document describes the security features and best practices for the cloud-native-mcp-server.
 
 ## Authentication
 
@@ -71,7 +71,7 @@ The server includes a secrets management module for secure credential storage.
 ### Using Secrets Manager
 
 ```go
-import "github.com/mahmut-Abi/k8s-mcp-server/internal/secrets"
+import "github.com/mahmut-Abi/cloud-native-mcp-server/internal/secrets"
 
 // Create a new secrets manager
 manager := secrets.NewInMemoryManager()
@@ -134,7 +134,7 @@ The following characters are removed from user inputs:
 ### Example
 
 ```go
-import "github.com/mahmut-Abi/k8s-mcp-server/internal/util/sanitize"
+import "github.com/mahmut-Abi/cloud-native-mcp-server/internal/util/sanitize"
 
 // Sanitize a filter value
 cleanValue := sanitize.SanitizeFilterValue("'; DROP TABLE users; --")
@@ -193,7 +193,7 @@ audit:
   maxLogs: 1000
   storage:
     type: "file"
-    path: "/var/log/k8s-mcp-server/audit.log"
+    path: "/var/log/cloud-native-mcp-server/audit.log"
 ```
 
 ### 3. Use HTTPS in Production
@@ -247,6 +247,6 @@ These headers are never logged in plain text.
 If you discover a security vulnerability, please report it privately:
 
 - Email: security@example.com
-- GitHub Security Advisories: https://github.com/mahmut-Abi/k8s-mcp-server/security/advisories
+- GitHub Security Advisories: https://github.com/mahmut-Abi/cloud-native-mcp-server/security/advisories
 
 Please do not open a public issue for security vulnerabilities.

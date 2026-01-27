@@ -11,7 +11,7 @@ global:
 # Image configuration
 image:
   registry: "docker.io"
-  repository: mahmutabi/k8s-mcp-server
+  repository: mahmutabi/cloud-native-mcp-server
   tag: "latest"
   pullPolicy: IfNotPresent
   pullSecrets: []
@@ -51,14 +51,14 @@ ingress:
     # kubernetes.io/ingress.class: nginx
     # kubernetes.io/tls-acme: "true"
   hosts:
-    - host: k8s-mcp-server.local
+    - host: cloud-native-mcp-server.local
       paths:
         - path: /
           pathType: Prefix
   tls: []
-  #  - secretName: k8s-mcp-server-tls
+  #  - secretName: cloud-native-mcp-server-tls
   #    hosts:
-  #      - k8s-mcp-server.local
+  #      - cloud-native-mcp-server.local
 
 # Service account configuration
 serviceAccount:
@@ -114,7 +114,7 @@ extraVolumes:
 
 extraVolumeMounts:
   - name: audit-log-volume
-    mountPath: /var/log/k8s-mcp-server
+    mountPath: /var/log/cloud-native-mcp-server
 
 # Init containers
 initContainers: []
@@ -267,14 +267,14 @@ config:
     storage: "file"
     format: "json"
     file:
-      path: "/var/log/k8s-mcp-server/audit.log"
+      path: "/var/log/cloud-native-mcp-server/audit.log"
       maxSizeMB: 100
       maxBackups: 10
       maxAgeDays: 30
       compress: true
     database:
       type: "sqlite"
-      sqlitePath: "/var/lib/k8s-mcp-server/audit.db"
+      sqlitePath: "/var/lib/cloud-native-mcp-server/audit.db"
       connectionString: ""
       tableName: "audit_logs"
       poolSize: 10

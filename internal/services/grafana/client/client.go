@@ -14,8 +14,8 @@ import (
 	"strings"
 	"time"
 
-	"github.com/mahmut-Abi/k8s-mcp-server/internal/errors"
-	optimize "github.com/mahmut-Abi/k8s-mcp-server/internal/util/performance"
+	"github.com/mahmut-Abi/cloud-native-mcp-server/internal/errors"
+	optimize "github.com/mahmut-Abi/cloud-native-mcp-server/internal/util/performance"
 	"github.com/sirupsen/logrus"
 )
 

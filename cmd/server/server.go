@@ -6,10 +6,10 @@ import (
 	"net/http"
 	"runtime"
 
-	appconfig "github.com/mahmut-Abi/k8s-mcp-server/internal/config"
-	"github.com/mahmut-Abi/k8s-mcp-server/internal/config/serverConfig"
-	"github.com/mahmut-Abi/k8s-mcp-server/internal/middleware"
-	"github.com/mahmut-Abi/k8s-mcp-server/internal/observability/metrics"
+	appconfig "github.com/mahmut-Abi/cloud-native-mcp-server/internal/config"
+	"github.com/mahmut-Abi/cloud-native-mcp-server/internal/config/serverConfig"
+	"github.com/mahmut-Abi/cloud-native-mcp-server/internal/middleware"
+	"github.com/mahmut-Abi/cloud-native-mcp-server/internal/observability/metrics"
 	"github.com/sirupsen/logrus"
 
 	server "github.com/mark3labs/mcp-go/server"
@@ -34,7 +34,7 @@ func createServer(config *CLIConfig, handler http.Handler) *http.Server {
 
 // startHTTPServer starts the HTTP server
 func startHTTPServer(config *CLIConfig, appConfig *appconfig.AppConfig, mcpServer *server.MCPServer) (*http.Server, error) {
-	logrus.Infof("Starting k8s-mcp-server on %s (mode=%s)", config.Addr, config.Mode)
+	logrus.Infof("Starting cloud-native-mcp-server on %s (mode=%s)", config.Addr, config.Mode)
 
 	var sseServers map[string]*server.SSEServer
 	var streamableHTTPServers map[string]*server.StreamableHTTPServer
@@ -69,7 +69,7 @@ func startHTTPServer(config *CLIConfig, appConfig *appconfig.AppConfig, mcpServe
 	mux.Handle("/metrics", metricsHandler)
 
 	// Wrap mux with metrics middleware
-	handler := middleware.MetricsMiddleware("k8s-mcp-server")(mux)
+	handler := middleware.MetricsMiddleware("cloud-native-mcp-server")(mux)
 
 	srv := createServer(config, handler)
 

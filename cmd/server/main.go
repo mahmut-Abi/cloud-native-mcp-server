@@ -3,7 +3,7 @@ package main
 import (
 	"os"
 
-	appconfig "github.com/mahmut-Abi/k8s-mcp-server/internal/config"
+	appconfig "github.com/mahmut-Abi/cloud-native-mcp-server/internal/config"
 	"github.com/sirupsen/logrus"
 
 	server "github.com/mark3labs/mcp-go/server"

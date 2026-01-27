@@ -1,4 +1,4 @@
-// Package constants defines common constants used across the k8s-mcp-server
+// Package constants defines common constants used across the cloud-native-mcp-server
 package constants
 
 import "time"

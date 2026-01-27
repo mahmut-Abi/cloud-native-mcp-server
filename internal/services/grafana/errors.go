@@ -3,7 +3,7 @@ package grafana
 import (
 	"fmt"
 
-	"github.com/mahmut-Abi/k8s-mcp-server/internal/errors"
+	"github.com/mahmut-Abi/cloud-native-mcp-server/internal/errors"
 )
 
 // Grafana-specific error codes

@@ -12,8 +12,8 @@ import (
 
 	"github.com/mark3labs/mcp-go/mcp"
 
-	"github.com/mahmut-Abi/k8s-mcp-server/internal/services"
-	optimize "github.com/mahmut-Abi/k8s-mcp-server/internal/util/performance"
+	"github.com/mahmut-Abi/cloud-native-mcp-server/internal/services"
+	optimize "github.com/mahmut-Abi/cloud-native-mcp-server/internal/util/performance"
 )
 
 // ListDisplayOptions holds options for listing

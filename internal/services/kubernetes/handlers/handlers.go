@@ -14,10 +14,10 @@ import (
 	"github.com/sirupsen/logrus"
 	"k8s.io/client-go/util/jsonpath"
 
-	"github.com/mahmut-Abi/k8s-mcp-server/internal/constants"
-	"github.com/mahmut-Abi/k8s-mcp-server/internal/services/kubernetes/client"
-	optimize "github.com/mahmut-Abi/k8s-mcp-server/internal/util/performance"
-	"github.com/mahmut-Abi/k8s-mcp-server/internal/util/sanitize"
+	"github.com/mahmut-Abi/cloud-native-mcp-server/internal/constants"
+	"github.com/mahmut-Abi/cloud-native-mcp-server/internal/services/kubernetes/client"
+	optimize "github.com/mahmut-Abi/cloud-native-mcp-server/internal/util/performance"
+	"github.com/mahmut-Abi/cloud-native-mcp-server/internal/util/sanitize"
 )
 
 // Type alias for PaginationInfo from client package

@@ -8,12 +8,12 @@ import (
 	"github.com/mark3labs/mcp-go/mcp"
 	server "github.com/mark3labs/mcp-go/server"
 
-	"github.com/mahmut-Abi/k8s-mcp-server/internal/config"
-	"github.com/mahmut-Abi/k8s-mcp-server/internal/services/cache"
-	"github.com/mahmut-Abi/k8s-mcp-server/internal/services/framework"
-	"github.com/mahmut-Abi/k8s-mcp-server/internal/services/grafana/client"
-	"github.com/mahmut-Abi/k8s-mcp-server/internal/services/grafana/handlers"
-	"github.com/mahmut-Abi/k8s-mcp-server/internal/services/grafana/tools"
+	"github.com/mahmut-Abi/cloud-native-mcp-server/internal/config"
+	"github.com/mahmut-Abi/cloud-native-mcp-server/internal/services/cache"
+	"github.com/mahmut-Abi/cloud-native-mcp-server/internal/services/framework"
+	"github.com/mahmut-Abi/cloud-native-mcp-server/internal/services/grafana/client"
+	"github.com/mahmut-Abi/cloud-native-mcp-server/internal/services/grafana/handlers"
+	"github.com/mahmut-Abi/cloud-native-mcp-server/internal/services/grafana/tools"
 )
 
 // Service implements the Grafana service for MCP server integration.

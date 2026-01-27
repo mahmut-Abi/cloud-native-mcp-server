@@ -2,10 +2,10 @@
 apiVersion: policy/v1
 kind: PodDisruptionBudget
 metadata:
-  name: {{ include "k8s-mcp-server.fullname" . }}
+  name: {{ include "cloud-native-mcp-server.fullname" . }}
   namespace: {{ .Release.Namespace }}
   labels:
-    {{- include "k8s-mcp-server.labels" . | nindent 4 }}
+    {{- include "cloud-native-mcp-server.labels" . | nindent 4 }}
 spec:
   {{- if .Values.podDisruptionBudget.minAvailable }}
   minAvailable: {{ .Values.podDisruptionBudget.minAvailable }}
@@ -15,5 +15,5 @@ spec:
   {{- end }}
   selector:
     matchLabels:
-      {{- include "k8s-mcp-server.selectorLabels" . | nindent 6 }}
+      {{- include "cloud-native-mcp-server.selectorLabels" . | nindent 6 }}
 {{- end }}

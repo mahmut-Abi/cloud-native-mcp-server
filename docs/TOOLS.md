@@ -12,6 +12,7 @@ This document provides a comprehensive reference for all 210+ tools available in
 - [Elasticsearch (14 tools)](#elasticsearch-14-tools)
 - [Alertmanager (15 tools)](#alertmanager-15-tools)
 - [Jaeger (8 tools)](#jaeger-8-tools)
+- [OpenTelemetry (9 tools)](#opentelemetry-9-tools)
 - [Utilities (6 tools)](#utilities-6-tools)
 
 ---
@@ -482,6 +483,44 @@ This document provides a comprehensive reference for all 210+ tools available in
 | Tool | Description | Priority |
 |------|-------------|----------|
 | `jaeger_get_dependencies` | Get service dependency graph. | - |
+
+---
+
+## OpenTelemetry (9 tools)
+
+### Metrics
+
+| Tool | Description | Priority |
+|------|-------------|----------|
+| `opentelemetry_get_metrics` | Retrieve metrics from OpenTelemetry Collector. Can filter by metric name and time range. | - |
+| `opentelemetry_query_metrics` | Execute a PromQL-style query against OpenTelemetry Collector metrics. Useful for aggregations, filtering, and complex metric analysis. | - |
+
+### Traces
+
+| Tool | Description | Priority |
+|------|-------------|----------|
+| `opentelemetry_get_traces` | Retrieve traces from OpenTelemetry Collector. Can filter by trace ID, service name, and time range. | - |
+| `opentelemetry_query_traces` | Search for traces matching custom criteria in OpenTelemetry Collector. Supports filtering by service, tags, and time range. | - |
+
+### Logs
+
+| Tool | Description | Priority |
+|------|-------------|----------|
+| `opentelemetry_get_logs` | Retrieve logs from OpenTelemetry Collector. Can filter by service name, log level, and time range. | - |
+| `opentelemetry_query_logs` | Search for logs matching custom criteria in OpenTelemetry Collector. Supports filtering by service, level, message content, and time range. | - |
+
+### Health and Status
+
+| Tool | Description | Priority |
+|------|-------------|----------|
+| `opentelemetry_get_health` | Check the health status of OpenTelemetry Collector. Returns overall health and component status. | ⚠️ PRIORITY |
+| `opentelemetry_get_status` | Retrieve detailed status information about OpenTelemetry Collector, including components, pipelines, and configuration. | - |
+
+### Configuration
+
+| Tool | Description | Priority |
+|------|-------------|----------|
+| `opentelemetry_get_config` | Retrieve the current configuration of OpenTelemetry Collector. Shows pipelines, receivers, processors, exporters, and extensions. | - |
 
 ---
 

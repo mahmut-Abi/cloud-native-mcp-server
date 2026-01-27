@@ -70,7 +70,7 @@ data:
         storage: "file"
         format: "json"
         file:
-            path: "/var/log/k8s-mcp-server/audit.log"
+            path: "/var/log/cloud-native-mcp-server/audit.log"
             maxSizeMB: 100
             maxBackups: 10
             maxAgeDays: 30

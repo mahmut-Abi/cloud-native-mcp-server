@@ -18,13 +18,13 @@ import (
 	server "github.com/mark3labs/mcp-go/server"
 	"github.com/sirupsen/logrus"
 
-	"github.com/mahmut-Abi/k8s-mcp-server/internal/config"
-	"github.com/mahmut-Abi/k8s-mcp-server/internal/middleware"
-	"github.com/mahmut-Abi/k8s-mcp-server/internal/middleware/hook"
-	"github.com/mahmut-Abi/k8s-mcp-server/internal/services"
-	"github.com/mahmut-Abi/k8s-mcp-server/internal/services/manager"
-	"github.com/mahmut-Abi/k8s-mcp-server/internal/services/prompts"
-	"github.com/mahmut-Abi/k8s-mcp-server/internal/util/openapi"
+	"github.com/mahmut-Abi/cloud-native-mcp-server/internal/config"
+	"github.com/mahmut-Abi/cloud-native-mcp-server/internal/middleware"
+	"github.com/mahmut-Abi/cloud-native-mcp-server/internal/middleware/hook"
+	"github.com/mahmut-Abi/cloud-native-mcp-server/internal/services"
+	"github.com/mahmut-Abi/cloud-native-mcp-server/internal/services/manager"
+	"github.com/mahmut-Abi/cloud-native-mcp-server/internal/services/prompts"
+	"github.com/mahmut-Abi/cloud-native-mcp-server/internal/util/openapi"
 )
 
 const (

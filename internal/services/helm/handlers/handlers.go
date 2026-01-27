@@ -14,8 +14,8 @@ import (
 	"github.com/sirupsen/logrus"
 	"helm.sh/helm/v3/pkg/release"
 
-	"github.com/mahmut-Abi/k8s-mcp-server/internal/services/helm/client"
-	optimize "github.com/mahmut-Abi/k8s-mcp-server/internal/util/performance"
+	"github.com/mahmut-Abi/cloud-native-mcp-server/internal/services/helm/client"
+	optimize "github.com/mahmut-Abi/cloud-native-mcp-server/internal/util/performance"
 )
 
 var (

@@ -10,7 +10,7 @@ import (
 	"github.com/mark3labs/mcp-go/mcp"
 	server "github.com/mark3labs/mcp-go/server"
 
-	"github.com/mahmut-Abi/k8s-mcp-server/internal/services/opentelemetry/client"
+	"github.com/mahmut-Abi/cloud-native-mcp-server/internal/services/opentelemetry/client"
 )
 
 // HandleGetMetrics handles the opentelemetry_get_metrics tool.

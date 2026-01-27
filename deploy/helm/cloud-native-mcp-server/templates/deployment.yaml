@@ -1,10 +1,10 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: {{ include "k8s-mcp-server.fullname" . }}
+  name: {{ include "cloud-native-mcp-server.fullname" . }}
   namespace: {{ .Release.Namespace }}
   labels:
-    {{- include "k8s-mcp-server.labels" . | nindent 4 }}
+    {{- include "cloud-native-mcp-server.labels" . | nindent 4 }}
   {{- with .Values.podAnnotations }}
   annotations:
     {{- toYaml . | nindent 4 }}
@@ -15,22 +15,22 @@ spec:
   {{- end }}
   selector:
     matchLabels:
-      {{- include "k8s-mcp-server.selectorLabels" . | nindent 6 }}
+      {{- include "cloud-native-mcp-server.selectorLabels" . | nindent 6 }}
   template:
     metadata:
       annotations:
-        checksum/config: {{ include "k8s-mcp-server.configChecksum" . }}
+        checksum/config: {{ include "cloud-native-mcp-server.configChecksum" . }}
         {{- with .Values.podAnnotations }}
         {{- toYaml . | nindent 8 }}
         {{- end }}
       labels:
-        {{- include "k8s-mcp-server.selectorLabels" . | nindent 8 }}
+        {{- include "cloud-native-mcp-server.selectorLabels" . | nindent 8 }}
     spec:
       {{- with .Values.image.pullSecrets }}
       imagePullSecrets:
         {{- toYaml . | nindent 8 }}
       {{- end }}
-      serviceAccountName: {{ include "k8s-mcp-server.serviceAccountName" . }}
+      serviceAccountName: {{ include "cloud-native-mcp-server.serviceAccountName" . }}
       securityContext:
         {{- toYaml .Values.podSecurityContext | nindent 8 }}
       {{- with .Values.initContainers }}
@@ -41,13 +41,13 @@ spec:
         - name: {{ .Chart.Name }}
           securityContext:
             {{- toYaml .Values.securityContext | nindent 12 }}
-          image: "{{ include "k8s-mcp-server.image" . }}"
+          image: "{{ include "cloud-native-mcp-server.image" . }}"
           imagePullPolicy: {{ .Values.image.pullPolicy }}
           args:
             - --config
             - /config.yaml
           command:
-            - /usr/local/bin/k8s-mcp-server
+            - /usr/local/bin/cloud-native-mcp-server
           ports:
             - name: http
               containerPort: {{ .Values.service.targetPort }}
@@ -78,7 +78,7 @@ spec:
       volumes:
         - name: config-volume
           configMap:
-            name: {{ include "k8s-mcp-server.fullname" . }}-config
+            name: {{ include "cloud-native-mcp-server.fullname" . }}-config
             defaultMode: 420
         {{- with .Values.extraVolumes }}
         {{- toYaml . | nindent 8 }}

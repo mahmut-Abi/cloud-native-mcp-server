@@ -24,10 +24,10 @@ spec:
         - --config
         - /config.yaml
         command:
-        - /usr/local/bin/k8s-mcp-server
-        image: docker.io/mahmutabi/k8s-mcp-server:latest
+        - /usr/local/bin/cloud-native-mcp-server
+        image: docker.io/mahmutabi/cloud-native-mcp-server:latest
         imagePullPolicy: IfNotPresent
-        name: k8s-mcp-server
+        name: cloud-native-mcp-server
         ports:
         - containerPort: 8080
           name: http
@@ -53,11 +53,11 @@ spec:
           name: config-volume
           subPath: config.yaml
           readOnly: true
-        - mountPath: /var/log/k8s-mcp-server
+        - mountPath: /var/log/cloud-native-mcp-server
           name: audit-log-volume
       restartPolicy: Always
       schedulerName: default-scheduler
-      serviceAccountName: k8s-mcp-server
+      serviceAccountName: cloud-native-mcp-server
       volumes:
       - configMap:
           defaultMode: 420

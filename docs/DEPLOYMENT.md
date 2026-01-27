@@ -43,6 +43,7 @@ Optional services to connect to:
 - **Elasticsearch** (optional)
 - **Alertmanager** (optional)
 - **Jaeger** (optional)
+- **OpenTelemetry** (optional)
 
 ---
 
@@ -52,8 +53,8 @@ Optional services to connect to:
 
 ```bash
 # Download latest release
-wget https://github.com/mahmut-Abi/k8s-mcp-server/releases/latest/download/k8s-mcp-server-linux-amd64
-chmod +x k8s-mcp-server-linux-amd64
+wget https://github.com/mahmut-Abi/cloud-native-mcp-server/releases/latest/download/cloud-native-mcp-server-linux-amd64
+chmod +x cloud-native-mcp-server-linux-amd64
 
 # Create config
 cat > config.yaml << EOF
@@ -70,17 +71,17 @@ kubernetes:
 EOF
 
 # Run
-./k8s-mcp-server-linux-amd64
+./cloud-native-mcp-server-linux-amd64
 ```
 
 ### Docker Quick Start
 
 ```bash
 docker run -d \
-  --name k8s-mcp-server \
+  --name cloud-native-mcp-server \
   -p 8080:8080 \
   -v ~/.kube:/root/.kube:ro \
-  mahmutabi/k8s-mcp-server:latest
+  mahmutabi/cloud-native-mcp-server:latest
 ```
 
 ---
@@ -95,22 +96,22 @@ Create a deployment manifest:
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: k8s-mcp-server
+  name: cloud-native-mcp-server
   namespace: default
 spec:
   replicas: 1
   selector:
     matchLabels:
-      app: k8s-mcp-server
+      app: cloud-native-mcp-server
   template:
     metadata:
       labels:
-        app: k8s-mcp-server
+        app: cloud-native-mcp-server
     spec:
-      serviceAccountName: k8s-mcp-server
+      serviceAccountName: cloud-native-mcp-server
       containers:
-      - name: k8s-mcp-server
-        image: mahmutabi/k8s-mcp-server:latest
+      - name: cloud-native-mcp-server
+        image: mahmutabi/cloud-native-mcp-server:latest
         ports:
         - containerPort: 8080
         env:
@@ -155,13 +156,13 @@ spec:
 apiVersion: v1
 kind: ServiceAccount
 metadata:
-  name: k8s-mcp-server
+  name: cloud-native-mcp-server
   namespace: default
 ---
 apiVersion: rbac.authorization.k8s.io/v1
 kind: ClusterRole
 metadata:
-  name: k8s-mcp-server
+  name: cloud-native-mcp-server
 rules:
 - apiGroups: ["*"]
   resources: ["*"]
@@ -170,14 +171,14 @@ rules:
 apiVersion: rbac.authorization.k8s.io/v1
 kind: ClusterRoleBinding
 metadata:
-  name: k8s-mcp-server
+  name: cloud-native-mcp-server
 roleRef:
   apiGroup: rbac.authorization.k8s.io
   kind: ClusterRole
-  name: k8s-mcp-server
+  name: cloud-native-mcp-server
 subjects:
 - kind: ServiceAccount
-  name: k8s-mcp-server
+  name: cloud-native-mcp-server
   namespace: default
 ```
 
@@ -187,7 +188,7 @@ subjects:
 apiVersion: v1
 kind: Service
 metadata:
-  name: k8s-mcp-server
+  name: cloud-native-mcp-server
   namespace: default
 spec:
   type: ClusterIP
@@ -196,7 +197,7 @@ spec:
     targetPort: 8080
     protocol: TCP
   selector:
-    app: k8s-mcp-server
+    app: cloud-native-mcp-server
 ```
 
 ### Ingress
@@ -205,7 +206,7 @@ spec:
 apiVersion: networking.k8s.io/v1
 kind: Ingress
 metadata:
-  name: k8s-mcp-server
+  name: cloud-native-mcp-server
   namespace: default
   annotations:
     nginx.ingress.kubernetes.io/rewrite-target: /
@@ -218,7 +219,7 @@ spec:
         pathType: Prefix
         backend:
           service:
-            name: k8s-mcp-server
+            name: cloud-native-mcp-server
             port:
               number: 8080
 ```
@@ -230,11 +231,11 @@ spec:
 kubectl apply -f deploy/kubernetes/
 
 # Verify deployment
-kubectl get pods -l app=k8s-mcp-server
-kubectl logs -l app=k8s-mcp-server
+kubectl get pods -l app=cloud-native-mcp-server
+kubectl logs -l app=cloud-native-mcp-server
 
 # Test connection
-kubectl port-forward svc/k8s-mcp-server 8080:8080
+kubectl port-forward svc/cloud-native-mcp-server 8080:8080
 curl http://localhost:8080/health
 ```
 
@@ -250,9 +251,9 @@ Create `docker-compose.yml`:
 version: '3.8'
 
 services:
-  k8s-mcp-server:
-    image: mahmutabi/k8s-mcp-server:latest
-    container_name: k8s-mcp-server
+  cloud-native-mcp-server:
+    image: mahmutabi/cloud-native-mcp-server:latest
+    container_name: cloud-native-mcp-server
     ports:
       - "8080:8080"
     volumes:
@@ -305,28 +306,28 @@ COPY go.mod go.sum ./
 RUN go mod download
 
 COPY . .
-RUN CGO_ENABLED=0 GOOS=linux go build -o k8s-mcp-server ./cmd/server
+RUN CGO_ENABLED=0 GOOS=linux go build -o cloud-native-mcp-server ./cmd/server
 
 FROM alpine:latest
 
 RUN apk --no-cache add ca-certificates
 WORKDIR /root/
 
-COPY --from=builder /app/k8s-mcp-server .
+COPY --from=builder /app/cloud-native-mcp-server .
 
 EXPOSE 8080
 
-CMD ["./k8s-mcp-server"]
+CMD ["./cloud-native-mcp-server"]
 ```
 
 Build and push:
 
 ```bash
 # Build
-docker build -t your-registry/k8s-mcp-server:latest .
+docker build -t your-registry/cloud-native-mcp-server:latest .
 
 # Push
-docker push your-registry/k8s-mcp-server:latest
+docker push your-registry/cloud-native-mcp-server:latest
 ```
 
 ---
@@ -337,19 +338,19 @@ docker push your-registry/k8s-mcp-server:latest
 
 ```bash
 # Add repository
-helm repo add k8s-mcp https://mahmut-Abi.github.io/k8s-mcp-server
+helm repo add k8s-mcp https://mahmut-Abi.github.io/cloud-native-mcp-server
 
 # Update repository
 helm repo update
 
 # Install
-helm install k8s-mcp-server k8s-mcp/k8s-mcp-server
+helm install cloud-native-mcp-server k8s-mcp/cloud-native-mcp-server
 
 # Upgrade
-helm upgrade k8s-mcp-server k8s-mcp/k8s-mcp-server
+helm upgrade cloud-native-mcp-server k8s-mcp/cloud-native-mcp-server
 
 # Uninstall
-helm uninstall k8s-mcp-server
+helm uninstall cloud-native-mcp-server
 ```
 
 ### Custom Values
@@ -360,7 +361,7 @@ Create `values.yaml`:
 replicaCount: 2
 
 image:
-  repository: mahmutabi/k8s-mcp-server
+  repository: mahmutabi/cloud-native-mcp-server
   tag: latest
   pullPolicy: IfNotPresent
 
@@ -448,7 +449,7 @@ affinity: {}
 ### Install with Custom Values
 
 ```bash
-helm install k8s-mcp-server ./deploy/helm/k8s-mcp-server -f values.yaml
+helm install cloud-native-mcp-server ./deploy/helm/cloud-native-mcp-server -f values.yaml
 ```
 
 ---
@@ -522,11 +523,11 @@ stringData:
 apiVersion: networking.k8s.io/v1
 kind: NetworkPolicy
 metadata:
-  name: k8s-mcp-server
+  name: cloud-native-mcp-server
 spec:
   podSelector:
     matchLabels:
-      app: k8s-mcp-server
+      app: cloud-native-mcp-server
   policyTypes:
   - Ingress
   - Egress
@@ -565,7 +566,7 @@ Add Prometheus monitoring:
 apiVersion: v1
 kind: Service
 metadata:
-  name: k8s-mcp-server
+  name: cloud-native-mcp-server
   namespace: default
   annotations:
     prometheus.io/scrape: "true"
@@ -577,7 +578,7 @@ spec:
   - port: 8080
     targetPort: 8080
   selector:
-    app: k8s-mcp-server
+    app: cloud-native-mcp-server
 ```
 
 ---
@@ -653,7 +654,7 @@ Audit logs track all operations:
 apiVersion: rbac.authorization.k8s.io/v1
 kind: ClusterRole
 metadata:
-  name: k8s-mcp-server
+  name: cloud-native-mcp-server
 rules:
 # Allow read-only access to most resources
 - apiGroups: [""]
@@ -729,16 +730,16 @@ securityContext:
 **Solution**:
 ```bash
 # Check pod status
-kubectl get pods -l app=k8s-mcp-server
+kubectl get pods -l app=cloud-native-mcp-server
 
 # Check logs
-kubectl logs -l app=k8s-mcp-server
+kubectl logs -l app=cloud-native-mcp-server
 
 # Check service
-kubectl get svc k8s-mcp-server
+kubectl get svc cloud-native-mcp-server
 
 # Port forward test
-kubectl port-forward svc/k8s-mcp-server 8080:8080
+kubectl port-forward svc/cloud-native-mcp-server 8080:8080
 curl http://localhost:8080/health
 ```
 
@@ -765,16 +766,16 @@ curl -H "X-API-Key: your-key" http://localhost:8080/health
 **Solution**:
 ```bash
 # Check RBAC
-kubectl get clusterrole k8s-mcp-server -o yaml
+kubectl get clusterrole cloud-native-mcp-server -o yaml
 
 # Check service account
-kubectl get sa k8s-mcp-server
+kubectl get sa cloud-native-mcp-server
 
 # Verify cluster role binding
-kubectl get clusterrolebinding k8s-mcp-server
+kubectl get clusterrolebinding cloud-native-mcp-server
 
 # Test permissions
-kubectl auth can-i list pods --as=system:serviceaccount:default:k8s-mcp-server
+kubectl auth can-i list pods --as=system:serviceaccount:default:cloud-native-mcp-server
 ```
 
 #### 4. High Memory Usage

@@ -3,12 +3,12 @@ package jaeger
 import (
 	"time"
 
-	"github.com/mahmut-Abi/k8s-mcp-server/internal/config"
-	"github.com/mahmut-Abi/k8s-mcp-server/internal/services/cache"
-	"github.com/mahmut-Abi/k8s-mcp-server/internal/services/framework"
-	"github.com/mahmut-Abi/k8s-mcp-server/internal/services/jaeger/client"
-	"github.com/mahmut-Abi/k8s-mcp-server/internal/services/jaeger/handlers"
-	"github.com/mahmut-Abi/k8s-mcp-server/internal/services/jaeger/tools"
+	"github.com/mahmut-Abi/cloud-native-mcp-server/internal/config"
+	"github.com/mahmut-Abi/cloud-native-mcp-server/internal/services/cache"
+	"github.com/mahmut-Abi/cloud-native-mcp-server/internal/services/framework"
+	"github.com/mahmut-Abi/cloud-native-mcp-server/internal/services/jaeger/client"
+	"github.com/mahmut-Abi/cloud-native-mcp-server/internal/services/jaeger/handlers"
+	"github.com/mahmut-Abi/cloud-native-mcp-server/internal/services/jaeger/tools"
 	"github.com/mark3labs/mcp-go/mcp"
 	server "github.com/mark3labs/mcp-go/server"
 )

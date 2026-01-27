@@ -12,8 +12,8 @@ import (
 	"github.com/mark3labs/mcp-go/mcp"
 	"github.com/sirupsen/logrus"
 
-	"github.com/mahmut-Abi/k8s-mcp-server/internal/services/prometheus/client"
-	optimize "github.com/mahmut-Abi/k8s-mcp-server/internal/util/performance"
+	"github.com/mahmut-Abi/cloud-native-mcp-server/internal/services/prometheus/client"
+	optimize "github.com/mahmut-Abi/cloud-native-mcp-server/internal/util/performance"
 )
 
 // marshalIndentJSON performs indented JSON encoding using object pool

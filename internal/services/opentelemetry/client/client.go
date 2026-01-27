@@ -13,8 +13,8 @@ import (
 	"os"
 	"time"
 
-	"github.com/mahmut-Abi/k8s-mcp-server/internal/errors"
-	optimize "github.com/mahmut-Abi/k8s-mcp-server/internal/util/performance"
+	"github.com/mahmut-Abi/cloud-native-mcp-server/internal/errors"
+	optimize "github.com/mahmut-Abi/cloud-native-mcp-server/internal/util/performance"
 )
 
 // ClientOptions defines configuration options for the OpenTelemetry HTTP client.

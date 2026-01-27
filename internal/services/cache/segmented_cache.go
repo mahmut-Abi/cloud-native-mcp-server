@@ -7,7 +7,7 @@ import (
 	"sync/atomic"
 	"time"
 
-	"github.com/mahmut-Abi/k8s-mcp-server/internal/constants"
+	"github.com/mahmut-Abi/cloud-native-mcp-server/internal/constants"
 )
 
 // SegmentedCache implements Cache interface with segmented locking for better concurrency

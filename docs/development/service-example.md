@@ -32,11 +32,11 @@ import (
     "github.com/mark3labs/mcp-go/mcp"
     server "github.com/mark3labs/mcp-go/server"
 
-    "github.com/mahmut-Abi/k8s-mcp-server/internal/config"
-    "github.com/mahmut-Abi/k8s-mcp-server/internal/services/cache"
-    "github.com/mahmut-Abi/k8s-mcp-server/internal/services/counter/client"
-    "github.com/mahmut-Abi/k8s-mcp-server/internal/services/counter/handlers"
-    "github.com/mahmut-Abi/k8s-mcp-server/internal/services/counter/tools"
+    "github.com/mahmut-Abi/cloud-native-mcp-server/internal/config"
+    "github.com/mahmut-Abi/cloud-native-mcp-server/internal/services/cache"
+    "github.com/mahmut-Abi/cloud-native-mcp-server/internal/services/counter/client"
+    "github.com/mahmut-Abi/cloud-native-mcp-server/internal/services/counter/handlers"
+    "github.com/mahmut-Abi/cloud-native-mcp-server/internal/services/counter/tools"
 )
 
 // Service implements the Counter MCP service
@@ -218,7 +218,7 @@ import (
 
     "github.com/mark3labs/mcp-go/mcp"
 
-    "github.com/mahmut-Abi/k8s-mcp-server/internal/services/counter/client"
+    "github.com/mahmut-Abi/cloud-native-mcp-server/internal/services/counter/client"
 )
 
 // HandleGetCounter handles getting the counter value
