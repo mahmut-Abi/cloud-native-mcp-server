@@ -1,5 +1,7 @@
 package config
 
+import "fmt"
+
 // AppConfig represents application configuration loaded from YAML and environment variables.
 type AppConfig struct {
 	Server struct {
@@ -238,5 +240,84 @@ type AppConfig struct {
 //	MCP_DISABLED_SERVICES, MCP_ENABLED_SERVICES, MCP_DISABLED_TOOLS
 func Load(path string) (*AppConfig, error) {
 	loader := NewConfigLoader()
-	return loader.Load(path)
+	config, err := loader.Load(path)
+	if err != nil {
+		return nil, err
+	}
+	if err := config.Validate(); err != nil {
+		return nil, fmt.Errorf("configuration validation failed: %w", err)
+	}
+	return config, nil
+}
+
+// Validate validates the configuration and returns an error if invalid
+func (c *AppConfig) Validate() error {
+	// Validate authentication configuration
+	if c.Auth.Enabled {
+		if c.Auth.Mode == "" {
+			return fmt.Errorf("auth mode is required when auth is enabled")
+		}
+		switch c.Auth.Mode {
+		case "apikey":
+			if c.Auth.APIKey == "" {
+				return fmt.Errorf("auth API key is required for apikey mode")
+			}
+		case "bearer":
+			if c.Auth.BearerToken == "" {
+				return fmt.Errorf("auth bearer token is required for bearer mode")
+			}
+		case "basic":
+			if c.Auth.Username == "" || c.Auth.Password == "" {
+				return fmt.Errorf("auth username and password are required for basic mode")
+			}
+		default:
+			return fmt.Errorf("invalid auth mode: %s (must be apikey, bearer, or basic)", c.Auth.Mode)
+		}
+	}
+
+	// Validate service configurations
+	if c.Prometheus.Enabled && c.Prometheus.Address == "" {
+		return fmt.Errorf("prometheus address is required when service is enabled")
+	}
+	if c.Grafana.Enabled && c.Grafana.URL == "" {
+		return fmt.Errorf("grafana URL is required when service is enabled")
+	}
+	if c.Kibana.Enabled && c.Kibana.URL == "" {
+		return fmt.Errorf("kibana URL is required when service is enabled")
+	}
+	if c.Alertmanager.Enabled && c.Alertmanager.Address == "" {
+		return fmt.Errorf("alertmanager address is required when service is enabled")
+	}
+	if c.Jaeger.Enabled && c.Jaeger.Address == "" {
+		return fmt.Errorf("jaeger address is required when service is enabled")
+	}
+	if c.Elasticsearch.Enabled && len(c.Elasticsearch.Addresses) == 0 && c.Elasticsearch.Address == "" {
+		return fmt.Errorf("elasticsearch address or addresses is required when service is enabled")
+	}
+
+	// Validate audit configuration
+	if c.Audit.Enabled {
+		if c.Audit.Storage == "" {
+			return fmt.Errorf("audit storage type is required when audit is enabled")
+		}
+		if c.Audit.Storage == "database" && c.Audit.Database.Type == "" {
+			return fmt.Errorf("audit database type is required when database storage is enabled")
+		}
+		if c.Audit.Storage == "file" && c.Audit.File.Path == "" {
+			return fmt.Errorf("audit file path is required when file storage is enabled")
+		}
+	}
+
+	// Validate timeout values are reasonable
+	if c.Server.ReadTimeoutSec < 0 || c.Server.ReadTimeoutSec > 3600 {
+		return fmt.Errorf("server read timeout must be between 0 and 3600 seconds")
+	}
+	if c.Server.WriteTimeoutSec < 0 || c.Server.WriteTimeoutSec > 3600 {
+		return fmt.Errorf("server write timeout must be between 0 and 3600 seconds")
+	}
+	if c.Server.IdleTimeoutSec < 0 || c.Server.IdleTimeoutSec > 3600 {
+		return fmt.Errorf("server idle timeout must be between 0 and 3600 seconds")
+	}
+
+	return nil
 }

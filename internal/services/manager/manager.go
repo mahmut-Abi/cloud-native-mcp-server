@@ -106,7 +106,7 @@ func (m *Manager) Initialize(appConfig *config.AppConfig) error {
 		m.serviceStatus["kubernetes"] = false
 		m.serviceErrors["kubernetes"] = err
 		m.statusMutex.Unlock()
-		return fmt.Errorf("kubernetes service initialization failed: %w", err)
+		return fmt.Errorf("failed to initialize kubernetes service: %w", err)
 	}
 	logger.Debug("Kubernetes service initialized successfully")
 	m.statusMutex.Lock()
@@ -191,7 +191,7 @@ func (m *Manager) InitializeParallel(appConfig *config.AppConfig) error {
 	// Block on critical Kubernetes service (must be initialized first)
 	if err := m.kubernetesService.Initialize(appConfig); err != nil {
 		logger.WithError(err).Error("Critical: Kubernetes service initialization failed")
-		return fmt.Errorf("kubernetes service initialization failed: %w", err)
+		return fmt.Errorf("failed to initialize kubernetes service: %w", err)
 	}
 	logger.Debug("Kubernetes service initialized successfully")
 
@@ -401,7 +401,15 @@ func (m *Manager) GetAllServiceStatus() map[string]bool {
 
 // GetAllServiceErrors returns all service errors
 func (m *Manager) GetAllServiceErrors() map[string]error {
-	return m.serviceErrors
+	m.statusMutex.RLock()
+	defer m.statusMutex.RUnlock()
+
+	// Return a copy to avoid race conditions
+	result := make(map[string]error, len(m.serviceErrors))
+	for k, v := range m.serviceErrors {
+		result[k] = v
+	}
+	return result
 }
 
 // LogServiceStatus logs all service statuses
@@ -610,72 +618,40 @@ func (m *Manager) GetServiceRegistry() *services.Registry {
 	return m.registry
 }
 
+// Closer is an interface for services that can be closed
+type Closer interface {
+	Close() error
+}
+
 // Shutdown gracefully shuts down all services and releases resources
 func (m *Manager) Shutdown() error {
 	logger.Info("Shutting down service manager...")
 	var errs []error
 
-	// Close service clients
-	if m.kubernetesService != nil {
-		if closer, ok := interface{}(m.kubernetesService).(interface{ Close() error }); ok {
-			if err := closer.Close(); err != nil {
-				errs = append(errs, fmt.Errorf("kubernetes service close error: %w", err))
-			}
-		}
+	// Collect all services that might need to be closed
+	services := []struct {
+		name    string
+		service interface{}
+	}{
+		{"kubernetes", m.kubernetesService},
+		{"grafana", m.grafanaService},
+		{"prometheus", m.prometheusService},
+		{"kibana", m.kibanaService},
+		{"helm", m.helmService},
+		{"alertmanager", m.alertmanagerService},
+		{"elasticsearch", m.elasticsearchService},
+		{"jaeger", m.jaegerService},
+		{"utilities", m.utilitiesService},
 	}
-	if m.grafanaService != nil {
-		if closer, ok := interface{}(m.grafanaService).(interface{ Close() error }); ok {
-			if err := closer.Close(); err != nil {
-				errs = append(errs, fmt.Errorf("grafana service close error: %w", err))
-			}
+
+	// Close services that implement the Closer interface
+	for _, svc := range services {
+		if svc.service == nil {
+			continue
 		}
-	}
-	if m.prometheusService != nil {
-		if closer, ok := interface{}(m.prometheusService).(interface{ Close() error }); ok {
+		if closer, ok := svc.service.(Closer); ok {
 			if err := closer.Close(); err != nil {
-				errs = append(errs, fmt.Errorf("prometheus service close error: %w", err))
-			}
-		}
-	}
-	if m.kibanaService != nil {
-		if closer, ok := interface{}(m.kibanaService).(interface{ Close() error }); ok {
-			if err := closer.Close(); err != nil {
-				errs = append(errs, fmt.Errorf("kibana service close error: %w", err))
-			}
-		}
-	}
-	if m.helmService != nil {
-		if closer, ok := interface{}(m.helmService).(interface{ Close() error }); ok {
-			if err := closer.Close(); err != nil {
-				errs = append(errs, fmt.Errorf("helm service close error: %w", err))
-			}
-		}
-	}
-	if m.alertmanagerService != nil {
-		if closer, ok := interface{}(m.alertmanagerService).(interface{ Close() error }); ok {
-			if err := closer.Close(); err != nil {
-				errs = append(errs, fmt.Errorf("alertmanager service close error: %w", err))
-			}
-		}
-	}
-	if m.elasticsearchService != nil {
-		if closer, ok := interface{}(m.elasticsearchService).(interface{ Close() error }); ok {
-			if err := closer.Close(); err != nil {
-				errs = append(errs, fmt.Errorf("elasticsearch service close error: %w", err))
-			}
-		}
-	}
-	if m.jaegerService != nil {
-		if closer, ok := interface{}(m.jaegerService).(interface{ Close() error }); ok {
-			if err := closer.Close(); err != nil {
-				errs = append(errs, fmt.Errorf("jaeger service close error: %w", err))
-			}
-		}
-	}
-	if m.utilitiesService != nil {
-		if closer, ok := interface{}(m.utilitiesService).(interface{ Close() error }); ok {
-			if err := closer.Close(); err != nil {
-				errs = append(errs, fmt.Errorf("utilities service close error: %w", err))
+				errs = append(errs, fmt.Errorf("%s service close error: %w", svc.name, err))
 			}
 		}
 	}

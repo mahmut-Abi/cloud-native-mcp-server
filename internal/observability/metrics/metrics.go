@@ -1,6 +1,8 @@
 package metrics
 
 import (
+	"strings"
+
 	"github.com/prometheus/client_golang/prometheus"
 	"github.com/prometheus/client_golang/prometheus/collectors"
 	"github.com/sirupsen/logrus"
@@ -37,6 +39,44 @@ var (
 		[]string{"service_name"},
 	)
 )
+
+// sanitizeLabelValue sanitizes a label value to prevent high cardinality issues
+// It limits the length and replaces invalid characters with underscores
+func sanitizeLabelValue(value string) string {
+	if value == "" {
+		return "unknown"
+	}
+
+	// Limit length to 100 characters to prevent high cardinality
+	maxLength := 100
+	if len(value) > maxLength {
+		value = value[:maxLength]
+	}
+
+	// Replace invalid characters with underscores
+	// Valid characters: letters, digits, and underscores
+	result := strings.Map(func(r rune) rune {
+		if (r >= 'a' && r <= 'z') || (r >= 'A' && r <= 'Z') ||
+			(r >= '0' && r <= '9') || r == '_' {
+			return r
+		}
+		return '_'
+	}, value)
+
+	// Replace multiple consecutive underscores with a single one
+	result = strings.ReplaceAll(result, "__", "_")
+	result = strings.ReplaceAll(result, "__", "_") // Handle triple underscores
+
+	// Remove leading/trailing underscores
+	result = strings.Trim(result, "_")
+
+	// Ensure result is not empty after sanitization
+	if result == "" {
+		return "unknown"
+	}
+
+	return result
+}
 
 // Init initializes the metrics system
 func Init(version, commit, goVersion, mode, addr string) {
@@ -83,5 +123,5 @@ func SetServiceStatus(serviceName string, enabled bool) {
 	if enabled {
 		value = 1.0
 	}
-	ServiceStatus.WithLabelValues(serviceName).Set(value)
+	ServiceStatus.WithLabelValues(sanitizeLabelValue(serviceName)).Set(value)
 }

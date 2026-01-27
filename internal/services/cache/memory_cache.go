@@ -25,13 +25,38 @@ type MemoryCache struct {
 	hits       atomic.Int64
 	misses     atomic.Int64
 	evictions  atomic.Int64
+	stopChan   chan struct{} // Channel to stop the cleanup goroutine
 }
 
 // NewMemoryCache creates a new in-memory cache with pre-allocated capacity
 func NewMemoryCache() *MemoryCache {
-	return &MemoryCache{
-		store:   make(map[string]*lruNode, 1024),
-		maxSize: constants.DefaultCacheSize,
+	cache := &MemoryCache{
+		store:    make(map[string]*lruNode, 1024),
+		maxSize:  constants.DefaultCacheSize,
+		stopChan: make(chan struct{}),
+	}
+	// Start background cleanup task
+	go cache.startCleanupTask()
+	return cache
+}
+
+// Stop stops the background cleanup task
+func (c *MemoryCache) Stop() {
+	close(c.stopChan)
+}
+
+// startCleanupTask runs periodic cleanup of expired entries
+func (c *MemoryCache) startCleanupTask() {
+	ticker := time.NewTicker(constants.CacheCleanupInterval)
+	defer ticker.Stop()
+
+	for {
+		select {
+		case <-ticker.C:
+			c.Cleanup(context.Background())
+		case <-c.stopChan:
+			return
+		}
 	}
 }
 
