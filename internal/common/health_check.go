@@ -11,13 +11,13 @@ import (
 
 // HealthCheckConfig represents configuration for health checks
 type HealthCheckConfig struct {
-	ServiceName      string        // Name of the service (for logging)
-	HealthEndpoint   string        // Health check endpoint (e.g., "health", "status", "api/health")
-	HTTPClient       *http.Client  // HTTP client to use for requests
-	Method           string        // HTTP method (default: GET)
-	Timeout          time.Duration // Timeout for health check (default: 10s)
-	ExpectedStatus   int           // Expected HTTP status code (default: 200)
-	Headers          map[string]string // Additional headers
+	ServiceName    string            // Name of the service (for logging)
+	HealthEndpoint string            // Health check endpoint (e.g., "health", "status", "api/health")
+	HTTPClient     *http.Client      // HTTP client to use for requests
+	Method         string            // HTTP method (default: GET)
+	Timeout        time.Duration     // Timeout for health check (default: 10s)
+	ExpectedStatus int               // Expected HTTP status code (default: 200)
+	Headers        map[string]string // Additional headers
 }
 
 // HealthCheckResult represents the result of a health check
@@ -39,7 +39,7 @@ type HealthChecker struct {
 func NewHealthChecker(serviceName string) *HealthChecker {
 	return &HealthChecker{
 		serviceName: serviceName,
-		logger:      logrus.WithField("component", serviceName + "-health"),
+		logger:      logrus.WithField("component", serviceName+"-health"),
 	}
 }
 

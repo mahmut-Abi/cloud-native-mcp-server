@@ -14,12 +14,12 @@ import (
 
 // AuthConfig represents authentication configuration for HTTP clients
 type AuthConfig struct {
-	Enabled      bool
-	Mode         string // apikey, bearer, basic
-	APIKey       string
-	BearerToken  string
-	Username     string
-	Password     string
+	Enabled     bool
+	Mode        string // apikey, bearer, basic
+	APIKey      string
+	BearerToken string
+	Username    string
+	Password    string
 }
 
 // TLSConfig represents TLS configuration for HTTP clients
@@ -32,13 +32,13 @@ type TLSConfig struct {
 
 // ClientOptions represents common options for creating HTTP clients
 type ClientOptions struct {
-	BaseURL    string        // Base URL for the service
-	APIPath    string        // API path to append to base URL (e.g., "api/" or "api/v1/")
-	Timeout    time.Duration // Request timeout (default: 30s)
-	Auth       AuthConfig   // Authentication configuration
-	TLS        TLSConfig    // TLS configuration
-	UserAgent  string        // Custom user agent
-	Headers    map[string]string // Additional headers
+	BaseURL   string            // Base URL for the service
+	APIPath   string            // API path to append to base URL (e.g., "api/" or "api/v1/")
+	Timeout   time.Duration     // Request timeout (default: 30s)
+	Auth      AuthConfig        // Authentication configuration
+	TLS       TLSConfig         // TLS configuration
+	UserAgent string            // Custom user agent
+	Headers   map[string]string // Additional headers
 }
 
 // BuildHTTPClient creates a configured HTTP client with common settings

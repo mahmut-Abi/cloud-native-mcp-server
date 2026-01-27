@@ -20,7 +20,7 @@ type ResponseHandler struct {
 func NewResponseHandler(serviceName string) *ResponseHandler {
 	return &ResponseHandler{
 		serviceName: serviceName,
-		logger:      logrus.WithField("component", serviceName + "-client"),
+		logger:      logrus.WithField("component", serviceName+"-client"),
 	}
 }
 
