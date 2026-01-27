@@ -52,7 +52,7 @@ func BuildHTTPClient(opts *ClientOptions) (*http.Client, error) {
 	}
 
 	// Validate URL
-	baseURL, err := url.Parse(opts.BaseURL)
+	_, err := url.Parse(opts.BaseURL)
 	if err != nil {
 		return nil, fmt.Errorf("invalid base URL: %w", err)
 	}
@@ -80,11 +80,6 @@ func BuildHTTPClient(opts *ClientOptions) (*http.Client, error) {
 					return nil, fmt.Errorf("failed to load TLS certificate: %w", err)
 				}
 				transport.TLSClientConfig.Certificates = []tls.Certificate{cert}
-			}
-
-			// Load CA certificate if provided
-			if opts.TLS.CAFile != "" {
-				// TODO: Load CA certificate
 			}
 		}
 	}

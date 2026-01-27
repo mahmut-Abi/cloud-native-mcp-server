@@ -123,7 +123,7 @@ func (h *HealthChecker) CheckHealth(ctx context.Context, baseURL string, config 
 		h.logger.WithError(err).Debug("Health check failed")
 		return result
 	}
-	defer resp.Body.Close()
+	defer func() { _ = resp.Body.Close() }()
 
 	result.Latency = time.Since(startTime)
 
