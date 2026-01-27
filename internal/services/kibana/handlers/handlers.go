@@ -1,5 +1,23 @@
 // Package handlers provides HTTP handlers for Kibana MCP operations.
 // It implements request handling for Kibana spaces, dashboards, visualizations, and saved objects.
+//
+// WARNING: This file is too large (3,204 lines with 70+ handler functions).
+// See REFACTORING_PLAN.md for the proposed refactoring strategy to split this file
+// into smaller, more maintainable modules.
+//
+// Proposed structure:
+//   - common.go: Utility functions
+//   - spaces.go: Space operations
+//   - index_patterns.go: Index pattern operations
+//   - dashboards.go: Dashboard operations
+//   - visualizations.go: Visualization operations
+//   - saved_objects.go: Saved object operations
+//   - alerts.go: Alert rule operations
+//   - connectors.go: Connector operations
+//   - data_views.go: Data view operations
+//   - other.go: Other operations
+// Package handlers provides HTTP handlers for Kibana MCP operations.
+// It implements request handling for Kibana spaces, dashboards, visualizations, and saved objects.
 package handlers
 
 import (
