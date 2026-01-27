@@ -1,85 +1,26 @@
 baseURL = 'https://mahmut-abi.github.io/cloud-native-mcp-server/'
-defaultContentLanguage = 'zh'
-theme = 'ananke'
-
-[languages]
-  [languages.zh]
-    languageCode = 'zh-cn'
-    languageName = '中文'
-    title = 'Cloud Native MCP Server'
-    weight = 1
-    [languages.zh.params]
-      author = "Mahmut Abi"
-      description = "高性能 Kubernetes 和云原生基础设施管理 MCP 服务器，集成 10 个服务和 220+ 工具"
-
-  [languages.en]
-    languageCode = 'en-us'
-    languageName = 'English'
-    title = 'Cloud Native MCP Server'
-    weight = 2
-    [languages.en.params]
-      author = "Mahmut Abi"
-      description = "High-performance MCP server for Kubernetes and cloud-native infrastructure management with 10 integrated services and 220+ tools"
-
-[markup]
-  [markup.goldmark]
-    [markup.goldmark.renderer]
-      unsafe = true
+languageCode = 'zh-cn'
+title = 'Cloud Native MCP Server'
+theme = 'hugo-book'
 
 [params]
-  images = ["logo.png"]
-  text_color = ""
-  background_color = "#ffffff"
-  date_format = "2006-01-02"
-  favicon = "favicon.ico"
-  recent_posts_number = 5
+  BookSection = '*'
+  BookRepo = 'https://github.com/mahmut-Abi/cloud-native-mcp-server'
+  BookEditPath = 'edit/main/website/content'
+  BookSearch = true
+  BookTheme = 'light'
 
-[[languages.zh.menu.main]]
-  name = "首页"
-  url = "/"
+[languages.zh]
+  languageName = '中文'
   weight = 1
+  [languages.zh.params]
+    BookToC = true
 
-[[languages.zh.menu.main]]
-  name = "特性"
-  url = "/features/"
+[languages.en]
+  languageName = 'English'
   weight = 2
+  [languages.en.params]
+    BookToC = true
 
-[[languages.zh.menu.main]]
-  name = "服务"
-  url = "/services/"
-  weight = 3
-
-[[languages.zh.menu.main]]
-  name = "文档"
-  url = "/docs/"
-  weight = 4
-
-[[languages.zh.menu.main]]
-  name = "GitHub"
-  url = "https://github.com/mahmut-Abi/cloud-native-mcp-server"
-  weight = 5
-
-[[languages.en.menu.main]]
-  name = "Home"
-  url = "/en/"
-  weight = 1
-
-[[languages.en.menu.main]]
-  name = "Features"
-  url = "/en/features/"
-  weight = 2
-
-[[languages.en.menu.main]]
-  name = "Services"
-  url = "/en/services/"
-  weight = 3
-
-[[languages.en.menu.main]]
-  name = "Docs"
-  url = "/en/docs/"
-  weight = 4
-
-[[languages.en.menu.main]]
-  name = "GitHub"
-  url = "https://github.com/mahmut-Abi/cloud-native-mcp-server"
-  weight = 5
+[markup.goldmark.renderer]
+  unsafe = true

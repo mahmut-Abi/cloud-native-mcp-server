@@ -10,8 +10,7 @@ weight: 1
 高性能 Kubernetes 和云原生基础设施管理 MCP 服务器
 
 [GitHub](https://github.com/mahmut-Abi/cloud-native-mcp-server) • 
-[文档](#) • 
-[English](#)
+[English](/#)
 
 </div>
 
@@ -72,12 +71,6 @@ make build
 - **Jaeger** - 分布式追踪和性能分析
 - **OpenTelemetry** - 指标、追踪和日志收集分析
 - **Utilities** - 通用工具集
-
-## 下一步
-
-- [快速开始](#getting-started/) - 快速部署和使用
-- [核心概念](#concepts/) - 了解架构和设计
-- [使用指南](#guides/) - 详细的配置和部署指南
 
 ## 许可证
 
