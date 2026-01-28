@@ -212,7 +212,7 @@ document.addEventListener('DOMContentLoaded', function() {
         .filter(cb => cb.checked)
         .map(cb => cb.id.replace('filter-', ''));
       
-      resultsCount.innerHTML = 'Showing results for \\\'<strong>' + term + '</strong>\\' in ' + selectedFilters.join(', ') + ' (' + (Math.floor(Math.random() * 10) + 1) + ' found)';
+      resultsCount.innerHTML = "Showing results for '" + term + "' in " + selectedFilters.join(', ') + ' (' + (Math.floor(Math.random() * 10) + 1) + ' found)';
     }, 500);
   }
 });
