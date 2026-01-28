@@ -1,51 +1,51 @@
 ---
-title: "性能指南"
+title: "Performance Guide"
 ---
 
-# 性能指南
+# Performance Guide
 
-本文档描述 Cloud Native MCP Server 的性能特性和优化建议。
+This document describes the performance features and optimization recommendations for Cloud Native MCP Server.
 
-## 目录
+## Table of Contents
 
-- [性能特性](#性能特性)
-- [性能指标](#性能指标)
-- [优化策略](#优化策略)
-- [基准测试](#基准测试)
-- [性能调优](#性能调优)
-- [故障排查](#故障排查)
+- [Performance Features](#performance-features)
+- [Performance Metrics](#performance-metrics)
+- [Optimization Strategies](#optimization-strategies)
+- [Benchmarking](#benchmarking)
+- [Performance Tuning](#performance-tuning)
+- [Troubleshooting](#troubleshooting)
 
 ---
 
-## 性能特性
+## Performance Features
 
-### 1. 智能缓存
+### 1. Intelligent Caching
 
-#### LRU 缓存
+#### LRU Cache
 
-最近最少使用（LRU）缓存自动管理内存使用：
+Least Recently Used (LRU) cache automatically manages memory usage:
 
 ```yaml
 cache:
   enabled: true
   type: "lru"
   max_size: 1000
-  default_ttl: 300  # 5 分钟
+  default_ttl: 300  # 5 minutes
 ```
 
-**优势**:
-- 自动淘汰最少使用的条目
-- 内存使用可控
-- 适合大多数场景
+**Advantages**:
+- Automatically evicts least recently used entries
+- Controllable memory usage
+- Suitable for most scenarios
 
-**适用场景**:
-- 读取密集型操作
-- 数据变化不频繁
-- 高延迟外部调用
+**Use Cases**:
+- Read-intensive operations
+- Infrequently changing data
+- High latency external calls
 
-#### 分段缓存
+#### Segmented Cache
 
-分段缓存提供更好的并发性能：
+Segmented cache provides better concurrent performance:
 
 ```yaml
 cache:
@@ -56,33 +56,33 @@ cache:
   default_ttl: 300
 ```
 
-**优势**:
-- 减少锁竞争
-- 更好的并发性能
-- 可配置的段数
+**Advantages**:
+- Reduces lock contention
+- Better concurrent performance
+- Configurable number of segments
 
-**适用场景**:
-- 高并发场景
-- 需要低延迟
-- 多核 CPU
+**Use Cases**:
+- High concurrency scenarios
+- Need for low latency
+- Multi-core CPUs
 
-### 2. JSON 编码池
+### 2. JSON Encoding Pool
 
-预分配的编码器池减少内存分配：
+Pre-allocated encoder pool reduces memory allocations:
 
 ```go
-// 内部实现
+// Internal implementation
 pool := json.NewEncoderPool(100, 8192)
 ```
 
-**优势**:
-- 减少内存分配
-- 提高 JSON 编码速度
-- 降低 GC 压力
+**Advantages**:
+- Reduces memory allocations
+- Improves JSON encoding speed
+- Lowers GC pressure
 
-### 3. 响应压缩
+### 3. Response Compression
 
-自动压缩大型响应：
+Automatically compresses large responses:
 
 ```yaml
 performance:
@@ -90,19 +90,19 @@ performance:
   compression_level: 6
 ```
 
-**优势**:
-- 减少网络传输
-- 节省带宽
-- 提高响应速度
+**Advantages**:
+- Reduces network transfer
+- Saves bandwidth
+- Improves response speed
 
-**适用场景**:
-- 大型响应（>10KB）
-- 网络带宽受限
-- 跨数据中心访问
+**Use Cases**:
+- Large responses (>10KB)
+- Limited network bandwidth
+- Cross-datacenter access
 
-### 4. 连接池
+### 4. Connection Pooling
 
-优化的 HTTP 客户端连接池：
+Optimized HTTP client connection pool:
 
 ```yaml
 kubernetes:
@@ -111,14 +111,14 @@ kubernetes:
   timeoutSec: 30
 ```
 
-**优势**:
-- 重用连接
-- 减少 TCP 握手开销
-- 提高吞吐量
+**Advantages**:
+- Reuses connections
+- Reduces TCP handshake overhead
+- Improves throughput
 
-### 5. 响应大小控制
+### 5. Response Size Control
 
-智能截断过大的响应：
+Intelligently truncates oversized responses:
 
 ```yaml
 performance:
@@ -126,18 +126,18 @@ performance:
   truncate_large_responses: true
 ```
 
-**优势**:
-- 防止内存溢出
-- 控制网络传输
-- 提高响应速度
+**Advantages**:
+- Prevents memory overflow
+- Controls network transfer
+- Improves response speed
 
 ---
 
-## 性能指标
+## Performance Metrics
 
-### 关键指标
+### Key Metrics
 
-#### 请求指标
+#### Request Metrics
 
 ```
 mcp_requests_total{method="kubernetes_list_pods",status="success"} 1234
@@ -145,7 +145,7 @@ mcp_request_duration_seconds{method="kubernetes_list_pods"} 0.123
 mcp_request_duration_seconds{method="kubernetes_list_pods",quantile="0.99"} 0.456
 ```
 
-#### 缓存指标
+#### Cache Metrics
 
 ```
 mcp_cache_hits_total{service="kubernetes"} 456
@@ -153,7 +153,7 @@ mcp_cache_misses_total{service="kubernetes"} 78
 mcp_cache_hit_rate{service="kubernetes"} 0.85
 ```
 
-#### 连接指标
+#### Connection Metrics
 
 ```
 mcp_active_connections 10
@@ -161,7 +161,7 @@ mcp_total_connections 100
 mcp_connection_duration_seconds 300
 ```
 
-#### 错误指标
+#### Error Metrics
 
 ```
 mcp_errors_total{type="timeout"} 5
@@ -169,23 +169,23 @@ mcp_errors_total{type="authentication"} 2
 mcp_errors_total{type="service_unavailable"} 1
 ```
 
-### 性能基准
+### Performance Benchmarks
 
-#### 单节点性能
+#### Single Node Performance
 
-| 指标 | 值 |
-|------|-----|
-| 最大并发连接 | 1000 |
-| 请求吞吐量 (QPS) | 500+ |
-| 平均响应时间 | <100ms |
-| P99 响应时间 | <500ms |
-| 内存使用 | <512MB |
-| CPU 使用 | <50% (2核) |
+| Metric | Value |
+|--------|-------|
+| Max Concurrent Connections | 1000 |
+| Request Throughput (QPS) | 500+ |
+| Average Response Time | <100ms |
+| P99 Response Time | <500ms |
+| Memory Usage | <512MB |
+| CPU Usage | <50% (2 cores) |
 
-#### 服务特定性能
+#### Service-Specific Performance
 
-| 服务 | 平均响应时间 | 缓存命中率 |
-|------|------------|-----------|
+| Service | Average Response Time | Cache Hit Rate |
+|---------|---------------------|----------------|
 | Kubernetes | 50ms | 85% |
 | Grafana | 120ms | 90% |
 | Prometheus | 80ms | 75% |
@@ -194,11 +194,11 @@ mcp_errors_total{type="service_unavailable"} 1
 
 ---
 
-## 优化策略
+## Optimization Strategies
 
-### 1. 缓存优化
+### 1. Cache Optimization
 
-#### 启用缓存
+#### Enable Caching
 
 ```yaml
 cache:
@@ -208,25 +208,25 @@ cache:
   default_ttl: 300
 ```
 
-#### 服务特定 TTL
+#### Service-Specific TTL
 
 ```yaml
 kubernetes:
-  cache_ttl: 300  # 5 分钟
+  cache_ttl: 300  # 5 minutes
 
 grafana:
-  cache_ttl: 180  # 3 分钟
+  cache_ttl: 180  # 3 minutes
 
 prometheus:
-  cache_ttl: 60   # 1 分钟
+  cache_ttl: 60   # 1 minute
 ```
 
-#### 缓存预热
+#### Cache Warmup
 
 ```go
-// 在服务启动时预热缓存
+// Warm up cache on service startup
 func (s *Service) WarmupCache(ctx context.Context) error {
-    // 预加载常用数据
+    // Pre-load frequently used data
     _, err := s.ListPods(ctx, "default")
     if err != nil {
         return err
@@ -235,37 +235,37 @@ func (s *Service) WarmupCache(ctx context.Context) error {
 }
 ```
 
-### 2. 连接优化
+### 2. Connection Optimization
 
-#### 调整 QPS 和 Burst
+#### Adjust QPS and Burst
 
 ```yaml
 kubernetes:
-  qps: 100.0   # 每秒查询数
-  burst: 200   # 突发速率
+  qps: 100.0   # Queries per second
+  burst: 200   # Burst rate
   timeoutSec: 30
 ```
 
-**建议**:
-- QPS 根据集群规模调整
+**Recommendations**:
+- Adjust QPS based on cluster size
 - Burst = QPS * 2
-- Timeout 根据操作复杂度调整
+- Adjust timeout based on operation complexity
 
-#### 连接超时
+#### Connection Timeout
 
 ```yaml
 kubernetes:
   timeoutSec: 30
 ```
 
-**建议**:
-- 快速操作: 10-30 秒
-- 复杂查询: 60-120 秒
-- 批量操作: 300 秒+
+**Recommendations**:
+- Fast operations: 10-30 seconds
+- Complex queries: 60-120 seconds
+- Batch operations: 300+ seconds
 
-### 3. 响应优化
+### 3. Response Optimization
 
-#### 启用压缩
+#### Enable Compression
 
 ```yaml
 performance:
@@ -273,12 +273,12 @@ performance:
   compression_level: 6
 ```
 
-**压缩级别**:
-- 1-3: 最快，压缩率低
-- 6: 平衡（推荐）
-- 9: 最慢，压缩率高
+**Compression Levels**:
+- 1-3: Fastest, low compression
+- 6: Balanced (recommended)
+- 9: Slowest, high compression
 
-#### 限制响应大小
+#### Limit Response Size
 
 ```yaml
 performance:
@@ -286,7 +286,7 @@ performance:
   truncate_large_responses: true
 ```
 
-#### 使用摘要工具
+#### Use Summary Tools
 
 ```json
 {
@@ -302,39 +302,39 @@ performance:
 }
 ```
 
-### 4. 并发优化
+### 4. Concurrency Optimization
 
-#### 调整最大连接数
+#### Adjust Maximum Connections
 
 ```yaml
 server:
   max_connections: 1000
 ```
 
-#### 调整工作线程
+#### Adjust Worker Threads
 
 ```yaml
 performance:
   worker_threads: 4
 ```
 
-### 5. 内存优化
+### 5. Memory Optimization
 
-#### 限制缓存大小
+#### Limit Cache Size
 
 ```yaml
 cache:
   max_size: 1000
 ```
 
-#### 启用响应压缩
+#### Enable Response Compression
 
 ```yaml
 performance:
   compression_enabled: true
 ```
 
-#### 调整缓冲区大小
+#### Adjust Buffer Size
 
 ```yaml
 performance:
@@ -343,17 +343,17 @@ performance:
 
 ---
 
-## 基准测试
+## Benchmarking
 
-### 测试工具
+### Testing Tools
 
-使用 Apache Bench 进行基准测试：
+Use Apache Bench for benchmarking:
 
 ```bash
-# 测试健康检查端点
+# Test health check endpoint
 ab -n 10000 -c 100 http://localhost:8080/health
 
-# 测试工具调用
+# Test tool call
 ab -n 1000 -c 10 \
   -H "Content-Type: application/json" \
   -H "X-API-Key: your-key" \
@@ -361,9 +361,9 @@ ab -n 1000 -c 10 \
   http://localhost:8080/api/kubernetes/http
 ```
 
-### 基准测试结果
+### Benchmark Results
 
-#### 健康检查端点
+#### Health Check Endpoint
 
 ```
 Concurrency Level:      100
@@ -376,7 +376,7 @@ Time per request:       23.456 [ms] (mean)
 Time per request:       0.235 [ms] (mean, across all concurrent requests)
 ```
 
-#### Kubernetes 工具调用
+#### Kubernetes Tool Call
 
 ```
 Concurrency Level:      10
@@ -391,9 +391,9 @@ Time per request:       12.346 [ms] (mean, across all concurrent requests)
 
 ---
 
-## 性能调优
+## Performance Tuning
 
-### 生产环境配置
+### Production Configuration
 
 ```yaml
 server:
@@ -449,7 +449,7 @@ ratelimit:
   burst: 200
 ```
 
-### 高性能配置
+### High Performance Configuration
 
 ```yaml
 cache:
@@ -472,7 +472,7 @@ kubernetes:
   timeoutSec: 60
 ```
 
-### 低延迟配置
+### Low Latency Configuration
 
 ```yaml
 cache:
@@ -495,143 +495,143 @@ kubernetes:
 
 ---
 
-## 监控和分析
+## Monitoring and Analysis
 
-### Prometheus 查询
+### Prometheus Queries
 
-#### 请求速率
+#### Request Rate
 
 ```promql
 rate(mcp_requests_total[5m])
 ```
 
-#### 错误率
+#### Error Rate
 
 ```promql
 rate(mcp_errors_total[5m])
 ```
 
-#### P99 延迟
+#### P99 Latency
 
 ```promql
 histogram_quantile(0.99, rate(mcp_request_duration_seconds_bucket[5m]))
 ```
 
-#### 缓存命中率
+#### Cache Hit Rate
 
 ```promql
 mcp_cache_hits_total / (mcp_cache_hits_total + mcp_cache_misses_total)
 ```
 
-### Grafana 仪表板
+### Grafana Dashboards
 
-#### 关键面板
+#### Key Panels
 
-1. **请求速率**: 每秒请求数
-2. **P50/P95/P99 延迟**: 响应时间分布
-3. **错误率**: 错误百分比
-4. **缓存命中率**: 缓存效率
-5. **活动连接**: 当前连接数
-6. **内存使用**: 内存消耗
-7. **CPU 使用**: CPU 利用率
+1. **Request Rate**: Requests per second
+2. **P50/P95/P99 Latency**: Response time distribution
+3. **Error Rate**: Error percentage
+4. **Cache Hit Rate**: Cache efficiency
+5. **Active Connections**: Current connection count
+6. **Memory Usage**: Memory consumption
+7. **CPU Usage**: CPU utilization
 
 ---
 
-## 故障排查
+## Troubleshooting
 
-### 高延迟
+### High Latency
 
-**症状**: 响应时间 >1s
+**Symptoms**: Response time >1s
 
-**排查步骤**:
+**Troubleshooting Steps**:
 
-1. 检查缓存命中率
+1. Check cache hit rate
 ```bash
 curl http://localhost:8080/metrics | grep cache_hit_rate
 ```
 
-2. 检查外部服务延迟
+2. Check external service latency
 ```bash
 kubectl top pods
 ```
 
-3. 启用调试日志
+3. Enable debug logging
 ```yaml
 logging:
   level: "debug"
 ```
 
-4. 增加缓存 TTL
+4. Increase cache TTL
 ```yaml
 cache:
   default_ttl: 600
 ```
 
-### 高内存使用
+### High Memory Usage
 
-**症状**: 内存使用 >1GB
+**Symptoms**: Memory usage >1GB
 
-**排查步骤**:
+**Troubleshooting Steps**:
 
-1. 检查缓存大小
+1. Check cache size
 ```yaml
 cache:
   max_size: 500
 ```
 
-2. 启用响应压缩
+2. Enable response compression
 ```yaml
 performance:
   compression_enabled: true
 ```
 
-3. 检查响应大小
+3. Check response size
 ```yaml
 performance:
   max_response_size: 5242880
 ```
 
-4. 分析内存使用
+4. Analyze memory usage
 ```bash
 pprof http://localhost:8080/debug/pprof/heap
 ```
 
-### 低吞吐量
+### Low Throughput
 
-**症状**: QPS < 100
+**Symptoms**: QPS < 100
 
-**排查步骤**:
+**Troubleshooting Steps**:
 
-1. 增加工作线程
+1. Increase worker threads
 ```yaml
 performance:
   worker_threads: 8
 ```
 
-2. 调整连接池
+2. Adjust connection pool
 ```yaml
 kubernetes:
   qps: 200.0
   burst: 400
 ```
 
-3. 检查网络带宽
+3. Check network bandwidth
 ```bash
 iftop
 ```
 
-4. 检查并发连接
+4. Check concurrent connections
 ```bash
 curl http://localhost:8080/metrics | grep active_connections
 ```
 
-### 高错误率
+### High Error Rate
 
-**症状**: 错误率 > 5%
+**Symptoms**: Error rate > 5%
 
-**排查步骤**:
+**Troubleshooting Steps**:
 
-1. 检查认证配置
+1. Check authentication configuration
 ```yaml
 auth:
   enabled: true
@@ -639,18 +639,18 @@ auth:
   apiKey: "${MCP_AUTH_API_KEY}"
 ```
 
-2. 检查服务健康
+2. Check service health
 ```bash
 curl http://localhost:8080/health
 ```
 
-3. 增加超时
+3. Increase timeout
 ```yaml
 kubernetes:
   timeoutSec: 60
 ```
 
-4. 检查审计日志
+4. Check audit logs
 ```bash
 curl -H "X-API-Key: your-key" \
   "http://localhost:8080/api/audit/query?status=failed"
@@ -658,43 +658,43 @@ curl -H "X-API-Key: your-key" \
 
 ---
 
-## 性能最佳实践
+## Performance Best Practices
 
-### 1. 始终启用缓存
+### 1. Always Enable Caching
 
 ```yaml
 cache:
   enabled: true
 ```
 
-### 2. 使用适当的 TTL
+### 2. Use Appropriate TTL
 
-- 静态数据: 600-3600 秒
-- 动态数据: 60-300 秒
-- 实时数据: 10-30 秒
+- Static data: 600-3600 seconds
+- Dynamic data: 60-300 seconds
+- Real-time data: 10-30 seconds
 
-### 3. 优化外部服务调用
+### 3. Optimize External Service Calls
 
-- 批量操作优于单个操作
-- 使用过滤减少数据量
-- 使用分页处理大量数据
+- Batch operations over individual operations
+- Use filtering to reduce data volume
+- Use pagination for large datasets
 
-### 4. 监控关键指标
+### 4. Monitor Key Metrics
 
-- 请求速率
-- 响应时间
-- 错误率
-- 缓存命中率
+- Request rate
+- Response time
+- Error rate
+- Cache hit rate
 
-### 5. 定期审查配置
+### 5. Regularly Review Configuration
 
-- 根据负载调整 QPS
-- 根据内存使用调整缓存大小
-- 根据网络条件调整压缩级别
+- Adjust QPS based on load
+- Adjust cache size based on memory usage
+- Adjust compression level based on network conditions
 
-### 6. 使用摘要工具
+### 6. Use Summary Tools
 
-对于大型数据集，使用摘要工具：
+For large datasets, use summary tools:
 
 ```json
 {
@@ -702,7 +702,7 @@ cache:
 }
 ```
 
-而不是：
+Instead of:
 
 ```json
 {
@@ -712,9 +712,9 @@ cache:
 
 ---
 
-## 相关文档
+## Related Documentation
 
-- [完整工具参考](/docs/tools/)
-- [配置指南](/docs/configuration/)
-- [部署指南](/docs/deployment/)
-- [架构指南](/docs/architecture/)
+- [Complete Tools Reference](/docs/tools/)
+- [Configuration Guide](/docs/configuration/)
+- [Deployment Guide](/docs/deployment/)
+- [Architecture Guide](/docs/architecture/)

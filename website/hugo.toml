@@ -4,7 +4,7 @@ title = 'Cloud Native MCP Server'
 theme = 'hugo-book'
 
 [params]
-  BookSection = '*'
+  BookSection = 'docs'
   BookRepo = 'https://github.com/mahmut-Abi/cloud-native-mcp-server'
   BookEditPath = 'edit/main/website/content'
   BookSearch = true
