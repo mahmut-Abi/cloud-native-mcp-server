@@ -166,10 +166,10 @@ func TestRequireStringParam(t *testing.T) {
 
 func TestGetOptionalStringParam(t *testing.T) {
 	tests := []struct {
-		name string
-		args map[string]interface{}
+		name  string
+		args  map[string]interface{}
 		param string
-		want string
+		want  string
 	}{
 		{
 			name: "valid string param",
@@ -220,10 +220,10 @@ func TestGetOptionalStringParam(t *testing.T) {
 
 func TestGetOptionalBoolParam(t *testing.T) {
 	tests := []struct {
-		name string
-		args map[string]interface{}
+		name  string
+		args  map[string]interface{}
 		param string
-		want *bool
+		want  *bool
 	}{
 		{
 			name: "true value",
@@ -231,7 +231,7 @@ func TestGetOptionalBoolParam(t *testing.T) {
 				"enabled": true,
 			},
 			param: "enabled",
-			want: func() *bool { b := true; return &b }(),
+			want:  func() *bool { b := true; return &b }(),
 		},
 		{
 			name: "false value",
@@ -239,7 +239,7 @@ func TestGetOptionalBoolParam(t *testing.T) {
 				"enabled": false,
 			},
 			param: "enabled",
-			want: func() *bool { b := false; return &b }(),
+			want:  func() *bool { b := false; return &b }(),
 		},
 		{
 			name:  "missing param",
@@ -322,9 +322,9 @@ func TestMarshalOptimizedResponse(t *testing.T) {
 }
 
 type testResponse struct {
-	path        string
-	response    string
-	statusCode  int
+	path       string
+	response   string
+	statusCode int
 }
 
 func setupTestServer(t *testing.T, responses []testResponse) (*httptest.Server, *client.Client) {
@@ -515,10 +515,10 @@ func TestHandleListIndicesPaginated(t *testing.T) {
 	request := mcp.CallToolRequest{
 		Params: mcp.CallToolParams{
 			Arguments: map[string]interface{}{
-				"limit":          float64(10),
-				"includeHealth":  true,
-				"indexPattern":   "test*",
-				"continueToken":  "",
+				"limit":         float64(10),
+				"includeHealth": true,
+				"indexPattern":  "test*",
+				"continueToken": "",
 			},
 		},
 	}
