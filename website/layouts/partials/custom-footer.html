@@ -1,0 +1,106 @@
+<!-- Custom Footer for Cloud Native MCP Server Website -->
+<footer class="book-footer">
+  <div class="footer-content">
+    <div class="footer-section">
+      <h3>Cloud Native MCP Server</h3>
+      <p>高性能 Model Context Protocol (MCP) 服务器，专为 Kubernetes 和云原生基础设施管理而设计。</p>
+    </div>
+    
+    <div class="footer-section">
+      <h4>快速链接</h4>
+      <ul>
+        <li><a href="/docs/getting-started/">快速开始</a></li>
+        <li><a href="/docs/concepts/">核心概念</a></li>
+        <li><a href="/docs/guides/">使用指南</a></li>
+        <li><a href="https://github.com/mahmut-Abi/cloud-native-mcp-server">GitHub 仓库</a></li>
+      </ul>
+    </div>
+    
+    <div class="footer-section">
+      <h4>资源</h4>
+      <ul>
+        <li><a href="/docs/tools/">工具参考</a></li>
+        <li><a href="/docs/security/">安全指南</a></li>
+        <li><a href="/docs/performance/">性能优化</a></li>
+        <li><a href="/docs/api/">API 文档</a></li>
+      </ul>
+    </div>
+    
+    <div class="footer-section">
+      <h4>社区</h4>
+      <ul>
+        <li><a href="https://github.com/mahmut-Abi/cloud-native-mcp-server/issues">问题反馈</a></li>
+        <li><a href="https://github.com/mahmut-Abi/cloud-native-mcp-server/discussions">讨论区</a></li>
+        <li><a href="https://github.com/mahmut-Abi/cloud-native-mcp-server/blob/main/CONTRIBUTING.md">贡献指南</a></li>
+        <li><a href="https://github.com/mahmut-Abi/cloud-native-mcp-server/blob/main/LICENSE">许可证</a></li>
+      </ul>
+    </div>
+  </div>
+  
+  <div class="footer-bottom">
+    <p>&copy; 2025 Cloud Native MCP Server. All rights reserved.</p>
+    <p>Built with <a href="https://gohugo.io/" target="_blank" rel="noopener">Hugo</a> and <a href="https://github.com/alex-shpak/hugo-book" target="_blank" rel="noopener">Hugo Book Theme</a></p>
+    <p><a href="https://github.com/mahmut-Abi/cloud-native-mcp-server" target="_blank" rel="noopener">GitHub</a> | <a href="/en/" target="_blank" rel="noopener">English</a> | <a href="/zh/" target="_blank" rel="noopener">中文</a></p>
+  </div>
+</footer>
+
+<!-- Back to Top Button -->
+<button id="backToTop" title="Go to top">
+  <span>↑</span>
+</button>
+
+<!-- Progress Bar -->
+<div class="progress-bar" id="progressBar"></div>
+
+<script>
+// Back to Top Button
+document.addEventListener('DOMContentLoaded', function() {
+  const backToTopButton = document.getElementById('backToTop');
+  
+  window.addEventListener('scroll', function() {
+    if (window.pageYOffset > 300) {
+      backToTopButton.style.display = 'block';
+    } else {
+      backToTopButton.style.display = 'none';
+    }
+    
+    // Update progress bar
+    const winScroll = document.body.scrollTop || document.documentElement.scrollTop;
+    const height = document.documentElement.scrollHeight - document.documentElement.clientHeight;
+    const scrolled = (winScroll / height) * 100;
+    document.getElementById('progressBar').style.width = scrolled + '%';
+  });
+  
+  backToTopButton.addEventListener('click', function() {
+    window.scrollTo({
+      top: 0,
+      behavior: 'smooth'
+    });
+  });
+});
+
+// Add animation to elements when they come into view
+const observerOptions = {
+  threshold: 0.1
+};
+
+const observer = new IntersectionObserver((entries) => {
+  entries.forEach(entry => {
+    if (entry.isIntersecting) {
+      entry.target.style.opacity = 1;
+      entry.target.style.transform = 'translateY(0)';
+    }
+  });
+}, observerOptions);
+
+// Observe elements that should animate in
+document.addEventListener('DOMContentLoaded', function() {
+  const animatedElements = document.querySelectorAll('.stat-item, .service-card, .feature-card, .hero');
+  animatedElements.forEach(el => {
+    el.style.opacity = 0;
+    el.style.transform = 'translateY(20px)';
+    el.style.transition = 'opacity 0.6s ease, transform 0.6s ease';
+    observer.observe(el);
+  });
+});
+</script>

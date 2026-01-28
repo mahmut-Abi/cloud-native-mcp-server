@@ -1,0 +1,21 @@
+<div class="flex align-center justify-between">
+  <label for="menu-control">
+    <img src="{{ "svg/menu-control.svg" | relURL }}" class="book-icon" alt="Menu" />
+  </label>
+
+  <strong>{{ partial "docs/title" . }}</strong>
+
+  <label for="toc-control">
+    {{- $showToc := partial "docs/toc-show" . -}}
+    {{- if $showToc -}}
+    <img src="{{ "svg/toc.svg" | relURL }}" class="book-icon" alt="Table of Contents" />
+    {{- end -}}
+  </label>
+</div>
+
+<!-- Breadcrumbs -->
+<div class="book-breadcrumbs">
+  <span class="book-breadcrumb-item">
+    {{ partial "docs/breadcrumb" . }}
+  </span>
+</div>

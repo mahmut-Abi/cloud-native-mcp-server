@@ -1,0 +1,37 @@
+{{- $isSingle := eq .Type "docs" }}
+{{- $showHome := .Param "BookShowHomeBreadcrumbs" }}
+{{- $homeText := .Param "BookHomeBreadcrumbText" | default "Home" }}
+{{- if $showHome }}
+  {{- with .Site.GetPage "/" }}
+    <a href="{{ .RelPermalink }}">{{ .Title | default $homeText }}</a>
+  {{- end }}
+{{- else }}
+  {{- $section := .Site.GetPage .Section }}
+  {{- with $section }}
+    {{- if eq $section.Type "docs" }}
+      <a href="{{ .RelPermalink }}">{{ .Title }}</a>
+    {{- end }}
+  {{- end }}
+{{- end }}
+{{- if $isSingle }}
+  {{- if eq .Parent.Type "docs" }}
+    {{- if ne .Parent.Title "Docs" }}
+      {{- if .Parent.Parent }}
+        {{- if ne .Parent.Parent.Title "Docs" }}
+          <span>></span>
+          <a href="{{ .Parent.RelPermalink }}">{{ .Parent.Title }}</a>
+        {{- end }}
+      {{- end }}
+      <span>></span>
+      <a href="{{ .RelPermalink }}">{{ .Title }}</a>
+    {{- else }}
+      <span>></span>
+      <a href="{{ .RelPermalink }}">{{ .Title }}</a>
+    {{- end }}
+  {{- end }}
+{{- else }}
+  {{- if ne .Title .Section }}
+    <span>></span>
+    <a href="{{ .RelPermalink }}">{{ .Title }}</a>
+  {{- end }}
+{{- end }}
