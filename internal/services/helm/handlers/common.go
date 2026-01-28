@@ -8,8 +8,8 @@ import (
 	"errors"
 	"fmt"
 
-	"github.com/mark3labs/mcp-go/mcp"
 	optimize "github.com/mahmut-Abi/cloud-native-mcp-server/internal/util/performance"
+	"github.com/mark3labs/mcp-go/mcp"
 )
 
 var (
