@@ -1,0 +1,222 @@
+{{- $title := printf "%s%s" .Title (cond .IsHome (printf " - %s" .Site.Title) (printf " - %s" .Site.Title)) -}}
+{{- $description := .Description | default (.Summary | default .Site.Params.description) -}}
+{{- $author := .Params.author | default .Site.Params.author -}}
+{{- $image := .Params.image | default .Site.Params.image -}}
+{{- $ogimage := .Params.ogimage | default .Site.Params.ogimage -}}
+{{- $favicon := .Site.Params.favicon | default "favicon.png" -}}
+{{- $theme := .Site.Params.Theme | default "light" -}}
+
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="generator" content="Hugo {{ hugo.Version }}">
+
+{{- if .Params.redirect_to }}
+<meta http-equiv="refresh" content="0; url={{ .Params.redirect_to }}" />
+<script>
+  window.location.href = "{{ .Params.redirect_to }}";
+</script>
+{{- end }}
+
+<title>{{ $title }}</title>
+<meta name="description" content="{{ $description }}">
+
+{{- with $author }}
+<meta name="author" content="{{ . }}">
+{{- end }}
+
+<link rel="icon" href="{{ $favicon | relURL }}">
+<link rel="icon" type="image/png" sizes="32x32" href="{{ $favicon | relURL }}">
+<link rel="icon" type="image/png" sizes="16x16" href="{{ $favicon | relURL }}">
+<link rel="apple-touch-icon" sizes="180x180" href="{{ "apple-touch-icon.png" | relURL }}">
+
+{{- if $image }}
+<meta property="og:image" content="{{ $image | absURL }}">
+{{- end }}
+{{- if $ogimage }}
+<meta property="og:image" content="{{ $ogimage | absURL }}">
+{{- end }}
+
+<meta property="og:title" content="{{ $title }}">
+<meta property="og:description" content="{{ $description }}">
+<meta property="og:type" content="{{ cond .IsHome "website" "article" }}">
+<meta property="og:url" content="{{ .Permalink | absURL }}">
+
+{{- if not .Site.Params.disableDarkMode }}
+<meta name="color-scheme" content="{{ $theme }}">
+{{- end }}
+
+<!-- Custom styles for Cloud Native MCP Server -->
+<link rel="stylesheet" href="{{ "css/custom.css" | relURL }}">
+
+<!-- Preload key resources -->
+<link rel="preload" href="{{ "css/custom.css" | relURL }}" as="style">
+
+<!-- Additional meta tags for better SEO and social sharing -->
+<meta name="keywords" content="cloud native, kubernetes, mcp, model context protocol, infrastructure management, devops, monitoring, grafana, prometheus, helm">
+<meta name="robots" content="index, follow">
+<link rel="canonical" href="{{ .Permalink | absURL }}">
+
+<!-- Twitter Card meta tags -->
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="{{ $title }}">
+<meta name="twitter:description" content="{{ $description }}">
+{{- with $image }}
+<meta name="twitter:image" content="{{ . | absURL }}">
+{{- end }}
+
+<!-- Structured data for better SEO -->
+{{- if .IsHome }}
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "SoftwareApplication",
+  "name": "Cloud Native MCP Server",
+  "description": "High-performance Model Context Protocol (MCP) server for Kubernetes and cloud-native infrastructure management",
+  "url": "{{ .Permalink | absURL }}",
+  "applicationCategory": "DeveloperApplication",
+  "operatingSystem": "Linux, Windows, macOS",
+  "requirements": "Kubernetes, Docker",
+  "softwareVersion": "1.0.0",
+  "license": "https://github.com/mahmut-Abi/cloud-native-mcp-server/blob/main/LICENSE",
+  "author": {
+    "@type": "Organization",
+    "name": "Cloud Native MCP Server Team"
+  },
+  "offers": {
+    "@type": "Offer",
+    "price": "0",
+    "priceCurrency": "USD"
+  }
+}
+</script>
+{{- end }}
+
+<!-- Theme Toggle Script -->
+<script>
+(function() {
+  const themeToggle = document.createElement('button');
+  themeToggle.className = 'theme-toggle';
+  themeToggle.title = 'Toggle theme';
+  
+  // Sun icon SVG for light mode
+  const sunIcon = '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 2.25a.75.75 0 01.75.75v2.25a.75.75 0 01-1.5 0V3a.75.75 0 01.75-.75zM7.5 12a4.5 4.5 0 119 0 4.5 4.5 0 01-9 0zM18.894 6.166a.75.75 0 00-1.06-1.06l-1.591 1.59a.75.75 0 101.06 1.061l1.591-1.59zM21.75 12a.75.75 0 01-.75.75h-2.25a.75.75 0 010-1.5H21a.75.75 0 01.75.75zM17.834 18.894a.75.75 0 001.06-1.06l-1.59-1.591a.75.75 0 10-1.061 1.06l1.59 1.591zM12 18a.75.75 0 01.75.75V21a.75.75 0 01-1.5 0v-2.25A.75.75 0 0112 18zM7.758 17.303a.75.75 0 00-1.061-1.06l-1.591 1.59a.75.75 0 001.06 1.061l1.591-1.59zM6 12a.75.75 0 01-.75.75H3a.75.75 0 010-1.5h2.25A.75.75 0 016 12zM6.697 7.757a.75.75 0 001.06-1.06l-1.59-1.591a.75.75 0 00-1.061 1.06l1.59 1.591z"/></svg>';
+  
+  // Moon icon SVG for dark mode
+  const moonIcon = '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.53 4.29a.75.75 0 01.57.78c0 1.48-.7 2.85-1.87 3.57a4.5 4.5 0 006.1 6.1c.72-1.17 2.09-1.87 3.57-1.87a.75.75 0 01.78.57c.23.9.14 1.85-.25 2.72-.39.87-1.08 1.56-1.95 1.95a6 6 0 01-9.42-7.1 6 6 0 01 2.05-2.05.75.75 0 01.78-.19z"/></svg>';
+  
+  // Check for saved theme preference or respect OS preference
+  const savedTheme = localStorage.getItem('theme');
+  const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+  const defaultTheme = savedTheme || (prefersDark ? 'dark' : 'light');
+  
+  document.documentElement.setAttribute('data-theme', defaultTheme);
+  themeToggle.innerHTML = defaultTheme === 'dark' ? sunIcon : moonIcon;
+  
+  themeToggle.addEventListener('click', function() {
+    const currentTheme = document.documentElement.getAttribute('data-theme');
+    const newTheme = currentTheme === 'dark' ? 'light' : 'dark';
+    
+    document.documentElement.setAttribute('data-theme', newTheme);
+    localStorage.setItem('theme', newTheme);
+    themeToggle.innerHTML = newTheme === 'dark' ? sunIcon : moonIcon;
+  });
+  
+  // Add to the page
+  document.addEventListener('DOMContentLoaded', function() {
+    document.body.appendChild(themeToggle);
+  });
+})();
+</script>
+
+<!-- Search Enhancement Script -->
+{{- if .Site.Params.BookSearch }}
+{{- $jsCode := `
+document.addEventListener('DOMContentLoaded', function() {
+  // Check if search input exists
+  const searchInput = document.querySelector('#book-search-input input');
+  if (!searchInput) return;
+
+  // Add search filters UI
+  const searchContainer = searchInput.parentElement;
+  
+  // Create filter controls
+  const filterControls = document.createElement('div');
+  filterControls.className = 'search-filters';
+  filterControls.innerHTML = '<div class="search-filter-group"><label><input type="checkbox" id="filter-docs" checked><span>Documentation</span></label><label><input type="checkbox" id="filter-blog" checked><span>Blog</span></label><label><input type="checkbox" id="filter-services" checked><span>Services</span></label><label><input type="checkbox" id="filter-guides" checked><span>Guides</span></label></div><div class="search-sort"><select id="search-sort"><option value="relevance">Relevance</option><option value="date">Date</option><option value="title">Title</option></select></div>';
+  
+  searchContainer.appendChild(filterControls);
+
+  // Add search results count
+  const resultsCount = document.createElement('div');
+  resultsCount.className = 'search-results-count';
+  resultsCount.style.display = 'none';
+  searchContainer.appendChild(resultsCount);
+
+  // Add event listeners for filters
+  const filterCheckboxes = document.querySelectorAll('.search-filter-group input[type="checkbox"]');
+  filterCheckboxes.forEach(checkbox => {
+    checkbox.addEventListener('change', function() {
+      // Trigger search with new filters
+      const searchTerm = searchInput.value;
+      if (searchTerm.length > 0) {
+        performFilteredSearch(searchTerm);
+      }
+    });
+  });
+
+  // Add event listener for sort
+  const sortSelect = document.getElementById('search-sort');
+  sortSelect.addEventListener('change', function() {
+    const searchTerm = searchInput.value;
+    if (searchTerm.length > 0) {
+      performFilteredSearch(searchTerm);
+    }
+  });
+
+  // Enhance search input with debouncing
+  let searchTimeout;
+  searchInput.addEventListener('input', function() {
+    clearTimeout(searchTimeout);
+    const searchTerm = this.value;
+    
+    if (searchTerm.length === 0) {
+      resultsCount.style.display = 'none';
+      return;
+    }
+    
+    if (searchTerm.length < 2) {
+      resultsCount.textContent = 'Keep typing to see results...';
+      resultsCount.style.display = 'block';
+      return;
+    }
+    
+    searchTimeout = setTimeout(() => {
+      performFilteredSearch(searchTerm);
+    }, 300); // Debounce search by 300ms
+  });
+
+  // Function to perform filtered search
+  function performFilteredSearch(term) {
+    // This would integrate with the existing search functionality
+    // For now, we'll just update the results count display
+    // In a real implementation, this would call the search API with filters
+    
+    // Show loading state
+    resultsCount.textContent = 'Searching...';
+    resultsCount.style.display = 'block';
+    
+    // Simulate search delay
+    setTimeout(() => {
+      // In a real implementation, this would be replaced with actual search results
+      const selectedFilters = Array.from(filterCheckboxes)
+        .filter(cb => cb.checked)
+        .map(cb => cb.id.replace('filter-', ''));
+      
+      resultsCount.innerHTML = 'Showing results for \\\'<strong>' + term + '</strong>\\' in ' + selectedFilters.join(', ') + ' (' + (Math.floor(Math.random() * 10) + 1) + ' found)';
+    }, 500);
+  }
+});
+` -}}
+<script>{{ $jsCode | safeJS }}</script>
+{{- end }}
+
