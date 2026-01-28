@@ -1,460 +1,460 @@
 ---
-title: "工具参考"
+title: "Tools Reference"
 weight: 5
 ---
 
-# 工具参考
+# Tools Reference
 
-Cloud Native MCP Server 提供 220+ 强大的工具，涵盖 Kubernetes 管理、应用部署、监控、日志分析等。
+Cloud Native MCP Server provides 220+ powerful tools covering Kubernetes management, application deployment, monitoring, log analysis, and more.
 
 {{< columns >}}
-### 🚀 Kubernetes (28 个工具)
-核心容器编排和资源管理
+### 🚀 Kubernetes (28 tools)
+Core container orchestration and resource management
 <--->
 
-### 📦 Helm (31 个工具)
-应用包管理和部署
+### 📦 Helm (31 tools)
+Application package management and deployment
 {{< /columns >}}
 
 {{< columns >}}
-### 📊 Grafana (36 个工具)
-可视化、监控仪表板和告警
+### 📊 Grafana (36 tools)
+Visualization, monitoring dashboards, and alerting
 <--->
 
-### 📈 Prometheus (20 个工具)
-指标收集、查询和监控
+### 📈 Prometheus (20 tools)
+Metrics collection, querying, and monitoring
 {{< /columns >}}
 
 {{< columns >}}
-### 🔍 Kibana (52 个工具)
-日志分析、可视化和数据探索
+### 🔍 Kibana (52 tools)
+Log analysis, visualization, and data exploration
 <--->
 
-### ⚡ Elasticsearch (14 个工具)
-日志存储、搜索和数据索引
+### ⚡ Elasticsearch (14 tools)
+Log storage, search, and data indexing
 {{< /columns >}}
 
 {{< columns >}}
-### ⚠️ Alertmanager (15 个工具)
-告警规则管理和通知
+### ⚠️ Alertmanager (15 tools)
+Alert rules management and notifications
 <--->
 
-### 📍 Jaeger (8 个工具)
-分布式追踪和性能分析
+### 📍 Jaeger (8 tools)
+Distributed tracing and performance analysis
 {{< /columns >}}
 
 {{< columns >}}
-### 🌐 OpenTelemetry (9 个工具)
-指标、追踪和日志收集分析
+### 🌐 OpenTelemetry (9 tools)
+Metrics, traces, and logs collection and analysis
 <--->
 
-### 🔧 Utilities (6 个工具)
-通用工具集
+### 🔧 Utilities (6 tools)
+General-purpose utility tools
 {{< /columns >}}
 
 ---
 
-## Kubernetes 工具 (28)
+## Kubernetes Tools (28)
 
-Kubernetes 服务提供全面的集群管理功能：
+The Kubernetes service provides comprehensive cluster management capabilities:
 
-### Pod 管理
-- `list_pods` - 列出 Pod
-- `get_pod` - 获取 Pod 详情
-- `describe_pod` - 描述 Pod 状态
-- `delete_pod` - 删除 Pod
-- `get_pod_logs` - 获取 Pod 日志
-- `get_pod_events` - 获取 Pod 事件
+### Pod Management
+- `list_pods` - List pods
+- `get_pod` - Get pod details
+- `describe_pod` - Describe pod status
+- `delete_pod` - Delete pod
+- `get_pod_logs` - Get pod logs
+- `get_pod_events` - Get pod events
 
-### Deployment 管理
-- `list_deployments` - 列出 Deployment
-- `get_deployment` - 获取 Deployment 详情
-- `create_deployment` - 创建 Deployment
-- `update_deployment` - 更新 Deployment
-- `delete_deployment` - 删除 Deployment
-- `scale_deployment` - 扩缩容 Deployment
-- `restart_deployment` - 重启 Deployment
+### Deployment Management
+- `list_deployments` - List deployments
+- `get_deployment` - Get deployment details
+- `create_deployment` - Create deployment
+- `update_deployment` - Update deployment
+- `delete_deployment` - Delete deployment
+- `scale_deployment` - Scale deployment
+- `restart_deployment` - Restart deployment
 
-### 服务管理
-- `list_services` - 列出服务
-- `get_service` - 获取服务详情
-- `create_service` - 创建服务
-- `delete_service` - 删除服务
+### Service Management
+- `list_services` - List services
+- `get_service` - Get service details
+- `create_service` - Create service
+- `delete_service` - Delete service
 
-### ConfigMap 和 Secret
-- `list_configmaps` - 列出 ConfigMap
-- `get_configmap` - 获取 ConfigMap 详情
-- `create_configmap` - 创建 ConfigMap
-- `list_secrets` - 列出 Secret
-- `get_secret` - 获取 Secret 详情
-- `create_secret` - 创建 Secret
+### ConfigMap & Secret
+- `list_configmaps` - List ConfigMaps
+- `get_configmap` - Get ConfigMap details
+- `create_configmap` - Create ConfigMap
+- `list_secrets` - List secrets
+- `get_secret` - Get secret details
+- `create_secret` - Create secret
 
-### 命名空间
-- `list_namespaces` - 列出命名空间
-- `get_namespace` - 获取命名空间详情
-- `create_namespace` - 创建命名空间
+### Namespaces
+- `list_namespaces` - List namespaces
+- `get_namespace` - Get namespace details
+- `create_namespace` - Create namespace
 
-### 节点管理
-- `list_nodes` - 列出节点
-- `get_node` - 获取节点详情
-- `describe_node` - 描述节点状态
+### Node Management
+- `list_nodes` - List nodes
+- `get_node` - Get node details
+- `describe_node` - Describe node status
 
-### 资源状态
-- `get_resource_usage` - 获取资源使用情况
-- `get_cluster_info` - 获取集群信息
-
----
-
-## Helm 工具 (31)
-
-Helm 服务支持包管理和部署：
-
-### 图表管理
-- `list_repositories` - 列出 Helm 仓库
-- `add_repository` - 添加 Helm 仓库
-- `remove_repository` - 移除 Helm 仓库
-- `update_repository` - 更新 Helm 仓库
-- `search_chart` - 搜索图表
-- `show_chart` - 显示图表详情
-- `pull_chart` - 拉取图表
-
-### 发布管理
-- `list_releases` - 列出发布
-- `get_release` - 获取发布详情
-- `install_chart` - 安装图表
-- `upgrade_release` - 升级发布
-- `rollback_release` - 回滚发布
-- `uninstall_release` - 卸载发布
-- `get_release_history` - 获取发布历史
-- `get_release_status` - 获取发布状态
-- `get_release_values` - 获取发布配置值
-
-### 值管理
-- `get_values` - 获取配置值
-- `set_values` - 设置配置值
-- `diff_values` - 比较配置值差异
-
-### 发布操作
-- `test_release` - 测试发布
-- `lint_chart` - 检查图表
-- `package_chart` - 打包图表
-- `verify_chart` - 验证图表
-- `template_chart` - 生成模板
-
-### 图表依赖
-- `list_dependencies` - 列出依赖
-- `update_dependencies` - 更新依赖
-
-### 插件管理
-- `list_plugins` - 列出插件
-- `install_plugin` - 安装插件
-
-### 版本管理
-- `list_versions` - 列出图表版本
-- `get_version_info` - 获取版本信息
-
-### 调试工具
-- `debug_release` - 调试发布
+### Resource Status
+- `get_resource_usage` - Get resource usage
+- `get_cluster_info` - Get cluster information
 
 ---
 
-## Grafana 工具 (36)
+## Helm Tools (31)
 
-Grafana 服务提供可视化和监控功能：
+The Helm service enables package management and deployment:
 
-### 仪表板管理
-- `list_dashboards` - 列出仪表板
-- `get_dashboard` - 获取仪表板详情
-- `create_dashboard` - 创建仪表板
-- `update_dashboard` - 更新仪表板
-- `delete_dashboard` - 删除仪表板
-- `import_dashboard` - 导入仪表板
-- `export_dashboard` - 导出仪表板
-- `search_dashboards` - 搜索仪表板
-- `get_dashboard_by_uid` - 通过 UID 获取仪表板
-- `get_dashboard_by_tag` - 通过标签获取仪表板
+### Chart Management
+- `list_repositories` - List Helm repositories
+- `add_repository` - Add Helm repository
+- `remove_repository` - Remove Helm repository
+- `update_repository` - Update Helm repository
+- `search_chart` - Search chart
+- `show_chart` - Show chart details
+- `pull_chart` - Pull chart
 
-### 数据源管理
-- `list_datasources` - 列出数据源
-- `get_datasource` - 获取数据源详情
-- `create_datasource` - 创建数据源
-- `update_datasource` - 更新数据源
-- `delete_datasource` - 删除数据源
-- `test_datasource` - 测试数据源连接
+### Release Management
+- `list_releases` - List releases
+- `get_release` - Get release details
+- `install_chart` - Install chart
+- `upgrade_release` - Upgrade release
+- `rollback_release` - Rollback release
+- `uninstall_release` - Uninstall release
+- `get_release_history` - Get release history
+- `get_release_status` - Get release status
+- `get_release_values` - Get release configuration values
 
-### 文件夹管理
-- `list_folders` - 列出文件夹
-- `get_folder` - 获取文件夹详情
-- `create_folder` - 创建文件夹
-- `update_folder` - 更新文件夹
-- `delete_folder` - 删除文件夹
+### Values Management
+- `get_values` - Get configuration values
+- `set_values` - Set configuration values
+- `diff_values` - Compare configuration value differences
 
-### 查询执行
-- `execute_query` - 执行查询
-- `execute_multiple_queries` - 执行多个查询
-- `query_metrics` - 查询指标
+### Release Operations
+- `test_release` - Test release
+- `lint_chart` - Lint chart
+- `package_chart` - Package chart
+- `verify_chart` - Verify chart
+- `template_chart` - Generate template
 
-### 告警管理
-- `list_alerts` - 列出告警
-- `get_alert` - 获取告警详情
-- `pause_alert` - 暂停告警
-- `resume_alert` - 恢复告警
-- `get_alert_rules` - 获取告警规则
+### Chart Dependencies
+- `list_dependencies` - List dependencies
+- `update_dependencies` - Update dependencies
 
-### 用户管理
-- `list_users` - 列出用户
-- `get_user` - 获取用户详情
-- `create_user` - 创建用户
+### Plugin Management
+- `list_plugins` - List plugins
+- `install_plugin` - Install plugin
 
-### 组织管理
-- `list_organizations` - 列出组织
-- `get_organization` - 获取组织详情
+### Version Management
+- `list_versions` - List chart versions
+- `get_version_info` - Get version information
 
-### 健康检查
-- `get_health` - 获取健康状态
-- `get_version` - 获取版本信息
+### Debugging Tools
+- `debug_release` - Debug release
 
 ---
 
-## Prometheus 工具 (20)
+## Grafana Tools (36)
 
-Prometheus 服务提供指标收集和查询功能：
+The Grafana service provides visualization and monitoring capabilities:
 
-### 查询执行
-- `query` - 执行即时查询
-- `query_range` - 执行范围查询
-- `query_exemplars` - 查询示例数据
+### Dashboard Management
+- `list_dashboards` - List dashboards
+- `get_dashboard` - Get dashboard details
+- `create_dashboard` - Create dashboard
+- `update_dashboard` - Update dashboard
+- `delete_dashboard` - Delete dashboard
+- `import_dashboard` - Import dashboard
+- `export_dashboard` - Export dashboard
+- `search_dashboards` - Search dashboards
+- `get_dashboard_by_uid` - Get dashboard by UID
+- `get_dashboard_by_tag` - Get dashboard by tag
 
-### 元数据查询
-- `label_names` - 获取标签名称
-- `label_values` - 获取标签值
-- `series` - 获取时间序列
-- `metadata` - 获取元数据
+### Datasource Management
+- `list_datasources` - List datasources
+- `get_datasource` - Get datasource details
+- `create_datasource` - Create datasource
+- `update_datasource` - Update datasource
+- `delete_datasource` - Delete datasource
+- `test_datasource` - Test datasource connection
 
-### 目标管理
-- `targets` - 获取目标列表
-- `get_target_metadata` - 获取目标元数据
+### Folder Management
+- `list_folders` - List folders
+- `get_folder` - Get folder details
+- `create_folder` - Create folder
+- `update_folder` - Update folder
+- `delete_folder` - Delete folder
 
-### 规则管理
-- `rules` - 获取规则列表
-- `get_alerts` - 获取告警列表
+### Query Execution
+- `execute_query` - Execute query
+- `execute_multiple_queries` - Execute multiple queries
+- `query_metrics` - Query metrics
 
-### 配置管理
-- `config` - 获取配置信息
-- `flags` - 获取启动参数
+### Alert Management
+- `list_alerts` - List alerts
+- `get_alert` - Get alert details
+- `pause_alert` - Pause alert
+- `resume_alert` - Resume alert
+- `get_alert_rules` - Get alert rules
 
-### 状态查询
-- `status` - 获取状态信息
-- `query_stats` - 获取查询统计
+### User Management
+- `list_users` - List users
+- `get_user` - Get user details
+- `create_user` - Create user
 
-### 快照管理
-- `snapshot` - 创建快照
+### Organization Management
+- `list_organizations` - List organizations
+- `get_organization` - Get organization details
 
-### TSDB 操作
-- `tsdb_stats` - 获取 TSDB 统计
-- `tsdb_series` - 获取 TSDB 序列
-
-### 存储操作
-- `block_info` - 获取块信息
-
----
-
-## Kibana 工具 (52)
-
-Kibana 服务提供日志分析和可视化：
-
-### 索引管理
-- `list_indices` - 列出索引
-- `get_index` - 获取索引详情
-- `create_index` - 创建索引
-- `delete_index` - 删除索引
-- `get_index_stats` - 获取索引统计
-- `get_index_settings` - 获取索引设置
-- `update_index_settings` - 更新索引设置
-
-### 文档操作
-- `search_documents` - 搜索文档
-- `get_document` - 获取文档
-- `create_document` - 创建文档
-- `update_document` - 更新文档
-- `delete_document` - 删除文档
-- `bulk_operations` - 批量操作
-
-### 查询构建
-- `build_query` - 构建查询
-- `execute_query` - 执行查询
-- `aggregate_data` - 聚合数据
-- `get_query_stats` - 获取查询统计
-
-### 可视化
-- `list_visualizations` - 列出可视化
-- `get_visualization` - 获取可视化
-- `create_visualization` - 创建可视化
-- `update_visualization` - 更新可视化
-- `delete_visualization` - 删除可视化
-
-### 仪表板
-- `list_dashboards` - 列出仪表板
-- `get_dashboard` - 获取仪表板
-- `create_dashboard` - 创建仪表板
-- `update_dashboard` - 更新仪表板
-- `delete_dashboard` - 删除仪表板
-
-### 索引模式
-- `list_index_patterns` - 列出索引模式
-- `get_index_pattern` - 获取索引模式
-- `create_index_pattern` - 创建索引模式
-- `update_index_pattern` - 更新索引模式
-- `delete_index_pattern` - 删除索引模式
-
-### 保存的查询
-- `list_saved_queries` - 列出保存的查询
-- `get_saved_query` - 获取保存的查询
-- `create_saved_query` - 创建保存的查询
-- `update_saved_query` - 更新保存的查询
-- `delete_saved_query` - 删除保存的查询
-
-### 空间管理
-- `list_spaces` - 列出空间
-- `get_space` - 获取空间
-- `create_space` - 创建空间
-- `update_space` - 更新空间
-- `delete_space` - 删除空间
-
-### 发现
-- `discover_data` - 发现数据
-- `get_field_capabilities` - 获取字段功能
-
-### 导入/导出
-- `export_objects` - 导出对象
-- `import_objects` - 导入对象
-
-### 短链接
-- `create_short_url` - 创建短链接
+### Health Check
+- `get_health` - Get health status
+- `get_version` - Get version information
 
 ---
 
-## Elasticsearch 工具 (14)
+## Prometheus Tools (20)
 
-Elasticsearch 服务提供搜索和索引功能：
+The Prometheus service enables metrics collection and querying:
 
-### 索引管理
-- `list_indices` - 列出索引
-- `get_index` - 获取索引
-- `create_index` - 创建索引
-- `delete_index` - 删除索引
-- `get_index_stats` - 获取索引统计
+### Query Execution
+- `query` - Execute instant query
+- `query_range` - Execute range query
+- `query_exemplars` - Query exemplar data
 
-### 文档操作
-- `index_document` - 索引文档
-- `get_document` - 获取文档
-- `search_documents` - 搜索文档
-- `update_document` - 更新文档
-- `delete_document` - 删除文档
+### Metadata Queries
+- `label_names` - Get label names
+- `label_values` - Get label values
+- `series` - Get time series
+- `metadata` - Get metadata
 
-### 集群管理
-- `get_cluster_health` - 获取集群健康
-- `get_cluster_stats` - 获取集群统计
-- `get_cluster_info` - 获取集群信息
+### Target Management
+- `targets` - Get target list
+- `get_target_metadata` - Get target metadata
 
-### 别名管理
-- `get_aliases` - 获取别名
+### Rules Management
+- `rules` - Get rules list
+- `get_alerts` - Get alerts list
 
----
+### Configuration Management
+- `config` - Get configuration information
+- `flags` - Get startup flags
 
-## Alertmanager 工具 (15)
+### Status Queries
+- `status` - Get status information
+- `query_stats` - Get query statistics
 
-Alertmanager 服务提供告警管理：
+### Snapshot Management
+- `snapshot` - Create snapshot
 
-### 告警管理
-- `list_alerts` - 列出告警
-- `get_alert` - 获取告警详情
-- `get_alert_groups` - 获取告警组
-- `get_silences` - 获取静默
-- `create_silence` - 创建静默
-- `delete_silence` - 删除静默
-- `expire_silence` - 过期静默
+### TSDB Operations
+- `tsdb_stats` - Get TSDB statistics
+- `tsdb_series` - Get TSDB series
 
-### 规则管理
-- `get_alert_rules` - 获取告警规则
-- `list_rule_groups` - 列出规则组
-
-### 配置管理
-- `get_config` - 获取配置
-- `get_status` - 获取状态
-
-### 通知管理
-- `list_notifications` - 列出通知
-- `get_receivers` - 获取接收器配置
-- `list_routes` - 列出路由
-
-### 健康检查
-- `get_health` - 获取健康状态
+### Storage Operations
+- `block_info` - Get block information
 
 ---
 
-## Jaeger 工具 (8)
+## Kibana Tools (52)
 
-Jaeger 服务提供分布式追踪：
+The Kibana service provides log analysis and visualization:
 
-### 追踪查询
-- `get_trace` - 获取追踪
-- `search_traces` - 搜索追踪
-- `get_services` - 获取服务列表
-- `get_operations` - 获取操作列表
+### Index Management
+- `list_indices` - List indices
+- `get_index` - Get index details
+- `create_index` - Create index
+- `delete_index` - Delete index
+- `get_index_stats` - Get index statistics
+- `get_index_settings` - Get index settings
+- `update_index_settings` - Update index settings
 
-### 依赖分析
-- `get_dependencies` - 获取依赖
+### Document Operations
+- `search_documents` - Search documents
+- `get_document` - Get document
+- `create_document` - Create document
+- `update_document` - Update document
+- `delete_document` - Delete document
+- `bulk_operations` - Bulk operations
 
-### 指标查询
-- `get_metrics` - 获取指标
+### Query Building
+- `build_query` - Build query
+- `execute_query` - Execute query
+- `aggregate_data` - Aggregate data
+- `get_query_stats` - Get query statistics
 
-### 配置查询
-- `get_config` - 获取配置
-- `get_status` - 获取状态
+### Visualizations
+- `list_visualizations` - List visualizations
+- `get_visualization` - Get visualization
+- `create_visualization` - Create visualization
+- `update_visualization` - Update visualization
+- `delete_visualization` - Delete visualization
+
+### Dashboards
+- `list_dashboards` - List dashboards
+- `get_dashboard` - Get dashboard
+- `create_dashboard` - Create dashboard
+- `update_dashboard` - Update dashboard
+- `delete_dashboard` - Delete dashboard
+
+### Index Patterns
+- `list_index_patterns` - List index patterns
+- `get_index_pattern` - Get index pattern
+- `create_index_pattern` - Create index pattern
+- `update_index_pattern` - Update index pattern
+- `delete_index_pattern` - Delete index pattern
+
+### Saved Queries
+- `list_saved_queries` - List saved queries
+- `get_saved_query` - Get saved query
+- `create_saved_query` - Create saved query
+- `update_saved_query` - Update saved query
+- `delete_saved_query` - Delete saved query
+
+### Space Management
+- `list_spaces` - List spaces
+- `get_space` - Get space
+- `create_space` - Create space
+- `update_space` - Update space
+- `delete_space` - Delete space
+
+### Discover
+- `discover_data` - Discover data
+- `get_field_capabilities` - Get field capabilities
+
+### Export/Import
+- `export_objects` - Export objects
+- `import_objects` - Import objects
+
+### Short URLs
+- `create_short_url` - Create short URL
 
 ---
 
-## OpenTelemetry 工具 (9)
+## Elasticsearch Tools (14)
 
-OpenTelemetry 服务提供全面的可观测性：
+The Elasticsearch service provides search and indexing capabilities:
 
-### 指标管理
-- `get_metrics` - 获取指标
-- `get_metric_data` - 获取指标数据
-- `list_metric_streams` - 列出指标流
+### Index Management
+- `list_indices` - List indices
+- `get_index` - Get index
+- `create_index` - Create index
+- `delete_index` - Delete index
+- `get_index_stats` - Get index statistics
 
-### 追踪管理
-- `get_traces` - 获取追踪
-- `search_traces` - 搜索追踪
+### Document Operations
+- `index_document` - Index document
+- `get_document` - Get document
+- `search_documents` - Search documents
+- `update_document` - Update document
+- `delete_document` - Delete document
 
-### 日志管理
-- `get_logs` - 获取日志
-- `search_logs` - 搜索日志
+### Cluster Management
+- `get_cluster_health` - Get cluster health
+- `get_cluster_stats` - Get cluster statistics
+- `get_cluster_info` - Get cluster information
 
-### 配置管理
-- `get_config` - 获取配置
-- `get_status` - 获取状态
-
----
-
-## 实用工具 (6)
-
-通用实用工具：
-
-### 通用工具
-- `base64_encode` - Base64 编码
-- `base64_decode` - Base64 解码
-- `json_parse` - JSON 解析
-- `json_stringify` - JSON 字符串化
-- `timestamp` - 获取时间戳
-- `uuid` - 生成 UUID
+### Alias Management
+- `get_aliases` - Get aliases
 
 ---
 
-## 工具调用示例
+## Alertmanager Tools (15)
 
-### Kubernetes - 列出 Pod
+The Alertmanager service provides alert management:
+
+### Alert Management
+- `list_alerts` - List alerts
+- `get_alert` - Get alert details
+- `get_alert_groups` - Get alert groups
+- `get_silences` - Get silences
+- `create_silence` - Create silence
+- `delete_silence` - Delete silence
+- `expire_silence` - Expire silence
+
+### Rules Management
+- `get_alert_rules` - Get alert rules
+- `list_rule_groups` - List rule groups
+
+### Configuration Management
+- `get_config` - Get configuration
+- `get_status` - Get status
+
+### Notification Management
+- `list_notifications` - List notifications
+- `get_receivers` - Get receiver configuration
+- `list_routes` - List routes
+
+### Health Check
+- `get_health` - Get health status
+
+---
+
+## Jaeger Tools (8)
+
+The Jaeger service provides distributed tracing:
+
+### Trace Queries
+- `get_trace` - Get trace
+- `search_traces` - Search traces
+- `get_services` - Get service list
+- `get_operations` - Get operation list
+
+### Dependency Analysis
+- `get_dependencies` - Get dependencies
+
+### Metrics Queries
+- `get_metrics` - Get metrics
+
+### Configuration Queries
+- `get_config` - Get configuration
+- `get_status` - Get status
+
+---
+
+## OpenTelemetry Tools (9)
+
+The OpenTelemetry service provides comprehensive observability:
+
+### Metrics Management
+- `get_metrics` - Get metrics
+- `get_metric_data` - Get metric data
+- `list_metric_streams` - List metric streams
+
+### Trace Management
+- `get_traces` - Get traces
+- `search_traces` - Search traces
+
+### Log Management
+- `get_logs` - Get logs
+- `search_logs` - Search logs
+
+### Configuration Management
+- `get_config` - Get configuration
+- `get_status` - Get status
+
+---
+
+## Utilities Tools (6)
+
+General-purpose utility tools:
+
+### General Tools
+- `base64_encode` - Base64 encode
+- `base64_decode` - Base64 decode
+- `json_parse` - JSON parse
+- `json_stringify` - JSON stringify
+- `timestamp` - Get timestamp
+- `uuid` - Generate UUID
+
+---
+
+## Tool Call Examples
+
+### Kubernetes - List Pods
 
 ```json
 {
@@ -470,7 +470,7 @@ OpenTelemetry 服务提供全面的可观测性：
 }
 ```
 
-### Helm - 安装图表
+### Helm - Install Chart
 
 ```json
 {
@@ -489,7 +489,7 @@ OpenTelemetry 服务提供全面的可观测性：
 }
 ```
 
-### Prometheus - 查询指标
+### Prometheus - Query Metrics
 
 ```json
 {
@@ -505,7 +505,7 @@ OpenTelemetry 服务提供全面的可观测性：
 }
 ```
 
-### Grafana - 列出仪表板
+### Grafana - List Dashboards
 
 ```json
 {
@@ -521,29 +521,29 @@ OpenTelemetry 服务提供全面的可观测性：
 
 ---
 
-## 工具参数说明
+## Tool Parameter Description
 
-所有工具都支持以下通用参数：
+All tools support the following common parameters:
 
-- `timeout` - 请求超时（秒）
-- `dry_run` - 试运行模式，不实际执行
-- `verbose` - 详细输出模式
+- `timeout` - Request timeout (seconds)
+- `dry_run` - Dry run mode, does not actually execute
+- `verbose` - Verbose output mode
 
-有关特定工具的参数，请参阅各服务的详细文档。
+For tool-specific parameters, please refer to the detailed documentation of each service.
 
 ---
 
-## 错误处理
+## Error Handling
 
-工具调用可能返回以下错误：
+Tool calls may return the following errors:
 
-- `InvalidParams` - 参数无效
-- `NotFound` - 资源不存在
-- `PermissionDenied` - 权限不足
-- `Timeout` - 请求超时
-- `InternalError` - 内部错误
+- `InvalidParams` - Invalid parameters
+- `NotFound` - Resource does not exist
+- `PermissionDenied` - Insufficient permissions
+- `Timeout` - Request timeout
+- `InternalError` - Internal error
 
-错误响应格式：
+Error response format:
 
 ```json
 {
@@ -559,11 +559,11 @@ OpenTelemetry 服务提供全面的可观测性：
 }
 ```
 
-## 下一步
+## Next Steps
 
-现在您已经探索了所有 220+ 工具，您可能想要：
+Now that you've explored all 220+ tools, you might want to:
 
-- [配置认证和安全设置](/zh/guides/security/)
-- [了解性能优化](/zh/guides/performance/)
-- [查看完整的快速开始指南](/zh/getting-started/)
-- [探索服务特定配置](/zh/guides/configuration/)
+- [Configure authentication and security settings](/en/guides/security/)
+- [Learn about performance optimization](/en/guides/performance/)
+- [Review the complete getting started guide](/en/getting-started/)
+- [Explore service-specific configurations](/en/guides/configuration/)

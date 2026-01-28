@@ -1,23 +1,23 @@
 ---
-title: "API 文档"
+title: "API Documentation"
 weight: 10
 ---
 
-# API 文档
+# API Documentation
 
-Cloud Native MCP Server 通过 Model Context Protocol (MCP) 提供全面的 API，用于与所有集成服务进行交互。
+The Cloud Native MCP Server provides a comprehensive API for interacting with all integrated services through the Model Context Protocol (MCP).
 
-## 基础 URL
+## Base URL
 
 ```
-http://localhost:8080 (默认)
+http://localhost:8080 (default)
 ```
 
-## 认证
+## Authentication
 
-服务器支持多种认证方法：
+The server supports multiple authentication methods:
 
-### API 密钥
+### API Key
 ```bash
 curl -X POST http://localhost:8080/v1/mcp/list-tools \
   -H "Authorization: Bearer YOUR_API_KEY" \
@@ -38,18 +38,18 @@ curl -X POST http://localhost:8080/v1/mcp/list-tools \
   -H "Content-Type: application/json"
 ```
 
-## 核心端点
+## Core Endpoints
 
-### MCP 端点
+### MCP Endpoints
 
-#### 列出可用工具
+#### List Available Tools
 ```
 POST /v1/mcp/list-tools
 ```
 
-获取所有服务中所有可用工具的列表。
+Get a list of all available tools across all services.
 
-**请求:**
+**Request:**
 ```json
 {
   "jsonrpc": "2.0",
@@ -59,7 +59,7 @@ POST /v1/mcp/list-tools
 }
 ```
 
-**响应:**
+**Response:**
 ```json
 {
   "jsonrpc": "2.0",
@@ -68,13 +68,13 @@ POST /v1/mcp/list-tools
     "tools": [
       {
         "name": "kubernetes-get-pods",
-        "description": "获取命名空间中的 Pod",
+        "description": "Get pods in a namespace",
         "input_schema": {
           "type": "object",
           "properties": {
             "namespace": {
               "type": "string",
-              "description": "Kubernetes 命名空间"
+              "description": "Kubernetes namespace"
             }
           }
         }
@@ -84,14 +84,14 @@ POST /v1/mcp/list-tools
 }
 ```
 
-#### 执行工具
+#### Execute Tool
 ```
 POST /v1/mcp/call-tool
 ```
 
-使用给定参数执行特定工具。
+Execute a specific tool with given parameters.
 
-**请求:**
+**Request:**
 ```json
 {
   "jsonrpc": "2.0",
@@ -106,7 +106,7 @@ POST /v1/mcp/call-tool
 }
 ```
 
-**响应:**
+**Response:**
 ```json
 {
   "jsonrpc": "2.0",
@@ -126,14 +126,14 @@ POST /v1/mcp/call-tool
 }
 ```
 
-### 健康检查
+### Health Check
 ```
 GET /health
 ```
 
-检查服务器的健康状态。
+Check the health status of the server.
 
-**响应:**
+**Response:**
 ```json
 {
   "status": "healthy",
@@ -146,14 +146,14 @@ GET /health
 }
 ```
 
-### 服务器信息
+### Server Info
 ```
 GET /info
 ```
 
-获取服务器信息和版本详情。
+Get server information and version details.
 
-**响应:**
+**Response:**
 ```json
 {
   "version": "1.0.0",
@@ -164,11 +164,11 @@ GET /info
 }
 ```
 
-## 支持的协议
+## Supported Protocols
 
-服务器支持多种通信协议：
+The server supports multiple communication protocols:
 
-### SSE (Server-Sent Events) - 默认
+### SSE (Server-Sent Events) - Default
 ```
 POST /api/aggregate/sse
 ```
@@ -179,11 +179,11 @@ POST /api/aggregate/http
 ```
 
 ### Stdio
-在 stdio 模式下运行时可用。
+Available when running in stdio mode.
 
-## 错误处理
+## Error Handling
 
-API 使用标准 JSON-RPC 2.0 错误格式：
+The API uses standard JSON-RPC 2.0 error format:
 
 ```json
 {
@@ -199,52 +199,52 @@ API 使用标准 JSON-RPC 2.0 错误格式：
 }
 ```
 
-### 常见错误代码
+### Common Error Codes
 
-- `-32700`: 解析错误
-- `-32600`: 无效请求
-- `-32601`: 方法未找到
-- `-32602`: 无效参数
-- `-32603`: 内部错误
-- `401`: 未授权
-- `403`: 禁止访问
-- `404`: 未找到
-- `429`: 速率限制
-- `500`: 内部服务器错误
+- `-32700`: Parse error
+- `-32600`: Invalid Request
+- `-32601`: Method not found
+- `-32602`: Invalid params
+- `-32603`: Internal error
+- `401`: Unauthorized
+- `403`: Forbidden
+- `404`: Not found
+- `429`: Rate limited
+- `500`: Internal server error
 
-## 速率限制
+## Rate Limiting
 
-服务器实现速率限制以防止滥用：
+The server implements rate limiting to prevent abuse:
 
-- **每分钟请求数**: 1000 (可配置)
-- **突发限制**: 100 (可配置)
+- **Requests per minute**: 1000 (configurable)
+- **Burst limit**: 100 (configurable)
 
-## 配置选项
+## Configuration Options
 
-### 服务器配置
+### Server Configuration
 
-您可以使用以下环境变量配置服务器：
+You can configure the server with the following environment variables:
 
-- `MCP_SERVER_ADDR`: 服务器地址 (默认: `0.0.0.0:8080`)
-- `MCP_SERVER_MODE`: 通信模式 (sse, http, stdio) (默认: `sse`)
-- `MCP_SERVER_API_KEY`: 认证 API 密钥
-- `MCP_SERVER_BEARER_TOKEN`: JWT 认证令牌
-- `MCP_SERVER_RATE_LIMIT`: 每分钟请求数 (默认: `1000`)
-- `MCP_SERVER_BURST_LIMIT`: 突发限制 (默认: `100`)
+- `MCP_SERVER_ADDR`: Server address (default: `0.0.0.0:8080`)
+- `MCP_SERVER_MODE`: Communication mode (sse, http, stdio) (default: `sse`)
+- `MCP_SERVER_API_KEY`: API key for authentication
+- `MCP_SERVER_BEARER_TOKEN`: JWT token for authentication
+- `MCP_SERVER_RATE_LIMIT`: Requests per minute (default: `1000`)
+- `MCP_SERVER_BURST_LIMIT`: Burst limit (default: `100`)
 
-### 服务配置
+### Service Configuration
 
-每个集成服务都可以使用特定的环境变量进行配置：
+Each integrated service can be configured with specific environment variables:
 
-- **Kubernetes**: `KUBECONFIG` 或集群内配置
+- **Kubernetes**: `KUBECONFIG` or in-cluster configuration
 - **Prometheus**: `MCP_PROMETHEUS_URL`
 - **Grafana**: `MCP_GRAFANA_URL`, `MCP_GRAFANA_API_KEY`
 - **Elasticsearch**: `MCP_ELASTICSEARCH_URL`
 - **Alertmanager**: `MCP_ALERTMANAGER_URL`
 
-## 示例
+## Examples
 
-### 使用 cURL
+### Using with cURL
 
 ```bash
 curl -X POST http://localhost:8080/v1/mcp/call-tool \
@@ -263,7 +263,7 @@ curl -X POST http://localhost:8080/v1/mcp/call-tool \
   }'
 ```
 
-### 使用 Python
+### Using with Python
 
 ```python
 import requests
@@ -293,13 +293,13 @@ def call_tool(tool_name, arguments):
     
     return response.json()
 
-# 示例用法
+# Example usage
 result = call_tool("kubernetes-get-pods", {"namespace": "default"})
 print(result)
 ```
 
-## 下一步
+## Next Steps
 
-- [工具参考](/docs/tools/) 了解详细工具文档
-- [配置指南](/guides/configuration/) 了解设置说明
-- [安全最佳实践](/guides/security/) 了解 API 安全
+- [Tools Reference](/docs/tools/) for detailed tool documentation
+- [Configuration Guides](/guides/configuration/) for setup instructions
+- [Security Best Practices](/guides/security/) for securing your API

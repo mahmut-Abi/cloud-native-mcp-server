@@ -1,43 +1,43 @@
 ---
-title: "架构指南"
+title: "Architecture Guide"
 ---
 
-# 架构指南
+# Architecture Guide
 
-本文档描述 Cloud Native MCP Server 的系统架构和设计原则。
+This document describes the system architecture and design principles of Cloud Native MCP Server.
 
-## 目录
+## Table of Contents
 
-- [概述](#概述)
-- [系统架构](#系统架构)
-- [核心组件](#核心组件)
-- [服务集成](#服务集成)
-- [数据流](#数据流)
-- [设计原则](#设计原则)
-- [性能优化](#性能优化)
-- [扩展性](#扩展性)
-
----
-
-## 概述
-
-Cloud Native MCP Server 是一个高性能的 Model Context Protocol (MCP) 服务器，用于管理 Kubernetes 和云原生基础设施。它采用模块化设计，支持多种运行模式和协议。
-
-### 架构目标
-
-- **高性能**: 优化的缓存、连接池和资源管理
-- **可扩展性**: 模块化设计，易于添加新服务
-- **安全性**: 多层认证、输入清理和审计日志
-- **可观测性**: 内置指标、日志和追踪
-- **可靠性**: 健康检查、重试机制和优雅降级
+- [Overview](#overview)
+- [System Architecture](#system-architecture)
+- [Core Components](#core-components)
+- [Service Integration](#service-integration)
+- [Data Flow](#data-flow)
+- [Design Principles](#design-principles)
+- [Performance Optimization](#performance-optimization)
+- [Scalability](#scalability)
 
 ---
 
-## 系统架构
+## Overview
+
+Cloud Native MCP Server is a high-performance Model Context Protocol (MCP) server for managing Kubernetes and cloud-native infrastructure. It adopts a modular design with support for multiple runtime modes and protocols.
+
+### Architecture Goals
+
+- **High Performance**: Optimized caching, connection pooling, and resource management
+- **Scalability**: Modular design, easy to add new services
+- **Security**: Multi-layer authentication, input sanitization, and audit logging
+- **Observability**: Built-in metrics, logging, and tracing
+- **Reliability**: Health checks, retry mechanisms, and graceful degradation
+
+---
+
+## System Architecture
 
 ```
 ┌─────────────────────────────────────────────────────────────┐
-│                         客户端                               │
+│                         Client                               │
 │  (Claude Desktop, Browser, Custom MCP Clients)              │
 └────────────────────┬────────────────────────────────────────┘
                      │
@@ -46,21 +46,21 @@ Cloud Native MCP Server 是一个高性能的 Model Context Protocol (MCP) 服�
 ┌────────────────────▼────────────────────────────────────────┐
 │                    HTTP Server                               │
 │  ┌────────────────────────────────────────────────────────┐ │
-│  │  路由层 (SSE/HTTP/Streamable-HTTP)                     │ │
+│  │  Routing Layer (SSE/HTTP/Streamable-HTTP)              │ │
 │  └────────────────────────────────────────────────────────┘ │
 │  ┌────────────────────────────────────────────────────────┐ │
-│  │  中间件层                                               │ │
-│  │  - 认证 (API Key/Bearer/Basic)                         │ │
-│  │  - 审计日志                                             │ │
-│  │  - 速率限制                                             │ │
-│  │  - 安全中间件                                           │ │
-│  │  - 指标收集                                             │ │
+│  │  Middleware Layer                                       │ │
+│  │  - Authentication (API Key/Bearer/Basic)               │ │
+│  │  - Audit Logging                                        │ │
+│  │  - Rate Limiting                                        │ │
+│  │  - Security Middleware                                  │ │
+│  │  - Metrics Collection                                   │ │
 │  └────────────────────────────────────────────────────────┘ │
 └────────────────────┬────────────────────────────────────────┘
                      │
                      │
 ┌────────────────────▼────────────────────────────────────────┐
-│                  服务管理层                                 │
+│                  Service Management Layer                   │
 │  ┌──────────┐  ┌──────────┐  ┌──────────┐  ┌──────────┐  │
 │  │Kubernetes│  │   Helm   │  │ Grafana  │  │Prometheus│  │
 │  └──────────┘  └──────────┘  └──────────┘  └──────────┘  │
@@ -74,269 +74,269 @@ Cloud Native MCP Server 是一个高性能的 Model Context Protocol (MCP) 服�
                      │
                      │
 ┌────────────────────▼────────────────────────────────────────┐
-│                  基础设施层                                 │
+│                  Infrastructure Layer                       │
 │  ┌────────────────────────────────────────────────────────┐ │
-│  │  缓存层 (LRU/Segmented)                                │ │
+│  │  Cache Layer (LRU/Segmented)                           │ │
 │  └────────────────────────────────────────────────────────┘ │
 │  ┌────────────────────────────────────────────────────────┐ │
-│  │  密钥管理                                               │ │
+│  │  Secret Management                                      │ │
 │  └────────────────────────────────────────────────────────┘ │
 │  ┌────────────────────────────────────────────────────────┐ │
-│  │  日志系统                                               │ │
+│  │  Logging System                                        │ │
 │  └────────────────────────────────────────────────────────┘ │
 │  ┌────────────────────────────────────────────────────────┐ │
-│  │  指标系统                                               │ │
+│  │  Metrics System                                        │ │
 │  └────────────────────────────────────────────────────────┘ │
 └────────────────────┬────────────────────────────────────────┘
                      │
                      │
 ┌────────────────────▼────────────────────────────────────────┐
-│                  外部服务                                   │
+│                  External Services                          │
 │  Kubernetes Cluster, Grafana, Prometheus, ES, etc.        │
 └─────────────────────────────────────────────────────────────┘
 ```
 
 ---
 
-## 核心组件
+## Core Components
 
-### 1. HTTP 服务器
+### 1. HTTP Server
 
-**职责**: 处理传入的 HTTP/SSE 请求和连接
+**Responsibility**: Handle incoming HTTP/SSE requests and connections
 
-**特性**:
-- 支持多种运行模式 (SSE, HTTP, stdio, Streamable-HTTP)
-- 可配置的超时和连接限制
-- 优雅关闭
-- 健康检查端点
+**Features**:
+- Support for multiple runtime modes (SSE, HTTP, stdio, Streamable-HTTP)
+- Configurable timeouts and connection limits
+- Graceful shutdown
+- Health check endpoints
 
-**关键文件**:
+**Key Files**:
 - `cmd/server/server.go`
 - `internal/middleware/`
 
-### 2. 路由层
+### 2. Routing Layer
 
-**职责**: 将请求路由到正确的服务和工具
+**Responsibility**: Route requests to the correct services and tools
 
-**特性**:
-- 动态路由注册
-- 路径参数解析
-- 查询参数验证
-- 错误处理
+**Features**:
+- Dynamic routing registration
+- Path parameter parsing
+- Query parameter validation
+- Error handling
 
-**关键文件**:
+**Key Files**:
 - `internal/services/registry.go`
 
-### 3. 中间件层
+### 3. Middleware Layer
 
-**职责**: 在请求处理之前和之后执行通用逻辑
+**Responsibility**: Execute common logic before and after request processing
 
-**中间件**:
-- **认证**: API Key, Bearer Token, Basic Auth
-- **审计日志**: 记录所有操作
-- **速率限制**: 防止滥用
-- **安全**: 输入清理和验证
-- **指标**: 收集性能指标
+**Middlewares**:
+- **Authentication**: API Key, Bearer Token, Basic Auth
+- **Audit Logging**: Record all operations
+- **Rate Limiting**: Prevent abuse
+- **Security**: Input sanitization and validation
+- **Metrics**: Collect performance metrics
 
-**关键文件**:
+**Key Files**:
 - `internal/middleware/auth_middleware.go`
 - `internal/middleware/audit_middleware.go`
 - `internal/middleware/ratelimit.go`
 - `internal/middleware/security_middleware.go`
 - `internal/middleware/metrics_middleware.go`
 
-### 4. 服务管理器
+### 4. Service Manager
 
-**职责**: 管理所有注册的服务和工具
+**Responsibility**: Manage all registered services and tools
 
-**特性**:
-- 服务注册和发现
-- 工具调用路由
-- 服务生命周期管理
-- 健康检查协调
+**Features**:
+- Service registration and discovery
+- Tool call routing
+- Service lifecycle management
+- Health check coordination
 
-**关键文件**:
+**Key Files**:
 - `internal/services/manager/manager.go`
 
-### 5. 缓存层
+### 5. Cache Layer
 
-**职责**: 提供高性能缓存以减少外部服务调用
+**Responsibility**: Provide high-performance caching to reduce external service calls
 
-**特性**:
-- LRU 缓存
-- 分段缓存
-- TTL 支持
-- 缓存统计
+**Features**:
+- LRU cache
+- Segmented cache
+- TTL support
+- Cache statistics
 
-**关键文件**:
+**Key Files**:
 - `internal/services/cache/`
 
-### 6. 密钥管理器
+### 6. Secret Manager
 
-**职责**: 安全地存储和管理敏感凭据
+**Responsibility**: Securely store and manage sensitive credentials
 
-**特性**:
-- 内存存储
-- 密钥轮换
-- 密钥生成
-- 过期管理
+**Features**:
+- In-memory storage
+- Key rotation
+- Key generation
+- Expiration management
 
-**关键文件**:
+**Key Files**:
 - `internal/secrets/manager.go`
 
-### 7. 日志系统
+### 7. Logging System
 
-**职责**: 结构化日志记录
+**Responsibility**: Structured logging
 
-**特性**:
-- 多级别日志 (debug, info, warn, error)
-- JSON 和文本格式
-- 结构化字段
-- 上下文支持
+**Features**:
+- Multiple log levels (debug, info, warn, error)
+- JSON and text formats
+- Structured fields
+- Context support
 
-**关键文件**:
+**Key Files**:
 - `internal/logging/logging.go`
 
-### 8. 指标系统
+### 8. Metrics System
 
-**职责**: 收集和暴露性能指标
+**Responsibility**: Collect and expose performance metrics
 
-**特性**:
-- Prometheus 格式
-- 请求计数
-- 延迟统计
-- 缓存命中率
+**Features**:
+- Prometheus format
+- Request counts
+- Latency statistics
+- Cache hit rates
 
-**关键文件**:
+**Key Files**:
 - `internal/observability/metrics/`
 
 ---
 
-## 服务集成
+## Service Integration
 
-### 服务接口
+### Service Interface
 
-所有服务都实现统一的接口：
+All services implement a unified interface:
 
 ```go
 type Service interface {
-    // 服务名称
+    // Service name
     Name() string
 
-    // 初始化服务
+    // Initialize service
     Initialize(config interface{}) error
 
-    // 获取工具列表
+    // Get tool list
     GetTools() []mcp.Tool
 
-    // 调用工具
+    // Call tool
     CallTool(ctx context.Context, name string, arguments map[string]interface{}) (interface{}, error)
 
-    // 健康检查
+    // Health check
     HealthCheck() error
 
-    // 关闭服务
+    // Shutdown service
     Shutdown() error
 }
 ```
 
-### 服务注册
+### Service Registration
 
-服务在启动时自动注册：
+Services are automatically registered at startup:
 
 ```go
 registry := services.NewRegistry()
 
-// 注册服务
+// Register services
 registry.Register(kubernetes.NewService())
 registry.Register(grafana.NewService())
 registry.Register(prometheus.NewService())
-// ... 其他服务
+// ... other services
 ```
 
-### 工具调用流程
+### Tool Call Flow
 
-1. 客户端发送工具调用请求
-2. 路由层解析请求，确定服务和工具
-3. 中间件层执行认证、审计等
-4. 服务管理器路由到正确的服务
-5. 缓存层检查缓存
-6. 服务执行工具调用
-7. 结果返回给客户端
-8. 审计日志记录操作
+1. Client sends tool call request
+2. Routing layer parses request, determines service and tool
+3. Middleware layer executes authentication, audit, etc.
+4. Service manager routes to correct service
+5. Cache layer checks cache
+6. Service executes tool call
+7. Result returned to client
+8. Audit log records operation
 
 ---
 
-## 数据流
+## Data Flow
 
-### 请求流
-
-```
-客户端
-  │
-  ├─> HTTP/SSE 连接
-  │
-  ├─> 认证中间件
-  │   ├─> 验证 API Key/Token
-  │   └─> 检查权限
-  │
-  ├─> 速率限制中间件
-  │   └─> 检查配额
-  │
-  ├─> 路由层
-  │   └─> 解析服务和方法
-  │
-  ├─> 审计中间件
-  │   └─> 记录请求开始
-  │
-  ├─> 服务管理器
-  │   └─> 路由到服务
-  │
-  ├─> 缓存层
-  │   ├─> 检查缓存
-  │   └─> 返回缓存或继续
-  │
-  ├─> 服务
-  │   ├─> 调用外部 API
-  │   ├─> 处理响应
-  │   └─> 更新缓存
-  │
-  ├─> 审计中间件
-  │   └─> 记录请求完成
-  │
-  ├─> 指标中间件
-  │   └─> 记录指标
-  │
-  └─> 响应返回客户端
-```
-
-### 响应流
+### Request Flow
 
 ```
-服务
+Client
   │
-  ├─> 处理结果
+  ├─> HTTP/SSE Connection
   │
-  ├─> 数据转换
-  │   ├─> 格式化
-  │   └─> 压缩
+  ├─> Authentication Middleware
+  │   ├─> Validate API Key/Token
+  │   └─> Check permissions
   │
-  ├─> 缓存更新
-  │   └─> 存储到缓存
+  ├─> Rate Limiting Middleware
+  │   └─> Check quota
   │
-  ├─> 指标更新
-  │   └─> 记录性能指标
+  ├─> Routing Layer
+  │   └─> Parse service and method
   │
-  └─> 返回响应
+  ├─> Audit Middleware
+  │   └─> Record request start
+  │
+  ├─> Service Manager
+  │   └─> Route to service
+  │
+  ├─> Cache Layer
+  │   ├─> Check cache
+  │   └─> Return cache or continue
+  │
+  ├─> Service
+  │   ├─> Call external API
+  │   ├─> Process response
+  │   └─> Update cache
+  │
+  ├─> Audit Middleware
+  │   └─> Record request completion
+  │
+  ├─> Metrics Middleware
+  │   └─> Record metrics
+  │
+  └─> Response returned to client
+```
+
+### Response Flow
+
+```
+Service
+  │
+  ├─> Process result
+  │
+  ├─> Data Transformation
+  │   ├─> Formatting
+  │   └─> Compression
+  │
+  ├─> Cache Update
+  │   └─> Store in cache
+  │
+  ├─> Metrics Update
+  │   └─> Record performance metrics
+  │
+  └─> Return response
 ```
 
 ---
 
-## 设计原则
+## Design Principles
 
-### 1. 模块化
+### 1. Modularity
 
-每个服务都是独立的模块，可以单独启用/禁用：
+Each service is an independent module that can be enabled/disabled individually:
 
 ```yaml
 enableDisable:
@@ -344,30 +344,30 @@ enableDisable:
   disabledServices: ["elasticsearch", "kibana"]
 ```
 
-### 2. 可扩展性
+### 2. Scalability
 
-易于添加新服务：
+Easy to add new services:
 
-1. 创建服务目录
-2. 实现服务接口
-3. 注册工具
-4. 配置选项
+1. Create service directory
+2. Implement service interface
+3. Register tools
+4. Configure options
 
-### 3. 配置驱动
+### 3. Configuration Driven
 
-所有行为都通过配置控制：
+All behavior is controlled through configuration:
 
-- 服务启用/禁用
-- 认证方式
-- 缓存策略
-- 日志级别
+- Service enable/disable
+- Authentication method
+- Cache strategy
+- Log level
 
-### 4. 故障隔离
+### 4. Fault Isolation
 
-服务故障不会影响其他服务：
+Service failures don't affect other services:
 
 ```go
-// 服务健康检查
+// Service health check
 func (s *Service) HealthCheck() error {
     if err := s.client.Ping(); err != nil {
         return fmt.Errorf("service unavailable: %w", err)
@@ -376,9 +376,9 @@ func (s *Service) HealthCheck() error {
 }
 ```
 
-### 5. 优雅降级
+### 5. Graceful Degradation
 
-服务不可用时返回友好错误：
+Return friendly errors when services are unavailable:
 
 ```json
 {
@@ -395,33 +395,33 @@ func (s *Service) HealthCheck() error {
 
 ---
 
-## 性能优化
+## Performance Optimization
 
-### 1. 缓存策略
+### 1. Caching Strategy
 
-#### LRU 缓存
+#### LRU Cache
 
 ```go
 cache := cache.NewLRUCache(1000, 300*time.Second)
 ```
 
-**适用场景**:
-- 读取密集型操作
-- 数据变化不频繁
-- 高延迟操作
+**Use Cases**:
+- Read-intensive operations
+- Infrequently changing data
+- High latency operations
 
-#### 分段缓存
+#### Segmented Cache
 
 ```go
 cache := cache.NewSegmentedCache(1000, 10, 300*time.Second)
 ```
 
-**适用场景**:
-- 不同类型的数据
-- 需要不同的 TTL
-- 并发访问
+**Use Cases**:
+- Different types of data
+- Need different TTLs
+- Concurrent access
 
-### 2. 连接池
+### 2. Connection Pooling
 
 ```yaml
 kubernetes:
@@ -430,7 +430,7 @@ kubernetes:
   timeoutSec: 30
 ```
 
-### 3. 响应压缩
+### 3. Response Compression
 
 ```yaml
 performance:
@@ -438,32 +438,32 @@ performance:
   compression_level: 6
 ```
 
-### 4. JSON 编码池
+### 4. JSON Encoding Pool
 
 ```go
 pool := json.NewEncoderPool(100, 8192)
 ```
 
-### 5. 批处理
+### 5. Batching
 
 ```go
-// 批量获取资源
+// Batch fetch resources
 pods, err := k8sClient.CoreV1().Pods(namespace).List(ctx, options)
 ```
 
 ---
 
-## 扩展性
+## Scalability
 
-### 添加新服务
+### Adding a New Service
 
-1. **创建服务目录**
+1. **Create Service Directory**
 
 ```bash
 mkdir internal/services/myservice
 ```
 
-2. **实现服务接口**
+2. **Implement Service Interface**
 
 ```go
 package myservice
@@ -529,14 +529,14 @@ func (s *Service) Shutdown() error {
 }
 ```
 
-3. **注册服务**
+3. **Register Service**
 
 ```go
 // cmd/server/server.go
 registry.Register(myservice.NewService())
 ```
 
-4. **添加配置**
+4. **Add Configuration**
 
 ```yaml
 # config.example.yaml
@@ -546,10 +546,10 @@ myservice:
   apiKey: "${MYSERVICE_API_KEY}"
 ```
 
-### 自定义工具
+### Custom Tools
 
 ```go
-// 添加自定义工具
+// Add custom tools
 func (s *Service) GetTools() []mcp.Tool {
     return []mcp.Tool{
         {
@@ -570,34 +570,34 @@ func (s *Service) GetTools() []mcp.Tool {
 
 ---
 
-## 可观测性
+## Observability
 
-### 指标
+### Metrics
 
-#### 请求指标
+#### Request Metrics
 
 ```go
 mcp_requests_total{method="kubernetes_list_pods",status="success"} 1234
 mcp_request_duration_seconds{method="kubernetes_list_pods"} 0.123
 ```
 
-#### 缓存指标
+#### Cache Metrics
 
 ```go
 mcp_cache_hits_total{service="kubernetes"} 456
 mcp_cache_misses_total{service="kubernetes"} 78
 ```
 
-#### 连接指标
+#### Connection Metrics
 
 ```go
 mcp_active_connections 10
 mcp_total_connections 100
 ```
 
-### 日志
+### Logging
 
-#### 结构化日志
+#### Structured Logging
 
 ```json
 {
@@ -610,9 +610,9 @@ mcp_total_connections 100
 }
 ```
 
-### 追踪
+### Tracing
 
-#### OpenTelemetry 集成
+#### OpenTelemetry Integration
 
 ```go
 import (
@@ -625,15 +625,15 @@ tracer := otel.Tracer("cloud-native-mcp-server")
 ctx, span := tracer.Start(ctx, "list_pods")
 defer span.End()
 
-// 执行操作
+// Execute operation
 pods, err := k8sClient.ListPods(ctx, namespace)
 ```
 
 ---
 
-## 部署架构
+## Deployment Architecture
 
-### 单节点部署
+### Single Node Deployment
 
 ```
 ┌─────────────────┐
@@ -647,7 +647,7 @@ pods, err := k8sClient.ListPods(ctx, namespace)
          └─> ...
 ```
 
-### 多节点部署
+### Multi-Node Deployment
 
 ```
 ┌──────────────┐  ┌──────────────┐  ┌──────────────┐
@@ -667,7 +667,7 @@ pods, err := k8sClient.ListPods(ctx, namespace)
               └──────────────────┘
 ```
 
-### 微服务部署
+### Microservices Deployment
 
 ```
 ┌──────────────┐  ┌──────────────┐  ┌──────────────┐
@@ -684,9 +684,9 @@ pods, err := k8sClient.ListPods(ctx, namespace)
 
 ---
 
-## 相关文档
+## Related Documentation
 
-- [完整工具参考](/docs/tools/)
-- [配置指南](/docs/configuration/)
-- [部署指南](/docs/deployment/)
-- [性能指南](/docs/performance/)
+- [Complete Tools Reference](/docs/tools/)
+- [Configuration Guide](/docs/configuration/)
+- [Deployment Guide](/docs/deployment/)
+- [Performance Guide](/docs/performance/)
