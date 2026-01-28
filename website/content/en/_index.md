@@ -5,10 +5,10 @@ weight: 1
 
 <div class="hero">
   <h1>Cloud Native MCP Server</h1>
-  <p>高性能量子 MCP 服务器，专为 Kubernetes 和云原生基础设施管理而设计</p>
+  <p>High-performance quantum MCP server designed for Kubernetes and cloud-native infrastructure management</p>
   <div class="hero-buttons">
-    <a href="https://github.com/mahmut-Abi/cloud-native-mcp-server" class="cta-button">GitHub 仓库</a>
-    <a href="#quick-start" class="cta-button" style="background: transparent; border: 2px solid white; margin-left: 1rem;">快速开始</a>
+    <a href="https://github.com/mahmut-Abi/cloud-native-mcp-server" class="cta-button">GitHub Repository</a>
+    <a href="#quick-start" class="cta-button" style="background: transparent; border: 2px solid white; margin-left: 1rem;">Quick Start</a>
   </div>
 </div>
 
@@ -16,15 +16,24 @@ weight: 1
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 [![Go Version](https://img.shields.io/badge/Go-1.25+-blue.svg)](https://golang.org)
 
-## 核心特性
+## Core Features
 
 {{< columns >}}
-### 🚀 高性能
-LRU 缓存、JSON 编码池、智能响应限制，确保最优性能表现
-<--->
+### 🚀 High Performance
+LRU caching, JSON encoding pools, intelligent response limiting ensure optimal performance
+--->
 
-### 🔒 安全可靠
-API Key、Bearer Token、Basic Auth 多重认证，保障系统安全
+### 🔒 Secure & Reliable
+API Key, Bearer Token, Basic Auth multiple authentication methods ensure system security
+{{< /columns >}}
+
+{{< columns >}}
+### 📊 Comprehensive Monitoring
+Native integration with Prometheus, Grafana, Jaeger and other cloud-native monitoring tools
+--->
+
+### 🤖 AI Optimized
+Designed specifically for LLM with summary tools and pagination to prevent context overflow
 {{< /columns >}}
 
 {{< columns >}}
@@ -150,26 +159,26 @@ make build
 
 ---
 
-## 文档导航
+## Documentation Navigation
 
-- [快速开始](/zh/getting-started/) - 快速部署和使用
-- [核心概念](/zh/concepts/architecture/overview/) - 了解系统架构和设计原理
-- [服务概览](/zh/services/) - 探索 10 个集成服务
-- [配置指南](/zh/guides/configuration/server/) - 详细配置选项和示例
-- [部署指南](/zh/guides/deployment/kubernetes/) - 部署策略和最佳实践
-- [安全指南](/zh/guides/security/best-practices/) - 认证、密钥管理和安全最佳实践
-- [性能指南](/zh/guides/performance/optimization/) - 性能特性与优化
-- [API 文档](/zh/docs/api/) - 完整的 API 参考
-- [工具参考](/zh/docs/tools/) - 所有 220+ 工具的详细文档
-- [网站地图](/zh/sitemap/) - 完整的网站导航
+- [Getting Started](/en/getting-started/) - Quick deployment and usage
+- [Core Concepts](/en/concepts/architecture/overview/) - Understand system architecture and design principles
+- [Service Overview](/en/services/) - Explore 10 integrated services
+- [Configuration Guide](/en/guides/configuration/server/) - Detailed configuration options and examples
+- [Deployment Guide](/en/guides/deployment/kubernetes/) - Deployment strategies and best practices
+- [Security Guide](/en/guides/security/best-practices/) - Authentication, key management and security best practices
+- [Performance Guide](/en/guides/performance/optimization/) - Performance features and optimization
+- [API Documentation](/en/docs/api/) - Complete API reference
+- [Tools Reference](/en/docs/tools/) - Detailed documentation for all 220+ tools
+- [Site Map](/en/sitemap/) - Complete site navigation
 
 ---
 
-## 更多资源
+## Additional Resources
 
-- [博客](/zh/posts/) - 最新新闻、更新和教程
-- [案例展示](/zh/showcase/) - 真实世界用例和用户评价
-- [GitHub 仓库](https://github.com/mahmut-Abi/cloud-native-mcp-server) - 源代码和问题跟踪
+- [Blog](/en/posts/) - Latest news, updates and tutorials
+- [Case Studies](/en/showcase/) - Real-world use cases and user testimonials
+- [GitHub Repository](https://github.com/mahmut-Abi/cloud-native-mcp-server) - Source code and issue tracking
 
 ---
 
