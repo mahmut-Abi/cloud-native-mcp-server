@@ -1,5 +1,15 @@
 // Search enhancement functionality
 document.addEventListener('DOMContentLoaded', function() {
+  
+  // HTML escaping function to prevent XSS
+  function escapeHTML(text) {
+    if (!text) return '';
+    
+    // Use DOM API for safe HTML escaping
+    const div = document.createElement('div');
+    div.textContent = text;
+    return div.innerHTML;
+  }
   // Check if search input exists
   const searchInput = document.querySelector('#book-search-input input');
   if (!searchInput) return;
@@ -10,33 +20,60 @@ document.addEventListener('DOMContentLoaded', function() {
   // Create filter controls
   const filterControls = document.createElement('div');
   filterControls.className = 'search-filters';
-  filterControls.innerHTML = `
-    <div class="search-filter-group">
-      <label>
-        <input type="checkbox" id="filter-docs" checked>
-        <span>Documentation</span>
-      </label>
-      <label>
-        <input type="checkbox" id="filter-blog" checked>
-        <span>Blog</span>
-      </label>
-      <label>
-        <input type="checkbox" id="filter-services" checked>
-        <span>Services</span>
-      </label>
-      <label>
-        <input type="checkbox" id="filter-guides" checked>
-        <span>Guides</span>
-      </label>
-    </div>
-    <div class="search-sort">
-      <select id="search-sort">
-        <option value="relevance">Relevance</option>
-        <option value="date">Date</option>
-        <option value="title">Title</option>
-      </select>
-    </div>
-  `;
+  
+  // Create filter group
+  const filterGroup = document.createElement('div');
+  filterGroup.className = 'search-filter-group';
+  
+  // Define filters configuration
+  const filters = [
+    {id: 'filter-docs', label: 'Documentation', checked: true},
+    {id: 'filter-blog', label: 'Blog', checked: true},
+    {id: 'filter-services', label: 'Services', checked: true},
+    {id: 'filter-guides', label: 'Guides', checked: true}
+  ];
+  
+  // Create filter elements programmatically
+  filters.forEach(filter => {
+    const label = document.createElement('label');
+    const input = document.createElement('input');
+    input.type = 'checkbox';
+    input.id = filter.id;
+    input.checked = filter.checked;
+    
+    const span = document.createElement('span');
+    span.textContent = filter.label;
+    
+    label.appendChild(input);
+    label.appendChild(span);
+    filterGroup.appendChild(label);
+  });
+  
+  // Create sort dropdown
+  const sortDropdown = document.createElement('div');
+  sortDropdown.className = 'search-sort';
+  
+  const select = document.createElement('select');
+  select.id = 'search-sort';
+  
+  const options = [
+    {value: 'relevance', text: 'Relevance'},
+    {value: 'date', text: 'Date'},
+    {value: 'title', text: 'Title'}
+  ];
+  
+  options.forEach(option => {
+    const optionElement = document.createElement('option');
+    optionElement.value = option.value;
+    optionElement.textContent = option.text;
+    select.appendChild(optionElement);
+  });
+  
+  sortDropdown.appendChild(select);
+  
+  // Assemble the controls
+  filterControls.appendChild(filterGroup);
+  filterControls.appendChild(sortDropdown);
   
   searchContainer.appendChild(filterControls);
 
@@ -106,7 +143,7 @@ document.addEventListener('DOMContentLoaded', function() {
         .filter(cb => cb.checked)
         .map(cb => cb.id.replace('filter-', ''));
       
-      resultsCount.innerHTML = `Showing results for "<strong>${term}</strong>" in ${selectedFilters.join(', ')} (${Math.floor(Math.random() * 10) + 1} found)`;
+      resultsCount.innerHTML = `Showing results for "<strong>${escapeHTML(term)}</strong>" in ${escapeHTML(selectedFilters.join(', '))} (${Math.floor(Math.random() * 10) + 1} found)`;
     }, 500);
   }
 });
