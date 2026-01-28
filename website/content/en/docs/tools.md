@@ -1,12 +1,62 @@
 ---
 title: "Tools Reference"
+weight: 5
 ---
 
 # Tools Reference
 
 Cloud Native MCP Server provides 220+ powerful tools covering Kubernetes management, application deployment, monitoring, log analysis, and more.
 
+{{< columns >}}
+### 🚀 Kubernetes (28 tools)
+Core container orchestration and resource management
+<--->
+
+### 📦 Helm (31 tools)
+Application package management and deployment
+{{< /columns >}}
+
+{{< columns >}}
+### 📊 Grafana (36 tools)
+Visualization, monitoring dashboards, and alerting
+<--->
+
+### 📈 Prometheus (20 tools)
+Metrics collection, querying, and monitoring
+{{< /columns >}}
+
+{{< columns >}}
+### 🔍 Kibana (52 tools)
+Log analysis, visualization, and data exploration
+<--->
+
+### ⚡ Elasticsearch (14 tools)
+Log storage, search, and data indexing
+{{< /columns >}}
+
+{{< columns >}}
+### ⚠️ Alertmanager (15 tools)
+Alert rules management and notifications
+<--->
+
+### 📍 Jaeger (8 tools)
+Distributed tracing and performance analysis
+{{< /columns >}}
+
+{{< columns >}}
+### 🌐 OpenTelemetry (9 tools)
+Metrics, traces, and logs collection and analysis
+<--->
+
+### 🔧 Utilities (6 tools)
+General-purpose utility tools
+{{< /columns >}}
+
+---
+
 ## Kubernetes Tools (28)
+
+The Kubernetes service provides comprehensive cluster management capabilities:
 
 ### Pod Management
 - `list_pods` - List pods
@@ -53,7 +103,11 @@ Cloud Native MCP Server provides 220+ powerful tools covering Kubernetes managem
 - `get_resource_usage` - Get resource usage
 - `get_cluster_info` - Get cluster information
 
+---
+
 ## Helm Tools (31)
+
+The Helm service enables package management and deployment:
 
 ### Chart Management
 - `list_repositories` - List Helm repositories
@@ -102,7 +156,11 @@ Cloud Native MCP Server provides 220+ powerful tools covering Kubernetes managem
 ### Debugging Tools
 - `debug_release` - Debug release
 
+---
+
 ## Grafana Tools (36)
+
+The Grafana service provides visualization and monitoring capabilities:
 
 ### Dashboard Management
 - `list_dashboards` - List dashboards
@@ -156,7 +214,11 @@ Cloud Native MCP Server provides 220+ powerful tools covering Kubernetes managem
 - `get_health` - Get health status
 - `get_version` - Get version information
 
+---
+
 ## Prometheus Tools (20)
+
+The Prometheus service enables metrics collection and querying:
 
 ### Query Execution
 - `query` - Execute instant query
@@ -195,7 +257,11 @@ Cloud Native MCP Server provides 220+ powerful tools covering Kubernetes managem
 ### Storage Operations
 - `block_info` - Get block information
 
+---
+
 ## Kibana Tools (52)
+
+The Kibana service provides log analysis and visualization:
 
 ### Index Management
 - `list_indices` - List indices
@@ -266,7 +332,11 @@ Cloud Native MCP Server provides 220+ powerful tools covering Kubernetes managem
 ### Short URLs
 - `create_short_url` - Create short URL
 
+---
+
 ## Elasticsearch Tools (14)
+
+The Elasticsearch service provides search and indexing capabilities:
 
 ### Index Management
 - `list_indices` - List indices
@@ -290,7 +360,11 @@ Cloud Native MCP Server provides 220+ powerful tools covering Kubernetes managem
 ### Alias Management
 - `get_aliases` - Get aliases
 
+---
+
 ## Alertmanager Tools (15)
+
+The Alertmanager service provides alert management:
 
 ### Alert Management
 - `list_alerts` - List alerts
@@ -317,7 +391,11 @@ Cloud Native MCP Server provides 220+ powerful tools covering Kubernetes managem
 ### Health Check
 - `get_health` - Get health status
 
+---
+
 ## Jaeger Tools (8)
+
+The Jaeger service provides distributed tracing:
 
 ### Trace Queries
 - `get_trace` - Get trace
@@ -335,7 +413,11 @@ Cloud Native MCP Server provides 220+ powerful tools covering Kubernetes managem
 - `get_config` - Get configuration
 - `get_status` - Get status
 
+---
+
 ## OpenTelemetry Tools (9)
+
+The OpenTelemetry service provides comprehensive observability:
 
 ### Metrics Management
 - `get_metrics` - Get metrics
@@ -354,7 +436,11 @@ Cloud Native MCP Server provides 220+ powerful tools covering Kubernetes managem
 - `get_config` - Get configuration
 - `get_status` - Get status
 
+---
+
 ## Utilities Tools (6)
+
+General-purpose utility tools:
 
 ### General Tools
 - `base64_encode` - Base64 encode
@@ -363,6 +449,8 @@ Cloud Native MCP Server provides 220+ powerful tools covering Kubernetes managem
 - `json_stringify` - JSON stringify
 - `timestamp` - Get timestamp
 - `uuid` - Generate UUID
+
+---
 
 ## Tool Call Examples
 
@@ -431,6 +519,8 @@ Cloud Native MCP Server provides 220+ powerful tools covering Kubernetes managem
 }
 ```
 
+---
+
 ## Tool Parameter Description
 
 All tools support the following common parameters:
@@ -440,6 +530,8 @@ All tools support the following common parameters:
 - `verbose` - Verbose output mode
 
 For tool-specific parameters, please refer to the detailed documentation of each service.
+
+---
 
 ## Error Handling
 
@@ -466,3 +558,12 @@ Error response format:
   }
 }
 ```
+
+## Next Steps
+
+Now that you've explored all 220+ tools, you might want to:
+
+- [Configure authentication and security settings](/en/guides/security/)
+- [Learn about performance optimization](/en/guides/performance/)
+- [Review the complete getting started guide](/en/getting-started/)
+- [Explore service-specific configurations](/en/guides/configuration/)
