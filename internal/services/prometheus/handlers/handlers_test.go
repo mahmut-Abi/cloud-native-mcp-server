@@ -15,9 +15,9 @@ import (
 )
 
 type testResponse struct {
-	path        string
-	response    string
-	statusCode  int
+	path       string
+	response   string
+	statusCode int
 }
 
 func setupTestServer(t *testing.T, responses []testResponse) (*httptest.Server, *client.Client) {
