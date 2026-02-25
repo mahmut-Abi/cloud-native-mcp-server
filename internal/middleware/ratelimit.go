@@ -3,7 +3,9 @@ package middleware
 import (
 	"container/heap"
 	"context"
+	"net"
 	"net/http"
+	"strings"
 	"sync"
 	"time"
 
@@ -197,8 +199,24 @@ func RateLimitMiddlewareWithLimiter(limiter *RateLimiter) func(http.Handler) htt
 
 // getClientIP extracts client IP from request
 func getClientIP(r *http.Request) string {
-	if xff := r.Header.Get("X-Forwarded-For"); xff != "" {
-		return xff
+	// Use the first hop from X-Forwarded-For when present.
+	if xff := strings.TrimSpace(r.Header.Get("X-Forwarded-For")); xff != "" {
+		parts := strings.SplitN(xff, ",", 2)
+		if ip := strings.TrimSpace(parts[0]); ip != "" {
+			return ip
+		}
 	}
-	return r.RemoteAddr
+
+	// Fall back to X-Real-IP if available.
+	if realIP := strings.TrimSpace(r.Header.Get("X-Real-IP")); realIP != "" {
+		return realIP
+	}
+
+	// Parse RemoteAddr as host:port when possible.
+	if host, _, err := net.SplitHostPort(strings.TrimSpace(r.RemoteAddr)); err == nil && host != "" {
+		return host
+	}
+
+	// Last resort: return RemoteAddr as-is.
+	return strings.TrimSpace(r.RemoteAddr)
 }
