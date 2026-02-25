@@ -64,6 +64,10 @@ func (v *ConfigValidator) Validate(cfg *AppConfig) error {
 		return fmt.Errorf("auth config validation failed: %w", err)
 	}
 
+	if err := v.validateRateLimitConfig(cfg); err != nil {
+		return fmt.Errorf("ratelimit config validation failed: %w", err)
+	}
+
 	return nil
 }
 
@@ -402,6 +406,30 @@ func (v *ConfigValidator) validateAuthConfig(cfg *AppConfig) error {
 
 	if cfg.Auth.JWTAlgorithm != "" && !validJWTAlgorithms[cfg.Auth.JWTAlgorithm] {
 		return fmt.Errorf("invalid JWT algorithm: %s", cfg.Auth.JWTAlgorithm)
+	}
+
+	return nil
+}
+
+func (v *ConfigValidator) validateRateLimitConfig(cfg *AppConfig) error {
+	if cfg.RateLimit.RequestsPerSecond < 0 {
+		return fmt.Errorf("ratelimit requests_per_second must be non-negative")
+	}
+
+	if cfg.RateLimit.Burst < 0 {
+		return fmt.Errorf("ratelimit burst must be non-negative")
+	}
+
+	if !cfg.RateLimit.Enabled {
+		return nil
+	}
+
+	if cfg.RateLimit.RequestsPerSecond <= 0 {
+		return fmt.Errorf("ratelimit requests_per_second must be greater than 0 when enabled")
+	}
+
+	if cfg.RateLimit.Burst <= 0 {
+		return fmt.Errorf("ratelimit burst must be greater than 0 when enabled")
 	}
 
 	return nil

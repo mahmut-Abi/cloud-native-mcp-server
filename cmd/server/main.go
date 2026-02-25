@@ -15,20 +15,42 @@ func main() {
 
 	config := parseFlags()
 
-	// Load YAML/env config if provided (load once and save for later use)
+	// Load configuration once (file or environment/defaults).
 	var appConfig *appconfig.AppConfig
+	loadFromEnvAndDefaults := func() *appconfig.AppConfig {
+		ac, err := appconfig.Load("")
+		if err != nil {
+			logrus.WithError(err).Warn("Environment/default configuration validation failed; proceeding with CLI defaults")
+			return nil
+		}
+		return ac
+	}
+
 	if config.ConfigPath != "" {
 		logrus.Debugf("Loading configuration from: %s", config.ConfigPath)
 		if ac, err := appconfig.Load(config.ConfigPath); err != nil {
 			logrus.WithField("path", config.ConfigPath).WithError(err).Warn("Failed to load config file; proceeding with flags/env only")
 			logrus.Info("Tip: Run with --help to see all available configuration options")
+
+			// Best-effort fallback to environment/default configuration so operators can recover
+			// from file path issues without restarting the process differently.
+			if envConfig := loadFromEnvAndDefaults(); envConfig != nil {
+				applyAppConfig(config, envConfig)
+				appConfig = envConfig
+				logrus.Info("Loaded fallback configuration from environment/defaults")
+			}
 		} else {
 			applyAppConfig(config, ac)
 			appConfig = ac
 			logrus.Info("Configuration loaded successfully from file")
 		}
 	} else {
-		logrus.Debug("No config file specified, using flags and environment variables only")
+		logrus.Debug("No config file specified, loading configuration from environment/defaults")
+		if ac := loadFromEnvAndDefaults(); ac != nil {
+			applyAppConfig(config, ac)
+			appConfig = ac
+			logrus.Info("Configuration loaded successfully from environment/defaults")
+		}
 	}
 
 	// Set default mode if not specified

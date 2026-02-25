@@ -33,6 +33,9 @@ func (p *EnvParser) Parse(cfg *AppConfig) *AppConfig {
 	p.parseElasticsearchConfig(cfg, over)
 	p.parseAlertmanagerConfig(cfg, over)
 	p.parseJaegerConfig(cfg, over)
+	p.parseOpenTelemetryConfig(cfg, over)
+	p.parseServerOTELConfig(cfg, over)
+	p.parseRateLimitConfig(cfg, over)
 	p.parseAuditConfig(cfg, over)
 	p.parseAuthConfig(cfg, over)
 	p.parseEnableDisableConfig(cfg, over)
@@ -73,8 +76,17 @@ func (p *EnvParser) parseServerConfig(cfg *AppConfig, over func(string) (string,
 	if v, ok := over("MCP_SSE_PATH_HELM"); ok {
 		cfg.Server.SSEPaths.Helm = v
 	}
+	if v, ok := over("MCP_SSE_PATH_ELASTICSEARCH"); ok {
+		cfg.Server.SSEPaths.Elasticsearch = v
+	}
 	if v, ok := over("MCP_SSE_PATH_ALERTMANAGER"); ok {
 		cfg.Server.SSEPaths.Alertmanager = v
+	}
+	if v, ok := over("MCP_SSE_PATH_JAEGER"); ok {
+		cfg.Server.SSEPaths.Jaeger = v
+	}
+	if v, ok := over("MCP_SSE_PATH_OPENTELEMETRY"); ok {
+		cfg.Server.SSEPaths.OpenTelemetry = v
 	}
 	if v, ok := over("MCP_SSE_PATH_AGGREGATE"); ok {
 		cfg.Server.SSEPaths.Aggregate = v
@@ -99,8 +111,17 @@ func (p *EnvParser) parseServerConfig(cfg *AppConfig, over func(string) (string,
 	if v, ok := over("MCP_STREAMABLE_HTTP_PATH_HELM"); ok {
 		cfg.Server.StreamableHTTPPaths.Helm = v
 	}
+	if v, ok := over("MCP_STREAMABLE_HTTP_PATH_ELASTICSEARCH"); ok {
+		cfg.Server.StreamableHTTPPaths.Elasticsearch = v
+	}
 	if v, ok := over("MCP_STREAMABLE_HTTP_PATH_ALERTMANAGER"); ok {
 		cfg.Server.StreamableHTTPPaths.Alertmanager = v
+	}
+	if v, ok := over("MCP_STREAMABLE_HTTP_PATH_JAEGER"); ok {
+		cfg.Server.StreamableHTTPPaths.Jaeger = v
+	}
+	if v, ok := over("MCP_STREAMABLE_HTTP_PATH_OPENTELEMETRY"); ok {
+		cfg.Server.StreamableHTTPPaths.OpenTelemetry = v
 	}
 	if v, ok := over("MCP_STREAMABLE_HTTP_PATH_AGGREGATE"); ok {
 		cfg.Server.StreamableHTTPPaths.Aggregate = v
@@ -323,6 +344,121 @@ func (p *EnvParser) parseJaegerConfig(cfg *AppConfig, over func(string) (string,
 	}
 	if v, ok := over("MCP_JAEGER_TIMEOUT"); ok {
 		cfg.Jaeger.TimeoutSec = atoiDefault(v, cfg.Jaeger.TimeoutSec)
+	}
+}
+
+func (p *EnvParser) parseOpenTelemetryConfig(cfg *AppConfig, over func(string) (string, bool)) {
+	if v, ok := over("MCP_OPENTELEMETRY_ENABLED"); ok {
+		cfg.OpenTelemetry.Enabled = isTrue(v)
+	}
+	if v, ok := over("MCP_OPENTELEMETRY_ADDRESS"); ok {
+		cfg.OpenTelemetry.Address = v
+	}
+	if v, ok := over("MCP_OPENTELEMETRY_TIMEOUT"); ok {
+		cfg.OpenTelemetry.TimeoutSec = atoiDefault(v, cfg.OpenTelemetry.TimeoutSec)
+	}
+	if v, ok := over("MCP_OPENTELEMETRY_USERNAME"); ok {
+		cfg.OpenTelemetry.Username = v
+	}
+	if v, ok := over("MCP_OPENTELEMETRY_PASSWORD"); ok {
+		cfg.OpenTelemetry.Password = v
+	}
+	if v, ok := over("MCP_OPENTELEMETRY_BEARER_TOKEN"); ok {
+		cfg.OpenTelemetry.BearerToken = v
+	}
+	if v, ok := over("MCP_OPENTELEMETRY_TLS_SKIP_VERIFY"); ok {
+		cfg.OpenTelemetry.TLSSkipVerify = isTrue(v)
+	}
+	if v, ok := over("MCP_OPENTELEMETRY_TLS_CERT_FILE"); ok {
+		cfg.OpenTelemetry.TLSCertFile = v
+	}
+	if v, ok := over("MCP_OPENTELEMETRY_TLS_KEY_FILE"); ok {
+		cfg.OpenTelemetry.TLSKeyFile = v
+	}
+	if v, ok := over("MCP_OPENTELEMETRY_TLS_CA_FILE"); ok {
+		cfg.OpenTelemetry.TLSCAFile = v
+	}
+}
+
+func (p *EnvParser) parseServerOTELConfig(cfg *AppConfig, over func(string) (string, bool)) {
+	if v, ok := over("MCP_OTEL_ENABLED"); ok {
+		cfg.OTEL.Enabled = isTrue(v)
+	}
+	if v, ok := over("MCP_OTEL_SERVICE_NAME"); ok {
+		cfg.OTEL.ServiceName = v
+	}
+	if v, ok := over("MCP_OTEL_SERVICE_VERSION"); ok {
+		cfg.OTEL.ServiceVersion = v
+	}
+	if v, ok := over("MCP_OTEL_ENVIRONMENT"); ok {
+		cfg.OTEL.Environment = v
+	}
+	if v, ok := over("MCP_OTEL_ENDPOINT"); ok {
+		cfg.OTEL.Endpoint = v
+	}
+	if v, ok := over("MCP_OTEL_INSECURE"); ok {
+		cfg.OTEL.Insecure = isTrue(v)
+	}
+
+	if v, ok := over("MCP_OTEL_TRACING_ENABLED"); ok {
+		cfg.OTEL.Tracing.Enabled = isTrue(v)
+	}
+	if v, ok := over("MCP_OTEL_TRACING_SAMPLE_RATE"); ok {
+		if parsed, err := strconv.ParseFloat(v, 64); err == nil {
+			cfg.OTEL.Tracing.SampleRate = parsed
+		} else {
+			logrus.WithField("value", v).Warnf("Invalid float value for MCP_OTEL_TRACING_SAMPLE_RATE: %v", err)
+		}
+	}
+	if v, ok := over("MCP_OTEL_TRACING_EXPORT_TIMEOUT"); ok {
+		cfg.OTEL.Tracing.ExportTimeoutSec = atoiDefault(v, cfg.OTEL.Tracing.ExportTimeoutSec)
+	}
+	if v, ok := over("MCP_OTEL_TRACING_BATCH_TIMEOUT"); ok {
+		cfg.OTEL.Tracing.BatchTimeoutSec = atoiDefault(v, cfg.OTEL.Tracing.BatchTimeoutSec)
+	}
+	if v, ok := over("MCP_OTEL_TRACING_MAX_BATCH_SIZE"); ok {
+		cfg.OTEL.Tracing.MaxExportBatchSize = atoiDefault(v, cfg.OTEL.Tracing.MaxExportBatchSize)
+	}
+
+	if v, ok := over("MCP_OTEL_METRICS_ENABLED"); ok {
+		cfg.OTEL.Metrics.Enabled = isTrue(v)
+	}
+	if v, ok := over("MCP_OTEL_METRICS_EXPORT_INTERVAL"); ok {
+		cfg.OTEL.Metrics.ExportIntervalSec = atoiDefault(v, cfg.OTEL.Metrics.ExportIntervalSec)
+	}
+	if v, ok := over("MCP_OTEL_METRICS_EXPORT_TIMEOUT"); ok {
+		cfg.OTEL.Metrics.ExportTimeoutSec = atoiDefault(v, cfg.OTEL.Metrics.ExportTimeoutSec)
+	}
+	if v, ok := over("MCP_OTEL_METRICS_TEMPORALITY"); ok {
+		cfg.OTEL.Metrics.Temporality = v
+	}
+}
+
+func (p *EnvParser) parseRateLimitConfig(cfg *AppConfig, over func(string) (string, bool)) {
+	if v, ok := over("MCP_RATELIMIT_ENABLED"); ok {
+		cfg.RateLimit.Enabled = isTrue(v)
+	} else if v, ok := over("MCP_RATE_LIMIT_ENABLED"); ok {
+		cfg.RateLimit.Enabled = isTrue(v)
+	}
+
+	if v, ok := over("MCP_RATELIMIT_REQUESTS_PER_SECOND"); ok {
+		if parsed, err := strconv.ParseFloat(v, 64); err == nil {
+			cfg.RateLimit.RequestsPerSecond = parsed
+		} else {
+			logrus.WithField("value", v).Warnf("Invalid float value for MCP_RATELIMIT_REQUESTS_PER_SECOND: %v", err)
+		}
+	} else if v, ok := over("MCP_RATE_LIMIT_REQUESTS_PER_SECOND"); ok {
+		if parsed, err := strconv.ParseFloat(v, 64); err == nil {
+			cfg.RateLimit.RequestsPerSecond = parsed
+		} else {
+			logrus.WithField("value", v).Warnf("Invalid float value for MCP_RATE_LIMIT_REQUESTS_PER_SECOND: %v", err)
+		}
+	}
+
+	if v, ok := over("MCP_RATELIMIT_BURST"); ok {
+		cfg.RateLimit.Burst = atoiDefault(v, cfg.RateLimit.Burst)
+	} else if v, ok := over("MCP_RATE_LIMIT_BURST"); ok {
+		cfg.RateLimit.Burst = atoiDefault(v, cfg.RateLimit.Burst)
 	}
 }
 

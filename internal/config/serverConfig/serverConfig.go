@@ -39,6 +39,7 @@ type ServerConfig struct {
 	auditStorage   middleware.AuditStorage
 	allowedOrigins []string
 	corsMaxAge     int
+	rateLimiter    *middleware.RateLimiter
 }
 
 func (s *ServerConfig) InitHooks() *server.Hooks {
@@ -298,9 +299,9 @@ func (s *ServerConfig) InitSSEServers(mcpServer *server.MCPServer, addr string, 
 	)
 
 	// Create opentelemetry SSE server
-	opentelemetryPath := appConfig.Server.SSEPaths.OpenTelemetry
-	if opentelemetryPath == "" {
-		opentelemetryPath = "/api/opentelemetry/sse"
+	opentelemetryPath := "/api/opentelemetry/sse"
+	if appConfig != nil && appConfig.Server.SSEPaths.OpenTelemetry != "" {
+		opentelemetryPath = appConfig.Server.SSEPaths.OpenTelemetry
 	}
 	sseServers["opentelemetry"] = server.NewSSEServer(opentelemetryServer,
 		server.WithStaticBasePath(""),
@@ -462,9 +463,9 @@ func (s *ServerConfig) InitStreamableHTTPServers(mcpServer *server.MCPServer, ad
 	)
 
 	// Create opentelemetry StreamableHTTP server
-	opentelemetryPath := appConfig.Server.StreamableHTTPPaths.OpenTelemetry
-	if opentelemetryPath == "" {
-		opentelemetryPath = "/api/opentelemetry/streamable-http"
+	opentelemetryPath := "/api/opentelemetry/streamable-http"
+	if appConfig != nil && appConfig.Server.StreamableHTTPPaths.OpenTelemetry != "" {
+		opentelemetryPath = appConfig.Server.StreamableHTTPPaths.OpenTelemetry
 	}
 	streamableHTTPServers["opentelemetry"] = server.NewStreamableHTTPServer(opentelemetryServer,
 		server.WithEndpointPath(opentelemetryPath),
@@ -563,6 +564,25 @@ func (s *ServerConfig) createServiceMCPServer(serviceName string, baseMcpServer 
 					}
 				}
 			}
+		case "helm":
+			if helmService := s.serviceManager.GetHelmService(); helmService != nil && helmService.IsEnabled() {
+				tools := helmService.GetTools()
+				handlers := helmService.GetHandlers()
+				for _, tool := range tools {
+					if handler, exists := handlers[tool.Name]; exists {
+						serviceServer.AddTool(tool, handler)
+					}
+				}
+
+				// Add additional tools for Helm service
+				additionalTools := helmService.GetAdditionalTools()
+				additionalHandlers := helmService.GetAdditionalHandlers()
+				for _, tool := range additionalTools {
+					if handler, exists := additionalHandlers[tool.Name]; exists {
+						serviceServer.AddTool(tool, handler)
+					}
+				}
+			}
 		case "elasticsearch":
 			if elasticsearchService := s.serviceManager.GetElasticsearchService(); elasticsearchService != nil && elasticsearchService.IsEnabled() {
 				tools := elasticsearchService.GetTools()
@@ -587,6 +607,34 @@ func (s *ServerConfig) createServiceMCPServer(serviceName string, baseMcpServer 
 			if jaegerService := s.serviceManager.GetJaegerService(); jaegerService != nil && jaegerService.IsEnabled() {
 				tools := jaegerService.GetTools()
 				handlers := jaegerService.GetHandlers()
+				for _, tool := range tools {
+					if handler, exists := handlers[tool.Name]; exists {
+						serviceServer.AddTool(tool, handler)
+					}
+				}
+			}
+		case "opentelemetry":
+			if opentelemetryService := s.serviceManager.GetOpenTelemetryService(); opentelemetryService != nil && opentelemetryService.IsEnabled() {
+				tools := opentelemetryService.GetTools()
+				handlers := opentelemetryService.GetHandlers()
+				for _, tool := range tools {
+					if handler, exists := handlers[tool.Name]; exists {
+						serviceServer.AddTool(tool, handler)
+					}
+				}
+
+				resources := opentelemetryService.GetResources()
+				resourceHandlers := opentelemetryService.GetResourceHandlers()
+				for _, resource := range resources {
+					if handler, exists := resourceHandlers[resource.URI]; exists {
+						serviceServer.AddResource(resource, handler)
+					}
+				}
+			}
+		case "utilities":
+			if utilitiesService := s.serviceManager.GetUtilitiesService(); utilitiesService != nil && utilitiesService.IsEnabled() {
+				tools := utilitiesService.GetTools()
+				handlers := utilitiesService.GetHandlers()
 				for _, tool := range tools {
 					if handler, exists := handlers[tool.Name]; exists {
 						serviceServer.AddTool(tool, handler)
@@ -730,6 +778,25 @@ func (s *ServerConfig) createAggregateMCPServer(baseMcpServer *server.MCPServer,
 			for _, tool := range tools {
 				if handler, exists := handlers[tool.Name]; exists {
 					aggregateServer.AddTool(tool, handler)
+				}
+			}
+		}
+
+		// Add OpenTelemetry service capabilities
+		if opentelemetryService := s.serviceManager.GetOpenTelemetryService(); opentelemetryService != nil && opentelemetryService.IsEnabled() {
+			tools := opentelemetryService.GetTools()
+			handlers := opentelemetryService.GetHandlers()
+			for _, tool := range tools {
+				if handler, exists := handlers[tool.Name]; exists {
+					aggregateServer.AddTool(tool, handler)
+				}
+			}
+
+			resources := opentelemetryService.GetResources()
+			resourceHandlers := opentelemetryService.GetResourceHandlers()
+			for _, resource := range resources {
+				if handler, exists := resourceHandlers[resource.URI]; exists {
+					aggregateServer.AddResource(resource, handler)
 				}
 			}
 		}
@@ -921,8 +988,8 @@ func (s *ServerConfig) corsMiddleware(next http.Handler) http.Handler {
 		// Set CORS headers - using Header() only once for performance
 		headers := w.Header()
 
-		// Use configured CORS origins or default to all origins for development
-		allowedOrigins := []string{"*"}
+		// Use configured CORS origins. Default is deny-all unless explicitly configured.
+		allowedOrigins := []string{}
 		if s != nil && len(s.allowedOrigins) > 0 {
 			allowedOrigins = s.allowedOrigins
 		}
@@ -1073,7 +1140,7 @@ func (s *ServerConfig) ApplyServiceFilters(disabledServices, enabledServices, di
 	disabledToolList := parseList(disabledTools)
 
 	// If specific services are enabled, disable all others
-	allServices := []string{"kubernetes", "grafana", "prometheus", "kibana", "helm", "elasticsearch", "utilities"}
+	allServices := []string{"kubernetes", "grafana", "prometheus", "kibana", "helm", "elasticsearch", "alertmanager", "jaeger", "opentelemetry", "utilities"}
 	if len(enabledSvcs) > 0 {
 		for _, svc := range allServices {
 			if !enabledSvcs[svc] {
@@ -1170,6 +1237,23 @@ func (s *ServerConfig) SetupMultipleRoutes(mux *http.ServeMux, sseServers map[st
 		}
 	}
 
+	// Build a shared rate-limit wrapper once so all service routes use the same limiter.
+	rateLimitWrapper := func(next http.Handler) http.Handler { return next }
+	if appConfig != nil && appConfig.RateLimit.Enabled {
+		if s.rateLimiter == nil {
+			s.rateLimiter = middleware.NewRateLimiter(appConfig.RateLimit.RequestsPerSecond, appConfig.RateLimit.Burst)
+			logrus.WithFields(logrus.Fields{
+				"rps":   appConfig.RateLimit.RequestsPerSecond,
+				"burst": appConfig.RateLimit.Burst,
+			}).Info("Rate limiting enabled for HTTP endpoints")
+		}
+		rateLimitWrapper = middleware.RateLimitMiddlewareWithLimiter(s.rateLimiter)
+	} else if s.rateLimiter != nil {
+		// Cleanup stale limiter if routes are rebuilt with rate limiting disabled.
+		s.rateLimiter.Close()
+		s.rateLimiter = nil
+	}
+
 	mux.HandleFunc("/health", healthCheckHandler)
 
 	// Add OpenAPI documentation endpoints
@@ -1263,6 +1347,9 @@ func (s *ServerConfig) SetupMultipleRoutes(mux *http.ServeMux, sseServers map[st
 				messageHandler = middleware.AuthMiddleware(authConfig)(messageHandler)
 			}
 
+			// Apply shared rate limiting before outer logging/CORS/security wrappers.
+			messageHandler = rateLimitWrapper(messageHandler)
+
 			// Apply CORS and logging middleware
 			messageHandler = s.corsMiddleware(loggingMiddleware(messageHandler))
 
@@ -1297,6 +1384,9 @@ func (s *ServerConfig) SetupMultipleRoutes(mux *http.ServeMux, sseServers map[st
 					}
 					sseHandler = middleware.AuthMiddleware(authConfig)(sseHandler)
 				}
+
+				// Apply shared rate limiting before outer logging/CORS/security wrappers.
+				sseHandler = rateLimitWrapper(sseHandler)
 
 				// Apply CORS and logging middleware
 				sseHandler = s.corsMiddleware(loggingMiddleware(sseHandler))
@@ -1403,6 +1493,9 @@ func (s *ServerConfig) SetupMultipleRoutes(mux *http.ServeMux, sseServers map[st
 				}
 				httpHandler = middleware.AuthMiddleware(authConfig)(httpHandler)
 			}
+
+			// Apply shared rate limiting before outer logging/CORS/security wrappers.
+			httpHandler = rateLimitWrapper(httpHandler)
 
 			// Apply CORS and logging middleware
 			httpHandler = s.corsMiddleware(loggingMiddleware(httpHandler))
@@ -1512,6 +1605,12 @@ func (s *ServerConfig) auditStatsHandler() http.HandlerFunc {
 func (s *ServerConfig) Shutdown() error {
 	logrus.Info("Shutting down server configuration...")
 	var errs []error
+
+	// Close rate limiter background cleanup goroutine
+	if s.rateLimiter != nil {
+		s.rateLimiter.Close()
+		s.rateLimiter = nil
+	}
 
 	// Close audit storage
 	if s.auditStorage != nil {

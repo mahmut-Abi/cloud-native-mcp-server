@@ -36,8 +36,8 @@ func TestCORSAndLoggingMiddleware_PassThrough(t *testing.T) {
 	if w.Code != http.StatusTeapot {
 		t.Fatalf("expected 418 from base handler, got %d", w.Code)
 	}
-	if w.Header().Get("Access-Control-Allow-Origin") != "*" {
-		t.Fatalf("expected CORS headers")
+	if got := w.Header().Get("Access-Control-Allow-Origin"); got != "" {
+		t.Fatalf("expected no CORS allow-origin header by default, got %q", got)
 	}
 }
 
@@ -317,6 +317,44 @@ func TestCreateServiceMCPServer(t *testing.T) {
 	serviceServer := sc.createServiceMCPServer("kubernetes", mcpServer)
 
 	assert.NotNil(t, serviceServer)
+}
+
+func TestSetupMultipleRoutes_RateLimitAppliedToSSEMessageEndpoint(t *testing.T) {
+	sc := &ServerConfig{}
+	mcpServer := server.NewMCPServer("test", "1.0.0")
+
+	sseServers := map[string]*server.SSEServer{
+		"kubernetes": server.NewSSEServer(mcpServer,
+			server.WithStaticBasePath(""),
+			server.WithSSEEndpoint("/api/kubernetes/sse"),
+			server.WithMessageEndpoint("/api/kubernetes/sse/message"),
+		),
+	}
+
+	appConfig := &config.AppConfig{}
+	appConfig.RateLimit.Enabled = true
+	appConfig.RateLimit.RequestsPerSecond = 0.0001
+	appConfig.RateLimit.Burst = 1
+
+	mux := http.NewServeMux()
+	sc.SetupMultipleRoutes(mux, sseServers, nil, "sse", appConfig, mcpServer)
+
+	req1 := httptest.NewRequest(http.MethodPost, "/api/kubernetes/sse/message", nil)
+	req1.RemoteAddr = "127.0.0.1:12345"
+	w1 := httptest.NewRecorder()
+	mux.ServeHTTP(w1, req1)
+
+	req2 := httptest.NewRequest(http.MethodPost, "/api/kubernetes/sse/message", nil)
+	req2.RemoteAddr = "127.0.0.1:12345"
+	w2 := httptest.NewRecorder()
+	mux.ServeHTTP(w2, req2)
+
+	assert.NotEqual(t, http.StatusTooManyRequests, w1.Code, "first request should pass limiter")
+	assert.Equal(t, http.StatusTooManyRequests, w2.Code, "second immediate request should be rate limited")
+
+	assert.NotNil(t, sc.rateLimiter)
+	assert.NoError(t, sc.Shutdown())
+	assert.Nil(t, sc.rateLimiter)
 }
 
 // Test createAggregateMCPServer
