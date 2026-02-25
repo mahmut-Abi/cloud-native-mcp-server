@@ -53,7 +53,7 @@ func TestLoggingMiddlewareWithError(t *testing.T) {
 }
 
 // TestCORSMiddlewareAllowsRequests tests CORS headers are set
-func TestCORSMiddlewareAllowsRequests(t *testing.T) {
+func TestCORSMiddlewareDefaultDenyAllOrigins(t *testing.T) {
 	handler := http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		w.WriteHeader(http.StatusOK)
 	})
@@ -66,8 +66,8 @@ func TestCORSMiddlewareAllowsRequests(t *testing.T) {
 
 	wrapped.ServeHTTP(rec, req)
 
-	if rec.Header().Get("Access-Control-Allow-Origin") != "*" {
-		t.Error("CORS Allow-Origin header not set")
+	if rec.Header().Get("Access-Control-Allow-Origin") != "" {
+		t.Error("CORS Allow-Origin header should not be set by default")
 	}
 	if rec.Header().Get("Access-Control-Allow-Methods") == "" {
 		t.Error("CORS Allow-Methods header not set")

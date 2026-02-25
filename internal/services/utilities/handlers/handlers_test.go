@@ -2,6 +2,8 @@ package handlers
 
 import (
 	"context"
+	"net/http"
+	"net/http/httptest"
 	"testing"
 
 	mcp "github.com/mark3labs/mcp-go/mcp"
@@ -183,11 +185,16 @@ func TestHandleSleep(t *testing.T) {
 
 func TestHandleWebFetch(t *testing.T) {
 	ctx := context.Background()
+	testServer := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		w.Header().Set("Content-Type", "text/plain")
+		_, _ = w.Write([]byte("ok"))
+	}))
+	defer testServer.Close()
 
 	request := mcp.CallToolRequest{
 		Params: mcp.CallToolParams{
 			Arguments: map[string]interface{}{
-				"url": "https://example.com",
+				"url": testServer.URL,
 			},
 		},
 	}

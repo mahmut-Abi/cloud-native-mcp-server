@@ -32,5 +32,10 @@ defaultContentLanguage = 'en'
   [languages.zh.params]
     BookToC = true
 
-[markup.goldmark.renderer]
-  unsafe = true
+[markup]
+  [markup.goldmark]
+    [markup.goldmark.renderer]
+      unsafe = true
+  [markup.highlight]
+    style = "github"
+    lineNos = true

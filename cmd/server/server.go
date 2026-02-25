@@ -41,7 +41,7 @@ func startHTTPServer(config *CLIConfig, appConfig *appconfig.AppConfig, mcpServe
 
 	// Only initialize servers based on mode
 	switch config.Mode {
-	case "sse":
+	case "sse", "http":
 		sseServers = initSSEServers(mcpServer, config.Addr, appConfig)
 	case "streamable-http":
 		streamableHTTPServers = initStreamableHTTPServers(mcpServer, config.Addr, appConfig)

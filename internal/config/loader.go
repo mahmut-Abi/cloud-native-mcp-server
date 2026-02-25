@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"os"
 
+	"github.com/mahmut-Abi/cloud-native-mcp-server/internal/constants"
 	"gopkg.in/yaml.v3"
 )
 
@@ -69,6 +70,14 @@ func (l *ConfigLoader) setDefaults(cfg *AppConfig) {
 	// Logging defaults
 	if cfg.Logging.Level == "" {
 		cfg.Logging.Level = "info"
+	}
+
+	// Rate limit defaults
+	if cfg.RateLimit.RequestsPerSecond == 0 {
+		cfg.RateLimit.RequestsPerSecond = constants.DefaultRateLimitRPS
+	}
+	if cfg.RateLimit.Burst == 0 {
+		cfg.RateLimit.Burst = constants.DefaultRateLimitBurst
 	}
 
 	// Kubernetes defaults

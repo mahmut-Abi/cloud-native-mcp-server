@@ -1,0 +1,25 @@
+<!DOCTYPE html>
+<html lang="{{ .Site.Language.Lang }}" dir="{{ .Site.Language.LanguageDirection | default "ltr" }}">
+<head>
+  {{ partial "docs/html-head" . }}
+  <title>{{ .Page.Title }} - {{ .Site.Title }}</title>
+</head>
+<body dir="{{ .Site.Language.LanguageDirection | default "ltr" }}" class="{{ .Kind }}">
+  <input type="checkbox" class="hidden toggle" id="menu-control" />
+  <input type="checkbox" class="hidden toggle" id="toc-control" />
+  <main class="container flex">
+    <aside class="book-menu">
+      {{ partial "docs/menu" . }}
+    </aside>
+    <div class="book-page">
+      {{ partial "docs/header" . }}
+      {{ block "main" . }}{{ end }}
+      {{ partial "docs/footer" . }}
+      <label for="menu-control" class="hidden book-menu-overlay"></label>
+    </div>
+    <aside class="book-toc">
+      {{ partial "docs/toc" . }}
+    </aside>
+  </main>
+</body>
+</html>

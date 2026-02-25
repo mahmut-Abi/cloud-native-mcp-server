@@ -68,11 +68,6 @@ func (m *Manager) Initialize(appConfig *config.AppConfig) error {
 		}
 	}
 
-	// Apply service filters from configuration
-	if appConfig != nil {
-		m.ApplyServiceFilters(appConfig.EnableDisable.DisabledServices, appConfig.EnableDisable.EnabledServices)
-	}
-
 	// Create services
 	m.kubernetesService = kubernetes.NewService()
 	m.grafanaService = grafana.NewService()
@@ -85,17 +80,43 @@ func (m *Manager) Initialize(appConfig *config.AppConfig) error {
 	m.opentelemetryService = opentelemetry.NewService()
 	m.utilitiesService = utilities.NewService()
 
-	// Register services
-	m.registry.Register(m.kubernetesService)
-	m.registry.Register(m.grafanaService)
-	m.registry.Register(m.prometheusService)
-	m.registry.Register(m.kibanaService)
-	m.registry.Register(m.helmService)
-	m.registry.Register(m.alertmanagerService)
-	m.registry.Register(m.elasticsearchService)
-	m.registry.Register(m.jaegerService)
-	m.registry.Register(m.opentelemetryService)
-	m.registry.Register(m.utilitiesService)
+	// Apply service filters from configuration after service creation
+	// so filtered services are excluded from registration/initialization.
+	if appConfig != nil {
+		m.ApplyServiceFilters(appConfig.EnableDisable.DisabledServices, appConfig.EnableDisable.EnabledServices)
+	}
+
+	// Register non-filtered services
+	if m.kubernetesService != nil {
+		m.registry.Register(m.kubernetesService)
+	}
+	if m.grafanaService != nil {
+		m.registry.Register(m.grafanaService)
+	}
+	if m.prometheusService != nil {
+		m.registry.Register(m.prometheusService)
+	}
+	if m.kibanaService != nil {
+		m.registry.Register(m.kibanaService)
+	}
+	if m.helmService != nil {
+		m.registry.Register(m.helmService)
+	}
+	if m.alertmanagerService != nil {
+		m.registry.Register(m.alertmanagerService)
+	}
+	if m.elasticsearchService != nil {
+		m.registry.Register(m.elasticsearchService)
+	}
+	if m.jaegerService != nil {
+		m.registry.Register(m.jaegerService)
+	}
+	if m.opentelemetryService != nil {
+		m.registry.Register(m.opentelemetryService)
+	}
+	if m.utilitiesService != nil {
+		m.registry.Register(m.utilitiesService)
+	}
 
 	// Define empty config as default
 	var cfg interface{} = appConfig
@@ -103,35 +124,107 @@ func (m *Manager) Initialize(appConfig *config.AppConfig) error {
 		cfg = &config.AppConfig{}
 	}
 
-	// Initialize critical Kubernetes service (must be initialized first)
-	if err := m.kubernetesService.Initialize(cfg); err != nil {
-		logger.WithError(err).Error("Critical: Kubernetes service initialization failed")
+	disabledErr := fmt.Errorf("service disabled by configuration")
+	setServiceStatus := func(name string, status bool, err error) {
 		m.statusMutex.Lock()
-		m.serviceStatus["kubernetes"] = false
-		m.serviceErrors["kubernetes"] = err
+		m.serviceStatus[name] = status
+		if err != nil {
+			m.serviceErrors[name] = err
+		}
 		m.statusMutex.Unlock()
-		return fmt.Errorf("failed to initialize kubernetes service: %w", err)
 	}
-	logger.Debug("Kubernetes service initialized successfully")
-	m.statusMutex.Lock()
-	m.serviceStatus["kubernetes"] = true
-	m.statusMutex.Unlock()
+
+	// Mark filtered services as disabled in status report.
+	for _, svc := range []struct {
+		name   string
+		active bool
+	}{
+		{"kubernetes", m.kubernetesService != nil},
+		{"grafana", m.grafanaService != nil},
+		{"prometheus", m.prometheusService != nil},
+		{"kibana", m.kibanaService != nil},
+		{"helm", m.helmService != nil},
+		{"alertmanager", m.alertmanagerService != nil},
+		{"elasticsearch", m.elasticsearchService != nil},
+		{"jaeger", m.jaegerService != nil},
+		{"opentelemetry", m.opentelemetryService != nil},
+		{"utilities", m.utilitiesService != nil},
+	} {
+		if !svc.active {
+			setServiceStatus(svc.name, false, disabledErr)
+		}
+	}
+
+	// Initialize critical Kubernetes service first when enabled.
+	if m.kubernetesService != nil {
+		if err := m.kubernetesService.Initialize(cfg); err != nil {
+			logger.WithError(err).Error("Critical: Kubernetes service initialization failed")
+			setServiceStatus("kubernetes", false, err)
+			return fmt.Errorf("failed to initialize kubernetes service: %w", err)
+		}
+		logger.Debug("Kubernetes service initialized successfully")
+		setServiceStatus("kubernetes", true, nil)
+	}
 
 	// Initialize optional services in parallel for faster startup
 	var wg sync.WaitGroup
-	optionalServices := []struct {
+	optionalServices := make([]struct {
 		name     string
 		initFunc func() error
-	}{
-		{"grafana", func() error { return m.grafanaService.Initialize(cfg) }},
-		{"prometheus", func() error { return m.prometheusService.Initialize(cfg) }},
-		{"kibana", func() error { return m.kibanaService.Initialize(cfg) }},
-		{"elasticsearch", func() error { return m.elasticsearchService.Initialize(cfg) }},
-		{"helm", func() error { return m.helmService.Initialize(cfg) }},
-		{"alertmanager", func() error { return m.alertmanagerService.Initialize(cfg) }},
-		{"jaeger", func() error { return m.jaegerService.Initialize(cfg) }},
-		{"opentelemetry", func() error { return m.opentelemetryService.Initialize(cfg) }},
-		{"utilities", func() error { return m.utilitiesService.Initialize(cfg) }},
+	}, 0, 9)
+	if m.grafanaService != nil {
+		optionalServices = append(optionalServices, struct {
+			name     string
+			initFunc func() error
+		}{"grafana", func() error { return m.grafanaService.Initialize(cfg) }})
+	}
+	if m.prometheusService != nil {
+		optionalServices = append(optionalServices, struct {
+			name     string
+			initFunc func() error
+		}{"prometheus", func() error { return m.prometheusService.Initialize(cfg) }})
+	}
+	if m.kibanaService != nil {
+		optionalServices = append(optionalServices, struct {
+			name     string
+			initFunc func() error
+		}{"kibana", func() error { return m.kibanaService.Initialize(cfg) }})
+	}
+	if m.elasticsearchService != nil {
+		optionalServices = append(optionalServices, struct {
+			name     string
+			initFunc func() error
+		}{"elasticsearch", func() error { return m.elasticsearchService.Initialize(cfg) }})
+	}
+	if m.helmService != nil {
+		optionalServices = append(optionalServices, struct {
+			name     string
+			initFunc func() error
+		}{"helm", func() error { return m.helmService.Initialize(cfg) }})
+	}
+	if m.alertmanagerService != nil {
+		optionalServices = append(optionalServices, struct {
+			name     string
+			initFunc func() error
+		}{"alertmanager", func() error { return m.alertmanagerService.Initialize(cfg) }})
+	}
+	if m.jaegerService != nil {
+		optionalServices = append(optionalServices, struct {
+			name     string
+			initFunc func() error
+		}{"jaeger", func() error { return m.jaegerService.Initialize(cfg) }})
+	}
+	if m.opentelemetryService != nil {
+		optionalServices = append(optionalServices, struct {
+			name     string
+			initFunc func() error
+		}{"opentelemetry", func() error { return m.opentelemetryService.Initialize(cfg) }})
+	}
+	if m.utilitiesService != nil {
+		optionalServices = append(optionalServices, struct {
+			name     string
+			initFunc func() error
+		}{"utilities", func() error { return m.utilitiesService.Initialize(cfg) }})
 	}
 
 	for _, svc := range optionalServices {
@@ -171,68 +264,7 @@ func (m *Manager) initializeOptionalService(serviceName string, initFunc func() 
 
 // InitializeParallel initializes services with parallel execution for optional services
 func (m *Manager) InitializeParallel(appConfig *config.AppConfig) error {
-	// Create all services
-	m.kubernetesService = kubernetes.NewService()
-	m.grafanaService = grafana.NewService()
-	m.prometheusService = prometheus.NewService()
-	m.kibanaService = kibana.NewService()
-	m.helmService = helm.NewService()
-	m.alertmanagerService = alertmanager.NewService()
-	m.elasticsearchService = elasticsearch.NewService()
-	m.jaegerService = jaeger.NewService()
-	m.opentelemetryService = opentelemetry.NewService()
-	m.utilitiesService = utilities.NewService()
-
-	// Register services
-	m.registry.Register(m.kubernetesService)
-	m.registry.Register(m.grafanaService)
-	m.registry.Register(m.prometheusService)
-	m.registry.Register(m.kibanaService)
-	m.registry.Register(m.helmService)
-	m.registry.Register(m.alertmanagerService)
-	m.registry.Register(m.elasticsearchService)
-	m.registry.Register(m.jaegerService)
-	m.registry.Register(m.opentelemetryService)
-	m.registry.Register(m.utilitiesService)
-
-	// Block on critical Kubernetes service (must be initialized first)
-	if err := m.kubernetesService.Initialize(appConfig); err != nil {
-		logger.WithError(err).Error("Critical: Kubernetes service initialization failed")
-		return fmt.Errorf("failed to initialize kubernetes service: %w", err)
-	}
-	logger.Debug("Kubernetes service initialized successfully")
-
-	// Parallelize optional services for faster startup
-	var wg sync.WaitGroup
-	optionalServices := []struct {
-		name     string
-		initFunc func() error
-	}{
-		{"grafana", func() error { return m.grafanaService.Initialize(appConfig) }},
-		{"prometheus", func() error { return m.prometheusService.Initialize(appConfig) }},
-		{"kibana", func() error { return m.kibanaService.Initialize(appConfig) }},
-		{"elasticsearch", func() error { return m.elasticsearchService.Initialize(appConfig) }},
-		{"helm", func() error { return m.helmService.Initialize(appConfig) }},
-		{"alertmanager", func() error { return m.alertmanagerService.Initialize(appConfig) }},
-		{"jaeger", func() error { return m.jaegerService.Initialize(appConfig) }},
-		{"opentelemetry", func() error { return m.opentelemetryService.Initialize(appConfig) }},
-		{"utilities", func() error { return m.utilitiesService.Initialize(appConfig) }},
-	}
-
-	for _, svc := range optionalServices {
-		wg.Add(1)
-		go func(s struct {
-			name     string
-			initFunc func() error
-		}) {
-			defer wg.Done()
-			m.initializeOptionalService(s.name, s.initFunc)
-		}(svc)
-	}
-	wg.Wait()
-
-	logger.Info("Service manager initialization completed successfully")
-	return nil
+	return m.Initialize(appConfig)
 }
 
 // RegisterToolsAndHandlers registers all tools and handlers with the MCP server

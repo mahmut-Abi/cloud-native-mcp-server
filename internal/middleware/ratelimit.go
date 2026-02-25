@@ -169,6 +169,17 @@ func (rl *RateLimiter) Close() {
 // RateLimitMiddleware creates a middleware that enforces rate limiting
 func RateLimitMiddleware(rps float64, burst int) func(http.Handler) http.Handler {
 	limiter := NewRateLimiter(rps, burst)
+	return RateLimitMiddlewareWithLimiter(limiter)
+}
+
+// RateLimitMiddlewareWithLimiter creates a middleware that uses an existing limiter.
+// This is useful when multiple endpoints should share one limiter instance.
+func RateLimitMiddlewareWithLimiter(limiter *RateLimiter) func(http.Handler) http.Handler {
+	if limiter == nil {
+		return func(next http.Handler) http.Handler {
+			return next
+		}
+	}
 
 	return func(next http.Handler) http.Handler {
 		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {

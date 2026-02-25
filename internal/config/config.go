@@ -49,6 +49,12 @@ type AppConfig struct {
 		JSON  bool   `yaml:"json"`
 	} `yaml:"logging"`
 
+	RateLimit struct {
+		Enabled           bool    `yaml:"enabled"`           // Enable request rate limiting
+		RequestsPerSecond float64 `yaml:"requests_per_second"` // Allowed requests per second
+		Burst             int     `yaml:"burst"`             // Allowed burst requests
+	} `yaml:"ratelimit"`
+
 	Kubernetes struct {
 		Kubeconfig string  `yaml:"kubeconfig"`
 		TimeoutSec int     `yaml:"timeoutSec"`
@@ -275,6 +281,16 @@ type AppConfig struct {
 //	MCP_AUDIT_SAMPLING_ENABLED, MCP_AUDIT_SAMPLING_RATE,
 //	MCP_AUTH_ENABLED, MCP_AUTH_MODE, MCP_AUTH_API_KEY, MCP_AUTH_BEARER_TOKEN,
 //	MCP_AUTH_USERNAME, MCP_AUTH_PASSWORD, MCP_AUTH_JWT_SECRET, MCP_AUTH_JWT_ALGORITHM,
+//	MCP_OPENTELEMETRY_ENABLED, MCP_OPENTELEMETRY_ADDRESS, MCP_OPENTELEMETRY_TIMEOUT,
+//	MCP_OPENTELEMETRY_USERNAME, MCP_OPENTELEMETRY_PASSWORD, MCP_OPENTELEMETRY_BEARER_TOKEN,
+//	MCP_OPENTELEMETRY_TLS_SKIP_VERIFY, MCP_OPENTELEMETRY_TLS_CERT_FILE, MCP_OPENTELEMETRY_TLS_KEY_FILE,
+//	MCP_OPENTELEMETRY_TLS_CA_FILE,
+//	MCP_OTEL_ENABLED, MCP_OTEL_SERVICE_NAME, MCP_OTEL_SERVICE_VERSION, MCP_OTEL_ENVIRONMENT,
+//	MCP_OTEL_ENDPOINT, MCP_OTEL_INSECURE, MCP_OTEL_TRACING_ENABLED, MCP_OTEL_TRACING_SAMPLE_RATE,
+//	MCP_OTEL_TRACING_EXPORT_TIMEOUT, MCP_OTEL_TRACING_BATCH_TIMEOUT, MCP_OTEL_TRACING_MAX_BATCH_SIZE,
+//	MCP_OTEL_METRICS_ENABLED, MCP_OTEL_METRICS_EXPORT_INTERVAL, MCP_OTEL_METRICS_EXPORT_TIMEOUT,
+//	MCP_OTEL_METRICS_TEMPORALITY,
+//	MCP_RATELIMIT_ENABLED, MCP_RATELIMIT_REQUESTS_PER_SECOND, MCP_RATELIMIT_BURST,
 //	MCP_DISABLED_SERVICES, MCP_ENABLED_SERVICES, MCP_DISABLED_TOOLS
 func Load(path string) (*AppConfig, error) {
 	loader := NewConfigLoader()
@@ -358,6 +374,22 @@ func (c *AppConfig) Validate() error {
 	}
 	if c.Server.IdleTimeoutSec < 0 || c.Server.IdleTimeoutSec > 3600 {
 		return fmt.Errorf("server idle timeout must be between 0 and 3600 seconds")
+	}
+
+	// Validate rate limit configuration
+	if c.RateLimit.RequestsPerSecond < 0 {
+		return fmt.Errorf("ratelimit requests_per_second must be non-negative")
+	}
+	if c.RateLimit.Burst < 0 {
+		return fmt.Errorf("ratelimit burst must be non-negative")
+	}
+	if c.RateLimit.Enabled {
+		if c.RateLimit.RequestsPerSecond <= 0 {
+			return fmt.Errorf("ratelimit requests_per_second must be greater than 0 when enabled")
+		}
+		if c.RateLimit.Burst <= 0 {
+			return fmt.Errorf("ratelimit burst must be greater than 0 when enabled")
+		}
 	}
 
 	return nil
