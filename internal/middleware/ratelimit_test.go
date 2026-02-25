@@ -9,6 +9,7 @@ import (
 
 func TestRateLimiterAllow(t *testing.T) {
 	limiter := NewRateLimiter(10.0, 5)
+	defer limiter.Close()
 
 	clientID := "client-1"
 
@@ -27,6 +28,7 @@ func TestRateLimiterAllow(t *testing.T) {
 
 func TestRateLimiterTokenRefill(t *testing.T) {
 	limiter := NewRateLimiter(1.0, 1) // 1 request per second, burst 1
+	defer limiter.Close()
 
 	clientID := "client-2"
 
@@ -50,7 +52,9 @@ func TestRateLimitMiddleware(t *testing.T) {
 		_, _ = w.Write([]byte("OK"))
 	})
 
-	wrapped := RateLimitMiddleware(10.0, 2)(handler)
+	limiter := NewRateLimiter(10.0, 2)
+	defer limiter.Close()
+	wrapped := RateLimitMiddlewareWithLimiter(limiter)(handler)
 
 	// Make requests within burst
 	for i := 0; i < 2; i++ {
@@ -68,6 +72,7 @@ func TestRateLimitMiddleware(t *testing.T) {
 
 func TestRateLimiterMultipleClients(t *testing.T) {
 	limiter := NewRateLimiter(10.0, 2)
+	defer limiter.Close()
 
 	// Different clients should have independent limits
 	if !limiter.Allow("client-1") {
@@ -85,5 +90,61 @@ func TestRateLimiterMultipleClients(t *testing.T) {
 
 	if !limiter.Allow("client-2") {
 		t.Error("client-2 second request should be allowed (within burst)")
+	}
+}
+
+func TestRateLimitMiddleware_SameIPDifferentPorts(t *testing.T) {
+	limiter := NewRateLimiter(0.0001, 1)
+	defer limiter.Close()
+
+	handler := http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		w.WriteHeader(http.StatusOK)
+	})
+
+	wrapped := RateLimitMiddlewareWithLimiter(limiter)(handler)
+
+	req1 := httptest.NewRequest(http.MethodGet, "/test", nil)
+	req1.RemoteAddr = "192.0.2.10:11111"
+	rec1 := httptest.NewRecorder()
+	wrapped.ServeHTTP(rec1, req1)
+	if rec1.Code != http.StatusOK {
+		t.Fatalf("first request should succeed, got %d", rec1.Code)
+	}
+
+	req2 := httptest.NewRequest(http.MethodGet, "/test", nil)
+	req2.RemoteAddr = "192.0.2.10:22222"
+	rec2 := httptest.NewRecorder()
+	wrapped.ServeHTTP(rec2, req2)
+	if rec2.Code != http.StatusTooManyRequests {
+		t.Fatalf("second request from same IP with different port should be rate limited, got %d", rec2.Code)
+	}
+}
+
+func TestRateLimitMiddleware_UsesFirstXForwardedForHop(t *testing.T) {
+	limiter := NewRateLimiter(0.0001, 1)
+	defer limiter.Close()
+
+	handler := http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		w.WriteHeader(http.StatusOK)
+	})
+
+	wrapped := RateLimitMiddlewareWithLimiter(limiter)(handler)
+
+	req1 := httptest.NewRequest(http.MethodGet, "/test", nil)
+	req1.Header.Set("X-Forwarded-For", "203.0.113.5, 10.0.0.1")
+	req1.RemoteAddr = "10.0.0.2:12345"
+	rec1 := httptest.NewRecorder()
+	wrapped.ServeHTTP(rec1, req1)
+	if rec1.Code != http.StatusOK {
+		t.Fatalf("first request should succeed, got %d", rec1.Code)
+	}
+
+	req2 := httptest.NewRequest(http.MethodGet, "/test", nil)
+	req2.Header.Set("X-Forwarded-For", "203.0.113.5, 10.0.0.99")
+	req2.RemoteAddr = "10.0.0.3:22222"
+	rec2 := httptest.NewRecorder()
+	wrapped.ServeHTTP(rec2, req2)
+	if rec2.Code != http.StatusTooManyRequests {
+		t.Fatalf("second request with same first XFF hop should be rate limited, got %d", rec2.Code)
 	}
 }
