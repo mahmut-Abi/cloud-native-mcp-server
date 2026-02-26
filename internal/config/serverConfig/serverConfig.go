@@ -1340,6 +1340,20 @@ func (s *ServerConfig) SetupMultipleRoutes(mux *http.ServeMux, sseServers map[st
 		}
 	}
 
+	if mode == "sse" {
+		logrus.WithFields(logrus.Fields{
+			"aggregate_sse_endpoint":     aggregatePath,
+			"aggregate_message_endpoint": aggregatePath + "/message",
+			"auth_enabled":               appConfig != nil && appConfig.Auth.Enabled,
+			"ratelimit_enabled":          appConfig != nil && appConfig.RateLimit.Enabled,
+		}).Info("SSE transport routes are ready")
+	}
+	if mode == "http" {
+		logrus.WithFields(logrus.Fields{
+			"aggregate_message_endpoint": aggregatePath + "/message",
+		}).Warn("Legacy http mode registers message endpoints only; SSE clients should use mode=sse")
+	}
+
 	if mode == "sse" || mode == "http" {
 		// Setup routes for each service
 		for serviceName, sseServer := range sseServers {

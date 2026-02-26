@@ -117,6 +117,13 @@ test-race:
 	@echo "Running tests with race detector..."
 	go test -race -v ./...
 
+## sse-smoke: Validate SSE handshake and initialize flow against a running server
+.PHONY: sse-smoke
+sse-smoke:
+	@echo "Running SSE smoke test against $${BASE_URL:-http://127.0.0.1:8080}..."
+	@echo "Tip: set API_KEY=<key> for auth-enabled deployments."
+	@scripts/sse_smoke_test.sh $${BASE_URL:-http://127.0.0.1:8080}
+
 ## test-coverage: Run tests with coverage
 .PHONY: test-coverage
 test-coverage:

@@ -86,9 +86,22 @@ make build
 | `/api/opentelemetry/sse` | OpenTelemetry 服务 |
 | `/api/utilities/sse` | Utilities 服务 |
 
-### HTTP 模式
+### HTTP 模式（Legacy）
 
-将上述端点中的 `/sse` 替换为 `/http`。
+`http` 模式仅保留旧版 JSON-RPC 消息端点（`/api/<service>/sse/message`），不会暴露 SSE 流端点。  
+MCP SSE 客户端请使用 `--mode=sse`。
+
+### SSE 联调自检
+
+对运行中的服务做端到端校验（SSE 握手 + `initialize`）：
+
+```bash
+# 无鉴权
+make sse-smoke BASE_URL=http://127.0.0.1:8080
+
+# API Key 鉴权
+API_KEY=your-key make sse-smoke BASE_URL=http://127.0.0.1:8080
+```
 
 ## 文档
 
