@@ -11,6 +11,8 @@ import (
 	"time"
 
 	"github.com/mahmut-Abi/cloud-native-mcp-server/internal/config"
+	transport "github.com/mark3labs/mcp-go/client/transport"
+	"github.com/mark3labs/mcp-go/mcp"
 	server "github.com/mark3labs/mcp-go/server"
 	"github.com/stretchr/testify/assert"
 )
@@ -482,6 +484,52 @@ func TestSetupMultipleRoutes_SSECustomPathForElasticsearch(t *testing.T) {
 	defaultW := httptest.NewRecorder()
 	mux.ServeHTTP(defaultW, defaultReq)
 	assert.Equal(t, http.StatusNotFound, defaultW.Code)
+}
+
+func TestSetupMultipleRoutes_SSEAuthQueryForwardingAllowsInitialize(t *testing.T) {
+	sc := &ServerConfig{}
+	mcpServer := server.NewMCPServer("test", "1.0.0")
+	appConfig := &config.AppConfig{}
+	appConfig.Auth.Enabled = true
+	appConfig.Auth.Mode = "apikey"
+	appConfig.Auth.APIKey = "test-key"
+
+	sseServers := sc.InitSSEServers(mcpServer, "127.0.0.1:8080", appConfig)
+	mux := http.NewServeMux()
+	sc.SetupMultipleRoutes(mux, sseServers, nil, "sse", appConfig, mcpServer)
+
+	ts := httptest.NewServer(mux)
+	defer ts.Close()
+
+	client, err := transport.NewSSE(ts.URL + "/api/aggregate/sse?api_key=test-key")
+	assert.NoError(t, err)
+
+	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+	defer cancel()
+
+	err = client.Start(ctx)
+	assert.NoError(t, err)
+	defer client.Close()
+
+	req := transport.JSONRPCRequest{
+		JSONRPC: "2.0",
+		ID:      mcp.NewRequestId(int64(1)),
+		Method:  "initialize",
+		Params: map[string]any{
+			"protocolVersion": "2024-11-05",
+			"clientInfo": map[string]any{
+				"name":    "test-client",
+				"version": "1.0.0",
+			},
+		},
+	}
+
+	resp, err := client.SendRequest(ctx, req)
+	assert.NoError(t, err)
+	assert.NotNil(t, resp)
+	if resp != nil {
+		assert.Nil(t, resp.Error)
+	}
 }
 
 type streamingResponseRecorder struct {
