@@ -47,6 +47,10 @@ func startHTTPServer(config *CLIConfig, appConfig *appconfig.AppConfig, mcpServe
 		streamableHTTPServers = initStreamableHTTPServers(mcpServer, config.Addr, appConfig)
 	}
 
+	if config.Mode == "http" {
+		logrus.Warn("Mode 'http' is legacy and does not expose SSE stream endpoints; use --mode=sse for MCP SSE clients")
+	}
+
 	mux := http.NewServeMux()
 	setupMultipleRoutes(mux, sseServers, streamableHTTPServers, config.Mode, appConfig, mcpServer)
 

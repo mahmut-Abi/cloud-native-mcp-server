@@ -97,9 +97,22 @@ make build
 | `/api/opentelemetry/sse` | OpenTelemetry service |
 | `/api/utilities/sse` | Utilities service |
 
-### HTTP Mode
+### HTTP Mode (Legacy)
 
-Replace `/sse` with `/http` in the endpoints above.
+`http` mode keeps legacy JSON-RPC message endpoints (`/api/<service>/sse/message`) but does not expose SSE stream endpoints.  
+For MCP SSE clients, use `--mode=sse`.
+
+### SSE Smoke Test
+
+Validate SSE handshake and `initialize` end-to-end against a running server:
+
+```bash
+# without auth
+make sse-smoke BASE_URL=http://127.0.0.1:8080
+
+# with API key auth
+API_KEY=your-key make sse-smoke BASE_URL=http://127.0.0.1:8080
+```
 
 ---
 
