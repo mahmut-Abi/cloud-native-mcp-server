@@ -1,9 +1,14 @@
 package serverConfig
 
 import (
+	"bytes"
+	"context"
 	"net/http"
 	"net/http/httptest"
+	"strings"
+	"sync"
 	"testing"
+	"time"
 
 	"github.com/mahmut-Abi/cloud-native-mcp-server/internal/config"
 	server "github.com/mark3labs/mcp-go/server"
@@ -397,5 +402,172 @@ func TestAllServiceNames(t *testing.T) {
 
 	for _, serviceName := range expectedServices {
 		assert.Contains(t, sseServers, serviceName, "Service %s should be in SSE servers", serviceName)
+	}
+}
+
+func TestSetupMultipleRoutes_SSEEmitsEndpointAndPreservesQuery(t *testing.T) {
+	sc := &ServerConfig{}
+	mcpServer := server.NewMCPServer("test", "1.0.0")
+	appConfig := &config.AppConfig{}
+
+	sseServers := sc.InitSSEServers(mcpServer, "127.0.0.1:8080", appConfig)
+
+	mux := http.NewServeMux()
+	sc.SetupMultipleRoutes(mux, sseServers, nil, "sse", appConfig, mcpServer)
+
+	ctx, cancel := context.WithCancel(context.Background())
+	defer cancel()
+
+	req := httptest.NewRequest(http.MethodGet, "/api/aggregate/sse?api_key=test-key", nil).WithContext(ctx)
+	req.Header.Set("Accept", "text/event-stream")
+
+	rec := newStreamingResponseRecorder()
+	done := make(chan struct{})
+	go func() {
+		mux.ServeHTTP(rec, req)
+		close(done)
+	}()
+
+	status, headers, body := waitForEndpointFrame(t, rec, 2*time.Second)
+	assert.Equal(t, http.StatusOK, status)
+	assert.Equal(t, "no", headers.Get("X-Accel-Buffering"))
+	assert.Empty(t, headers.Get("Cross-Origin-Embedder-Policy"), "security middleware should not wrap SSE route")
+	assert.Contains(t, body, "event: endpoint")
+	assert.Contains(t, body, "sessionId=")
+	assert.Contains(t, body, "api_key=test-key")
+
+	cancel()
+	select {
+	case <-done:
+	case <-time.After(2 * time.Second):
+		t.Fatal("SSE handler did not stop after context cancellation")
+	}
+}
+
+func TestSetupMultipleRoutes_SSECustomPathForElasticsearch(t *testing.T) {
+	sc := &ServerConfig{}
+	mcpServer := server.NewMCPServer("test", "1.0.0")
+	appConfig := &config.AppConfig{}
+	appConfig.Server.SSEPaths.Elasticsearch = "/custom/elasticsearch/sse"
+
+	sseServers := sc.InitSSEServers(mcpServer, "127.0.0.1:8080", appConfig)
+
+	mux := http.NewServeMux()
+	sc.SetupMultipleRoutes(mux, sseServers, nil, "sse", appConfig, mcpServer)
+
+	ctx, cancel := context.WithCancel(context.Background())
+	defer cancel()
+
+	customReq := httptest.NewRequest(http.MethodGet, "/custom/elasticsearch/sse", nil).WithContext(ctx)
+	customReq.Header.Set("Accept", "text/event-stream")
+	rec := newStreamingResponseRecorder()
+	done := make(chan struct{})
+	go func() {
+		mux.ServeHTTP(rec, customReq)
+		close(done)
+	}()
+
+	_, _, body := waitForEndpointFrame(t, rec, 2*time.Second)
+	assert.Contains(t, body, "event: endpoint")
+	assert.Contains(t, body, "/custom/elasticsearch/sse/message")
+
+	cancel()
+	select {
+	case <-done:
+	case <-time.After(2 * time.Second):
+		t.Fatal("custom elasticsearch SSE handler did not stop after context cancellation")
+	}
+
+	defaultReq := httptest.NewRequest(http.MethodGet, "/api/elasticsearch/sse", nil)
+	defaultW := httptest.NewRecorder()
+	mux.ServeHTTP(defaultW, defaultReq)
+	assert.Equal(t, http.StatusNotFound, defaultW.Code)
+}
+
+type streamingResponseRecorder struct {
+	header     http.Header
+	statusCode int
+	body       bytes.Buffer
+	flushed    chan struct{}
+	mu         sync.Mutex
+}
+
+func newStreamingResponseRecorder() *streamingResponseRecorder {
+	return &streamingResponseRecorder{
+		header:  make(http.Header),
+		flushed: make(chan struct{}, 1),
+	}
+}
+
+func (r *streamingResponseRecorder) Header() http.Header {
+	return r.header
+}
+
+func (r *streamingResponseRecorder) WriteHeader(statusCode int) {
+	r.mu.Lock()
+	defer r.mu.Unlock()
+	if r.statusCode == 0 {
+		r.statusCode = statusCode
+	}
+}
+
+func (r *streamingResponseRecorder) Write(p []byte) (int, error) {
+	r.mu.Lock()
+	if r.statusCode == 0 {
+		r.statusCode = http.StatusOK
+	}
+	n, err := r.body.Write(p)
+	r.mu.Unlock()
+
+	if n > 0 {
+		r.notifyFlush()
+	}
+
+	return n, err
+}
+
+func (r *streamingResponseRecorder) Flush() {
+	r.notifyFlush()
+}
+
+func (r *streamingResponseRecorder) snapshot() (int, http.Header, string) {
+	r.mu.Lock()
+	defer r.mu.Unlock()
+
+	status := r.statusCode
+	if status == 0 {
+		status = http.StatusOK
+	}
+
+	return status, r.header.Clone(), r.body.String()
+}
+
+func (r *streamingResponseRecorder) notifyFlush() {
+	select {
+	case r.flushed <- struct{}{}:
+	default:
+	}
+}
+
+func waitForEndpointFrame(t *testing.T, rec *streamingResponseRecorder, timeout time.Duration) (int, http.Header, string) {
+	t.Helper()
+
+	deadline := time.After(timeout)
+	ticker := time.NewTicker(10 * time.Millisecond)
+	defer ticker.Stop()
+
+	for {
+		select {
+		case <-deadline:
+			_, _, body := rec.snapshot()
+			t.Fatalf("timed out waiting for endpoint SSE frame, body=%q", body)
+		case <-rec.flushed:
+		case <-ticker.C:
+		}
+
+		status, headers, body := rec.snapshot()
+		if strings.Contains(body, "event: endpoint") {
+			return status, headers, body
+		}
 	}
 }

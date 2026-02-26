@@ -220,6 +220,7 @@ func (s *ServerConfig) InitSSEServers(mcpServer *server.MCPServer, addr string, 
 		server.WithMessageEndpoint(kubernetesPath+"/message"),
 		server.WithKeepAlive(true),
 		server.WithKeepAliveInterval(30*time.Second),
+		server.WithAppendQueryToMessageEndpoint(),
 		server.WithUseFullURLForMessageEndpoint(true),
 	)
 
@@ -229,6 +230,7 @@ func (s *ServerConfig) InitSSEServers(mcpServer *server.MCPServer, addr string, 
 		server.WithMessageEndpoint(grafanaPath+"/message"),
 		server.WithKeepAlive(true),
 		server.WithKeepAliveInterval(30*time.Second),
+		server.WithAppendQueryToMessageEndpoint(),
 		server.WithUseFullURLForMessageEndpoint(true),
 	)
 
@@ -238,6 +240,7 @@ func (s *ServerConfig) InitSSEServers(mcpServer *server.MCPServer, addr string, 
 		server.WithMessageEndpoint(prometheusPath+"/message"),
 		server.WithKeepAlive(true),
 		server.WithKeepAliveInterval(30*time.Second),
+		server.WithAppendQueryToMessageEndpoint(),
 		server.WithUseFullURLForMessageEndpoint(true),
 	)
 
@@ -247,6 +250,7 @@ func (s *ServerConfig) InitSSEServers(mcpServer *server.MCPServer, addr string, 
 		server.WithMessageEndpoint(kibanaPath+"/message"),
 		server.WithKeepAlive(true),
 		server.WithKeepAliveInterval(30*time.Second),
+		server.WithAppendQueryToMessageEndpoint(),
 		server.WithUseFullURLForMessageEndpoint(true),
 	)
 	sseServers["helm"] = server.NewSSEServer(helmServer,
@@ -255,6 +259,7 @@ func (s *ServerConfig) InitSSEServers(mcpServer *server.MCPServer, addr string, 
 		server.WithMessageEndpoint(helmPath+"/message"),
 		server.WithKeepAlive(true),
 		server.WithKeepAliveInterval(30*time.Second),
+		server.WithAppendQueryToMessageEndpoint(),
 		server.WithUseFullURLForMessageEndpoint(true),
 	)
 
@@ -265,6 +270,7 @@ func (s *ServerConfig) InitSSEServers(mcpServer *server.MCPServer, addr string, 
 		server.WithMessageEndpoint(aggregatePath+"/message"),
 		server.WithKeepAlive(true),
 		server.WithKeepAliveInterval(30*time.Second),
+		server.WithAppendQueryToMessageEndpoint(),
 		server.WithUseFullURLForMessageEndpoint(true),
 	)
 
@@ -275,6 +281,7 @@ func (s *ServerConfig) InitSSEServers(mcpServer *server.MCPServer, addr string, 
 		server.WithMessageEndpoint(elasticsearchPath+"/message"),
 		server.WithKeepAlive(true),
 		server.WithKeepAliveInterval(30*time.Second),
+		server.WithAppendQueryToMessageEndpoint(),
 		server.WithUseFullURLForMessageEndpoint(true),
 	)
 
@@ -285,6 +292,7 @@ func (s *ServerConfig) InitSSEServers(mcpServer *server.MCPServer, addr string, 
 		server.WithMessageEndpoint(alertmanagerPath+"/message"),
 		server.WithKeepAlive(true),
 		server.WithKeepAliveInterval(30*time.Second),
+		server.WithAppendQueryToMessageEndpoint(),
 		server.WithUseFullURLForMessageEndpoint(true),
 	)
 
@@ -295,6 +303,7 @@ func (s *ServerConfig) InitSSEServers(mcpServer *server.MCPServer, addr string, 
 		server.WithMessageEndpoint(jaegerPath+"/message"),
 		server.WithKeepAlive(true),
 		server.WithKeepAliveInterval(30*time.Second),
+		server.WithAppendQueryToMessageEndpoint(),
 		server.WithUseFullURLForMessageEndpoint(true),
 	)
 
@@ -309,6 +318,7 @@ func (s *ServerConfig) InitSSEServers(mcpServer *server.MCPServer, addr string, 
 		server.WithMessageEndpoint(opentelemetryPath+"/message"),
 		server.WithKeepAlive(true),
 		server.WithKeepAliveInterval(30*time.Second),
+		server.WithAppendQueryToMessageEndpoint(),
 		server.WithUseFullURLForMessageEndpoint(true),
 	)
 
@@ -320,6 +330,7 @@ func (s *ServerConfig) InitSSEServers(mcpServer *server.MCPServer, addr string, 
 		server.WithMessageEndpoint(utilitiesPath+"/message"),
 		server.WithKeepAlive(true),
 		server.WithKeepAliveInterval(30*time.Second),
+		server.WithAppendQueryToMessageEndpoint(),
 		server.WithUseFullURLForMessageEndpoint(true),
 	)
 
@@ -1044,6 +1055,18 @@ func (s *ServerConfig) corsMiddleware(next http.Handler) http.Handler {
 	})
 }
 
+// sseStreamingMiddleware sets SSE-friendly transport headers before proxy/middleware layers.
+// In particular, X-Accel-Buffering disables Nginx proxy buffering so the initial endpoint
+// event is flushed to MCP clients immediately.
+func (s *ServerConfig) sseStreamingMiddleware(next http.Handler) http.Handler {
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		headers := w.Header()
+		headers.Set("X-Accel-Buffering", "no")
+
+		next.ServeHTTP(w, r)
+	})
+}
+
 type responseWriter struct {
 	http.ResponseWriter
 	status int
@@ -1273,7 +1296,12 @@ func (s *ServerConfig) SetupMultipleRoutes(mux *http.ServeMux, sseServers map[st
 	prometheusPath := "/api/prometheus/sse"
 	kibanaPath := "/api/kibana/sse"
 	helmPath := "/api/helm/sse"
+	elasticsearchPath := "/api/elasticsearch/sse"
+	alertmanagerPath := "/api/alertmanager/sse"
+	jaegerPath := "/api/jaeger/sse"
+	opentelemetryPath := "/api/opentelemetry/sse"
 	aggregatePath := "/api/aggregate/sse"
+	utilitiesPath := "/api/utilities/sse"
 
 	// Override with config if provided
 	if appConfig != nil {
@@ -1292,8 +1320,23 @@ func (s *ServerConfig) SetupMultipleRoutes(mux *http.ServeMux, sseServers map[st
 		if appConfig.Server.SSEPaths.Helm != "" {
 			helmPath = appConfig.Server.SSEPaths.Helm
 		}
+		if appConfig.Server.SSEPaths.Elasticsearch != "" {
+			elasticsearchPath = appConfig.Server.SSEPaths.Elasticsearch
+		}
+		if appConfig.Server.SSEPaths.Alertmanager != "" {
+			alertmanagerPath = appConfig.Server.SSEPaths.Alertmanager
+		}
+		if appConfig.Server.SSEPaths.Jaeger != "" {
+			jaegerPath = appConfig.Server.SSEPaths.Jaeger
+		}
+		if appConfig.Server.SSEPaths.OpenTelemetry != "" {
+			opentelemetryPath = appConfig.Server.SSEPaths.OpenTelemetry
+		}
 		if appConfig.Server.SSEPaths.Aggregate != "" {
 			aggregatePath = appConfig.Server.SSEPaths.Aggregate
+		}
+		if appConfig.Server.SSEPaths.Utilities != "" {
+			utilitiesPath = appConfig.Server.SSEPaths.Utilities
 		}
 	}
 
@@ -1315,8 +1358,18 @@ func (s *ServerConfig) SetupMultipleRoutes(mux *http.ServeMux, sseServers map[st
 				sseEndpoint = kibanaPath
 			case "helm":
 				sseEndpoint = helmPath
+			case "elasticsearch":
+				sseEndpoint = elasticsearchPath
+			case "alertmanager":
+				sseEndpoint = alertmanagerPath
+			case "jaeger":
+				sseEndpoint = jaegerPath
+			case "opentelemetry":
+				sseEndpoint = opentelemetryPath
 			case "aggregate":
 				sseEndpoint = aggregatePath
+			case "utilities":
+				sseEndpoint = utilitiesPath
 			default:
 				sseEndpoint = "/api/" + serviceName + "/sse"
 			}
@@ -1390,10 +1443,7 @@ func (s *ServerConfig) SetupMultipleRoutes(mux *http.ServeMux, sseServers map[st
 
 				// Apply CORS and logging middleware
 				sseHandler = s.corsMiddleware(loggingMiddleware(sseHandler))
-
-				// Apply security middleware
-				securityConfig := middleware.DefaultSecurityConfig()
-				sseHandler = middleware.SecurityMiddleware(securityConfig)(sseHandler)
+				sseHandler = s.sseStreamingMiddleware(sseHandler)
 
 				mux.Handle(sseEndpoint, sseHandler)
 			}
