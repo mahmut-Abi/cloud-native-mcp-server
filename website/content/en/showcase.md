@@ -74,7 +74,7 @@ A financial services company integrated Cloud Native MCP Server with their AI sy
 Ready to implement Cloud Native MCP Server in your environment? Here's how different types of organizations can get started:
 
 ### For DevOps Teams
-1. Start with the [Getting Started](/en/getting-started/) guide
+1. Start with the [Getting Started](/getting-started/) guide
 2. Focus on Kubernetes and Helm integration first
 3. Gradually add monitoring tools as needed
 
@@ -105,7 +105,7 @@ We love to feature creative implementations of Cloud Native MCP Server in our co
 
 ## Next Steps
 
-- [Quick Start](/en/getting-started/) - Begin your journey with Cloud Native MCP Server
-- [Architecture Guide](/en/concepts/architecture/) - Understand the system design
-- [Configuration Guide](/en/guides/configuration/) - Set up for your specific needs
-- [API Documentation](/en/docs/api/) - Integrate with your existing tools
+- [Quick Start](/getting-started/) - Begin your journey with Cloud Native MCP Server
+- [Architecture Guide](/docs/architecture/) - Understand the system design
+- [Configuration Guide](/docs/configuration/) - Set up for your specific needs
+- [API Documentation](/docs/api/) - Integrate with your existing tools

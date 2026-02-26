@@ -376,3 +376,100 @@ func TestRateLimitInvalidConfigFromEnv(t *testing.T) {
 		t.Fatal("Expected error for invalid negative ratelimit requests_per_second")
 	}
 }
+
+func TestAuditExtendedConfigFromEnv(t *testing.T) {
+	t.Setenv("MCP_AUDIT_STORAGE", "file")
+	t.Setenv("MCP_AUDIT_FORMAT", "text")
+	t.Setenv("MCP_AUDIT_FILE_PATH", "/tmp/audit.log")
+	t.Setenv("MCP_AUDIT_FILE_MAX_SIZE", "256")
+	t.Setenv("MCP_AUDIT_FILE_MAX_BACKUPS", "7")
+	t.Setenv("MCP_AUDIT_FILE_MAX_AGE_DAYS", "45")
+	t.Setenv("MCP_AUDIT_FILE_COMPRESS", "true")
+	t.Setenv("MCP_AUDIT_FILE_MAX_LOGS", "12345")
+	t.Setenv("MCP_AUDIT_DB_TYPE", "sqlite")
+	t.Setenv("MCP_AUDIT_DB_CONNECTION_STRING", "file:test.db")
+	t.Setenv("MCP_AUDIT_DB_SQLITE_PATH", "/tmp/audit.db")
+	t.Setenv("MCP_AUDIT_DB_TABLE_NAME", "audit_entries")
+	t.Setenv("MCP_AUDIT_DB_MAX_RECORDS", "654321")
+	t.Setenv("MCP_AUDIT_DB_CLEANUP_INTERVAL", "12")
+
+	cfg, err := Load("")
+	if err != nil {
+		t.Fatalf("Load() error = %v", err)
+	}
+
+	if cfg.Audit.Storage != "file" {
+		t.Errorf("Expected audit storage 'file', got %q", cfg.Audit.Storage)
+	}
+	if cfg.Audit.Format != "text" {
+		t.Errorf("Expected audit format 'text', got %q", cfg.Audit.Format)
+	}
+	if cfg.Audit.File.Path != "/tmp/audit.log" {
+		t.Errorf("Expected audit file path override, got %q", cfg.Audit.File.Path)
+	}
+	if cfg.Audit.File.MaxSizeMB != 256 {
+		t.Errorf("Expected audit file max size 256, got %d", cfg.Audit.File.MaxSizeMB)
+	}
+	if cfg.Audit.File.MaxBackups != 7 {
+		t.Errorf("Expected audit file max backups 7, got %d", cfg.Audit.File.MaxBackups)
+	}
+	if cfg.Audit.File.MaxAgeDays != 45 {
+		t.Errorf("Expected audit file max age 45, got %d", cfg.Audit.File.MaxAgeDays)
+	}
+	if !cfg.Audit.File.Compress {
+		t.Fatal("Expected audit file compress true")
+	}
+	if cfg.Audit.File.MaxLogs != 12345 {
+		t.Errorf("Expected audit file max logs 12345, got %d", cfg.Audit.File.MaxLogs)
+	}
+	if cfg.Audit.Database.Type != "sqlite" {
+		t.Errorf("Expected audit db type 'sqlite', got %q", cfg.Audit.Database.Type)
+	}
+	if cfg.Audit.Database.ConnectionString != "file:test.db" {
+		t.Errorf("Expected audit db connection string override, got %q", cfg.Audit.Database.ConnectionString)
+	}
+	if cfg.Audit.Database.SQLitePath != "/tmp/audit.db" {
+		t.Errorf("Expected audit db sqlite path override, got %q", cfg.Audit.Database.SQLitePath)
+	}
+	if cfg.Audit.Database.TableName != "audit_entries" {
+		t.Errorf("Expected audit db table name 'audit_entries', got %q", cfg.Audit.Database.TableName)
+	}
+	if cfg.Audit.Database.MaxRecords != 654321 {
+		t.Errorf("Expected audit db max records 654321, got %d", cfg.Audit.Database.MaxRecords)
+	}
+	if cfg.Audit.Database.CleanupInterval != 12 {
+		t.Errorf("Expected audit db cleanup interval 12, got %d", cfg.Audit.Database.CleanupInterval)
+	}
+}
+
+func TestCSVEnvTrimmingAndEmptyFiltering(t *testing.T) {
+	t.Setenv("MCP_DISABLED_SERVICES", " grafana, prometheus ,, jaeger ")
+	t.Setenv("MCP_ENABLED_SERVICES", " utilities , kubernetes ")
+	t.Setenv("MCP_DISABLED_TOOLS", " a , b, , c ")
+	t.Setenv("MCP_AUDIT_MASKING_FIELDS", " password, token, , apiKey ")
+	t.Setenv("MCP_ELASTICSEARCH_ADDRESSES", " http://es1:9200, http://es2:9200 , ")
+
+	cfg, err := Load("")
+	if err != nil {
+		t.Fatalf("Load() error = %v", err)
+	}
+
+	assertStringSliceEqual(t, cfg.EnableDisable.DisabledServices, []string{"grafana", "prometheus", "jaeger"})
+	assertStringSliceEqual(t, cfg.EnableDisable.EnabledServices, []string{"utilities", "kubernetes"})
+	assertStringSliceEqual(t, cfg.EnableDisable.DisabledTools, []string{"a", "b", "c"})
+	assertStringSliceEqual(t, cfg.Audit.Masking.Fields, []string{"password", "token", "apiKey"})
+	assertStringSliceEqual(t, cfg.Elasticsearch.Addresses, []string{"http://es1:9200", "http://es2:9200"})
+}
+
+func assertStringSliceEqual(t *testing.T, got, want []string) {
+	t.Helper()
+
+	if len(got) != len(want) {
+		t.Fatalf("slice length mismatch: got=%v want=%v", got, want)
+	}
+	for i := range want {
+		if got[i] != want[i] {
+			t.Fatalf("slice value mismatch at index %d: got=%v want=%v", i, got, want)
+		}
+	}
+}

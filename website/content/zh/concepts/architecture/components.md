@@ -407,5 +407,5 @@ HTTP Server
 
 - [架构概览](/zh/concepts/architecture/overview/)
 - [数据流](/zh/concepts/architecture/dataflow/)
-- [功能特性](/zh/concepts/features/)
+- [功能特性](/zh/docs/tools/)
 - [配置指南](/zh/guides/configuration/)

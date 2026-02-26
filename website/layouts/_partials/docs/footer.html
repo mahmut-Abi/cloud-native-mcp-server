@@ -1,118 +1,87 @@
-<!-- Custom Footer for Cloud Native MCP Server Website -->
-<footer class="book-footer">
-  <div class="footer-content">
-    <div class="footer-section" style="flex: 2; margin-bottom: 2rem;">
-      <h3 style="color: white; margin-bottom: 1rem;">Cloud Native MCP Server</h3>
-      <p style="color: #cbd5e0; line-height: 1.6; margin-bottom: 1rem;">高性能 Model Context Protocol (MCP) 服务器，专为 Kubernetes 和云原生基础设施管理而设计。</p>
-      <div style="display: flex; gap: 1rem; margin-top: 1rem;">
-        <a href="https://github.com/mahmut-Abi/cloud-native-mcp-server" target="_blank" rel="noopener" style="color: white; text-decoration: none; padding: 0.5rem 1rem; border: 1px solid rgba(255,255,255,0.3); border-radius: 6px; transition: all 0.3s ease;">
-          GitHub
-        </a>
-        <a href="/docs/getting-started/" style="color: white; text-decoration: none; padding: 0.5rem 1rem; border: 1px solid rgba(255,255,255,0.3); border-radius: 6px; transition: all 0.3s ease;">
-          文档
-        </a>
-      </div>
-    </div>
-    
-    <div class="footer-section" style="flex: 1; margin-bottom: 2rem;">
-      <h4 style="color: white; margin-bottom: 1rem;">快速链接</h4>
-      <ul style="list-style: none; padding: 0; margin: 0;">
-        <li style="margin-bottom: 0.5rem;"><a href="/docs/getting-started/" style="color: #cbd5e0; text-decoration: none; transition: color 0.3s ease;">快速开始</a></li>
-        <li style="margin-bottom: 0.5rem;"><a href="/docs/concepts/" style="color: #cbd5e0; text-decoration: none; transition: color 0.3s ease;">核心概念</a></li>
-        <li style="margin-bottom: 0.5rem;"><a href="/docs/guides/" style="color: #cbd5e0; text-decoration: none; transition: color 0.3s ease;">使用指南</a></li>
-        <li style="margin-bottom: 0.5rem;"><a href="/docs/api/" style="color: #cbd5e0; text-decoration: none; transition: color 0.3s ease;">API 文档</a></li>
-      </ul>
-    </div>
-    
-    <div class="footer-section" style="flex: 1; margin-bottom: 2rem;">
-      <h4 style="color: white; margin-bottom: 1rem;">资源</h4>
-      <ul style="list-style: none; padding: 0; margin: 0;">
-        <li style="margin-bottom: 0.5rem;"><a href="/docs/tools/" style="color: #cbd5e0; text-decoration: none; transition: color 0.3s ease;">工具参考</a></li>
-        <li style="margin-bottom: 0.5rem;"><a href="/docs/security/" style="color: #cbd5e0; text-decoration: none; transition: color 0.3s ease;">安全指南</a></li>
-        <li style="margin-bottom: 0.5rem;"><a href="/docs/performance/" style="color: #cbd5e0; text-decoration: none; transition: color 0.3s ease;">性能优化</a></li>
-        <li style="margin-bottom: 0.5rem;"><a href="/docs/contributing/" style="color: #cbd5e0; text-decoration: none; transition: color 0.3s ease;">贡献指南</a></li>
-      </ul>
-    </div>
-    
-    <div class="footer-section" style="flex: 1;">
-      <h4 style="color: white; margin-bottom: 1rem;">社区</h4>
-      <ul style="list-style: none; padding: 0; margin: 0;">
-        <li style="margin-bottom: 0.5rem;"><a href="https://github.com/mahmut-Abi/cloud-native-mcp-server/issues" target="_blank" rel="noopener" style="color: #cbd5e0; text-decoration: none; transition: color 0.3s ease;">问题反馈</a></li>
-        <li style="margin-bottom: 0.5rem;"><a href="https://github.com/mahmut-Abi/cloud-native-mcp-server/discussions" target="_blank" rel="noopener" style="color: #cbd5e0; text-decoration: none; transition: color 0.3s ease;">讨论区</a></li>
-        <li style="margin-bottom: 0.5rem;"><a href="https://github.com/mahmut-Abi/cloud-native-mcp-server/blob/main/CONTRIBUTING.md" target="_blank" rel="noopener" style="color: #cbd5e0; text-decoration: none; transition: color 0.3s ease;">贡献指南</a></li>
-        <li style="margin-bottom: 0.5rem;"><a href="https://github.com/mahmut-Abi/cloud-native-mcp-server/blob/main/LICENSE" target="_blank" rel="noopener" style="color: #cbd5e0; text-decoration: none; transition: color 0.3s ease;">许可证</a></li>
-      </ul>
-    </div>
+<div class="flex flex-wrap justify-between">
+  <div>
+    {{ if and .GitInfo .Site.Params.BookLastChangeLink }}
+      {{- $date := partial "docs/date" (dict "Date" .Lastmod "Format" .Site.Params.BookDateFormat) -}}
+      <a class="flex align-center" href="{{ partial "docs/links/commit" . }}" title='{{ partial "docs/text/i18n" "Last modified by" }} {{ .GitInfo.AuthorName }} | {{ $date }}' target="_blank" rel="noopener">
+        <img src="{{ partial "docs/icon" "calendar" }}" class="book-icon" alt="{{ partial "docs/text/i18n" "Calendar" }}" />
+        <span>{{ $date }}</span>
+      </a>
+    {{ end }}
   </div>
-  
-  <div class="footer-bottom" style="border-top: 1px solid rgba(255,255,255,0.1); padding-top: 1.5rem; margin-top: 2rem;">
-    <p style="color: #a0aec0; margin: 0.5rem 0;">&copy; 2025 Cloud Native MCP Server. All rights reserved.</p>
-    <p style="color: #a0aec0; margin: 0.5rem 0;">Built with <a href="https://gohugo.io/" target="_blank" rel="noopener" style="color: #90cdf4;">Hugo</a> and <a href="https://github.com/alex-shpak/hugo-book" target="_blank" rel="noopener" style="color: #90cdf4;">Hugo Book Theme</a></p>
-    <p style="color: #a0aec0; margin: 0.5rem 0;">
-      <a href="https://github.com/mahmut-Abi/cloud-native-mcp-server" target="_blank" rel="noopener" style="color: #90cdf4; margin-right: 1rem;">GitHub</a> | 
-      <a href="/en/" style="color: #90cdf4; margin: 0 0.5rem;">English</a> | 
-      <a href="/zh/" style="color: #90cdf4; margin: 0 0.5rem;">中文</a>
-    </p>
+
+  <div>
+    {{ if and .File .Site.Params.BookEditLink }}
+      <a class="flex align-center" href="{{ partial "docs/links/edit" . }}" target="_blank" rel="noopener edit">
+        <img src="{{ partial "docs/icon" "edit" }}" class="book-icon" alt="{{ partial "docs/text/i18n" "Edit" }}" />
+        <span>{{ partial "docs/text/i18n" "Edit this page" }}</span>
+      </a>
+    {{ end }}
   </div>
-</footer>
+</div>
 
-<!-- Back to Top Button -->
-<button id="backToTop" title="Go to top" style="display: none; position: fixed; bottom: 20px; right: 20px; z-index: 9999; width: 50px; height: 50px; border-radius: 50%; background: var(--primary-gradient); color: white; border: none; cursor: pointer; box-shadow: 0 4px 6px rgba(0,0,0,0.1); transition: all 0.3s ease; align-items: center; justify-content: center; font-size: 1.2rem;">
-  <span>↑</span>
-</button>
+{{ partial "docs/prev-next" . }}
 
-<!-- Progress Bar -->
-<div class="progress-bar" id="progressBar" style="position: fixed; top: 0; left: 0; width: 0%; height: 3px; background: var(--primary-gradient); z-index: 9999; transition: width 0.3s ease;"></div>
+{{- $isZH := eq .Site.Language.Lang "zh" -}}
+<section class="book-site-footer">
+  <div class="book-site-footer__top">
+    <div class="book-site-footer__brand">
+      <strong>Cloud Native MCP Server</strong>
+      <p>
+        {{ if $isZH }}
+          面向 Kubernetes 与云原生场景的高性能 MCP 服务器。
+        {{ else }}
+          High-performance MCP server for Kubernetes and cloud-native operations.
+        {{ end }}
+      </p>
+    </div>
+    <nav class="book-site-footer__links" aria-label="Site footer links">
+      <a href="{{ "docs/" | absLangURL }}">{{ if $isZH }}文档{{ else }}Documentation{{ end }}</a>
+      <a href="{{ "services/" | absLangURL }}">{{ if $isZH }}服务{{ else }}Services{{ end }}</a>
+      <a href="{{ "posts/" | absLangURL }}">{{ if $isZH }}博客{{ else }}Blog{{ end }}</a>
+      <a href="{{ "sitemap/" | absLangURL }}">{{ if $isZH }}站点地图{{ else }}Sitemap{{ end }}</a>
+      <a href="https://github.com/mahmut-Abi/cloud-native-mcp-server" target="_blank" rel="noopener">GitHub</a>
+    </nav>
+  </div>
+  <div class="book-site-footer__bottom">
+    <span>&copy; {{ now.Year }} Cloud Native MCP Server</span>
+    <span>
+      {{ if $isZH }}
+        由 Hugo 与 Hugo Book Theme 构建
+      {{ else }}
+        Built with Hugo and Hugo Book Theme
+      {{ end }}
+    </span>
+  </div>
+</section>
+
+<button
+  id="backToTop"
+  class="back-to-top"
+  title="{{ if $isZH }}返回顶部{{ else }}Back to top{{ end }}"
+  aria-label="{{ if $isZH }}返回顶部{{ else }}Back to top{{ end }}"
+>↑</button>
+<div id="progressBar" class="scroll-progress" aria-hidden="true"></div>
 
 <script>
-// Back to Top Button
-document.addEventListener('DOMContentLoaded', function() {
+document.addEventListener('DOMContentLoaded', function () {
   const backToTopButton = document.getElementById('backToTop');
-  
-  window.addEventListener('scroll', function() {
-    if (window.pageYOffset > 300) {
-      backToTopButton.style.display = 'flex';
-    } else {
-      backToTopButton.style.display = 'none';
-    }
-    
-    // Update progress bar
-    const winScroll = document.body.scrollTop || document.documentElement.scrollTop;
+  const progressBar = document.getElementById('progressBar');
+  if (!backToTopButton || !progressBar) return;
+
+  const onScroll = function () {
+    const y = window.pageYOffset || document.documentElement.scrollTop || 0;
+    backToTopButton.classList.toggle('is-visible', y > 300);
+
     const height = document.documentElement.scrollHeight - document.documentElement.clientHeight;
-    const scrolled = (winScroll / height) * 100;
-    document.getElementById('progressBar').style.width = scrolled + '%';
-  });
-  
-  backToTopButton.addEventListener('click', function() {
-    window.scrollTo({
-      top: 0,
-      behavior: 'smooth'
-    });
-  });
-});
+    const progress = height > 0 ? (y / height) * 100 : 0;
+    progressBar.style.width = progress + '%';
+  };
 
-// Add animation to elements when they come into view
-const observerOptions = {
-  threshold: 0.1
-};
+  window.addEventListener('scroll', onScroll, { passive: true });
+  onScroll();
 
-const observer = new IntersectionObserver((entries) => {
-  entries.forEach(entry => {
-    if (entry.isIntersecting) {
-      entry.target.style.opacity = 1;
-      entry.target.style.transform = 'translateY(0)';
-    }
-  });
-}, observerOptions);
-
-// Observe elements that should animate in
-document.addEventListener('DOMContentLoaded', function() {
-  const animatedElements = document.querySelectorAll('.stat-item, .service-card, .feature-card, .hero');
-  animatedElements.forEach(el => {
-    el.style.opacity = 0;
-    el.style.transform = 'translateY(20px)';
-    el.style.transition = 'opacity 0.6s ease, transform 0.6s ease';
-    observer.observe(el);
+  backToTopButton.addEventListener('click', function () {
+    window.scrollTo({ top: 0, behavior: 'smooth' });
   });
 });
 </script>

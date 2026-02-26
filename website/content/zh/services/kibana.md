@@ -165,5 +165,5 @@ Cloud Native MCP Server 中的 Kibana 服务使 AI 助手能够高效地管理 K
 ## 下一步
 
 - [Elasticsearch 服务](/zh/services/elasticsearch/) 了解索引
-- [日志分析指南](/zh/guides/logging/) 了解详细设置
-- [可视化最佳实践](/zh/guides/visualization/) 了解有效仪表板
+- [日志分析指南](/zh/services/kibana/) 了解详细设置
+- [可视化最佳实践](/zh/services/grafana/) 了解有效仪表板

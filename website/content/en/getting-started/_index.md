@@ -168,17 +168,17 @@ Index, search, and analyze data with 14 advanced search tools.
 
 Now that you've installed and configured Cloud Native MCP Server, you might want to:
 
-- [Configure authentication and security settings](/en/guides/security/)
-- [Explore service-specific configurations](/en/guides/configuration/)
-- [Learn about performance optimization](/en/guides/performance/)
-- [Review the complete tools reference](/en/docs/tools/)
+- [Configure authentication and security settings](/docs/security/)
+- [Explore service-specific configurations](/docs/configuration/)
+- [Learn about performance optimization](/docs/performance/)
+- [Review the complete tools reference](/docs/tools/)
 
 ### Quick Links
 
-- [Architecture Overview](/en/concepts/architecture/)
-- [Security Best Practices](/en/guides/security/best-practices/)
-- [Performance Tuning](/en/guides/performance/optimization/)
-- [Troubleshooting](/en/guides/troubleshooting/)
+- [Architecture Overview](/docs/architecture/)
+- [Security Best Practices](/docs/security/)
+- [Performance Tuning](/docs/performance/)
+- [Troubleshooting](/getting-started/)
 
 ---
 

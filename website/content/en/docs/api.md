@@ -1,6 +1,7 @@
 ---
 title: "API Documentation"
-weight: 10
+weight: 80
+description: "MCP endpoints, authentication methods, request payloads, and integration examples."
 ---
 
 # API Documentation
@@ -301,5 +302,5 @@ print(result)
 ## Next Steps
 
 - [Tools Reference](/docs/tools/) for detailed tool documentation
-- [Configuration Guides](/guides/configuration/) for setup instructions
-- [Security Best Practices](/guides/security/) for securing your API
+- [Configuration Guides](/docs/configuration/) for setup instructions
+- [Security Best Practices](/docs/security/) for securing your API

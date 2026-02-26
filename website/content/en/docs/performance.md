@@ -1,5 +1,7 @@
 ---
 title: "Performance Guide"
+weight: 60
+description: "Caching, concurrency, benchmarking, and tuning recommendations for lower latency."
 ---
 
 # Performance Guide

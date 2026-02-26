@@ -115,6 +115,6 @@ Manage OpenTelemetry collector configuration and status.
 
 ## Next Steps
 
-- [Jaeger Service](/en/services/jaeger/) for detailed tracing
-- [Observability Guides](/en/guides/observability/) for detailed setup
-- [Metrics Best Practices](/en/guides/metrics/) for collection strategies
+- [Jaeger Service](/services/jaeger/) for detailed tracing
+- [Observability Guides](/services/opentelemetry/) for detailed setup
+- [Metrics Best Practices](/services/prometheus/) for collection strategies

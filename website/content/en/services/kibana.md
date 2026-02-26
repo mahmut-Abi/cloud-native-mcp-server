@@ -164,6 +164,6 @@ Seamless integration with Elasticsearch for data indexing and retrieval.
 
 ## Next Steps
 
-- [Elasticsearch Service](/en/services/elasticsearch/) for indexing
-- [Log Analysis Guides](/en/guides/logging/) for detailed setup
-- [Visualization Best Practices](/en/guides/visualization/) for effective dashboards
+- [Elasticsearch Service](/services/elasticsearch/) for indexing
+- [Log Analysis Guides](/services/kibana/) for detailed setup
+- [Visualization Best Practices](/services/grafana/) for effective dashboards

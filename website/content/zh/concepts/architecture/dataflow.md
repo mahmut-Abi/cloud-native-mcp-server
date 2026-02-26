@@ -471,5 +471,5 @@ for _, pod := range pods.Items {
 
 - [架构概览](/zh/concepts/architecture/overview/)
 - [核心组件](/zh/concepts/architecture/components/)
-- [功能特性](/zh/concepts/features/)
+- [功能特性](/zh/docs/tools/)
 - [性能指南](/zh/guides/performance/)

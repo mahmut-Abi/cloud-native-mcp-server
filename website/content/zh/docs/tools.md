@@ -1,9 +1,12 @@
 ---
-title: "Tools Reference"
-weight: 5
+title: "工具参考"
+weight: 70
+description: "10 个服务、220+ MCP 工具的能力目录与调用示例。"
 ---
 
-# Tools Reference
+# 工具参考
+
+> 说明：当前页面内容以英文为主，中文完整版正在补充中。
 
 Cloud Native MCP Server provides 220+ powerful tools covering Kubernetes management, application deployment, monitoring, log analysis, and more.
 
@@ -561,9 +564,9 @@ Error response format:
 
 ## Next Steps
 
-Now that you've explored all 220+ tools, you might want to:
+现在您已经浏览了 220+ 工具，建议继续阅读：
 
-- [Configure authentication and security settings](/en/guides/security/)
-- [Learn about performance optimization](/en/guides/performance/)
-- [Review the complete getting started guide](/en/getting-started/)
-- [Explore service-specific configurations](/en/guides/configuration/)
+- [配置认证与安全策略](/zh/guides/security/)
+- [了解性能优化建议](/zh/guides/performance/)
+- [查看完整快速开始指南](/zh/getting-started/)
+- [探索服务配置细节](/zh/guides/configuration/)

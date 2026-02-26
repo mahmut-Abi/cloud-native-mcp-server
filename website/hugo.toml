@@ -1,15 +1,21 @@
 baseURL = 'https://mahmut-abi.github.io/cloud-native-mcp-server/'
+canonifyURLs = true
 languageCode = 'en-us'
 title = 'Cloud Native MCP Server'
 theme = 'hugo-book'
+enableGitInfo = true
 
 [params]
   BookSection = 'docs'
-  BookRepo = 'https://github.com/mahmut-Abi/cloud-native-mcp-server'
+  BookRepo = 'https://github.com/mahmut-Abi/cloud-native-mcp-server/'
   BookEditPath = 'edit/main/website/content'
+  BookEditLink = '{{ .Site.Params.BookRepo }}edit/main/website{{ .Path }}'
+  BookLastChangeLink = '{{ .Site.Params.BookRepo }}commit/{{ .GitInfo.Hash }}'
   BookSearch = true
   BookTheme = 'light'
   BookDateFormat = '2006-01-02'
+  description = 'High-performance Model Context Protocol server for Kubernetes and cloud-native operations.'
+  keywords = 'cloud native, kubernetes, mcp, model context protocol, observability, devops, grafana, prometheus, helm'
 
 # Default language configuration
 defaultContentLanguage = 'en'
@@ -22,6 +28,22 @@ defaultContentLanguage = 'en'
   contentDir = 'content/en'
   [languages.en.params]
     BookToC = true
+  [[languages.en.menu.before]]
+    name = 'Home'
+    url = '/'
+    weight = 1
+  [[languages.en.menu.before]]
+    name = 'Documentation'
+    url = '/docs/'
+    weight = 2
+  [[languages.en.menu.before]]
+    name = 'Getting Started'
+    url = '/getting-started/'
+    weight = 3
+  [[languages.en.menu.before]]
+    name = 'Blog'
+    url = '/posts/'
+    weight = 4
 
 [languages.zh]
   languageName = '中文'
@@ -31,6 +53,22 @@ defaultContentLanguage = 'en'
   contentDir = 'content/zh'
   [languages.zh.params]
     BookToC = true
+  [[languages.zh.menu.before]]
+    name = '首页'
+    url = '/zh/'
+    weight = 1
+  [[languages.zh.menu.before]]
+    name = '文档中心'
+    url = '/zh/docs/'
+    weight = 2
+  [[languages.zh.menu.before]]
+    name = '快速开始'
+    url = '/zh/getting-started/'
+    weight = 3
+  [[languages.zh.menu.before]]
+    name = '博客'
+    url = '/zh/posts/'
+    weight = 4
 
 [markup]
   [markup.goldmark]

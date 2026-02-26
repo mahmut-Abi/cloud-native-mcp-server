@@ -118,6 +118,6 @@ Manage Alertmanager configuration and status information.
 
 ## Next Steps
 
-- [Prometheus Service](/en/services/prometheus/) for metrics
-- [Alerting Guides](/en/guides/alerting/) for detailed setup
-- [Notification Configuration](/en/guides/notifications/) for routing rules
+- [Prometheus Service](/services/prometheus/) for metrics
+- [Alerting Guides](/services/alertmanager/) for detailed setup
+- [Notification Configuration](/services/alertmanager/) for routing rules

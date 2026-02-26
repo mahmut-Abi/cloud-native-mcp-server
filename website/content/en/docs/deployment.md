@@ -1,5 +1,7 @@
 ---
 title: "Deployment Guide"
+weight: 40
+description: "Deployment patterns for Docker, Kubernetes, and Helm with production best practices."
 ---
 
 # Deployment Guide

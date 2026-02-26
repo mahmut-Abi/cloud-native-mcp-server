@@ -127,6 +127,6 @@ Access detailed monitoring data and statistics from Prometheus.
 
 ## Next Steps
 
-- [Grafana Service](/en/services/grafana/) for visualization
-- [Monitoring Guides](/en/guides/monitoring/) for detailed setup
-- [Performance Optimization](/en/guides/performance/) for query optimization
+- [Grafana Service](/services/grafana/) for visualization
+- [Monitoring Guides](/services/prometheus/) for detailed setup
+- [Performance Optimization](/docs/performance/) for query optimization

@@ -1,8 +1,12 @@
 ---
-title: "Performance Guide"
+title: "性能指南"
+weight: 60
+description: "缓存、并发、压测与优化参数的实践建议。"
 ---
 
-# Performance Guide
+# 性能指南
+
+> 说明：当前页面内容以英文为主，中文完整版正在补充中。
 
 This document describes the performance features and optimization recommendations for Cloud Native MCP Server.
 

@@ -39,19 +39,16 @@ hugo --minify
 
 ```
 website/
-├── content/           # 网站内容
-│   ├── _index.md     # 首页
-│   ├── docs/         # 文档
-│   ├── features/     # 特性介绍
-│   └── services/     # 服务介绍
-├── layouts/          # 自定义布局
-│   └── partials/     # 局部模板
-├── static/           # 静态资源
-│   └── css/          # 自定义样式
-├── themes/           # Hugo 主题
-│   └── ananke/       # Ananke 主题（子模块）
-├── hugo.toml         # Hugo 配置文件
-└── README.md         # 本文件
+├── content/              # 多语言内容
+│   ├── en/               # 英文内容
+│   └── zh/               # 中文内容
+├── layouts/              # 自定义布局与 partial 覆盖
+├── static/               # 静态资源（css、图标等）
+├── assets/               # Hugo 资源管线输入
+├── themes/
+│   └── hugo-book/        # Hugo Book 主题（子模块）
+├── hugo.toml             # Hugo 配置文件
+└── README.md             # 本文件
 ```
 
 ## 添加新内容
@@ -59,7 +56,7 @@ website/
 ### 创建新页面
 
 ```bash
-hugo new content/docs/new-page.md
+hugo new content/en/docs/new-page.md
 ```
 
 ### 编辑内容
@@ -95,13 +92,13 @@ hugo new content/docs/new-page.md
 
 ## 主题
 
-本项目使用 [Ananke](https://github.com/theNewDynamic/gohugo-theme-ananke) 主题。
+本项目使用 [Hugo Book](https://github.com/alex-shpak/hugo-book) 主题。
 
 主题作为 Git 子模块管理：
 
 ```bash
 # 更新主题
-cd themes/ananke
+cd themes/hugo-book
 git pull origin main
 ```
 

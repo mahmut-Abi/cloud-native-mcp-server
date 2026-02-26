@@ -122,6 +122,6 @@ Monitor and manage Elasticsearch cluster health and performance.
 
 ## Next Steps
 
-- [Kibana Service](/en/services/kibana/) for visualization
-- [Log Management Guides](/en/guides/logging/) for detailed setup
-- [Search Optimization](/en/guides/search/) for query performance
+- [Kibana Service](/services/kibana/) for visualization
+- [Log Management Guides](/services/kibana/) for detailed setup
+- [Search Optimization](/services/elasticsearch/) for query performance

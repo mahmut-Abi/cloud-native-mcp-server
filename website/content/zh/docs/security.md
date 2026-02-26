@@ -1,8 +1,12 @@
 ---
-title: "Security Guide"
+title: "安全指南"
+weight: 50
+description: "认证、密钥、审计与请求安全策略的实践说明。"
 ---
 
-# Security Guide
+# 安全指南
+
+> 说明：当前页面内容以英文为主，中文完整版正在补充中。
 
 This document describes the security features and best practices for Cloud Native MCP Server.
 

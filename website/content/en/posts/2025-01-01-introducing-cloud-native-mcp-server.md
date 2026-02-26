@@ -38,7 +38,7 @@ We've built security into every layer, with support for API keys, JWT tokens, an
 
 ## Getting Started
 
-Ready to transform your infrastructure management? Follow our [Quick Start guide](/en/getting-started/) to get up and running in minutes.
+Ready to transform your infrastructure management? Follow our [Quick Start guide](/getting-started/) to get up and running in minutes.
 
 ## What's Next?
 

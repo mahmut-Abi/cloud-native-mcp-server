@@ -1,8 +1,12 @@
 ---
-title: "Architecture Guide"
+title: "架构指南"
+weight: 20
+description: "系统组件、请求链路与扩展设计的总体架构说明。"
 ---
 
-# Architecture Guide
+# 架构指南
+
+> 说明：当前页面内容以英文为主，中文完整版正在补充中。
 
 This document describes the system architecture and design principles of Cloud Native MCP Server.
 

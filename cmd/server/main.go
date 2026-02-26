@@ -59,7 +59,7 @@ func main() {
 		logrus.Debug("No mode specified, defaulting to 'sse'")
 	}
 
-	setupLogging(config.LogLevel)
+	setupLogging(config.LogLevel, config.LogJSON)
 
 	// Initialize metrics system
 	initMetrics(config.Mode, config.Addr)

@@ -134,6 +134,6 @@ Manage chart values, configurations, and dependencies effectively.
 
 ## Next Steps
 
-- [Kubernetes Service](/en/services/kubernetes/) for core orchestration
-- [Configuration Guides](/en/guides/configuration/) for detailed setup
-- [Deployment Best Practices](/en/guides/deployment/) for production deployments
+- [Kubernetes Service](/services/kubernetes/) for core orchestration
+- [Configuration Guides](/docs/configuration/) for detailed setup
+- [Deployment Best Practices](/docs/deployment/) for production deployments

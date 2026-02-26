@@ -362,6 +362,6 @@ myservice:
 
 - [核心组件](/zh/concepts/architecture/components/)
 - [数据流](/zh/concepts/architecture/dataflow/)
-- [功能特性](/zh/concepts/features/)
+- [功能特性](/zh/docs/tools/)
 - [配置指南](/zh/guides/configuration/)
 - [部署指南](/zh/guides/deployment/)

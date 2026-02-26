@@ -3,8 +3,10 @@ package middleware
 import (
 	"container/heap"
 	"context"
+	"math"
 	"net"
 	"net/http"
+	"strconv"
 	"strings"
 	"sync"
 	"time"
@@ -121,6 +123,13 @@ func (rl *RateLimiter) cleanupOldEntries() {
 
 // Allow checks if a request from the given client is allowed
 func (rl *RateLimiter) Allow(clientID string) bool {
+	allowed, _ := rl.AllowWithRetryAfter(clientID)
+	return allowed
+}
+
+// AllowWithRetryAfter checks if a request is allowed and returns a recommended
+// retry duration when the request is denied.
+func (rl *RateLimiter) AllowWithRetryAfter(clientID string) (bool, time.Duration) {
 	rl.mu.Lock()
 	defer rl.mu.Unlock()
 
@@ -136,7 +145,7 @@ func (rl *RateLimiter) Allow(clientID string) bool {
 		}
 		rl.entries[clientID] = entry
 		heap.Push(rl.heap, entry)
-		return true
+		return true, 0
 	}
 
 	// Add tokens based on time elapsed
@@ -152,10 +161,18 @@ func (rl *RateLimiter) Allow(clientID string) bool {
 
 	if entry.tokens >= 1 {
 		entry.tokens--
-		return true
+		return true, 0
+	}
+	if rl.rps <= 0 {
+		return false, time.Second
 	}
 
-	return false
+	missingTokens := 1 - entry.tokens
+	retryAfter := time.Duration(math.Ceil((missingTokens / rl.rps) * float64(time.Second)))
+	if retryAfter < time.Second {
+		retryAfter = time.Second
+	}
+	return false, retryAfter
 }
 
 // Close stops the cleanup goroutine and releases resources
@@ -187,7 +204,9 @@ func RateLimitMiddlewareWithLimiter(limiter *RateLimiter) func(http.Handler) htt
 		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 			clientID := getClientIP(r)
 
-			if !limiter.Allow(clientID) {
+			allowed, retryAfter := limiter.AllowWithRetryAfter(clientID)
+			if !allowed {
+				w.Header().Set("Retry-After", strconv.Itoa(int(retryAfter.Seconds())))
 				http.Error(w, "Too many requests", http.StatusTooManyRequests)
 				return
 			}

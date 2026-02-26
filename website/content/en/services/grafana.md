@@ -157,6 +157,6 @@ Create and manage Grafana visualizations and panels effectively.
 
 ## Next Steps
 
-- [Prometheus Service](/en/services/prometheus/) for metrics collection
-- [Monitoring Guides](/en/guides/monitoring/) for detailed setup
-- [Alerting Best Practices](/en/guides/alerting/) for effective alerting
+- [Prometheus Service](/services/prometheus/) for metrics collection
+- [Monitoring Guides](/services/prometheus/) for detailed setup
+- [Alerting Best Practices](/services/alertmanager/) for effective alerting

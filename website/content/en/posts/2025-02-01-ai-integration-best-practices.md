@@ -156,7 +156,7 @@ To begin integrating AI with Cloud Native MCP Server:
 ## Resources
 
 - [MCP Specification](https://modelcontextprotocol.com/)
-- [AI Integration Guide](/en/guides/ai-integration/)
-- [Security Best Practices](/en/guides/security/)
+- [AI Integration Guide](/posts/2025-02-01-ai-integration-best-practices/)
+- [Security Best Practices](/docs/security/)
 
 The future of infrastructure management is AI-assisted. With Cloud Native MCP Server, you're already prepared for that future.
