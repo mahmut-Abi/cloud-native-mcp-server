@@ -268,7 +268,7 @@ func (p *EnvParser) parseElasticsearchConfig(cfg *AppConfig, over func(string) (
 		cfg.Elasticsearch.Enabled = isTrue(v)
 	}
 	if v, ok := over("MCP_ELASTICSEARCH_ADDRESSES"); ok {
-		cfg.Elasticsearch.Addresses = strings.Split(v, ",")
+		cfg.Elasticsearch.Addresses = splitAndTrimCSV(v)
 	}
 	if v, ok := over("MCP_ELASTICSEARCH_ADDRESS"); ok {
 		cfg.Elasticsearch.Address = v
@@ -469,11 +469,53 @@ func (p *EnvParser) parseAuditConfig(cfg *AppConfig, over func(string) (string, 
 	if v, ok := over("MCP_AUDIT_LEVEL"); ok {
 		cfg.Audit.Level = v
 	}
+	if v, ok := over("MCP_AUDIT_STORAGE"); ok {
+		cfg.Audit.Storage = v
+	}
+	if v, ok := over("MCP_AUDIT_FORMAT"); ok {
+		cfg.Audit.Format = v
+	}
 	if v, ok := over("MCP_AUDIT_MAX_RESULTS"); ok {
 		cfg.Audit.MaxResults = atoiDefault(v, cfg.Audit.MaxResults)
 	}
 	if v, ok := over("MCP_AUDIT_TIME_RANGE"); ok {
 		cfg.Audit.TimeRange = atoiDefault(v, cfg.Audit.TimeRange)
+	}
+	if v, ok := over("MCP_AUDIT_FILE_PATH"); ok {
+		cfg.Audit.File.Path = v
+	}
+	if v, ok := over("MCP_AUDIT_FILE_MAX_SIZE"); ok {
+		cfg.Audit.File.MaxSizeMB = atoiDefault(v, cfg.Audit.File.MaxSizeMB)
+	}
+	if v, ok := over("MCP_AUDIT_FILE_MAX_BACKUPS"); ok {
+		cfg.Audit.File.MaxBackups = atoiDefault(v, cfg.Audit.File.MaxBackups)
+	}
+	if v, ok := over("MCP_AUDIT_FILE_MAX_AGE_DAYS"); ok {
+		cfg.Audit.File.MaxAgeDays = atoiDefault(v, cfg.Audit.File.MaxAgeDays)
+	}
+	if v, ok := over("MCP_AUDIT_FILE_COMPRESS"); ok {
+		cfg.Audit.File.Compress = isTrue(v)
+	}
+	if v, ok := over("MCP_AUDIT_FILE_MAX_LOGS"); ok {
+		cfg.Audit.File.MaxLogs = atoiDefault(v, cfg.Audit.File.MaxLogs)
+	}
+	if v, ok := over("MCP_AUDIT_DB_TYPE"); ok {
+		cfg.Audit.Database.Type = v
+	}
+	if v, ok := over("MCP_AUDIT_DB_CONNECTION_STRING"); ok {
+		cfg.Audit.Database.ConnectionString = v
+	}
+	if v, ok := over("MCP_AUDIT_DB_SQLITE_PATH"); ok {
+		cfg.Audit.Database.SQLitePath = v
+	}
+	if v, ok := over("MCP_AUDIT_DB_TABLE_NAME"); ok {
+		cfg.Audit.Database.TableName = v
+	}
+	if v, ok := over("MCP_AUDIT_DB_MAX_RECORDS"); ok {
+		cfg.Audit.Database.MaxRecords = atoiDefault(v, cfg.Audit.Database.MaxRecords)
+	}
+	if v, ok := over("MCP_AUDIT_DB_CLEANUP_INTERVAL"); ok {
+		cfg.Audit.Database.CleanupInterval = atoiDefault(v, cfg.Audit.Database.CleanupInterval)
 	}
 	if v, ok := over("MCP_AUDIT_QUERY_ENABLED"); ok {
 		cfg.Audit.Query.Enabled = isTrue(v)
@@ -503,7 +545,7 @@ func (p *EnvParser) parseAuditConfig(cfg *AppConfig, over func(string) (string, 
 		cfg.Audit.Masking.Enabled = isTrue(v)
 	}
 	if v, ok := over("MCP_AUDIT_MASKING_FIELDS"); ok {
-		cfg.Audit.Masking.Fields = strings.Split(v, ",")
+		cfg.Audit.Masking.Fields = splitAndTrimCSV(v)
 	}
 	if v, ok := over("MCP_AUDIT_MASKING_VALUE"); ok {
 		cfg.Audit.Masking.MaskValue = v
@@ -545,13 +587,13 @@ func (p *EnvParser) parseAuthConfig(cfg *AppConfig, over func(string) (string, b
 
 func (p *EnvParser) parseEnableDisableConfig(cfg *AppConfig, over func(string) (string, bool)) {
 	if v, ok := over("MCP_DISABLED_SERVICES"); ok {
-		cfg.EnableDisable.DisabledServices = strings.Split(v, ",")
+		cfg.EnableDisable.DisabledServices = splitAndTrimCSV(v)
 	}
 	if v, ok := over("MCP_ENABLED_SERVICES"); ok {
-		cfg.EnableDisable.EnabledServices = strings.Split(v, ",")
+		cfg.EnableDisable.EnabledServices = splitAndTrimCSV(v)
 	}
 	if v, ok := over("MCP_DISABLED_TOOLS"); ok {
-		cfg.EnableDisable.DisabledTools = strings.Split(v, ",")
+		cfg.EnableDisable.DisabledTools = splitAndTrimCSV(v)
 	}
 }
 
@@ -583,4 +625,20 @@ func atofDefault(s string, def float32) float32 {
 func isTrue(s string) bool {
 	s = strings.ToLower(strings.TrimSpace(s))
 	return s == "1" || s == "true" || s == "yes" || s == "on"
+}
+
+func splitAndTrimCSV(s string) []string {
+	if strings.TrimSpace(s) == "" {
+		return []string{}
+	}
+
+	parts := strings.Split(s, ",")
+	out := make([]string, 0, len(parts))
+	for _, part := range parts {
+		part = strings.TrimSpace(part)
+		if part != "" {
+			out = append(out, part)
+		}
+	}
+	return out
 }

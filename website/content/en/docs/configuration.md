@@ -1,5 +1,7 @@
 ---
 title: "Configuration Guide"
+weight: 30
+description: "Runtime configuration for server mode, services, authentication, logging, and cache."
 ---
 
 # Configuration Guide

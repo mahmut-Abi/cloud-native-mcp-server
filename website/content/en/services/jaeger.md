@@ -107,6 +107,6 @@ Collect and analyze tracing metrics and statistics.
 
 ## Next Steps
 
-- [OpenTelemetry Service](/en/services/opentelemetry/) for metrics and logs
-- [Tracing Guides](/en/guides/tracing/) for detailed setup
-- [Performance Analysis](/en/guides/performance/) for optimization
+- [OpenTelemetry Service](/services/opentelemetry/) for metrics and logs
+- [Tracing Guides](/services/jaeger/) for detailed setup
+- [Performance Analysis](/docs/performance/) for optimization

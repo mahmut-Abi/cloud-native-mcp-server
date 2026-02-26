@@ -158,5 +158,5 @@ Cloud Native MCP Server 中的 Grafana 服务使 AI 助手能够高效地管理 
 ## 下一步
 
 - [Prometheus 服务](/zh/services/prometheus/) 了解指标收集
-- [监控指南](/zh/guides/monitoring/) 了解详细设置
-- [告警最佳实践](/zh/guides/alerting/) 了解有效告警
+- [监控指南](/zh/services/prometheus/) 了解详细设置
+- [告警最佳实践](/zh/services/alertmanager/) 了解有效告警

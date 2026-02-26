@@ -1,5 +1,7 @@
 ---
 title: "Architecture Guide"
+weight: 20
+description: "System architecture, component boundaries, data flow, and extensibility design."
 ---
 
 # Architecture Guide

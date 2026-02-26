@@ -116,6 +116,17 @@ func (sw *securityResponseWriter) Write(b []byte) (int, error) {
 	return sw.ResponseWriter.Write(b)
 }
 
+// Flush preserves streaming behavior (for example SSE) through the middleware chain.
+func (sw *securityResponseWriter) Flush() {
+	if !sw.headersSet {
+		sw.setSecurityHeaders()
+		sw.headersSet = true
+	}
+	if flusher, ok := sw.ResponseWriter.(http.Flusher); ok {
+		flusher.Flush()
+	}
+}
+
 // setSecurityHeaders sets all configured security headers
 func (sw *securityResponseWriter) setSecurityHeaders() {
 	config := sw.config

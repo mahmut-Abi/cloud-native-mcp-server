@@ -17,6 +17,7 @@ type CLIConfig struct {
 	Addr         string
 	Kubeconfig   string
 	LogLevel     string
+	LogJSON      bool
 	ReadTimeout  time.Duration
 	WriteTimeout time.Duration
 	IdleTimeout  time.Duration
@@ -148,6 +149,7 @@ func applyAppConfig(c *CLIConfig, ac *appconfig.AppConfig) {
 		logrus.Debugf("Setting log level from config: %s", ac.Logging.Level)
 		c.LogLevel = ac.Logging.Level
 	}
+	c.LogJSON = ac.Logging.JSON
 	if !c.modeSet && ac.Server.Mode != "" {
 		logrus.Debugf("Setting mode from config: %s", ac.Server.Mode)
 		c.Mode = ac.Server.Mode
@@ -156,11 +158,6 @@ func applyAppConfig(c *CLIConfig, ac *appconfig.AppConfig) {
 	if !c.kubeconfigSet && ac.Kubernetes.Kubeconfig != "" {
 		logrus.Debugf("Setting kubeconfig from config: %s", ac.Kubernetes.Kubeconfig)
 		c.Kubeconfig = ac.Kubernetes.Kubeconfig
-	}
-	// Logging JSON format
-	if ac.Logging.JSON {
-		logrus.Debug("Enabling JSON logging format")
-		logging.EnableJSONFormat()
 	}
 }
 
@@ -173,8 +170,11 @@ func getDefaultKubeconfig() string {
 }
 
 // setupLogging initializes logging with the specified level
-func setupLogging(logLevel string) {
+func setupLogging(logLevel string, jsonFormat bool) {
 	logging.InitStdoutLogger()
+	if jsonFormat {
+		logging.EnableJSONFormat()
+	}
 
 	level, err := logrus.ParseLevel(logLevel)
 	if err != nil {

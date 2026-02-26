@@ -166,3 +166,39 @@ func TestHelperFunctions(t *testing.T) {
 		}
 	}
 }
+
+func TestLoad_DefaultSSEMode_DisablesWriteTimeout(t *testing.T) {
+	t.Setenv("MCP_MODE", "sse")
+	t.Setenv("MCP_WRITE_TIMEOUT", "")
+
+	cfg, err := Load("")
+	if err != nil {
+		t.Fatalf("Expected no error, got %v", err)
+	}
+
+	if cfg.Server.Mode != "sse" {
+		t.Fatalf("Expected mode 'sse', got %q", cfg.Server.Mode)
+	}
+
+	if cfg.Server.WriteTimeoutSec != 0 {
+		t.Errorf("Expected write timeout 0 in SSE mode, got %d", cfg.Server.WriteTimeoutSec)
+	}
+}
+
+func TestLoad_DefaultHTTPMode_UsesWriteTimeout30s(t *testing.T) {
+	t.Setenv("MCP_MODE", "http")
+	t.Setenv("MCP_WRITE_TIMEOUT", "")
+
+	cfg, err := Load("")
+	if err != nil {
+		t.Fatalf("Expected no error, got %v", err)
+	}
+
+	if cfg.Server.Mode != "http" {
+		t.Fatalf("Expected mode 'http', got %q", cfg.Server.Mode)
+	}
+
+	if cfg.Server.WriteTimeoutSec != 30 {
+		t.Errorf("Expected write timeout 30 in HTTP mode, got %d", cfg.Server.WriteTimeoutSec)
+	}
+}

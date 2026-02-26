@@ -104,6 +104,6 @@ System information and statistics utilities.
 
 ## Next Steps
 
-- [Getting Started](/en/getting-started/) for quick setup
-- [Configuration Guides](/en/guides/configuration/) for detailed setup
-- [Tools Reference](/en/docs/tools/) for complete documentation
+- [Getting Started](/getting-started/) for quick setup
+- [Configuration Guides](/docs/configuration/) for detailed setup
+- [Tools Reference](/docs/tools/) for complete documentation

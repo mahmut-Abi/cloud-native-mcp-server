@@ -178,7 +178,7 @@ Cloud Native MCP Server 集成了 10 个核心服务：
 - [架构概述](/zh/concepts/architecture/)
 - [安全最佳实践](/zh/guides/security/best-practices/)
 - [性能调优](/zh/guides/performance/optimization/)
-- [故障排除](/zh/guides/troubleshooting/)
+- [故障排除](/zh/docs/getting-started/)
 
 ---
 

@@ -1,25 +1,106 @@
 <!DOCTYPE html>
-<html lang="{{ .Site.Language.Lang }}" dir="{{ .Site.Language.LanguageDirection | default "ltr" }}">
+<html lang="{{ default .Site.Language.Lang .Site.LanguageCode }}" dir="{{ default "ltr" .Site.Language.LanguageDirection }}">
 <head>
   {{ partial "docs/html-head" . }}
-  <title>{{ .Page.Title }} - {{ .Site.Title }}</title>
+  {{ partial "docs/inject/head" . }}
 </head>
-<body dir="{{ .Site.Language.LanguageDirection | default "ltr" }}" class="{{ .Kind }}">
+<body dir="{{ default "ltr" .Site.Language.LanguageDirection }}" class="book-kind-{{ .Kind }} book-type-{{ .Type }}{{ with .Layout }} book-layout-{{ . }}{{ end }}">
   <input type="checkbox" class="hidden toggle" id="menu-control" />
   <input type="checkbox" class="hidden toggle" id="toc-control" />
   <main class="container flex">
-    <aside class="book-menu">
-      {{ partial "docs/menu" . }}
-    </aside>
+    {{ template "menu-container" . }}
+
     <div class="book-page">
-      {{ partial "docs/header" . }}
-      {{ block "main" . }}{{ end }}
-      {{ partial "docs/footer" . }}
+      <header class="book-header hidden">
+        {{ template "header" . }}
+      </header>
+
+      {{ partial "docs/inject/content-before" . }}
+      {{ template "main" . }}
+      {{ partial "docs/inject/content-after" . }}
+
+      <footer class="book-footer">
+        {{ template "footer" . }}
+        {{ template "comments" . }}
+        {{ partial "docs/inject/footer" . }}
+        {{ template "copyright" . }}
+        {{ template "clipboard" . }}
+      </footer>
+
       <label for="menu-control" class="hidden book-menu-overlay"></label>
     </div>
-    <aside class="book-toc">
-      {{ partial "docs/toc" . }}
-    </aside>
+
+    {{ template "toc-container" . }}
   </main>
+
+  {{ partial "docs/inject/body" . }}
 </body>
 </html>
+
+{{ define "menu-container" }}
+<aside class="book-menu">
+  <div class="book-menu-content">
+    {{ template "menu" . }}
+  </div>
+</aside>
+{{ end }}
+
+{{ define "menu" }}
+  {{ partial "docs/menu" . }}
+{{ end }}
+
+{{ define "header" }}
+  {{ partial "docs/header" . }}
+
+  {{ if partial "docs/toc-show" . }}
+  <aside class="hidden">
+    {{ template "toc" . }}
+  </aside>
+  {{ end }}
+{{ end }}
+
+{{ define "footer" }}
+  {{ partial "docs/footer" . }}
+{{ end }}
+
+{{ define "clipboard" }}
+  {{ with resources.Get "clipboard.js" | resources.Minify }}
+    <script>{{ .Content | safeJS }}</script>
+  {{ end }}
+{{ end }}
+
+{{ define "copyright" }}
+  {{ if .Site.Copyright }}
+  <div class="book-copyright flex justify-center">
+    {{ partial "docs/copyright" . }}
+  </div>
+  {{ end }}
+{{ end }}
+
+{{ define "comments" }}
+  {{ if and .Content (default true (default .Site.Params.BookComments .Params.BookComments)) }}
+  <div class="book-comments">
+    {{ partial "docs/comments" . }}
+  </div>
+  {{ end }}
+{{ end }}
+
+{{ define "main" }}
+  <article class="markdown book-article">
+    {{ .Content }}
+  </article>
+{{ end }}
+
+{{ define "toc-container" }}
+  {{ if partial "docs/toc-show" . }}
+  <aside class="book-toc">
+    <div class="book-toc-content">
+      {{ template "toc" . }}
+    </div>
+  </aside>
+  {{ end }}
+{{ end }}
+
+{{ define "toc" }}
+  {{ partial "docs/toc" . }}
+{{ end }}

@@ -156,7 +156,7 @@ export MCP_SERVER_AI_RATE_LIMIT=10  # 每分钟每个密钥 10 个请求
 ## 资源
 
 - [MCP 规范](https://modelcontextprotocol.com/)
-- [AI 集成指南](/zh/guides/ai-integration/)
+- [AI 集成指南](/zh/posts/2025-02-01-ai-integration-best-practices/)
 - [安全最佳实践](/zh/guides/security/)
 
 基础设施管理的未来是 AI 辅助的。使用 Cloud Native MCP Server，您已经为未来做好了准备。

@@ -111,4 +111,4 @@ Key metrics to watch:
 4. **Batch related requests** when possible
 5. **Regularly review metrics** to identify performance bottlenecks
 
-Following these optimization techniques will ensure your Cloud Native MCP Server deployment performs at its peak capacity. Need more specific guidance? Check out our [Performance Guide](/en/guides/performance/optimization/).
+Following these optimization techniques will ensure your Cloud Native MCP Server deployment performs at its peak capacity. Need more specific guidance? Check out our [Performance Guide](/docs/performance/).

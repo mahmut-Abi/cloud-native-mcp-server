@@ -3,6 +3,7 @@ package middleware
 import (
 	"net/http"
 	"net/http/httptest"
+	"strconv"
 	"testing"
 	"time"
 )
@@ -93,6 +94,27 @@ func TestRateLimiterMultipleClients(t *testing.T) {
 	}
 }
 
+func TestRateLimiterAllowWithRetryAfter(t *testing.T) {
+	limiter := NewRateLimiter(1.0, 1)
+	defer limiter.Close()
+
+	allowed, retryAfter := limiter.AllowWithRetryAfter("client-1")
+	if !allowed {
+		t.Fatal("first request should be allowed")
+	}
+	if retryAfter != 0 {
+		t.Fatalf("expected retryAfter 0 for allowed request, got %v", retryAfter)
+	}
+
+	allowed, retryAfter = limiter.AllowWithRetryAfter("client-1")
+	if allowed {
+		t.Fatal("second immediate request should be rate limited")
+	}
+	if retryAfter < time.Second {
+		t.Fatalf("expected retryAfter >= 1s, got %v", retryAfter)
+	}
+}
+
 func TestRateLimitMiddleware_SameIPDifferentPorts(t *testing.T) {
 	limiter := NewRateLimiter(0.0001, 1)
 	defer limiter.Close()
@@ -146,5 +168,44 @@ func TestRateLimitMiddleware_UsesFirstXForwardedForHop(t *testing.T) {
 	wrapped.ServeHTTP(rec2, req2)
 	if rec2.Code != http.StatusTooManyRequests {
 		t.Fatalf("second request with same first XFF hop should be rate limited, got %d", rec2.Code)
+	}
+}
+
+func TestRateLimitMiddleware_SetsRetryAfterHeader(t *testing.T) {
+	limiter := NewRateLimiter(1.0, 1)
+	defer limiter.Close()
+
+	handler := http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		w.WriteHeader(http.StatusOK)
+	})
+
+	wrapped := RateLimitMiddlewareWithLimiter(limiter)(handler)
+
+	req1 := httptest.NewRequest(http.MethodGet, "/test", nil)
+	req1.RemoteAddr = "192.0.2.50:12345"
+	rec1 := httptest.NewRecorder()
+	wrapped.ServeHTTP(rec1, req1)
+	if rec1.Code != http.StatusOK {
+		t.Fatalf("first request should succeed, got %d", rec1.Code)
+	}
+
+	req2 := httptest.NewRequest(http.MethodGet, "/test", nil)
+	req2.RemoteAddr = "192.0.2.50:12345"
+	rec2 := httptest.NewRecorder()
+	wrapped.ServeHTTP(rec2, req2)
+	if rec2.Code != http.StatusTooManyRequests {
+		t.Fatalf("second immediate request should be rate limited, got %d", rec2.Code)
+	}
+
+	retryAfter := rec2.Header().Get("Retry-After")
+	if retryAfter == "" {
+		t.Fatal("expected Retry-After header on 429 response")
+	}
+	seconds, err := strconv.Atoi(retryAfter)
+	if err != nil {
+		t.Fatalf("Retry-After should be an integer, got %q", retryAfter)
+	}
+	if seconds < 1 {
+		t.Fatalf("Retry-After should be >= 1, got %d", seconds)
 	}
 }

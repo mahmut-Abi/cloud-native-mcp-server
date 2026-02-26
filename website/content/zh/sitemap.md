@@ -11,7 +11,7 @@ weight: 999
 
 - [首页](/)
 - [快速开始](/getting-started/)
-- [架构概述](/concepts/architecture/overview/)
+- [架构概述](/zh/concepts/architecture/overview/)
 
 ## 服务
 
@@ -34,30 +34,30 @@ weight: 999
 ## 指南
 
 ### 配置指南
-- [服务器配置](/guides/configuration/server/)
-- [认证设置](/guides/configuration/authentication/)
-- [服务配置](/guides/configuration/services/)
+- [服务器配置](/zh/guides/configuration/server/)
+- [认证设置](/zh/guides/configuration/authentication/)
+- [服务配置](/zh/guides/configuration/services/)
 
 ### 部署指南
-- [Kubernetes 部署](/guides/deployment/kubernetes/)
-- [Docker 部署](/guides/deployment/docker/)
-- [Helm 部署](/guides/deployment/helm/)
+- [Kubernetes 部署](/zh/guides/deployment/kubernetes/)
+- [Docker 部署](/zh/guides/deployment/docker/)
+- [Helm 部署](/zh/guides/deployment/helm/)
 
 ### 安全指南
-- [安全最佳实践](/guides/security/best-practices/)
-- [认证方法](/guides/security/authentication/)
-- [密钥管理](/guides/security/secrets/)
+- [安全最佳实践](/zh/guides/security/best-practices/)
+- [认证方法](/zh/guides/security/authentication/)
+- [密钥管理](/zh/guides/security/secrets/)
 
 ### 性能指南
-- [性能优化](/guides/performance/optimization/)
-- [基准测试](/guides/performance/benchmarking/)
+- [性能优化](/zh/guides/performance/optimization/)
+- [基准测试](/zh/guides/performance/benchmarking/)
 
 ## 概念
 
-- [架构概述](/concepts/architecture/overview/)
-- [架构组件](/concepts/architecture/components/)
-- [数据流](/concepts/architecture/dataflow/)
-- [功能概述](/concepts/features/)
+- [架构概述](/zh/concepts/architecture/overview/)
+- [架构组件](/zh/concepts/architecture/components/)
+- [数据流](/zh/concepts/architecture/dataflow/)
+- [功能概述](/zh/docs/tools/)
 
 ## 工具
 

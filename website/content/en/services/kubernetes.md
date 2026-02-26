@@ -134,6 +134,6 @@ Manage secrets, RBAC configurations, and other security-related Kubernetes resou
 
 ## Next Steps
 
-- [Helm Service](/en/services/helm/) for package management
-- [Configuration Guides](/en/guides/configuration/) for detailed setup
-- [Security Best Practices](/en/guides/security/) for securing your cluster
+- [Helm Service](/services/helm/) for package management
+- [Configuration Guides](/docs/configuration/) for detailed setup
+- [Security Best Practices](/docs/security/) for securing your cluster

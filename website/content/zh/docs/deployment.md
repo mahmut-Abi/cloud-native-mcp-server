@@ -1,8 +1,12 @@
 ---
-title: "Deployment Guide"
+title: "部署指南"
+weight: 40
+description: "Docker、Kubernetes 与 Helm 的部署方法与生产建议。"
 ---
 
-# Deployment Guide
+# 部署指南
+
+> 说明：当前页面内容以英文为主，中文完整版正在补充中。
 
 This guide covers various deployment strategies and best practices for Cloud Native MCP Server.
 

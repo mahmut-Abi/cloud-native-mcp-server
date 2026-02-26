@@ -11,7 +11,7 @@ This page provides a comprehensive overview of all pages available on the Cloud 
 
 - [Home](/)
 - [Getting Started](/getting-started/)
-- [Architecture Overview](/concepts/architecture/overview/)
+- [Architecture Overview](/docs/architecture/)
 
 ## Services
 
@@ -34,30 +34,30 @@ This page provides a comprehensive overview of all pages available on the Cloud 
 ## Guides
 
 ### Configuration Guides
-- [Server Configuration](/guides/configuration/server/)
-- [Authentication Setup](/guides/configuration/authentication/)
-- [Service Configuration](/guides/configuration/services/)
+- [Server Configuration](/docs/configuration/)
+- [Authentication Setup](/docs/configuration/)
+- [Service Configuration](/docs/configuration/)
 
 ### Deployment Guides
-- [Kubernetes Deployment](/guides/deployment/kubernetes/)
-- [Docker Deployment](/guides/deployment/docker/)
-- [Helm Deployment](/guides/deployment/helm/)
+- [Kubernetes Deployment](/docs/deployment/)
+- [Docker Deployment](/docs/deployment/)
+- [Helm Deployment](/docs/deployment/)
 
 ### Security Guides
-- [Security Best Practices](/guides/security/best-practices/)
-- [Authentication Methods](/guides/security/authentication/)
-- [Secrets Management](/guides/security/secrets/)
+- [Security Best Practices](/docs/security/)
+- [Authentication Methods](/docs/security/)
+- [Secrets Management](/docs/security/)
 
 ### Performance Guides
-- [Performance Optimization](/guides/performance/optimization/)
-- [Benchmarking](/guides/performance/benchmarking/)
+- [Performance Optimization](/docs/performance/)
+- [Benchmarking](/docs/performance/)
 
 ## Concepts
 
-- [Architecture Overview](/concepts/architecture/overview/)
-- [Architecture Components](/concepts/architecture/components/)
-- [Data Flow](/concepts/architecture/dataflow/)
-- [Features Overview](/concepts/features/)
+- [Architecture Overview](/docs/architecture/)
+- [Architecture Components](/docs/architecture/)
+- [Data Flow](/docs/architecture/)
+- [Features Overview](/docs/tools/)
 
 ## Tools
 

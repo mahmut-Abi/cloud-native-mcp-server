@@ -1,8 +1,12 @@
 ---
-title: "Configuration Guide"
+title: "配置指南"
+weight: 30
+description: "服务器、服务、认证与日志等核心配置项说明。"
 ---
 
-# Configuration Guide
+# 配置指南
+
+> 说明：当前页面内容以英文为主，中文完整版正在补充中。
 
 This guide covers all configuration options for Cloud Native MCP Server.
 

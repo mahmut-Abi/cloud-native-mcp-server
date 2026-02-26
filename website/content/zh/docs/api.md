@@ -1,9 +1,12 @@
 ---
-title: "API Documentation"
-weight: 10
+title: "API 文档"
+weight: 80
+description: "Cloud Native MCP Server 的 MCP API 端点、认证方式与调用示例。"
 ---
 
-# API Documentation
+# API 文档
+
+> 说明：当前页面内容以英文为主，中文完整版正在补充中。
 
 The Cloud Native MCP Server provides a comprehensive API for interacting with all integrated services through the Model Context Protocol (MCP).
 
@@ -301,5 +304,5 @@ print(result)
 ## Next Steps
 
 - [Tools Reference](/docs/tools/) for detailed tool documentation
-- [Configuration Guides](/guides/configuration/) for setup instructions
-- [Security Best Practices](/guides/security/) for securing your API
+- [配置指南](/zh/guides/configuration/) 用于完成服务接入配置
+- [安全指南](/zh/guides/security/) 用于加固 API 调用链路

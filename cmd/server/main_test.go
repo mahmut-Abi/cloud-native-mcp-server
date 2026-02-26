@@ -7,6 +7,7 @@ import (
 	"time"
 
 	"github.com/mahmut-Abi/cloud-native-mcp-server/internal/config"
+	"github.com/sirupsen/logrus"
 )
 
 func TestParseFlags(t *testing.T) {
@@ -43,6 +44,9 @@ func TestParseFlags(t *testing.T) {
 
 	if config.IdleTimeout != 60*time.Second {
 		t.Errorf("Expected default idle timeout 60s, got %v", config.IdleTimeout)
+	}
+	if config.LogJSON {
+		t.Error("Expected default LogJSON false")
 	}
 }
 
@@ -190,6 +194,9 @@ func TestApplyAppConfigWithValidConfig(t *testing.T) {
 	if cliConfig.LogLevel != "debug" {
 		t.Errorf("Expected log level to be updated to 'debug', got '%s'", cliConfig.LogLevel)
 	}
+	if !cliConfig.LogJSON {
+		t.Error("Expected LogJSON to be updated to true")
+	}
 
 	if cliConfig.Mode != "sse" {
 		t.Errorf("Expected mode to be updated to 'sse', got '%s'", cliConfig.Mode)
@@ -283,6 +290,22 @@ func TestApplyAppConfigCLITakesPrecedence(t *testing.T) {
 
 	if cliConfig.Mode != "stdio" {
 		t.Errorf("CLI mode should take precedence, expected 'stdio', got '%s'", cliConfig.Mode)
+	}
+}
+
+func TestSetupLoggingWithJSONFormat(t *testing.T) {
+	setupLogging("info", true)
+
+	if _, ok := logrus.StandardLogger().Formatter.(*logrus.JSONFormatter); !ok {
+		t.Fatalf("expected JSON formatter when jsonFormat=true, got %T", logrus.StandardLogger().Formatter)
+	}
+}
+
+func TestSetupLoggingWithTextFormat(t *testing.T) {
+	setupLogging("info", false)
+
+	if _, ok := logrus.StandardLogger().Formatter.(*logrus.TextFormatter); !ok {
+		t.Fatalf("expected Text formatter when jsonFormat=false, got %T", logrus.StandardLogger().Formatter)
 	}
 }
 

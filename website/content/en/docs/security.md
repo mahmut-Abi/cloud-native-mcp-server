@@ -1,5 +1,7 @@
 ---
 title: "Security Guide"
+weight: 50
+description: "Authentication, secrets handling, audit logging, and request security hardening."
 ---
 
 # Security Guide

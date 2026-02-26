@@ -1,6 +1,7 @@
 ---
 title: "Tools Reference"
-weight: 5
+weight: 70
+description: "Capability catalog for all integrated services and 220+ MCP tools."
 ---
 
 # Tools Reference
@@ -563,7 +564,7 @@ Error response format:
 
 Now that you've explored all 220+ tools, you might want to:
 
-- [Configure authentication and security settings](/en/guides/security/)
-- [Learn about performance optimization](/en/guides/performance/)
-- [Review the complete getting started guide](/en/getting-started/)
-- [Explore service-specific configurations](/en/guides/configuration/)
+- [Configure authentication and security settings](/docs/security/)
+- [Learn about performance optimization](/docs/performance/)
+- [Review the complete getting started guide](/getting-started/)
+- [Explore service-specific configurations](/docs/configuration/)
