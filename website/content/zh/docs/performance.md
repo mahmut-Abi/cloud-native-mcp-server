@@ -718,7 +718,7 @@ Instead of:
 
 ## Related Documentation
 
-- [Complete Tools Reference](/docs/tools/)
-- [Configuration Guide](/docs/configuration/)
-- [Deployment Guide](/docs/deployment/)
-- [Architecture Guide](/docs/architecture/)
+- [Complete Tools Reference](/zh/docs/tools/)
+- [Configuration Guide](/zh/docs/configuration/)
+- [Deployment Guide](/zh/docs/deployment/)
+- [Architecture Guide](/zh/docs/architecture/)

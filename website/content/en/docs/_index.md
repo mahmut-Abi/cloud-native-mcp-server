@@ -12,6 +12,8 @@ This section is the primary reference for deploying and operating Cloud Native M
 ## Read by Goal
 
 - [Install and run your first instance]({{< relref "/getting-started/_index.md" >}})
+- [Review first-time setup FAQ]({{< relref "/getting-started/faq.md" >}})
+- [Use the troubleshooting playbook]({{< relref "/getting-started/troubleshooting.md" >}})
 - [Understand architecture and request flow]({{< relref "architecture.md" >}})
 - [Configure server, auth, and integrations]({{< relref "configuration.md" >}})
 - [Deploy in production environments]({{< relref "deployment.md" >}})
@@ -27,17 +29,22 @@ docker run -d \
   --name cloud-native-mcp-server \
   -p 8080:8080 \
   -v ~/.kube:/root/.kube:ro \
+  -e MCP_AUTH_ENABLED=true \
+  -e MCP_AUTH_MODE=apikey \
+  -e MCP_AUTH_API_KEY='ChangeMe-Strong-Key-123!' \
   mahmutabi/cloud-native-mcp-server:latest
 ```
 
 Then open:
 
 - `SSE`: `http://localhost:8080/api/aggregate/sse`
-- `HTTP`: `http://localhost:8080/api/aggregate/http`
+- `Streamable HTTP`: `http://localhost:8080/api/aggregate/streamable-http`
 
 ## Reference Structure
 
 - `Getting Started`: installation and first-call flow
+- `FAQ`: high-frequency setup and rollout questions
+- `Troubleshooting`: practical diagnosis and recovery steps
 - `Architecture`: system model and component boundaries
 - `Configuration`: all runtime and integration options
 - `Deployment`: Docker, Kubernetes, and Helm production patterns

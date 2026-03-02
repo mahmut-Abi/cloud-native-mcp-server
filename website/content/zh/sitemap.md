@@ -10,7 +10,7 @@ weight: 999
 ## 主要页面
 
 - [首页](/)
-- [快速开始](/getting-started/)
+- [快速开始](/zh/getting-started/)
 - [架构概述](/zh/concepts/architecture/overview/)
 
 ## 服务
@@ -28,8 +28,8 @@ weight: 999
 
 ## 文档
 
-- [工具参考](/docs/tools/)
-- [API 文档](/docs/api/)
+- [工具参考](/zh/docs/tools/)
+- [API 文档](/zh/docs/api/)
 
 ## 指南
 
@@ -61,13 +61,13 @@ weight: 999
 
 ## 工具
 
-- [Kubernetes 工具](/docs/tools/#kubernetes-tools-28)
-- [Helm 工具](/docs/tools/#helm-tools-31)
-- [Grafana 工具](/docs/tools/#grafana-tools-36)
-- [Prometheus 工具](/docs/tools/#prometheus-tools-20)
-- [Kibana 工具](/docs/tools/#kibana-tools-52)
-- [Elasticsearch 工具](/docs/tools/#elasticsearch-tools-14)
-- [Alertmanager 工具](/docs/tools/#alertmanager-tools-15)
-- [Jaeger 工具](/docs/tools/#jaeger-tools-8)
-- [OpenTelemetry 工具](/docs/tools/#opentelemetry-tools-9)
-- [实用工具](/docs/tools/#utilities-tools-6)
+- [Kubernetes 工具](/zh/docs/tools/#kubernetes-tools-28)
+- [Helm 工具](/zh/docs/tools/#helm-tools-31)
+- [Grafana 工具](/zh/docs/tools/#grafana-tools-36)
+- [Prometheus 工具](/zh/docs/tools/#prometheus-tools-20)
+- [Kibana 工具](/zh/docs/tools/#kibana-tools-52)
+- [Elasticsearch 工具](/zh/docs/tools/#elasticsearch-tools-14)
+- [Alertmanager 工具](/zh/docs/tools/#alertmanager-tools-15)
+- [Jaeger 工具](/zh/docs/tools/#jaeger-tools-8)
+- [OpenTelemetry 工具](/zh/docs/tools/#opentelemetry-tools-9)
+- [实用工具](/zh/docs/tools/#utilities-tools-6)

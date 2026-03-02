@@ -95,6 +95,10 @@
 .hero-buttons {
   position: relative;
   z-index: 2;
+  display: flex;
+  gap: 0.75rem;
+  justify-content: center;
+  flex-wrap: wrap;
 }
 
 .cta-button {
@@ -142,6 +146,13 @@
   position: relative;
   z-index: 2;
   transition: color 0.3s ease;
+}
+
+.cta-button:focus-visible,
+a:focus-visible,
+button:focus-visible {
+  outline: 3px solid rgba(11, 114, 133, 0.35);
+  outline-offset: 2px;
 }
 
 .cta-button.transparent {
@@ -267,6 +278,76 @@
   margin-left: 0.5rem;
 }
 
+/* Home page content blocks */
+.value-grid,
+.usecase-grid,
+.ops-grid,
+.resource-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+  gap: 1rem;
+  margin: 1.5rem 0 2rem;
+}
+
+.value-card,
+.usecase-card,
+.ops-card,
+.resource-card {
+  background: var(--card-bg);
+  border: 1px solid var(--border-color);
+  border-radius: 12px;
+  padding: 1.2rem 1.25rem;
+  box-shadow: 0 4px 10px rgba(15, 23, 42, 0.06);
+  transition: transform 0.25s ease, box-shadow 0.25s ease;
+}
+
+.value-card:hover,
+.usecase-card:hover,
+.ops-card:hover,
+.resource-card:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 10px 24px rgba(15, 23, 42, 0.12);
+}
+
+.value-card h3,
+.usecase-card h3,
+.ops-card h3,
+.resource-card h3 {
+  margin-top: 0;
+  margin-bottom: 0.6rem;
+  color: var(--primary-color);
+  border-bottom: none;
+  padding-bottom: 0;
+  font-size: 1.2rem;
+}
+
+.ops-card ul {
+  margin: 0.7rem 0 0;
+  padding-left: 1.1rem;
+}
+
+.ops-card li {
+  margin-bottom: 0.4rem;
+}
+
+.resource-link {
+  display: inline-flex;
+  align-items: center;
+  margin-top: 0.4rem;
+  font-weight: 600;
+  text-decoration: none;
+}
+
+.resource-link::after {
+  content: "->";
+  margin-left: 0.35rem;
+  transition: transform 0.2s ease;
+}
+
+.resource-link:hover::after {
+  transform: translateX(2px);
+}
+
 /* Code Blocks */
 pre {
   background: #2d3748;
@@ -376,6 +457,13 @@ tr:hover td {
   }
   
   .service-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .value-grid,
+  .usecase-grid,
+  .ops-grid,
+  .resource-grid {
     grid-template-columns: 1fr;
   }
 
@@ -685,18 +773,37 @@ html {
 
 [data-theme="dark"] .feature-card,
 [data-theme="dark"] .stat-item,
-[data-theme="dark"] .service-card {
+[data-theme="dark"] .service-card,
+[data-theme="dark"] .value-card,
+[data-theme="dark"] .usecase-card,
+[data-theme="dark"] .ops-card,
+[data-theme="dark"] .resource-card {
   background: var(--card-bg);
   color: var(--text-light);
 }
 
 [data-theme="dark"] .stat-label,
-[data-theme="dark"] .service-card h3 {
+[data-theme="dark"] .service-card h3,
+[data-theme="dark"] .value-card h3,
+[data-theme="dark"] .usecase-card h3,
+[data-theme="dark"] .ops-card h3,
+[data-theme="dark"] .resource-card h3 {
   color: var(--text-light);
 }
 
 [data-theme="dark"] pre {
   background: var(--card-bg);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  html {
+    scroll-behavior: auto;
+  }
+
+  *, *::before, *::after {
+    animation: none !important;
+    transition: none !important;
+  }
 }
 
 [data-theme="dark"] table {
@@ -738,17 +845,4 @@ html {
 
 [data-theme="dark"] ::-webkit-scrollbar-thumb {
   background: var(--primary-color);
-}
-
-@media (prefers-reduced-motion: reduce) {
-  *,
-  *::before,
-  *::after {
-    animation: none !important;
-    transition: none !important;
-  }
-
-  html {
-    scroll-behavior: auto;
-  }
 }

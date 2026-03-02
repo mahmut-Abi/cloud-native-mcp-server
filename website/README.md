@@ -35,6 +35,21 @@ hugo --minify
 
 构建后的文件将输出到 `public/` 目录。
 
+### 网站质量检查
+
+在仓库根目录执行：
+
+```bash
+# 内容一致性检查（旧变量、旧端点、跨语言链接等）
+make website-lint
+
+# 构建检查
+make website-build
+
+# 一键执行 lint + build
+make website-check
+```
+
 ## 项目结构
 
 ```

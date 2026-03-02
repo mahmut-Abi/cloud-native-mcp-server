@@ -124,6 +124,23 @@ sse-smoke:
 	@echo "Tip: set API_KEY=<key> for auth-enabled deployments."
 	@scripts/sse_smoke_test.sh $${BASE_URL:-http://127.0.0.1:8080}
 
+## website-lint: Run website content consistency checks
+.PHONY: website-lint
+website-lint:
+	@echo "Running website content lint..."
+	@scripts/website_content_lint.sh
+
+## website-build: Build website with Hugo
+.PHONY: website-build
+website-build:
+	@echo "Building website..."
+	@cd website && hugo --minify
+
+## website-check: Run website lint and build
+.PHONY: website-check
+website-check: website-lint website-build
+	@echo "Website checks passed!"
+
 ## test-coverage: Run tests with coverage
 .PHONY: test-coverage
 test-coverage:

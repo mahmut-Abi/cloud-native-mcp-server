@@ -852,6 +852,6 @@ echo "所有检查通过！"
 
 ## 相关文档
 
-- [完整工具参考](/docs/tools/)
-- [配置指南](/docs/configuration/)
-- [安全指南](/docs/security/)
+- [完整工具参考](/zh/docs/tools/)
+- [配置指南](/zh/docs/configuration/)
+- [安全指南](/zh/docs/security/)

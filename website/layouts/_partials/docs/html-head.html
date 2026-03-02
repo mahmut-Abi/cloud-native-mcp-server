@@ -3,6 +3,10 @@ Customized for Cloud Native MCP Server, based on Hugo Book theme
 {{ "-->" | safeHTML }}
 
 {{- $desc := (or .Description .Summary .Site.Params.description) | plainify | htmlUnescape -}}
+{{- $desc = strings.TrimSpace $desc -}}
+{{- if gt (len $desc) 180 -}}
+  {{- $desc = printf "%.177s..." $desc -}}
+{{- end -}}
 {{- $keywords := (or .Params.keywords .Site.Params.keywords) -}}
 {{- $robots := (or .Params.robots "index,follow") -}}
 

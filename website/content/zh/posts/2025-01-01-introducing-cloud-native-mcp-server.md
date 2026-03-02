@@ -1,6 +1,7 @@
 ---
 title: "介绍 Cloud Native MCP Server：终极基础设施管理解决方案"
 date: 2025-01-01T10:00:00Z
+description: "Cloud Native MCP Server 的整体介绍，涵盖集成服务、MCP 能力与生产化设计思路。"
 tags: ["公告", "概述", "mcp"]
 ---
 

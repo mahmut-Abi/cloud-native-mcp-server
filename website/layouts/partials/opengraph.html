@@ -1,0 +1,66 @@
+{{- $title := partial "docs/html-head-title" . | plainify | htmlUnescape -}}
+{{- $desc := (or .Description .Summary .Site.Params.description) | plainify | htmlUnescape -}}
+{{- $desc = strings.TrimSpace $desc -}}
+{{- if gt (len $desc) 190 -}}
+  {{- $desc = printf "%.187s..." $desc -}}
+{{- end -}}
+
+{{- $lang := default .Site.LanguageCode .Site.Language.Lang -}}
+{{- $locale := "en_US" -}}
+{{- if hasPrefix $lang "zh" -}}
+  {{- $locale = "zh_CN" -}}
+{{- end -}}
+
+{{- $img := "" -}}
+{{- if .Params.images -}}
+  {{- $img = index .Params.images 0 -}}
+{{- else if .Params.image -}}
+  {{- $img = .Params.image -}}
+{{- else -}}
+  {{- $img = or .Site.Params.ogImage "images/og-cover.svg" -}}
+{{- end -}}
+{{- $imgURL := $img -}}
+{{- if not (or (hasPrefix $imgURL "http://") (hasPrefix $imgURL "https://")) -}}
+  {{- $imgURL = absURL $imgURL -}}
+{{- end -}}
+
+{{- $ogType := "website" -}}
+{{- if .IsPage -}}
+  {{- $ogType = "article" -}}
+{{- end -}}
+
+<meta property="og:site_name" content="{{ .Site.Title }}">
+<meta property="og:type" content="{{ $ogType }}">
+<meta property="og:title" content="{{ $title }}">
+<meta property="og:description" content="{{ $desc }}">
+<meta property="og:url" content="{{ .Permalink }}">
+<meta property="og:locale" content="{{ $locale }}">
+<meta property="og:image" content="{{ $imgURL }}">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+
+{{- if .IsPage -}}
+{{- if not .Date.IsZero -}}
+<meta property="article:published_time" content="{{ .Date.Format "2006-01-02T15:04:05Z07:00" }}">
+{{- end -}}
+<meta property="article:modified_time" content="{{ .Lastmod.Format "2006-01-02T15:04:05Z07:00" }}">
+{{- with .Params.tags -}}
+{{- range first 8 . -}}
+<meta property="article:tag" content="{{ . }}">
+{{- end -}}
+{{- end -}}
+{{- end -}}
+
+{{- range .Translations -}}
+  {{- $altLang := default .Site.LanguageCode .Site.Language.Lang -}}
+  {{- $altLocale := "en_US" -}}
+  {{- if hasPrefix $altLang "zh" -}}
+    {{- $altLocale = "zh_CN" -}}
+  {{- end -}}
+<meta property="og:locale:alternate" content="{{ $altLocale }}">
+{{- end -}}
+
+<meta name="twitter:card" content="{{ or .Site.Params.twitterCard "summary_large_image" }}">
+<meta name="twitter:title" content="{{ $title }}">
+<meta name="twitter:description" content="{{ $desc }}">
+<meta name="twitter:image" content="{{ $imgURL }}">

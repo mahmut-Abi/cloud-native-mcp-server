@@ -12,6 +12,8 @@ bookCollapseSection: true
 ## 按目标阅读
 
 - [完成首次安装并启动]({{< relref "/getting-started/_index.md" >}})
+- [查看首次接入 FAQ]({{< relref "/getting-started/faq.md" >}})
+- [使用故障排除手册]({{< relref "/getting-started/troubleshooting.md" >}})
 - [理解系统架构与请求链路]({{< relref "architecture.md" >}})
 - [配置服务、认证与运行参数]({{< relref "configuration.md" >}})
 - [执行生产环境部署]({{< relref "deployment.md" >}})
@@ -27,17 +29,22 @@ docker run -d \
   --name cloud-native-mcp-server \
   -p 8080:8080 \
   -v ~/.kube:/root/.kube:ro \
+  -e MCP_AUTH_ENABLED=true \
+  -e MCP_AUTH_MODE=apikey \
+  -e MCP_AUTH_API_KEY='ChangeMe-Strong-Key-123!' \
   mahmutabi/cloud-native-mcp-server:latest
 ```
 
 启动后可访问：
 
 - `SSE`: `http://localhost:8080/api/aggregate/sse`
-- `HTTP`: `http://localhost:8080/api/aggregate/http`
+- `Streamable HTTP`: `http://localhost:8080/api/aggregate/streamable-http`
 
 ## 文档结构
 
 - `快速开始`: 安装流程与第一条 MCP 调用
+- `FAQ`: 首次接入与上线常见问题
+- `故障排除`: 启动、认证、链路和服务异常排查
 - `架构指南`: 组件职责与数据流模型
 - `配置指南`: 全量配置项与服务集成参数
 - `部署指南`: Docker、Kubernetes、Helm 生产部署策略

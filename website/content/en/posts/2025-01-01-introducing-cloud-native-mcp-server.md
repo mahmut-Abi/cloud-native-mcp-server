@@ -1,6 +1,7 @@
 ---
 title: "Introducing Cloud Native MCP Server: The Ultimate Infrastructure Management Solution"
 date: 2025-01-01T10:00:00Z
+description: "Overview of Cloud Native MCP Server, including integrated services, MCP capabilities, and production-focused architecture."
 tags: ["announcement", "overview", "mcp"]
 ---
 

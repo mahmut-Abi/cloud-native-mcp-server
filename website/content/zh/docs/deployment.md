@@ -856,6 +856,6 @@ echo "All checks passed!"
 
 ## Related Documentation
 
-- [Complete Tools Reference](/docs/tools/)
-- [Configuration Guide](/docs/configuration/)
-- [Security Guide](/docs/security/)
+- [Complete Tools Reference](/zh/docs/tools/)
+- [Configuration Guide](/zh/docs/configuration/)
+- [Security Guide](/zh/docs/security/)

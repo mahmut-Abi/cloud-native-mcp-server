@@ -686,7 +686,7 @@ pods, err := k8sClient.ListPods(ctx, namespace)
 
 ## 相关文档
 
-- [完整工具参考](/docs/tools/)
-- [配置指南](/docs/configuration/)
-- [部署指南](/docs/deployment/)
-- [性能指南](/docs/performance/)
+- [完整工具参考](/zh/docs/tools/)
+- [配置指南](/zh/docs/configuration/)
+- [部署指南](/zh/docs/deployment/)
+- [性能指南](/zh/docs/performance/)

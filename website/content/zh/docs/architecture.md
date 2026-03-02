@@ -690,7 +690,7 @@ pods, err := k8sClient.ListPods(ctx, namespace)
 
 ## Related Documentation
 
-- [Complete Tools Reference](/docs/tools/)
-- [Configuration Guide](/docs/configuration/)
-- [Deployment Guide](/docs/deployment/)
-- [Performance Guide](/docs/performance/)
+- [Complete Tools Reference](/zh/docs/tools/)
+- [Configuration Guide](/zh/docs/configuration/)
+- [Deployment Guide](/zh/docs/deployment/)
+- [Performance Guide](/zh/docs/performance/)

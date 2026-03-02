@@ -1,308 +1,204 @@
 ---
 title: "API 文档"
 weight: 80
-description: "Cloud Native MCP Server 的 MCP API 端点、认证方式与调用示例。"
+description: "Cloud Native MCP Server 的传输端点、认证方式、运行时接口与接入示例。"
 ---
 
 # API 文档
 
-> 说明：当前页面内容以英文为主，中文完整版正在补充中。
+本页面描述 Cloud Native MCP Server 当前版本实际暴露的运行时接口。
 
-The Cloud Native MCP Server provides a comprehensive API for interacting with all integrated services through the Model Context Protocol (MCP).
+## 基础地址
 
-## Base URL
-
-```
-http://localhost:8080 (default)
+```text
+http://localhost:8080
 ```
 
-## Authentication
+## 运行模式与端点
 
-The server supports multiple authentication methods:
+Cloud Native MCP Server 支持四种运行模式：
+
+| 模式 | 典型用途 | 聚合入口 |
+| --- | --- | --- |
+| `sse` | MCP 客户端兼容性优先 | `/api/aggregate/sse` |
+| `streamable-http` | 推荐的现代 MCP 传输方式 | `/api/aggregate/streamable-http` |
+| `http` | 历史 message 端点兼容 | `/api/aggregate/sse/message` |
+| `stdio` | 本地运行时集成 | stdin/stdout |
+
+服务级端点模式：
+
+- SSE：`/api/<service>/sse`
+- Streamable HTTP：`/api/<service>/streamable-http`
+
+常见 service 名称包括 `kubernetes`、`helm`、`grafana`、`prometheus`、`kibana`、`elasticsearch`、`alertmanager`、`jaeger`、`opentelemetry`、`utilities`、`aggregate`。
+
+> 说明：当前服务不提供旧版 `/v1/mcp/*` 风格接口。
+
+---
+
+## 认证方式
+
+运行时启用认证示例：
+
+```bash
+export MCP_AUTH_ENABLED=true
+export MCP_AUTH_MODE=apikey
+export MCP_AUTH_API_KEY='ChangeMe-Strong-Key-123!'
+```
+
+支持模式：
+
+- `apikey`
+- `bearer`
+- `basic`
 
 ### API Key
+
+建议优先使用 `X-Api-Key` 请求头，也支持 `api_key` 查询参数。
+
 ```bash
-curl -X POST http://localhost:8080/v1/mcp/list-tools \
-  -H "Authorization: Bearer YOUR_API_KEY" \
-  -H "Content-Type: application/json"
+curl -sS -N \
+  -H "X-Api-Key: ChangeMe-Strong-Key-123!" \
+  http://127.0.0.1:8080/api/aggregate/sse
 ```
 
-### Bearer Token (JWT)
+### Bearer Token
+
 ```bash
-curl -X POST http://localhost:8080/v1/mcp/list-tools \
-  -H "Authorization: Bearer YOUR_JWT_TOKEN" \
-  -H "Content-Type: application/json"
+export MCP_AUTH_MODE=bearer
+export MCP_AUTH_BEARER_TOKEN='your-jwt-or-token'
+
+curl -sS -N \
+  -H "Authorization: Bearer your-jwt-or-token" \
+  http://127.0.0.1:8080/api/aggregate/sse
 ```
 
 ### Basic Auth
-```bash
-curl -X POST http://localhost:8080/v1/mcp/list-tools \
-  -u "username:password" \
-  -H "Content-Type: application/json"
-```
-
-## Core Endpoints
-
-### MCP Endpoints
-
-#### List Available Tools
-```
-POST /v1/mcp/list-tools
-```
-
-Get a list of all available tools across all services.
-
-**Request:**
-```json
-{
-  "jsonrpc": "2.0",
-  "id": 1,
-  "method": "mcp/list-tools",
-  "params": {}
-}
-```
-
-**Response:**
-```json
-{
-  "jsonrpc": "2.0",
-  "id": 1,
-  "result": {
-    "tools": [
-      {
-        "name": "kubernetes-get-pods",
-        "description": "Get pods in a namespace",
-        "input_schema": {
-          "type": "object",
-          "properties": {
-            "namespace": {
-              "type": "string",
-              "description": "Kubernetes namespace"
-            }
-          }
-        }
-      }
-    ]
-  }
-}
-```
-
-#### Execute Tool
-```
-POST /v1/mcp/call-tool
-```
-
-Execute a specific tool with given parameters.
-
-**Request:**
-```json
-{
-  "jsonrpc": "2.0",
-  "id": 1,
-  "method": "tools/call",
-  "params": {
-    "name": "kubernetes-get-pods",
-    "arguments": {
-      "namespace": "default"
-    }
-  }
-}
-```
-
-**Response:**
-```json
-{
-  "jsonrpc": "2.0",
-  "id": 1,
-  "result": {
-    "success": true,
-    "data": {
-      "pods": [
-        {
-          "name": "my-app-12345",
-          "status": "Running",
-          "restarts": 0
-        }
-      ]
-    }
-  }
-}
-```
-
-### Health Check
-```
-GET /health
-```
-
-Check the health status of the server.
-
-**Response:**
-```json
-{
-  "status": "healthy",
-  "timestamp": "2023-10-01T12:00:00Z",
-  "services": {
-    "kubernetes": "connected",
-    "prometheus": "connected",
-    "grafana": "connected"
-  }
-}
-```
-
-### Server Info
-```
-GET /info
-```
-
-Get server information and version details.
-
-**Response:**
-```json
-{
-  "version": "1.0.0",
-  "build_date": "2023-10-01T12:00:00Z",
-  "go_version": "go1.21",
-  "services_count": 10,
-  "tools_count": 220
-}
-```
-
-## Supported Protocols
-
-The server supports multiple communication protocols:
-
-### SSE (Server-Sent Events) - Default
-```
-POST /api/aggregate/sse
-```
-
-### HTTP
-```
-POST /api/aggregate/http
-```
-
-### Stdio
-Available when running in stdio mode.
-
-## Error Handling
-
-The API uses standard JSON-RPC 2.0 error format:
-
-```json
-{
-  "jsonrpc": "2.0",
-  "id": 1,
-  "error": {
-    "code": -32602,
-    "message": "Invalid params",
-    "data": {
-      "details": "namespace is required"
-    }
-  }
-}
-```
-
-### Common Error Codes
-
-- `-32700`: Parse error
-- `-32600`: Invalid Request
-- `-32601`: Method not found
-- `-32602`: Invalid params
-- `-32603`: Internal error
-- `401`: Unauthorized
-- `403`: Forbidden
-- `404`: Not found
-- `429`: Rate limited
-- `500`: Internal server error
-
-## Rate Limiting
-
-The server implements rate limiting to prevent abuse:
-
-- **Requests per minute**: 1000 (configurable)
-- **Burst limit**: 100 (configurable)
-
-## Configuration Options
-
-### Server Configuration
-
-You can configure the server with the following environment variables:
-
-- `MCP_SERVER_ADDR`: Server address (default: `0.0.0.0:8080`)
-- `MCP_SERVER_MODE`: Communication mode (sse, http, stdio) (default: `sse`)
-- `MCP_SERVER_API_KEY`: API key for authentication
-- `MCP_SERVER_BEARER_TOKEN`: JWT token for authentication
-- `MCP_SERVER_RATE_LIMIT`: Requests per minute (default: `1000`)
-- `MCP_SERVER_BURST_LIMIT`: Burst limit (default: `100`)
-
-### Service Configuration
-
-Each integrated service can be configured with specific environment variables:
-
-- **Kubernetes**: `KUBECONFIG` or in-cluster configuration
-- **Prometheus**: `MCP_PROMETHEUS_URL`
-- **Grafana**: `MCP_GRAFANA_URL`, `MCP_GRAFANA_API_KEY`
-- **Elasticsearch**: `MCP_ELASTICSEARCH_URL`
-- **Alertmanager**: `MCP_ALERTMANAGER_URL`
-
-## Examples
-
-### Using with cURL
 
 ```bash
-curl -X POST http://localhost:8080/v1/mcp/call-tool \
-  -H "Authorization: Bearer your-api-key" \
+export MCP_AUTH_MODE=basic
+export MCP_AUTH_USERNAME='admin'
+export MCP_AUTH_PASSWORD='strong-password'
+
+curl -sS -N -u "admin:strong-password" \
+  http://127.0.0.1:8080/api/aggregate/sse
+```
+
+---
+
+## SSE 接入流程
+
+在 `sse` 模式下，典型流程如下：
+
+1. 连接 `/api/aggregate/sse` 建立事件流。
+2. 从返回事件中获取 message endpoint。
+3. 向 message endpoint 发送 JSON-RPC 请求（例如 `initialize`）。
+
+推荐使用内置自检命令验证链路：
+
+```bash
+make sse-smoke BASE_URL=http://127.0.0.1:8080
+```
+
+若不在仓库根目录：
+
+```bash
+/path/to/cloud-native-mcp-server/scripts/sse_smoke_test.sh http://127.0.0.1:8080
+```
+
+---
+
+## Streamable HTTP 示例
+
+在 `streamable-http` 模式下，可直接使用聚合端点：
+
+```bash
+curl -sS -X POST \
+  http://127.0.0.1:8080/api/aggregate/streamable-http \
   -H "Content-Type: application/json" \
   -d '{
     "jsonrpc": "2.0",
     "id": 1,
-    "method": "tools/call",
+    "method": "initialize",
     "params": {
-      "name": "kubernetes-get-pods",
-      "arguments": {
-        "namespace": "default"
+      "protocolVersion": "2024-11-05",
+      "clientInfo": {
+        "name": "manual-client",
+        "version": "1.0.0"
       }
     }
   }'
 ```
 
-### Using with Python
+生产接入建议优先使用 MCP SDK/客户端实现，避免手写协议细节。
 
-```python
-import requests
-import json
+---
 
-def call_tool(tool_name, arguments):
-    headers = {
-        "Authorization": "Bearer YOUR_API_KEY",
-        "Content-Type": "application/json"
-    }
-    
-    payload = {
-        "jsonrpc": "2.0",
-        "id": 1,
-        "method": "tools/call",
-        "params": {
-            "name": tool_name,
-            "arguments": arguments
-        }
-    }
-    
-    response = requests.post(
-        "http://localhost:8080/v1/mcp/call-tool",
-        headers=headers,
-        data=json.dumps(payload)
-    )
-    
-    return response.json()
+## 运行时接口
 
-# Example usage
-result = call_tool("kubernetes-get-pods", {"namespace": "default"})
-print(result)
-```
+| 端点 | 说明 |
+| --- | --- |
+| `GET /health` | 服务健康检查 |
+| `GET /metrics` | Prometheus 指标接口（启用认证后可能需要鉴权） |
+| `GET /api/openapi.json` | HTTP 端点 OpenAPI Schema |
+| `GET /api/docs` | Swagger UI 页面 |
+| `GET /api/audit/logs` | 审计日志查询接口（启用审计后可用） |
+| `GET /api/audit/stats` | 审计统计接口（启用审计后可用） |
 
-## Next Steps
+---
 
-- [Tools Reference](/docs/tools/) for detailed tool documentation
-- [配置指南](/zh/guides/configuration/) 用于完成服务接入配置
-- [安全指南](/zh/guides/security/) 用于加固 API 调用链路
+## 关键环境变量
+
+### 服务与传输
+
+- `MCP_MODE`（`sse`、`streamable-http`、`http`、`stdio`）
+- `MCP_ADDR`
+- `MCP_READ_TIMEOUT`
+- `MCP_WRITE_TIMEOUT`
+- `MCP_IDLE_TIMEOUT`
+
+### 认证
+
+- `MCP_AUTH_ENABLED`
+- `MCP_AUTH_MODE`
+- `MCP_AUTH_API_KEY`
+- `MCP_AUTH_BEARER_TOKEN`
+- `MCP_AUTH_USERNAME`
+- `MCP_AUTH_PASSWORD`
+
+### 限流
+
+- `MCP_RATELIMIT_ENABLED`
+- `MCP_RATELIMIT_REQUESTS_PER_SECOND`
+- `MCP_RATELIMIT_BURST`
+
+### 服务启用控制
+
+- `MCP_ENABLED_SERVICES`
+- `MCP_DISABLED_SERVICES`
+
+### 第三方集成示例
+
+- `MCP_PROM_ADDRESS`
+- `MCP_GRAFANA_URL`
+- `MCP_KIBANA_URL`
+- `MCP_ELASTICSEARCH_ADDRESS`
+- `MCP_ALERTMANAGER_ADDRESS`
+
+---
+
+## API 调用排障建议
+
+- 出现 `401 unauthorized`：检查 `MCP_AUTH_*` 配置与凭据传递方式。
+- SSE 建连成功但请求失败：执行 `make sse-smoke` 并结合日志定位。
+- 服务或工具缺失：检查 `MCP_ENABLED_SERVICES` / `MCP_DISABLED_SERVICES`。
+- 调用慢或超时：缩小请求范围并检查上游服务可达性。
+
+## 下一步
+
+- [快速开始]({{< relref "/getting-started/_index.md" >}})
+- [快速开始 FAQ]({{< relref "/getting-started/faq.md" >}})
+- [故障排除]({{< relref "/getting-started/troubleshooting.md" >}})
+- [工具参考]({{< relref "tools.md" >}})
+- [配置指南]({{< relref "configuration.md" >}})
+- [安全指南]({{< relref "security.md" >}})
