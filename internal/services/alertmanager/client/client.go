@@ -7,6 +7,7 @@ import (
 	"context"
 	"crypto/tls"
 	"encoding/json"
+	stderrs "errors"
 	"fmt"
 	"io"
 	"net/http"
@@ -24,15 +25,18 @@ var logger = logrus.WithField("component", "alertmanager-client")
 
 // ClientOptions configures the Alertmanager HTTP client
 type ClientOptions struct {
-	Address       string        // Alertmanager server address
-	Timeout       time.Duration // Request timeout
-	Username      string        // Basic auth username
-	Password      string        // Basic auth password
-	BearerToken   string        // Bearer token for authentication
-	TLSSkipVerify bool          // Skip TLS certificate verification
-	TLSCertFile   string        // TLS certificate file
-	TLSKeyFile    string        // TLS key file
-	TLSCAFile     string        // TLS CA file
+	Address        string        // Alertmanager server address
+	Timeout        time.Duration // Request timeout
+	Username       string        // Basic auth username
+	Password       string        // Basic auth password
+	BearerToken    string        // Bearer token for authentication
+	TLSSkipVerify  bool          // Skip TLS certificate verification
+	TLSCertFile    string        // TLS certificate file
+	TLSKeyFile     string        // TLS key file
+	TLSCAFile      string        // TLS CA file
+	MaxRetries     int           // Retries for idempotent requests
+	RetryBaseDelay time.Duration // Base delay for exponential backoff
+	RetryMaxDelay  time.Duration // Maximum delay between retries
 }
 
 // DefaultClientOptions returns default client options
@@ -45,11 +49,14 @@ func DefaultClientOptions() *ClientOptions {
 
 // Client provides HTTP client for Alertmanager API operations
 type Client struct {
-	httpClient *http.Client
-	baseURL    *url.URL
-	username   string
-	password   string
-	token      string
+	httpClient     *http.Client
+	baseURL        *url.URL
+	username       string
+	password       string
+	token          string
+	maxRetries     int
+	retryBaseDelay time.Duration
+	retryMaxDelay  time.Duration
 }
 
 // NewClient creates a new Alertmanager client with default options
@@ -90,12 +97,16 @@ func NewClientWithOptions(opts *ClientOptions) (*Client, error) {
 	}
 
 	client := &Client{
-		httpClient: httpClient,
-		baseURL:    baseURL,
-		username:   opts.Username,
-		password:   opts.Password,
-		token:      opts.BearerToken,
+		httpClient:     httpClient,
+		baseURL:        baseURL,
+		username:       opts.Username,
+		password:       opts.Password,
+		token:          opts.BearerToken,
+		maxRetries:     opts.MaxRetries,
+		retryBaseDelay: opts.RetryBaseDelay,
+		retryMaxDelay:  opts.RetryMaxDelay,
 	}
+	client.maxRetries, client.retryBaseDelay, client.retryMaxDelay = optimize.NormalizeRetryConfig(client.maxRetries, client.retryBaseDelay, client.retryMaxDelay)
 
 	return client, nil
 }
@@ -109,43 +120,106 @@ func (c *Client) buildURL(endpoint string) string {
 
 // doRequest executes an HTTP request with authentication
 func (c *Client) doRequest(ctx context.Context, method, endpoint string, body interface{}) (*http.Response, error) {
-	var reqBody io.Reader
+	var bodyBytes []byte
 	if body != nil {
 		jsonData, err := json.Marshal(body)
 		if err != nil {
 			return nil, fmt.Errorf("failed to marshal request body: %w", err)
 		}
-		reqBody = bytes.NewReader(jsonData)
+		bodyBytes = jsonData
 	}
 
-	req, err := http.NewRequestWithContext(ctx, method, c.buildURL(endpoint), reqBody)
-	if err != nil {
-		return nil, fmt.Errorf("failed to create request: %w", err)
+	requestURL := c.buildURL(endpoint)
+	allowRetry := optimize.IsRetryableMethod(method)
+	totalAttempts := 1
+	if allowRetry {
+		totalAttempts = c.maxRetries + 1
 	}
 
-	// Set headers
-	req.Header.Set("Content-Type", "application/json")
-	req.Header.Set("Accept", "application/json")
+	for attempt := 1; attempt <= totalAttempts; attempt++ {
+		var reqBody io.Reader
+		if len(bodyBytes) > 0 {
+			reqBody = bytes.NewReader(bodyBytes)
+		}
 
-	// Add authentication
-	if c.token != "" {
-		req.Header.Set("Authorization", "Bearer "+c.token)
-	} else if c.username != "" && c.password != "" {
-		req.SetBasicAuth(c.username, c.password)
-	}
+		req, err := http.NewRequestWithContext(ctx, method, requestURL, reqBody)
+		if err != nil {
+			return nil, fmt.Errorf("failed to create request: %w", err)
+		}
 
-	logger.WithFields(logrus.Fields{
-		"method":   method,
-		"endpoint": endpoint,
-		"url":      req.URL.String(),
-	}).Debug("Making HTTP request")
+		// Set headers
+		req.Header.Set("Content-Type", "application/json")
+		req.Header.Set("Accept", "application/json")
 
-	resp, err := c.httpClient.Do(req)
-	if err != nil {
+		// Add authentication
+		if c.token != "" {
+			req.Header.Set("Authorization", "Bearer "+c.token)
+		} else if c.username != "" && c.password != "" {
+			req.SetBasicAuth(c.username, c.password)
+		}
+
+		logger.WithFields(logrus.Fields{
+			"method":   method,
+			"endpoint": endpoint,
+			"url":      requestURL,
+			"attempt":  attempt,
+		}).Debug("Making HTTP request")
+
+		resp, err := c.httpClient.Do(req)
+		if err == nil {
+			if allowRetry && optimize.ShouldRetryStatusCode(resp.StatusCode) && attempt < totalAttempts {
+				_ = resp.Body.Close()
+				delay := optimize.NextRetryDelay(c.retryBaseDelay, c.retryMaxDelay, attempt)
+				logger.WithFields(logrus.Fields{
+					"method":      method,
+					"endpoint":    endpoint,
+					"url":         requestURL,
+					"status_code": resp.StatusCode,
+					"attempt":     attempt,
+					"retry_in":    delay,
+				}).Warn("Retrying Alertmanager API request after retryable status")
+				if waitErr := waitForRetry(ctx, delay); waitErr != nil {
+					return nil, waitErr
+				}
+				continue
+			}
+			return resp, nil
+		}
+
+		if stderrs.Is(err, context.Canceled) {
+			return nil, err
+		}
+		if allowRetry && optimize.ShouldRetryTransportError(err) && attempt < totalAttempts {
+			delay := optimize.NextRetryDelay(c.retryBaseDelay, c.retryMaxDelay, attempt)
+			logger.WithFields(logrus.Fields{
+				"method":   method,
+				"endpoint": endpoint,
+				"url":      requestURL,
+				"attempt":  attempt,
+				"retry_in": delay,
+			}).WithError(err).Warn("Retrying Alertmanager API request after transient transport error")
+			if waitErr := waitForRetry(ctx, delay); waitErr != nil {
+				return nil, waitErr
+			}
+			continue
+		}
+
 		return nil, fmt.Errorf("request failed: %w", err)
 	}
 
-	return resp, nil
+	return nil, fmt.Errorf("retry attempts exhausted for request %s %s", method, requestURL)
+}
+
+func waitForRetry(ctx context.Context, delay time.Duration) error {
+	timer := time.NewTimer(delay)
+	defer timer.Stop()
+
+	select {
+	case <-ctx.Done():
+		return ctx.Err()
+	case <-timer.C:
+		return nil
+	}
 }
 
 // parseResponse parses HTTP response into target struct

@@ -7,6 +7,7 @@ import (
 	"context"
 	"crypto/tls"
 	"encoding/json"
+	stderrs "errors"
 	"fmt"
 	"io"
 	"net/http"
@@ -21,25 +22,31 @@ import (
 
 // ClientOptions holds configuration parameters for creating a Prometheus client.
 type ClientOptions struct {
-	Address       string        // Prometheus server address
-	Username      string        // Username for basic authentication
-	Password      string        // Password for basic authentication
-	BearerToken   string        // Bearer token for authentication
-	Timeout       time.Duration // HTTP request timeout
-	TLSSkipVerify bool          // Skip TLS certificate verification
-	TLSCertFile   string        // TLS certificate file
-	TLSKeyFile    string        // TLS key file
-	TLSCAFile     string        // TLS CA file
+	Address        string        // Prometheus server address
+	Username       string        // Username for basic authentication
+	Password       string        // Password for basic authentication
+	BearerToken    string        // Bearer token for authentication
+	Timeout        time.Duration // HTTP request timeout
+	TLSSkipVerify  bool          // Skip TLS certificate verification
+	TLSCertFile    string        // TLS certificate file
+	TLSKeyFile     string        // TLS key file
+	TLSCAFile      string        // TLS CA file
+	MaxRetries     int           // Retries for idempotent requests
+	RetryBaseDelay time.Duration // Base delay for exponential backoff
+	RetryMaxDelay  time.Duration // Maximum delay between retries
 }
 
 // Client provides operations for interacting with Prometheus API.
 type Client struct {
-	baseURL     string            // Base URL for Prometheus API
-	httpClient  *http.Client      // HTTP client for API requests
-	username    string            // Username for basic auth
-	password    string            // Password for basic auth
-	bearerToken string            // Bearer token for auth
-	headers     map[string]string // Additional headers
+	baseURL        string            // Base URL for Prometheus API
+	httpClient     *http.Client      // HTTP client for API requests
+	username       string            // Username for basic auth
+	password       string            // Password for basic auth
+	bearerToken    string            // Bearer token for auth
+	headers        map[string]string // Additional headers
+	maxRetries     int
+	retryBaseDelay time.Duration
+	retryMaxDelay  time.Duration
 }
 
 // QueryResult represents a Prometheus query result.
@@ -163,13 +170,17 @@ func NewClient(opts *ClientOptions) (*Client, error) {
 	headers["Accept"] = "application/json"
 
 	client := &Client{
-		baseURL:     baseURL.String(),
-		httpClient:  httpClient,
-		username:    opts.Username,
-		password:    opts.Password,
-		bearerToken: opts.BearerToken,
-		headers:     headers,
+		baseURL:        baseURL.String(),
+		httpClient:     httpClient,
+		username:       opts.Username,
+		password:       opts.Password,
+		bearerToken:    opts.BearerToken,
+		headers:        headers,
+		maxRetries:     opts.MaxRetries,
+		retryBaseDelay: opts.RetryBaseDelay,
+		retryMaxDelay:  opts.RetryMaxDelay,
 	}
+	client.maxRetries, client.retryBaseDelay, client.retryMaxDelay = optimize.NormalizeRetryConfig(client.maxRetries, client.retryBaseDelay, client.retryMaxDelay)
 
 	return client, nil
 }
@@ -183,35 +194,100 @@ func (c *Client) makeRequest(ctx context.Context, method, endpoint string, param
 		reqURL = c.baseURL + endpoint
 	}
 
-	var reqBody io.Reader
+	var encodedParams string
 	if method == "POST" && params != nil {
-		reqBody = strings.NewReader(params.Encode())
+		encodedParams = params.Encode()
 	}
 
-	req, err := http.NewRequestWithContext(ctx, method, reqURL, reqBody)
-	if err != nil {
-		return nil, fmt.Errorf("failed to create request: %w", err)
+	allowRetry := optimize.IsRetryableMethod(method)
+	totalAttempts := 1
+	if allowRetry {
+		totalAttempts = c.maxRetries + 1
 	}
 
-	// Set headers
-	for key, value := range c.headers {
-		req.Header.Set(key, value)
+	for attempt := 1; attempt <= totalAttempts; attempt++ {
+		var reqBody io.Reader
+		if method == "POST" && encodedParams != "" {
+			reqBody = strings.NewReader(encodedParams)
+		}
+
+		req, err := http.NewRequestWithContext(ctx, method, reqURL, reqBody)
+		if err != nil {
+			return nil, fmt.Errorf("failed to create request: %w", err)
+		}
+
+		// Set headers
+		for key, value := range c.headers {
+			req.Header.Set(key, value)
+		}
+
+		// Set authentication
+		if c.bearerToken != "" {
+			req.Header.Set("Authorization", "Bearer "+c.bearerToken)
+		} else if c.username != "" && c.password != "" {
+			req.SetBasicAuth(c.username, c.password)
+		}
+
+		logrus.WithFields(logrus.Fields{
+			"method":   method,
+			"url":      reqURL,
+			"has_auth": c.bearerToken != "" || (c.username != "" && c.password != ""),
+			"attempt":  attempt,
+		}).Debug("Making Prometheus API request")
+
+		resp, err := c.httpClient.Do(req)
+		if err == nil {
+			if allowRetry && optimize.ShouldRetryStatusCode(resp.StatusCode) && attempt < totalAttempts {
+				_ = resp.Body.Close()
+				delay := optimize.NextRetryDelay(c.retryBaseDelay, c.retryMaxDelay, attempt)
+				logrus.WithFields(logrus.Fields{
+					"method":      method,
+					"url":         reqURL,
+					"attempt":     attempt,
+					"status_code": resp.StatusCode,
+					"retry_in":    delay,
+				}).Warn("Retrying Prometheus API request after retryable status")
+				if waitErr := waitForRetry(ctx, delay); waitErr != nil {
+					return nil, waitErr
+				}
+				continue
+			}
+			return resp, nil
+		}
+
+		if stderrs.Is(err, context.Canceled) {
+			return nil, err
+		}
+		if allowRetry && optimize.ShouldRetryTransportError(err) && attempt < totalAttempts {
+			delay := optimize.NextRetryDelay(c.retryBaseDelay, c.retryMaxDelay, attempt)
+			logrus.WithFields(logrus.Fields{
+				"method":   method,
+				"url":      reqURL,
+				"attempt":  attempt,
+				"retry_in": delay,
+			}).WithError(err).Warn("Retrying Prometheus API request after transient transport error")
+			if waitErr := waitForRetry(ctx, delay); waitErr != nil {
+				return nil, waitErr
+			}
+			continue
+		}
+
+		return nil, err
 	}
 
-	// Set authentication
-	if c.bearerToken != "" {
-		req.Header.Set("Authorization", "Bearer "+c.bearerToken)
-	} else if c.username != "" && c.password != "" {
-		req.SetBasicAuth(c.username, c.password)
+	return nil, fmt.Errorf("retry attempts exhausted for request %s %s", method, reqURL)
+}
+
+func waitForRetry(ctx context.Context, delay time.Duration) error {
+	timer := time.NewTimer(delay)
+	defer timer.Stop()
+
+	select {
+	case <-ctx.Done():
+		return ctx.Err()
+	case <-timer.C:
+		return nil
 	}
-
-	logrus.WithFields(logrus.Fields{
-		"method":   method,
-		"url":      reqURL,
-		"has_auth": c.bearerToken != "" || (c.username != "" && c.password != ""),
-	}).Debug("Making Prometheus API request")
-
-	return c.httpClient.Do(req)
 }
 
 // handleResponse processes the HTTP response and returns the body.
