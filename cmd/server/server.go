@@ -5,7 +5,6 @@ import (
 	"fmt"
 	"net"
 	"net/http"
-	"runtime"
 
 	appconfig "github.com/mahmut-Abi/cloud-native-mcp-server/internal/config"
 	"github.com/mahmut-Abi/cloud-native-mcp-server/internal/config/serverConfig"
@@ -110,15 +109,6 @@ func initMCPServer(appConfig *appconfig.AppConfig) (*server.MCPServer, *serverCo
 }
 
 // initMetrics initializes the metrics system
-func initMetrics(mode, addr string) {
-	gitCommit := "unknown"
-	if commit, err := runGitCommand("rev-parse", "HEAD"); err == nil {
-		gitCommit = commit
-	}
-	metrics.Init("dev", gitCommit, getRuntimeVersion(), mode, addr)
-}
-
-// getRuntimeVersion returns the Go runtime version
-func getRuntimeVersion() string {
-	return runtime.Version()
+func initMetrics(buildInfo BuildInfo, mode, addr string) {
+	metrics.Init(buildInfo.Version, buildInfo.Commit, buildInfo.GoVersion, mode, addr)
 }

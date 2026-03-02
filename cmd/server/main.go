@@ -10,6 +10,9 @@ import (
 )
 
 func main() {
+	buildInfo := resolveBuildInfo()
+	printStartupBuildInfo(buildInfo)
+
 	// Set reasonable defaults for GOMAXPROCS
 	setupGOMAXPROCS()
 
@@ -62,7 +65,7 @@ func main() {
 	setupLogging(config.LogLevel, config.LogJSON)
 
 	// Initialize metrics system
-	initMetrics(config.Mode, config.Addr)
+	initMetrics(buildInfo, config.Mode, config.Addr)
 
 	// Initialize MCP server
 	mcpServer, sc := initMCPServer(appConfig)
