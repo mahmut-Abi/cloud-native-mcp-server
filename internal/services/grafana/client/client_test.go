@@ -6,6 +6,7 @@ import (
 	"net/http"
 	"net/http/httptest"
 	"testing"
+	"time"
 )
 
 func TestCreateDatasource(t *testing.T) {
@@ -328,5 +329,79 @@ func TestDeleteDatasourceError(t *testing.T) {
 	err = client.DeleteDatasource(context.Background(), "non-existent-uid")
 	if err == nil {
 		t.Error("Expected error from DeleteDatasource, got nil")
+	}
+}
+
+func TestRetryOnTransientStatusThenSuccess(t *testing.T) {
+	attempts := 0
+	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		attempts++
+		if attempts <= 2 {
+			w.WriteHeader(http.StatusServiceUnavailable)
+			_, _ = w.Write([]byte(`{"message":"temporary unavailable"}`))
+			return
+		}
+		w.Header().Set("Content-Type", "application/json")
+		w.WriteHeader(http.StatusOK)
+		_, _ = w.Write([]byte(`[]`))
+	}))
+	defer server.Close()
+
+	client, err := NewClient(&ClientOptions{
+		URL:            server.URL,
+		APIKey:         "test-api-key",
+		MaxRetries:     2,
+		RetryBaseDelay: 1 * time.Millisecond,
+		RetryMaxDelay:  5 * time.Millisecond,
+	})
+	if err != nil {
+		t.Fatalf("Failed to create client: %v", err)
+	}
+
+	dashboards, err := client.GetDashboards(context.Background())
+	if err != nil {
+		t.Fatalf("GetDashboards failed: %v", err)
+	}
+	if len(dashboards) != 0 {
+		t.Fatalf("expected 0 dashboards, got %d", len(dashboards))
+	}
+	if attempts != 3 {
+		t.Fatalf("expected 3 attempts, got %d", attempts)
+	}
+}
+
+func TestNoRetryForNonIdempotentMethod(t *testing.T) {
+	attempts := 0
+	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		attempts++
+		if r.Method != http.MethodPost {
+			t.Fatalf("expected POST, got %s", r.Method)
+		}
+		w.WriteHeader(http.StatusServiceUnavailable)
+		_, _ = w.Write([]byte(`{"message":"temporary unavailable"}`))
+	}))
+	defer server.Close()
+
+	client, err := NewClient(&ClientOptions{
+		URL:            server.URL,
+		APIKey:         "test-api-key",
+		MaxRetries:     3,
+		RetryBaseDelay: 1 * time.Millisecond,
+		RetryMaxDelay:  5 * time.Millisecond,
+	})
+	if err != nil {
+		t.Fatalf("Failed to create client: %v", err)
+	}
+
+	_, err = client.CreateDatasource(context.Background(), CreateDatasourceRequest{
+		Name: "Test Datasource",
+		Type: "prometheus",
+		URL:  "http://localhost:9090",
+	})
+	if err == nil {
+		t.Fatalf("expected error for non-idempotent request")
+	}
+	if attempts != 1 {
+		t.Fatalf("expected 1 attempt for non-idempotent request, got %d", attempts)
 	}
 }
