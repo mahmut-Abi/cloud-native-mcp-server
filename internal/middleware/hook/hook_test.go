@@ -358,6 +358,54 @@ func TestLogResponseHookFunc_NilRequest(t *testing.T) {
 	}
 }
 
+func TestLogResponseHookFunc_CreateTaskResult(t *testing.T) {
+	requestHook := LogRequestHookFunc()
+	responseHook := LogResponseHookFunc()
+
+	req := &mcp.CallToolRequest{
+		Params: mcp.CallToolParams{
+			Name: "kubernetes_list_pods",
+		},
+	}
+
+	result := &mcp.CreateTaskResult{
+		Task: mcp.Task{
+			TaskId: "task-123",
+			Status: mcp.TaskStatusWorking,
+		},
+	}
+
+	ctx := context.Background()
+	requestID := "test-create-task-result-id"
+
+	requestHook(ctx, requestID, req)
+	responseHook(ctx, requestID, req, result)
+
+	metricsList, err := metrics.Registry.Gather()
+	if err != nil {
+		t.Fatalf("Failed to gather metrics: %v", err)
+	}
+
+	found := false
+	for _, m := range metricsList {
+		if m.GetName() == "tool_calls_total" {
+			for _, metric := range m.GetMetric() {
+				labels := metric.GetLabel()
+				if hasLabels(labels, "service_name", "kubernetes") &&
+					hasLabels(labels, "tool_name", "kubernetes_list_pods") &&
+					hasLabels(labels, "status", "success") {
+					found = true
+					break
+				}
+			}
+			break
+		}
+	}
+	if !found {
+		t.Error("tool_calls_total metric with success status not found for CreateTaskResult")
+	}
+}
+
 func TestLogResponseHookFunc_MultipleCalls(t *testing.T) {
 
 	requestHook := LogRequestHookFunc()

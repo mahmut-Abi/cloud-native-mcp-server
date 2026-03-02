@@ -66,7 +66,7 @@ func LogRequestHookFunc() server.OnBeforeCallToolFunc {
 
 // LogResponseHookFunc creates a hook function to log tool responses
 func LogResponseHookFunc() server.OnAfterCallToolFunc {
-	return func(ctx context.Context, id any, message *mcp.CallToolRequest, result *mcp.CallToolResult) {
+	return func(ctx context.Context, id any, message *mcp.CallToolRequest, result any) {
 		// Calculate duration and record metrics
 		duration := 0.0
 		if startTime, ok := toolCallStartTimes[id]; ok {
@@ -76,7 +76,25 @@ func LogResponseHookFunc() server.OnAfterCallToolFunc {
 
 		// Determine status and service name
 		status := "success"
-		if result.IsError {
+		hasError := false
+		contentItems := 0
+
+		switch typedResult := result.(type) {
+		case *mcp.CallToolResult:
+			if typedResult != nil {
+				hasError = typedResult.IsError
+				if typedResult.Content != nil {
+					contentItems = len(typedResult.Content)
+				}
+			}
+		case mcp.CallToolResult:
+			hasError = typedResult.IsError
+			if typedResult.Content != nil {
+				contentItems = len(typedResult.Content)
+			}
+		}
+
+		if hasError {
 			status = "error"
 		}
 
@@ -96,15 +114,15 @@ func LogResponseHookFunc() server.OnAfterCallToolFunc {
 
 		fields := logrus.Fields{
 			"id":       id,
-			"hasError": result.IsError,
+			"hasError": hasError,
 		}
 
 		if message != nil && message.Params.Name != "" {
 			fields["tool_name"] = message.Params.Name
 		}
 
-		if result.Content != nil {
-			fields["content_items"] = len(result.Content)
+		if contentItems > 0 {
+			fields["content_items"] = contentItems
 		}
 
 		logrus.WithFields(fields).Info("Tool response sent")
@@ -112,13 +130,14 @@ func LogResponseHookFunc() server.OnAfterCallToolFunc {
 		// Debug information for tool responses
 		debugFields := logrus.Fields{
 			"id":              id,
-			"hasError":        result.IsError,
+			"hasError":        hasError,
 			"full_result":     result,
 			"request_message": message,
 			"context_values":  ctx,
 		}
-		if result.Content != nil {
-			debugFields["response_content"] = result.Content
+
+		if callToolResult, ok := result.(*mcp.CallToolResult); ok && callToolResult != nil && callToolResult.Content != nil {
+			debugFields["response_content"] = callToolResult.Content
 		}
 		logrus.WithFields(debugFields).Debug("Tool response debug info")
 	}
