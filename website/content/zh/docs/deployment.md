@@ -6,65 +6,61 @@ description: "Docker、Kubernetes 与 Helm 的部署方法与生产建议。"
 
 # 部署指南
 
-> 说明：当前页面内容以英文为主，中文完整版正在补充中。
+本指南涵盖 Cloud Native MCP Server 的各种部署策略和最佳实践。
 
-This guide covers various deployment strategies and best practices for Cloud Native MCP Server.
+## 目录
 
-## Table of Contents
+- [前提条件](#前提条件)
+- [快速部署](#快速部署)
+- [Kubernetes 部署](#kubernetes-部署)
+- [Docker 部署](#docker-部署)
+- [Helm 部署](#helm-部署)
+- [生产环境考虑](#生产环境考虑)
+- [监控和可观测性](#监控和可观测性)
+- [安全最佳实践](#安全最佳实践)
+- [故障排查](#故障排查)
 
-- [Prerequisites](#prerequisites)
-- [Quick Deployment](#quick-deployment)
-- [Kubernetes Deployment](#kubernetes-deployment)
-- [Docker Deployment](#docker-deployment)
-- [Helm Deployment](#helm-deployment)
-- [Production Considerations](#production-considerations)
-- [Monitoring and Observability](#monitoring-and-observability)
-- [Security Best Practices](#security-best-practices)
-- [Troubleshooting](#troubleshooting)
 
----
+## 前提条件
 
-## Prerequisites
+### 系统要求
 
-### System Requirements
+- **操作系统**: Linux, macOS, 或 Windows
+- **CPU**: 最低 1 核，推荐 2+ 核
+- **内存**: 最低 512MB，推荐 1GB+
+- **磁盘**: 最低 100MB
+- **网络**: 可访问 Kubernetes 集群和配置的服务
 
-- **Operating System**: Linux, macOS, or Windows
-- **CPU**: Minimum 1 core, recommended 2+ cores
-- **Memory**: Minimum 512MB, recommended 1GB+
-- **Disk**: Minimum 100MB
-- **Network**: Access to Kubernetes cluster and configured services
+### 软件要求
 
-### Software Requirements
+- **Go**: 1.25+ (从源码构建)
+- **Docker**: 20.10+ (容器化部署)
+- **kubectl**: 已配置集群访问
+- **Helm**: 3.0+ (Helm 部署)
 
-- **Go**: 1.25+ (building from source)
-- **Docker**: 20.10+ (containerized deployment)
-- **kubectl**: Configured cluster access
-- **Helm**: 3.0+ (Helm deployment)
+### 服务依赖
 
-### Service Dependencies
+可选连接的服务：
 
-Optional services to connect to:
+- **Grafana** (可选)
+- **Prometheus** (可选)
+- **Kibana** (可选)
+- **Elasticsearch** (可选)
+- **Alertmanager** (可选)
+- **Jaeger** (可选)
+- **OpenTelemetry** (可选)
 
-- **Grafana** (optional)
-- **Prometheus** (optional)
-- **Kibana** (optional)
-- **Elasticsearch** (optional)
-- **Alertmanager** (optional)
-- **Jaeger** (optional)
-- **OpenTelemetry** (optional)
 
----
+## 快速部署
 
-## Quick Deployment
-
-### Binary Deployment
+### 二进制部署
 
 ```bash
-# Download the latest version
+# 下载最新版本
 wget https://github.com/mahmut-Abi/cloud-native-mcp-server/releases/latest/download/cloud-native-mcp-server-linux-amd64
 chmod +x cloud-native-mcp-server-linux-amd64
 
-# Create configuration
+# 创建配置
 cat > config.yaml << EOF
 server:
   mode: "sse"
@@ -77,11 +73,11 @@ kubernetes:
   kubeconfig: ""
 EOF
 
-# Run
+# 运行
 ./cloud-native-mcp-server-linux-amd64
 ```
 
-### Docker Quick Start
+### Docker 快速启动
 
 ```bash
 docker run -d \
@@ -91,13 +87,12 @@ docker run -d \
   mahmutabi/cloud-native-mcp-server:latest
 ```
 
----
 
-## Kubernetes Deployment
+## Kubernetes 部署
 
-### Basic Deployment
+### 基本部署
 
-Create deployment manifest:
+创建部署清单：
 
 ```yaml
 apiVersion: apps/v1
@@ -157,7 +152,7 @@ spec:
           name: kubeconfig
 ```
 
-### Service Account and RBAC
+### Service Account 和 RBAC
 
 ```yaml
 apiVersion: v1
@@ -165,7 +160,6 @@ kind: ServiceAccount
 metadata:
   name: cloud-native-mcp-server
   namespace: default
----
 apiVersion: rbac.authorization.k8s.io/v1
 kind: ClusterRole
 metadata:
@@ -174,7 +168,6 @@ rules:
 - apiGroups: ["*"]
   resources: ["*"]
   verbs: ["get", "list", "watch", "describe"]
----
 apiVersion: rbac.authorization.k8s.io/v1
 kind: ClusterRoleBinding
 metadata:
@@ -231,28 +224,27 @@ spec:
               number: 8080
 ```
 
-### Deployment
+### 部署
 
 ```bash
-# Apply all manifests
+# 应用所有清单
 kubectl apply -f deploy/kubernetes/
 
-# Verify deployment
+# 验证部署
 kubectl get pods -l app=cloud-native-mcp-server
 kubectl logs -l app=cloud-native-mcp-server
 
-# Test connection
+# 测试连接
 kubectl port-forward svc/cloud-native-mcp-server 8080:8080
 curl http://localhost:8080/health
 ```
 
----
 
-## Docker Deployment
+## Docker 部署
 
 ### Docker Compose
 
-Create `docker-compose.yml`:
+创建 `docker-compose.yml`:
 
 ```yaml
 version: '3.8'
@@ -285,25 +277,25 @@ networks:
     external: true
 ```
 
-### Running with Docker Compose
+### 使用 Docker Compose 运行
 
 ```bash
-# Start
+# 启动
 docker-compose up -d
 
-# View logs
+# 查看日志
 docker-compose logs -f
 
-# Stop
+# 停止
 docker-compose down
 
-# Restart
+# 重启
 docker-compose restart
 ```
 
-### Custom Docker Image
+### 自定义 Docker 镜像
 
-Build your own image:
+构建自己的镜像：
 
 ```dockerfile
 FROM golang:1.25-alpine AS builder
@@ -327,42 +319,41 @@ EXPOSE 8080
 CMD ["./cloud-native-mcp-server"]
 ```
 
-Build and push:
+构建和推送：
 
 ```bash
-# Build
+# 构建
 docker build -t your-registry/cloud-native-mcp-server:latest .
 
-# Push
+# 推送
 docker push your-registry/cloud-native-mcp-server:latest
 ```
 
----
 
-## Helm Deployment
+## Helm 部署
 
-### Install from Chart Repository
+### 从 Chart 仓库安装
 
 ```bash
-# Add repository
+# 添加仓库
 helm repo add k8s-mcp https://mahmut-Abi.github.io/cloud-native-mcp-server
 
-# Update repository
+# 更新仓库
 helm repo update
 
-# Install
+# 安装
 helm install cloud-native-mcp-server k8s-mcp/cloud-native-mcp-server
 
-# Upgrade
+# 升级
 helm upgrade cloud-native-mcp-server k8s-mcp/cloud-native-mcp-server
 
-# Uninstall
+# 卸载
 helm uninstall cloud-native-mcp-server
 ```
 
-### Custom Values
+### 自定义 Values
 
-Create `values.yaml`:
+创建 `values.yaml`:
 
 ```yaml
 replicaCount: 2
@@ -440,19 +431,18 @@ tolerations: []
 affinity: {}
 ```
 
-### Install with Custom Values
+### 使用自定义 Values 安装
 
 ```bash
 helm install cloud-native-mcp-server ./deploy/helm/cloud-native-mcp-server -f values.yaml
 ```
 
----
 
-## Production Considerations
+## 生产环境考虑
 
-### High Availability
+### 高可用性
 
-Deploy multiple replicas with appropriate resource limits:
+部署多个副本并设置适当的资源限制：
 
 ```yaml
 replicaCount: 3
@@ -471,9 +461,9 @@ autoscaling:
   maxReplicas: 10
 ```
 
-### Resource Optimization
+### 资源优化
 
-Tune supported server and service parameters:
+调优当前版本已支持的服务参数：
 
 ```yaml
 config:
@@ -493,9 +483,9 @@ config:
     burst: 200
 ```
 
-### Security
+### 安全
 
-#### 1. Enable Authentication
+#### 1. 启用认证
 
 ```yaml
 config:
@@ -505,7 +495,7 @@ config:
     apiKey: "${MCP_AUTH_API_KEY}"
 ```
 
-#### 2. Use Secrets
+#### 2. 使用 Secrets
 
 ```yaml
 apiVersion: v1
@@ -518,7 +508,7 @@ stringData:
   grafana-api-key: "your-grafana-key"
 ```
 
-#### 3. Network Policies
+#### 3. 网络策略
 
 ```yaml
 apiVersion: networking.k8s.io/v1
@@ -546,7 +536,7 @@ spec:
       port: 443
 ```
 
-### Logging and Monitoring
+### 日志和监控
 
 ```yaml
 config:
@@ -566,7 +556,7 @@ config:
       compress: true
 ```
 
-Add Prometheus monitoring:
+添加 Prometheus 监控：
 
 ```yaml
 apiVersion: v1
@@ -587,43 +577,42 @@ spec:
     app: cloud-native-mcp-server
 ```
 
----
 
-## Monitoring and Observability
+## 监控和可观测性
 
-### Health Checks
+### 健康检查
 
-The server provides health check endpoints:
+服务器提供健康检查端点：
 
 ```bash
-# Basic health check
+# 基本健康检查
 curl http://localhost:8080/health
 
-# Detailed health information
+# 详细健康信息
 curl http://localhost:8080/health/detailed
 
-# Readiness check
+# 就绪检查
 curl http://localhost:8080/ready
 ```
 
-### Metrics
+### 指标
 
-Prometheus metrics are available at the `/metrics` endpoint:
+Prometheus 指标在 `/metrics` 端点可用：
 
 ```bash
 curl http://localhost:8080/metrics
 ```
 
-Key metrics:
-- `mcp_requests_total` - Total number of requests
-- `mcp_request_duration_seconds` - Request duration
-- `mcp_cache_hits_total` - Cache hits
-- `mcp_cache_misses_total` - Cache misses
-- `mcp_active_connections` - Active connections
+关键指标：
+- `mcp_requests_total` - 总请求数
+- `mcp_request_duration_seconds` - 请求持续时间
+- `mcp_cache_hits_total` - 缓存命中数
+- `mcp_cache_misses_total` - 缓存未命中数
+- `mcp_active_connections` - 活动连接数
 
-### Logs
+### 日志
 
-Structured JSON logs:
+结构化 JSON 日志：
 
 ```json
 {
@@ -635,9 +624,9 @@ Structured JSON logs:
 }
 ```
 
-### Audit Logs
+### 审计日志
 
-Audit logs track all operations:
+审计日志跟踪所有操作：
 
 ```json
 {
@@ -650,11 +639,10 @@ Audit logs track all operations:
 }
 ```
 
----
 
-## Security Best Practices
+## 安全最佳实践
 
-### 1. Least Privilege RBAC
+### 1. 最小权限 RBAC
 
 ```yaml
 apiVersion: rbac.authorization.k8s.io/v1
@@ -662,22 +650,22 @@ kind: ClusterRole
 metadata:
   name: cloud-native-mcp-server
 rules:
-# Allow read-only access to most resources
+# 允许对大多数资源的只读访问
 - apiGroups: [""]
   resources: ["pods", "services", "configmaps", "secrets"]
   verbs: ["get", "list", "watch"]
 - apiGroups: ["apps"]
   resources: ["deployments", "replicasets"]
   verbs: ["get", "list", "watch"]
-# Allow describe for troubleshooting
+# 允许 describe 用于故障排查
 - apiGroups: ["*"]
   resources: ["*"]
   verbs: ["describe"]
 ```
 
-### 2. Secret Management
+### 2. 密钥管理
 
-Use Kubernetes secrets to store sensitive data:
+使用 Kubernetes secrets 存储敏感数据：
 
 ```bash
 kubectl create secret generic k8s-mcp-secrets \
@@ -685,7 +673,7 @@ kubectl create secret generic k8s-mcp-secrets \
   --from-literal=grafana-api-key='your-grafana-key'
 ```
 
-Mount secrets as environment variables:
+将 secrets 挂载为环境变量：
 
 ```yaml
 env:
@@ -696,14 +684,14 @@ env:
       key: mcp-api-key
 ```
 
-### 3. Network Security
+### 3. 网络安全
 
-- Use TLS for external access
-- Implement network policies
-- Restrict ingress/egress traffic
-- Use service mesh for mTLS
+- 对外部访问使用 TLS
+- 实施网络策略
+- 限制入口/出口流量
+- 使用服务网格进行 mTLS
 
-### 4. Pod Security
+### 4. Pod 安全
 
 ```yaml
 securityContext:
@@ -716,159 +704,157 @@ securityContext:
   readOnlyRootFilesystem: true
 ```
 
-### 5. Image Security
+### 5. 镜像安全
 
-- Use signed images
-- Scan images for vulnerabilities
-- Keep images updated
-- Use specific version tags
+- 使用签名镜像
+- 扫描镜像漏洞
+- 保持镜像更新
+- 使用特定版本标签
 
----
 
-## Troubleshooting
+## 故障排查
 
-### Common Issues
+### 常见问题
 
-#### 1. Connection Refused
+#### 1. 连接被拒绝
 
-**Problem**: Cannot connect to server
+**问题**: 无法连接到服务器
 
-**Solution**:
+**解决方案**:
 ```bash
-# Check pod status
+# 检查 pod 状态
 kubectl get pods -l app=cloud-native-mcp-server
 
-# Check logs
+# 检查日志
 kubectl logs -l app=cloud-native-mcp-server
 
-# Check service
+# 检查 service
 kubectl get svc cloud-native-mcp-server
 
-# Port forward test
+# 端口转发测试
 kubectl port-forward svc/cloud-native-mcp-server 8080:8080
 curl http://localhost:8080/health
 ```
 
-#### 2. Authentication Failed
+#### 2. 认证失败
 
-**Problem**: 401 Unauthorized
+**问题**: 401 Unauthorized
 
-**Solution**:
+**解决方案**:
 ```bash
-# Check authentication configuration
+# 检查认证配置
 kubectl get configmap k8s-mcp-config -o yaml
 
-# Verify secrets
+# 验证 secrets
 kubectl get secret k8s-mcp-secrets -o yaml
 
-# Test with correct header
+# 使用正确的头部测试
 curl -H "X-API-Key: your-key" http://localhost:8080/health
 ```
 
-#### 3. Kubernetes API Access Denied
+#### 3. Kubernetes API 访问被拒绝
 
-**Problem**: Cannot access Kubernetes API
+**问题**: 无法访问 Kubernetes API
 
-**Solution**:
+**解决方案**:
 ```bash
-# Check RBAC
+# 检查 RBAC
 kubectl get clusterrole cloud-native-mcp-server -o yaml
 
-# Check service account
+# 检查 service account
 kubectl get sa cloud-native-mcp-server
 
-# Verify cluster role binding
+# 验证 cluster role binding
 kubectl get clusterrolebinding cloud-native-mcp-server
 
-# Test permissions
+# 测试权限
 kubectl auth can-i list pods --as=system:serviceaccount:default:cloud-native-mcp-server
 ```
 
-#### 4. High Memory Usage
+#### 4. 高内存使用
 
-**Problem**: Pod OOMKilled
+**问题**: Pod OOMKilled
 
-**Solution**:
+**解决方案**:
 ```yaml
-# Increase memory limits
+# 增加内存限制
 resources:
   limits:
     memory: "1Gi"
 
-# Smooth burst traffic
+# 平滑突发流量
 config:
   ratelimit:
     enabled: true
     requests_per_second: 80
     burst: 120
 
-# Reduce audit overhead
+# 降低审计开销
 audit:
   sampling:
     enabled: true
     rate: 0.3
 ```
 
-#### 5. Slow Response
+#### 5. 响应慢
 
-**Problem**: Request timeout
+**问题**: 请求超时
 
-**Solution**:
+**解决方案**:
 ```yaml
-# Increase service timeout
+# 增加服务超时并提高吞吐
 kubernetes:
   timeoutSec: 60
   qps: 120
   burst: 240
 
-# Tune HTTP timeouts
+# 调整 HTTP 超时
 server:
   readTimeoutSec: 60
   writeTimeoutSec: 0
   idleTimeoutSec: 90
 
-# Use summary tools
-# Replace kubernetes_list_resources with kubernetes_list_resources_summary
+# 使用摘要工具
+# 用 kubernetes_list_resources_summary 替换 kubernetes_list_resources
 ```
 
-### Debug Mode
+### 调试模式
 
-Enable debug logging:
+启用调试日志：
 
 ```yaml
 logging:
   level: "debug"
 ```
 
-Or via environment variable:
+或通过环境变量：
 
 ```bash
 export MCP_LOG_LEVEL=debug
 ```
 
-### Health Check Script
+### 健康检查脚本
 
 ```bash
 #!/bin/bash
 
-echo "Checking Cloud Native MCP Server health..."
+echo "检查 Cloud Native MCP Server 健康状况..."
 
-# Check endpoint
+# 检查端点
 curl -f http://localhost:8080/health || exit 1
 
-# Check metrics
+# 检查指标
 curl -f http://localhost:8080/metrics > /dev/null || exit 1
 
-# Check readiness
+# 检查就绪状态
 curl -f http://localhost:8080/ready || exit 1
 
-echo "All checks passed!"
+echo "所有检查通过！"
 ```
 
----
 
-## Related Documentation
+## 相关文档
 
-- [Complete Tools Reference](/zh/docs/tools/)
-- [Configuration Guide](/zh/docs/configuration/)
-- [Security Guide](/zh/docs/security/)
+- [完整工具参考](/zh/docs/tools/)
+- [配置指南](/zh/docs/configuration/)
+- [安全指南](/zh/docs/security/)
