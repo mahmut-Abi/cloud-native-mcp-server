@@ -272,3 +272,98 @@ func TestHandleResponseError(t *testing.T) {
 		})
 	}
 }
+
+func TestRetryOnTransientStatusThenSuccess(t *testing.T) {
+	attempts := 0
+	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		attempts++
+		if attempts <= 2 {
+			w.WriteHeader(http.StatusServiceUnavailable)
+			_, _ = w.Write([]byte(`{"error":"temporary unavailable"}`))
+			return
+		}
+		w.WriteHeader(http.StatusOK)
+		_, _ = w.Write([]byte(`{"data": ["service1"]}`))
+	}))
+	defer server.Close()
+
+	client, err := NewClient(&ClientOptions{
+		BaseURL:        server.URL,
+		Timeout:        2 * time.Second,
+		MaxRetries:     2,
+		RetryBaseDelay: 1 * time.Millisecond,
+		RetryMaxDelay:  5 * time.Millisecond,
+	})
+	if err != nil {
+		t.Fatalf("NewClient() error = %v", err)
+	}
+
+	services, err := client.GetServices(context.Background())
+	if err != nil {
+		t.Fatalf("GetServices() unexpected error = %v", err)
+	}
+	if len(services) != 1 {
+		t.Fatalf("expected 1 service, got %d", len(services))
+	}
+	if attempts != 3 {
+		t.Fatalf("expected 3 attempts, got %d", attempts)
+	}
+}
+
+func TestRetryStopsAfterMaxRetries(t *testing.T) {
+	attempts := 0
+	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		attempts++
+		w.WriteHeader(http.StatusServiceUnavailable)
+		_, _ = w.Write([]byte(`{"error":"temporary unavailable"}`))
+	}))
+	defer server.Close()
+
+	client, err := NewClient(&ClientOptions{
+		BaseURL:        server.URL,
+		Timeout:        2 * time.Second,
+		MaxRetries:     1,
+		RetryBaseDelay: 1 * time.Millisecond,
+		RetryMaxDelay:  5 * time.Millisecond,
+	})
+	if err != nil {
+		t.Fatalf("NewClient() error = %v", err)
+	}
+
+	_, err = client.GetServices(context.Background())
+	if err == nil {
+		t.Fatalf("expected error after retries are exhausted")
+	}
+	if attempts != 2 {
+		t.Fatalf("expected 2 attempts, got %d", attempts)
+	}
+}
+
+func TestNoRetryOnClientErrorStatus(t *testing.T) {
+	attempts := 0
+	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		attempts++
+		w.WriteHeader(http.StatusBadRequest)
+		_, _ = w.Write([]byte(`{"error":"bad request"}`))
+	}))
+	defer server.Close()
+
+	client, err := NewClient(&ClientOptions{
+		BaseURL:        server.URL,
+		Timeout:        2 * time.Second,
+		MaxRetries:     3,
+		RetryBaseDelay: 1 * time.Millisecond,
+		RetryMaxDelay:  5 * time.Millisecond,
+	})
+	if err != nil {
+		t.Fatalf("NewClient() error = %v", err)
+	}
+
+	_, err = client.GetServices(context.Background())
+	if err == nil {
+		t.Fatalf("expected client error")
+	}
+	if attempts != 1 {
+		t.Fatalf("expected 1 attempt for non-retryable status, got %d", attempts)
+	}
+}
