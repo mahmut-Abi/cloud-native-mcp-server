@@ -469,22 +469,24 @@ autoscaling:
 
 ### 资源优化
 
-启用缓存并调优参数：
+调优当前版本已支持的服务参数：
 
 ```yaml
 config:
-  # 启用缓存
-  cache:
-    enabled: true
-    type: "lru"
-    max_size: 2000
-    default_ttl: 300
+  server:
+    readTimeoutSec: 30
+    writeTimeoutSec: 0
+    idleTimeoutSec: 60
 
-  # 性能优化
-  performance:
-    max_response_size: 5242880
-    compression_enabled: true
-    json_pool_size: 200
+  kubernetes:
+    timeoutSec: 30
+    qps: 100.0
+    burst: 200
+
+  ratelimit:
+    enabled: true
+    requests_per_second: 100
+    burst: 200
 ```
 
 ### 安全
@@ -546,13 +548,18 @@ spec:
 config:
   logging:
     level: "info"
-    format: "json"
-    output: "stdout"
+    json: true
 
   audit:
     enabled: true
     storage: "file"
-    file_path: "/var/log/k8s-mcp-audit.log"
+    format: "json"
+    file:
+      path: "/var/log/cloud-native-mcp-server/audit.log"
+      maxSizeMB: 100
+      maxBackups: 10
+      maxAgeDays: 30
+      compress: true
 ```
 
 添加 Prometheus 监控：
@@ -784,15 +791,18 @@ resources:
   limits:
     memory: "1Gi"
 
-# 减少缓存大小
+# 平滑突发流量
 config:
-  cache:
-    max_size: 500
+  ratelimit:
+    enabled: true
+    requests_per_second: 80
+    burst: 120
 
-# 启用响应压缩
-config:
-  performance:
-    compression_enabled: true
+# 降低审计开销
+audit:
+  sampling:
+    enabled: true
+    rate: 0.3
 ```
 
 #### 5. 响应慢
@@ -801,14 +811,17 @@ config:
 
 **解决方案**:
 ```yaml
-# 增加超时
+# 增加服务超时并提高吞吐
 kubernetes:
   timeoutSec: 60
+  qps: 120
+  burst: 240
 
-# 启用缓存
-config:
-  cache:
-    enabled: true
+# 调整 HTTP 超时
+server:
+  readTimeoutSec: 60
+  writeTimeoutSec: 0
+  idleTimeoutSec: 90
 
 # 使用摘要工具
 # 用 kubernetes_list_resources_summary 替换 kubernetes_list_resources

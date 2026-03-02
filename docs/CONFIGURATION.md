@@ -1,447 +1,293 @@
 # Configuration Guide
 
-This guide covers all configuration options for the K8s MCP Server.
+This document describes the **current** configuration schema used by Cloud Native MCP Server.
 
-## Table of Contents
-
-- [Configuration Methods](#configuration-methods)
-- [Server Configuration](#server-configuration)
-- [Service Configuration](#service-configuration)
-- [Authentication](#authentication)
-- [Logging](#logging)
-- [Audit Logging](#audit-logging)
-- [Caching](#caching)
-- [Performance Tuning](#performance-tuning)
-- [Example Configurations](#example-configurations)
+For website docs:
+- English: `website/content/en/docs/configuration.md`
+- Chinese: `website/content/zh/docs/configuration.md`
 
 ---
 
-## Configuration Methods
+## Configuration Sources and Precedence
 
-The K8s MCP Server supports three configuration methods (in order of precedence):
+Configuration is merged in this order (highest first):
 
-1. **Command line flags** - Highest priority
-2. **Environment variables** - Medium priority
-3. **YAML config file** - Lowest priority
+1. CLI flags (`--mode`, `--addr`, etc.)
+2. Environment variables (`MCP_*`)
+3. YAML config file (`--config`)
+4. Built-in defaults
 
-### Example Configuration Flow
+Common startup command:
 
 ```bash
-# Config file sets defaults
-# Environment variables override config file
-# Command line flags override everything
-
-./cloud-native-mcp-server \
-  --config=config.yaml \
-  --log-level=debug
+./cloud-native-mcp-server --config=config.yaml
 ```
 
 ---
 
 ## Server Configuration
 
-### Basic Settings
-
 ```yaml
 server:
-  mode: "sse"              # Server mode: sse, http, or stdio
-  addr: "0.0.0.0:8080"     # Listen address
-  read_timeout: 30         # Read timeout in seconds
-  write_timeout: 30        # Write timeout in seconds
-  max_connections: 1000    # Maximum concurrent connections
+  # sse | http | streamable-http | stdio
+  mode: "sse"
+
+  # listen address
+  addr: "0.0.0.0:8080"
+
+  # HTTP timeouts in seconds
+  readTimeoutSec: 30
+  writeTimeoutSec: 0
+  idleTimeoutSec: 60
+
+  ssePaths:
+    kubernetes: "/api/kubernetes/sse"
+    grafana: "/api/grafana/sse"
+    prometheus: "/api/prometheus/sse"
+    kibana: "/api/kibana/sse"
+    helm: "/api/helm/sse"
+    elasticsearch: "/api/elasticsearch/sse"
+    alertmanager: "/api/alertmanager/sse"
+    jaeger: "/api/jaeger/sse"
+    opentelemetry: "/api/opentelemetry/sse"
+    utilities: "/api/utilities/sse"
+    aggregate: "/api/aggregate/sse"
+
+  streamableHttpPaths:
+    kubernetes: "/api/kubernetes/streamable-http"
+    grafana: "/api/grafana/streamable-http"
+    prometheus: "/api/prometheus/streamable-http"
+    kibana: "/api/kibana/streamable-http"
+    helm: "/api/helm/streamable-http"
+    elasticsearch: "/api/elasticsearch/streamable-http"
+    alertmanager: "/api/alertmanager/streamable-http"
+    jaeger: "/api/jaeger/streamable-http"
+    opentelemetry: "/api/opentelemetry/streamable-http"
+    utilities: "/api/utilities/streamable-http"
+    aggregate: "/api/aggregate/streamable-http"
+
+  cors:
+    allowedOrigins: []
+    allowedMethods: ["GET", "POST", "OPTIONS"]
+    allowedHeaders: ["Content-Type", "Authorization", "X-API-Key"]
+    maxAge: 86400
 ```
-
-### Command Line Flags
-
-| Flag | Description | Default |
-|------|-------------|---------|
-| `--mode` | Server mode (sse, http, stdio) | sse |
-| `--addr` | Listen address | 0.0.0.0:8080 |
-| `--config` | Config file path | config.yaml |
-| `--log-level` | Log level (debug, info, warn, error) | info |
-
-### Environment Variables
-
-| Variable | Description | Default |
-|----------|-------------|---------|
-| `MCP_MODE` | Server mode | sse |
-| `MCP_ADDR` | Listen address | 0.0.0.0:8080 |
-| `MCP_LOG_LEVEL` | Log level | info |
 
 ---
 
-## Service Configuration
-
-### Kubernetes
+## Logging and Rate Limit
 
 ```yaml
-kubernetes:
-  enabled: true
-  kubeconfig: ""           # Path to kubeconfig (empty for in-cluster)
-  timeout_sec: 30          # API timeout in seconds
-  qps: 50                  # Queries per second limit
-  burst: 100               # Burst limit
-  cache_ttl: 300           # Cache TTL in seconds
-  insecure_skip_tls_verify: false
-```
+logging:
+  level: "info"
+  json: false
 
-### Grafana
-
-```yaml
-grafana:
+ratelimit:
   enabled: false
-  url: "http://grafana:3000"
-  api_key: ""              # API key for authentication
-  username: ""             # Basic auth username
-  password: ""             # Basic auth password
-  timeout_sec: 30
-  cache_ttl: 180
+  requests_per_second: 100
+  burst: 200
 ```
 
-### Prometheus
+Environment variables:
+- `MCP_LOG_LEVEL`
+- `MCP_LOG_JSON`
+- `MCP_RATELIMIT_ENABLED`
+- `MCP_RATELIMIT_REQUESTS_PER_SECOND`
+- `MCP_RATELIMIT_BURST`
 
-```yaml
-prometheus:
-  enabled: false
-  address: "http://prometheus:9090"
-  timeout_sec: 30
-  cache_ttl: 60
-  query_timeout: 120       # Query timeout in seconds
-```
-
-### Kibana
-
-```yaml
-kibana:
-  enabled: false
-  url: "http://kibana:5601"
-  api_key: ""
-  username: ""
-  password: ""
-  timeout_sec: 30
-  cache_ttl: 180
-```
-
-### Elasticsearch
-
-```yaml
-elasticsearch:
-  enabled: false
-  url: "http://elasticsearch:9200"
-  username: ""
-  password: ""
-  timeout_sec: 30
-  cache_ttl: 180
-```
-
-### Alertmanager
-
-```yaml
-alertmanager:
-  enabled: false
-  url: "http://alertmanager:9093"
-  timeout_sec: 30
-  cache_ttl: 60
-```
-
-### Jaeger
-
-```yaml
-jaeger:
-  enabled: false
-  url: "http://jaeger:16686"
-  timeout_sec: 30
-  cache_ttl: 120
-```
-
-### OpenTelemetry
-
-```yaml
-opentelemetry:
-  enabled: false
-  address: "http://localhost:4318"
-  timeout_sec: 30
-  username: ""
-  password: ""
-  bearer_token: ""
-  tls_skip_verify: false
-  tls_cert_file: ""
-  tls_key_file: ""
-  tls_ca_file: ""
-```
-
-**Configuration Options:**
-
-- `enabled`: Enable/disable OpenTelemetry service
-- `address`: OpenTelemetry Collector address (http://host:port or https://host:port)
-- `timeout_sec`: Request timeout in seconds
-- `username`: Basic auth username (optional)
-- `password`: Basic auth password (optional)
-- `bearer_token`: Bearer token for authentication (optional, takes precedence over Basic Auth)
-- `tls_skip_verify`: Skip TLS certificate verification (DO NOT use in production!)
-- `tls_cert_file`: TLS client certificate file path (for mTLS auth)
-- `tls_key_file`: TLS client key file path
-- `tls_ca_file`: TLS CA certificate file path
-
-**Environment Variables:**
-
-- `MCP_OPENTELEMETRY_ENABLED`: Enable/disable service (1, true, yes, on)
-- `MCP_OPENTELEMETRY_ADDRESS`: Collector address
-- `MCP_OPENTELEMETRY_TIMEOUT`: Request timeout in seconds
-- `MCP_OPENTELEMETRY_USERNAME`: Basic auth username
-- `MCP_OPENTELEMETRY_PASSWORD`: Basic auth password
-- `MCP_OPENTELEMETRY_BEARER_TOKEN`: Bearer token
-- `MCP_OPENTELEMETRY_TLS_SKIP_VERIFY`: Skip TLS verification
-- `MCP_OPENTELEMETRY_TLS_CERT_FILE`: TLS certificate file
-- `MCP_OPENTELEMETRY_TLS_KEY_FILE`: TLS key file
-- `MCP_OPENTELEMETRY_TLS_CA_FILE`: TLS CA file
-
-### Utilities
-
-```yaml
-utilities:
-  enabled: true
-```
+Note: legacy aliases `MCP_RATE_LIMIT_*` are still accepted.
 
 ---
 
 ## Authentication
 
-### API Key Authentication
-
 ```yaml
 auth:
   enabled: true
+  # apikey | bearer | basic
   mode: "apikey"
-  api_key: "your-secret-api-key"
-  header_name: "X-API-Key"  # Custom header name
+
+  # for apikey mode
+  apiKey: "ChangeMe-Strong-Key-123!"
+
+  # for bearer mode
+  bearerToken: ""
+
+  # for basic mode
+  username: ""
+  password: ""
+
+  # optional JWT verification settings
+  jwtSecret: ""
+  jwtAlgorithm: "HS256"
 ```
 
-### Bearer Token Authentication
-
-```yaml
-auth:
-  enabled: true
-  mode: "bearer"
-  api_key: "your-bearer-token"
-```
-
-### Basic Authentication
-
-```yaml
-auth:
-  enabled: true
-  mode: "basic"
-  username: "admin"
-  password: "secret-password"
-```
-
-### Multiple API Keys
-
-```yaml
-auth:
-  enabled: true
-  mode: "apikey"
-  api_keys:
-    - key: "key-1"
-      name: "Service A"
-      permissions: ["read", "write"]
-    - key: "key-2"
-      name: "Service B"
-      permissions: ["read"]
-```
-
-### Environment Variables for Auth
-
-| Variable | Description |
-|----------|-------------|
-| `MCP_AUTH_ENABLED` | Enable authentication (true/false) |
-| `MCP_AUTH_MODE` | Auth mode (apikey, bearer, basic) |
-| `MCP_AUTH_API_KEY` | API key or bearer token |
-| `MCP_AUTH_USERNAME` | Username for basic auth |
-| `MCP_AUTH_PASSWORD` | Password for basic auth |
+Validation behavior:
+- when `mode: apikey`, `auth.apiKey` is required
+- when `mode: bearer`, `auth.bearerToken` is required
+- when `mode: basic`, both `auth.username` and `auth.password` are required
 
 ---
 
-## Logging
-
-### Log Levels
-
-```yaml
-logging:
-  level: "info"            # debug, info, warn, error
-  format: "json"           # json or text
-  output: "stdout"         # stdout, stderr, or file path
-```
-
-### Structured Logging
-
-```yaml
-logging:
-  level: "debug"
-  format: "json"
-  output: "stdout"
-  fields:
-    environment: "production"
-    cluster: "prod-cluster"
-```
-
-### Log Rotation
-
-```yaml
-logging:
-  output: "/var/log/cloud-native-mcp-server.log"
-  max_size: 100           # MB
-  max_age: 30             # days
-  max_backups: 10         # number of backups
-  compress: true
-```
-
----
-
-## Audit Logging
-
-### Basic Audit Configuration
-
-```yaml
-audit:
-  enabled: true
-  max_logs: 1000          # Maximum logs in memory
-  log_level: "info"       # Log level for audit events
-```
-
-### File Audit Storage
-
-```yaml
-audit:
-  enabled: true
-  storage: "file"
-  file_path: "/var/log/k8s-mcp-audit.log"
-  max_size: 100           # MB
-  max_age: 30
-  max_backups: 10
-  compress: true
-```
-
-### Database Audit Storage
-
-```yaml
-audit:
-  enabled: true
-  storage: "database"
-  database:
-    driver: "postgres"
-    dsn: "postgres://user:pass@localhost:5432/audit?sslmode=disable"
-    table: "audit_logs"
-```
-
-### Audit Fields
-
-The following fields are logged for each operation:
-
-- Timestamp
-- Request ID
-- User/Client info
-- Tool name
-- Parameters (masked for sensitive data)
-- Execution time
-- Result status
-- Error (if any)
-
----
-
-## Caching
-
-### Global Cache Configuration
-
-```yaml
-cache:
-  enabled: true
-  type: "lru"             # lru or segmented
-  max_size: 1000          # Maximum cache entries
-  default_ttl: 300        # Default TTL in seconds
-```
-
-### Service-Specific Cache TTL
+## Service Configuration
 
 ```yaml
 kubernetes:
-  cache_ttl: 300          # 5 minutes
-
-grafana:
-  cache_ttl: 180          # 3 minutes
+  kubeconfig: ""
+  timeoutSec: 30
+  qps: 100.0
+  burst: 200
 
 prometheus:
-  cache_ttl: 60           # 1 minute
-```
+  enabled: false
+  address: "http://prometheus:9090"
+  timeoutSec: 30
+  username: ""
+  password: ""
+  bearerToken: ""
+  tlsSkipVerify: false
+  tlsCertFile: ""
+  tlsKeyFile: ""
+  tlsCAFile: ""
 
-### Cache Statistics
+grafana:
+  enabled: false
+  url: "http://grafana:3000"
+  apiKey: ""
+  username: ""
+  password: ""
+  timeoutSec: 30
 
-Enable cache statistics for monitoring:
+kibana:
+  enabled: false
+  url: "http://kibana:5601"
+  apiKey: ""
+  username: ""
+  password: ""
+  timeoutSec: 30
+  skipVerify: false
+  space: "default"
 
-```yaml
-cache:
-  enabled: true
-  collect_stats: true
-  stats_interval: 60      # Stats collection interval (seconds)
+helm:
+  enabled: false
+  kubeconfigPath: ""
+  namespace: "default"
+  debug: false
+  timeoutSec: 300
+  maxRetries: 3
+  useMirrors: true
+  mirrors: {}
+
+elasticsearch:
+  enabled: false
+  addresses: []
+  address: ""
+  username: ""
+  password: ""
+  bearerToken: ""
+  apiKey: ""
+  timeoutSec: 30
+  tlsSkipVerify: false
+  tlsCertFile: ""
+  tlsKeyFile: ""
+  tlsCAFile: ""
+
+alertmanager:
+  enabled: false
+  address: "http://alertmanager:9093"
+  timeoutSec: 30
+  username: ""
+  password: ""
+  bearerToken: ""
+  tlsSkipVerify: false
+  tlsCertFile: ""
+  tlsKeyFile: ""
+  tlsCAFile: ""
+
+jaeger:
+  enabled: false
+  address: "http://jaeger:16686"
+  timeoutSec: 30
+
+opentelemetry:
+  enabled: false
+  address: "http://otel-collector:4318"
+  timeoutSec: 30
+  username: ""
+  password: ""
+  bearerToken: ""
+  tlsSkipVerify: false
+  tlsCertFile: ""
+  tlsKeyFile: ""
+  tlsCAFile: ""
 ```
 
 ---
 
-## Performance Tuning
-
-### Connection Pooling
+## Audit Configuration
 
 ```yaml
-server:
-  max_connections: 1000
-  max_idle_conns: 100
-  idle_timeout: 90        # seconds
+audit:
+  enabled: false
+  level: "info"
+  storage: "memory" # memory | file | database | all
+  format: "json"    # json | text
+  maxResults: 1000
+  timeRange: 90
+
+  file:
+    path: "/var/log/cloud-native-mcp-server/audit.log"
+    maxSizeMB: 100
+    maxBackups: 10
+    maxAgeDays: 30
+    compress: true
+    maxLogs: 10000
+
+  database:
+    type: "sqlite" # sqlite | postgres | mysql
+    sqlitePath: "/var/lib/cloud-native-mcp-server/audit.db"
+    tableName: "audit_logs"
+    maxRecords: 100000
+    cleanupInterval: 24
+
+  query:
+    enabled: true
+    maxResults: 1000
+    timeRange: 90
+
+  alerts:
+    enabled: false
+    failureThreshold: 10
+    checkIntervalSec: 60
+    method: "none"
+    webhookURL: ""
+
+  masking:
+    enabled: true
+    fields: ["password", "token", "apiKey", "authorization"]
+    maskValue: "***REDACTED***"
+
+  sampling:
+    enabled: false
+    rate: 1.0
 ```
 
-### Request Limits
+---
+
+## Service and Tool Filtering
 
 ```yaml
-server:
-  max_request_size: 10485760  # 10MB
-  max_header_size: 1048576    # 1MB
-  read_timeout: 30
-  write_timeout: 30
-```
-
-### Rate Limiting
-
-```yaml
-ratelimit:
-  enabled: true
-  requests_per_second: 100
-  burst: 200
-  cleanup_interval: 60
-```
-
-### Response Size Control
-
-```yaml
-performance:
-  max_response_size: 5242880  # 5MB
-  truncate_large_responses: true
-  compression_enabled: true
-  compression_level: 6
-```
-
-### JSON Encoding Pool
-
-```yaml
-performance:
-  json_pool_size: 100
-  json_buffer_size: 8192
+enableDisable:
+  disabledServices: []
+  enabledServices: []
+  disabledTools: []
 ```
 
 ---
 
 ## Example Configurations
 
-### Minimal Configuration (Kubernetes Only)
+### Minimal
 
 ```yaml
 server:
@@ -452,177 +298,74 @@ logging:
   level: "info"
 
 kubernetes:
-  enabled: true
   kubeconfig: ""
 ```
 
-### Full Stack Monitoring
+### Production Baseline
 
 ```yaml
 server:
-  mode: "sse"
+  mode: "streamable-http"
   addr: "0.0.0.0:8080"
+  readTimeoutSec: 30
+  writeTimeoutSec: 0
+  idleTimeoutSec: 60
 
 logging:
   level: "info"
-  format: "json"
-
-kubernetes:
-  enabled: true
-  kubeconfig: ""
-
-grafana:
-  enabled: true
-  url: "http://grafana:3000"
-  api_key: "${GRAFANA_API_KEY}"
-
-prometheus:
-  enabled: true
-  address: "http://prometheus:9090"
-
-alertmanager:
-  enabled: true
-  url: "http://alertmanager:9093"
-
-audit:
-  enabled: true
-  storage: "file"
-  file_path: "/var/log/k8s-mcp-audit.log"
-```
-
-### Production with Auth and Caching
-
-```yaml
-server:
-  mode: "sse"
-  addr: "0.0.0.0:8080"
-  max_connections: 1000
-
-logging:
-  level: "info"
-  format: "json"
-
-kubernetes:
-  enabled: true
-  kubeconfig: ""
-  timeout_sec: 30
-  cache_ttl: 300
-
-grafana:
-  enabled: true
-  url: "http://grafana:3000"
-  api_key: "${GRAFANA_API_KEY}"
-  cache_ttl: 180
+  json: true
 
 auth:
   enabled: true
   mode: "apikey"
-  api_key: "${MCP_AUTH_API_KEY}"
-
-audit:
-  enabled: true
-  storage: "database"
-  database:
-    driver: "postgres"
-    dsn: "${AUDIT_DB_DSN}"
-
-cache:
-  enabled: true
-  type: "lru"
-  max_size: 1000
-  default_ttl: 300
+  apiKey: "${MCP_AUTH_API_KEY}"
 
 ratelimit:
   enabled: true
   requests_per_second: 100
   burst: 200
+
+audit:
+  enabled: true
+  storage: "database"
+  format: "json"
+  database:
+    type: "sqlite"
+    sqlitePath: "/var/lib/cloud-native-mcp-server/audit.db"
+    maxRecords: 100000
+    cleanupInterval: 24
+
+kubernetes:
+  kubeconfig: ""
+  timeoutSec: 30
+  qps: 100.0
+  burst: 200
 ```
 
 ---
 
-## Configuration Validation
+## Validation and Smoke Checks
 
-The server validates configuration on startup. Common validation errors:
+The current CLI does **not** provide a `--validate-config` flag.
 
-### Invalid Server Mode
-```
-Error: invalid server mode "invalid". Must be one of: sse, http, stdio
-```
-
-### Missing Required Fields
-```
-Error: missing required field "api_key" in auth configuration
-```
-
-### Invalid Service URL
-```
-Error: invalid service URL "grafana:3000". Must include scheme (http/https)
-```
-
-### Out of Range Values
-```
-Error: cache_ttl must be between 0 and 3600 seconds
-```
-
----
-
-## Environment Variable Substitution
-
-You can use environment variables in the YAML config file:
-
-```yaml
-grafana:
-  url: "${GRAFANA_URL}"
-  api_key: "${GRAFANA_API_KEY}"
-
-auth:
-  api_key: "${MCP_AUTH_API_KEY}"
-```
-
-Set environment variables before starting the server:
+Recommended quick checks:
 
 ```bash
-export GRAFANA_URL="http://grafana:3000"
-export GRAFANA_API_KEY="your-api-key"
-export MCP_AUTH_API_KEY="your-mcp-key"
+# 1) Load config and print enabled services
+./cloud-native-mcp-server --config=config.yaml --list=services --output=table
 
-./cloud-native-mcp-server
+# 2) Start server and check health endpoint
+./cloud-native-mcp-server --config=config.yaml
+curl -sS http://127.0.0.1:8080/health
 ```
+
+If configuration is invalid, startup logs include validation failure details.
 
 ---
 
-## Testing Configuration
+## Related Docs
 
-Test your configuration without starting the server:
-
-```bash
-./cloud-native-mcp-server --config=config.yaml --validate-config
-```
-
-This will:
-- Parse the configuration file
-- Validate all fields
-- Check service connectivity
-- Report any errors
-
----
-
-## Hot Reload
-
-Hot reload is not supported. Restart the server to apply configuration changes:
-
-```bash
-# Send SIGTERM for graceful shutdown
-kill -TERM <pid>
-
-# Server will finish in-flight requests and exit
-# Then start with new configuration
-./cloud-native-mcp-server --config=new-config.yaml
-```
-
----
-
-For more information, see:
-- [Complete Tools Reference](TOOLS.md)
-- [Deployment Guide](DEPLOYMENT.md)
-- [Main README](../README.md)
+- `docs/DEPLOYMENT.md`
+- `README.md`
+- `website/content/en/docs/configuration.md`
+- `website/content/zh/docs/configuration.md`

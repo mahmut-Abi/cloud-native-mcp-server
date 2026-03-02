@@ -108,19 +108,19 @@ export MCP_AUTH_API_KEY="your-mcp-key"
 
 服务器在启动时验证配置。常见验证错误：
 
-### 无效的服务器模式
-```
-Error: invalid server mode "invalid". Must be one of: sse, streamable-http, http, stdio
-```
-
 ### 缺少必需字段
 ```
-Error: missing required field "api_key" in auth configuration
+Error: auth API key is required for apikey mode
 ```
 
-### 无效的服务 URL
+### 无效的认证模式
 ```
-Error: invalid service URL "grafana:3000". Must include scheme (http/https)
+Error: invalid auth mode: invalid (must be apikey, bearer, or basic)
+```
+
+### 缺少服务地址
+```
+Error: grafana URL is required when service is enabled
 ```
 
 ## 测试配置
@@ -129,7 +129,7 @@ Error: invalid service URL "grafana:3000". Must include scheme (http/https)
 
 ```bash
 # 检查配置文件语法
-./cloud-native-mcp-server --config=config.yaml --validate-config
+./cloud-native-mcp-server --config=config.yaml --list=services --output=table
 ```
 
 这将会：
