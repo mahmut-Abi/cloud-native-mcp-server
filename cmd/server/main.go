@@ -102,7 +102,7 @@ func main() {
 	}
 
 	// Start HTTP server
-	srv, err := startHTTPServer(config, appConfig, mcpServer)
+	srv, err := startHTTPServer(config, appConfig, mcpServer, sc)
 	if err != nil {
 		logrus.Fatalf("Failed to start server: %v", err)
 	}
