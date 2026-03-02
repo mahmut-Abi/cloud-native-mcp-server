@@ -7,6 +7,7 @@ import (
 	"crypto/tls"
 	"crypto/x509"
 	"encoding/json"
+	stderrs "errors"
 	"fmt"
 	"io"
 	"net/http"
@@ -19,24 +20,30 @@ import (
 
 // ClientOptions defines configuration options for the OpenTelemetry HTTP client.
 type ClientOptions struct {
-	Address       string        // OpenTelemetry Collector address (e.g., http://localhost:4318)
-	Username      string        // Basic auth username
-	Password      string        // Basic auth password
-	BearerToken   string        // Bearer token for authentication
-	Timeout       time.Duration // Request timeout
-	TLSSkipVerify bool          // Skip TLS certificate verification
-	TLSCertFile   string        // Path to TLS certificate file
-	TLSKeyFile    string        // Path to TLS key file
-	TLSCAFile     string        // Path to TLS CA file
+	Address        string        // OpenTelemetry Collector address (e.g., http://localhost:4318)
+	Username       string        // Basic auth username
+	Password       string        // Basic auth password
+	BearerToken    string        // Bearer token for authentication
+	Timeout        time.Duration // Request timeout
+	TLSSkipVerify  bool          // Skip TLS certificate verification
+	TLSCertFile    string        // Path to TLS certificate file
+	TLSKeyFile     string        // Path to TLS key file
+	TLSCAFile      string        // Path to TLS CA file
+	MaxRetries     int           // Retries for idempotent requests
+	RetryBaseDelay time.Duration // Base delay for exponential backoff
+	RetryMaxDelay  time.Duration // Maximum delay between retries
 }
 
 // Client represents an HTTP client for OpenTelemetry Collector API operations.
 type Client struct {
-	httpClient  *http.Client
-	baseURL     string
-	username    string
-	password    string
-	bearerToken string
+	httpClient     *http.Client
+	baseURL        string
+	username       string
+	password       string
+	bearerToken    string
+	maxRetries     int
+	retryBaseDelay time.Duration
+	retryMaxDelay  time.Duration
 }
 
 // NewClient creates a new OpenTelemetry HTTP client with the provided options.
@@ -81,50 +88,101 @@ func NewClient(opts *ClientOptions) (*Client, error) {
 		httpClient.Transport.(*http.Transport).TLSClientConfig = tlsConfig
 	}
 
-	return &Client{
-		httpClient:  httpClient,
-		baseURL:     opts.Address,
-		username:    opts.Username,
-		password:    opts.Password,
-		bearerToken: opts.BearerToken,
-	}, nil
+	client := &Client{
+		httpClient:     httpClient,
+		baseURL:        opts.Address,
+		username:       opts.Username,
+		password:       opts.Password,
+		bearerToken:    opts.BearerToken,
+		maxRetries:     opts.MaxRetries,
+		retryBaseDelay: opts.RetryBaseDelay,
+		retryMaxDelay:  opts.RetryMaxDelay,
+	}
+	client.maxRetries, client.retryBaseDelay, client.retryMaxDelay = optimize.NormalizeRetryConfig(client.maxRetries, client.retryBaseDelay, client.retryMaxDelay)
+
+	return client, nil
 }
 
 // makeRequest performs an HTTP request to the OpenTelemetry Collector API.
 func (c *Client) makeRequest(ctx context.Context, method, path string, body interface{}) ([]byte, error) {
-	var reqBody io.Reader
+	var bodyBytes []byte
 	if body != nil {
 		jsonBody, err := json.Marshal(body)
 		if err != nil {
 			return nil, fmt.Errorf("failed to marshal request body: %w", err)
 		}
-		reqBody = bytes.NewReader(jsonBody)
+		bodyBytes = jsonBody
 	}
 
-	url := c.baseURL + path
-	req, err := http.NewRequestWithContext(ctx, method, url, reqBody)
-	if err != nil {
-		return nil, fmt.Errorf("failed to create request: %w", err)
+	requestURL := c.baseURL + path
+	allowRetry := optimize.IsRetryableMethod(method)
+	totalAttempts := 1
+	if allowRetry {
+		totalAttempts = c.maxRetries + 1
 	}
 
-	// Set authentication headers
-	if c.bearerToken != "" {
-		req.Header.Set("Authorization", "Bearer "+c.bearerToken)
-	} else if c.username != "" && c.password != "" {
-		req.SetBasicAuth(c.username, c.password)
+	for attempt := 1; attempt <= totalAttempts; attempt++ {
+		var reqBody io.Reader
+		if len(bodyBytes) > 0 {
+			reqBody = bytes.NewReader(bodyBytes)
+		}
+
+		req, err := http.NewRequestWithContext(ctx, method, requestURL, reqBody)
+		if err != nil {
+			return nil, fmt.Errorf("failed to create request: %w", err)
+		}
+
+		// Set authentication headers
+		if c.bearerToken != "" {
+			req.Header.Set("Authorization", "Bearer "+c.bearerToken)
+		} else if c.username != "" && c.password != "" {
+			req.SetBasicAuth(c.username, c.password)
+		}
+
+		if len(bodyBytes) > 0 {
+			req.Header.Set("Content-Type", "application/json")
+		}
+
+		resp, reqErr := c.httpClient.Do(req)
+		if reqErr == nil {
+			if allowRetry && optimize.ShouldRetryStatusCode(resp.StatusCode) && attempt < totalAttempts {
+				_ = resp.Body.Close()
+				delay := optimize.NextRetryDelay(c.retryBaseDelay, c.retryMaxDelay, attempt)
+				if waitErr := waitForRetry(ctx, delay); waitErr != nil {
+					return nil, waitErr
+				}
+				continue
+			}
+			defer func() { _ = resp.Body.Close() }()
+			return c.handleResponse(resp)
+		}
+
+		if stderrs.Is(reqErr, context.Canceled) {
+			return nil, reqErr
+		}
+		if allowRetry && optimize.ShouldRetryTransportError(reqErr) && attempt < totalAttempts {
+			delay := optimize.NextRetryDelay(c.retryBaseDelay, c.retryMaxDelay, attempt)
+			if waitErr := waitForRetry(ctx, delay); waitErr != nil {
+				return nil, waitErr
+			}
+			continue
+		}
+		return nil, fmt.Errorf("failed to execute request: %w", reqErr)
 	}
 
-	if body != nil {
-		req.Header.Set("Content-Type", "application/json")
-	}
+	return nil, fmt.Errorf("retry attempts exhausted for request %s %s", method, requestURL)
+}
 
-	resp, err := c.httpClient.Do(req)
-	if err != nil {
-		return nil, fmt.Errorf("failed to execute request: %w", err)
-	}
-	defer func() { _ = resp.Body.Close() }()
+func waitForRetry(ctx context.Context, delay time.Duration) error {
+	timer := time.NewTimer(delay)
+	defer timer.Stop()
 
-	return c.handleResponse(resp)
+	select {
+	case <-ctx.Done():
+		return ctx.Err()
+	case <-timer.C:
+		return nil
+	}
 }
 
 // handleResponse processes the HTTP response from OpenTelemetry Collector API.
