@@ -663,24 +663,23 @@ enableDisable:
 
 ## Performance Tuning
 
-### Response Size Control
+Use currently supported tuning knobs:
 
 ```yaml
-# Implemented in code
-performance:
-  max_response_size: 5242880  # 5MB
-  truncate_large_responses: true
-  compression_enabled: true
-  compression_level: 6
-```
+server:
+  readTimeoutSec: 30
+  writeTimeoutSec: 0
+  idleTimeoutSec: 60
 
-### JSON Encoding Pool
+kubernetes:
+  timeoutSec: 30
+  qps: 100.0
+  burst: 200
 
-```yaml
-# Implemented in code
-performance:
-  json_pool_size: 100
-  json_buffer_size: 8192
+ratelimit:
+  enabled: true
+  requests_per_second: 100
+  burst: 200
 ```
 
 ---
@@ -790,19 +789,19 @@ audit:
 
 The server validates configuration on startup. Common validation errors:
 
-### Invalid Server Mode
-```
-Error: invalid server mode "invalid". Must be one of: sse, streamable-http, http, stdio
-```
-
 ### Missing Required Field
 ```
-Error: missing required field "api_key" in auth configuration
+Error: auth API key is required for apikey mode
 ```
 
-### Invalid Service URL
+### Invalid Auth Mode
 ```
-Error: invalid service URL "grafana:3000". Must include scheme (http/https)
+Error: invalid auth mode: invalid (must be apikey, bearer, or basic)
+```
+
+### Missing Service Endpoint
+```
+Error: grafana URL is required when service is enabled
 ```
 
 ---
@@ -838,7 +837,7 @@ Test configuration without starting the server:
 
 ```bash
 # Check configuration file syntax
-./cloud-native-mcp-server --config=config.yaml --validate-config
+./cloud-native-mcp-server --config=config.yaml --list=services --output=table
 ```
 
 This will:

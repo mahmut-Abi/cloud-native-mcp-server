@@ -471,22 +471,24 @@ autoscaling:
 
 ### Resource Optimization
 
-Enable caching and tune parameters:
+Tune supported server and service parameters:
 
 ```yaml
 config:
-  # Enable caching
-  cache:
-    enabled: true
-    type: "lru"
-    max_size: 2000
-    default_ttl: 300
+  server:
+    readTimeoutSec: 30
+    writeTimeoutSec: 0
+    idleTimeoutSec: 60
 
-  # Performance optimization
-  performance:
-    max_response_size: 5242880
-    compression_enabled: true
-    json_pool_size: 200
+  kubernetes:
+    timeoutSec: 30
+    qps: 100.0
+    burst: 200
+
+  ratelimit:
+    enabled: true
+    requests_per_second: 100
+    burst: 200
 ```
 
 ### Security
@@ -548,13 +550,18 @@ spec:
 config:
   logging:
     level: "info"
-    format: "json"
-    output: "stdout"
+    json: true
 
   audit:
     enabled: true
     storage: "file"
-    file_path: "/var/log/k8s-mcp-audit.log"
+    format: "json"
+    file:
+      path: "/var/log/cloud-native-mcp-server/audit.log"
+      maxSizeMB: 100
+      maxBackups: 10
+      maxAgeDays: 30
+      compress: true
 ```
 
 Add Prometheus monitoring:
@@ -786,15 +793,18 @@ resources:
   limits:
     memory: "1Gi"
 
-# Reduce cache size
+# Smooth burst traffic
 config:
-  cache:
-    max_size: 500
+  ratelimit:
+    enabled: true
+    requests_per_second: 80
+    burst: 120
 
-# Enable response compression
-config:
-  performance:
-    compression_enabled: true
+# Reduce audit overhead
+audit:
+  sampling:
+    enabled: true
+    rate: 0.3
 ```
 
 #### 5. Slow Response
@@ -803,14 +813,17 @@ config:
 
 **Solution**:
 ```yaml
-# Increase timeout
+# Increase service timeout
 kubernetes:
   timeoutSec: 60
+  qps: 120
+  burst: 240
 
-# Enable caching
-config:
-  cache:
-    enabled: true
+# Tune HTTP timeouts
+server:
+  readTimeoutSec: 60
+  writeTimeoutSec: 0
+  idleTimeoutSec: 90
 
 # Use summary tools
 # Replace kubernetes_list_resources with kubernetes_list_resources_summary

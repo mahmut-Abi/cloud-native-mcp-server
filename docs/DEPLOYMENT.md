@@ -1,63 +1,31 @@
 # Deployment Guide
 
-This guide covers various deployment strategies and best practices for the K8s MCP Server.
+This guide focuses on deployment methods that match the current server behavior and configuration schema.
 
-## Table of Contents
-
-- [Prerequisites](#prerequisites)
-- [Quick Start Deployments](#quick-start-deployments)
-- [Kubernetes Deployment](#kubernetes-deployment)
-- [Docker Deployment](#docker-deployment)
-- [Helm Deployment](#helm-deployment)
-- [Production Considerations](#production-considerations)
-- [Monitoring and Observability](#monitoring-and-observability)
-- [Security Best Practices](#security-best-practices)
-- [Troubleshooting](#troubleshooting)
+For website docs:
+- English: `website/content/en/docs/deployment.md`
+- Chinese: `website/content/zh/docs/deployment.md`
 
 ---
 
 ## Prerequisites
 
-### System Requirements
-
-- **OS**: Linux, macOS, or Windows
-- **CPU**: 1 core minimum, 2+ cores recommended
-- **RAM**: 512MB minimum, 1GB+ recommended
-- **Disk**: 100MB minimum
-- **Network**: Access to Kubernetes cluster and configured services
-
-### Software Requirements
-
-- **Go**: 1.25+ (for building from source)
-- **Docker**: 20.10+ (for containerized deployment)
-- **kubectl**: Configured with cluster access
-- **Helm**: 3.0+ (for Helm deployment)
-
-### Service Dependencies
-
-Optional services to connect to:
-
-- **Grafana** (optional)
-- **Prometheus** (optional)
-- **Kibana** (optional)
-- **Elasticsearch** (optional)
-- **Alertmanager** (optional)
-- **Jaeger** (optional)
-- **OpenTelemetry** (optional)
+- Kubernetes access (for Kubernetes/Helm deployment)
+- Docker/Podman (for container deployment)
+- A valid config file or environment variables for authentication and optional services
 
 ---
 
-## Quick Start Deployments
-
-### Binary Deployment
+## Binary Deployment
 
 ```bash
-# Download latest release
-wget https://github.com/mahmut-Abi/cloud-native-mcp-server/releases/latest/download/cloud-native-mcp-server-linux-amd64
-chmod +x cloud-native-mcp-server-linux-amd64
+# Example
+./cloud-native-mcp-server --config=config.yaml
+```
 
-# Create config
-cat > config.yaml << EOF
+Minimal `config.yaml`:
+
+```yaml
 server:
   mode: "sse"
   addr: "0.0.0.0:8080"
@@ -66,21 +34,30 @@ logging:
   level: "info"
 
 kubernetes:
-  enabled: true
   kubeconfig: ""
-EOF
-
-# Run
-./cloud-native-mcp-server-linux-amd64
 ```
 
-### Docker Quick Start
+Smoke check:
+
+```bash
+curl -sS http://127.0.0.1:8080/health
+```
+
+---
+
+## Container Deployment
 
 ```bash
 docker run -d \
   --name cloud-native-mcp-server \
   -p 8080:8080 \
   -v ~/.kube:/root/.kube:ro \
+  -e MCP_MODE=sse \
+  -e MCP_ADDR=0.0.0.0:8080 \
+  -e MCP_LOG_LEVEL=info \
+  -e MCP_AUTH_ENABLED=true \
+  -e MCP_AUTH_MODE=apikey \
+  -e MCP_AUTH_API_KEY='ChangeMe-Strong-Key-123!' \
   mahmutabi/cloud-native-mcp-server:latest
 ```
 
@@ -88,9 +65,7 @@ docker run -d \
 
 ## Kubernetes Deployment
 
-### Basic Deployment
-
-Create a deployment manifest:
+### Deployment
 
 ```yaml
 apiVersion: apps/v1
@@ -99,7 +74,7 @@ metadata:
   name: cloud-native-mcp-server
   namespace: default
 spec:
-  replicas: 1
+  replicas: 2
   selector:
     matchLabels:
       app: cloud-native-mcp-server
@@ -110,76 +85,45 @@ spec:
     spec:
       serviceAccountName: cloud-native-mcp-server
       containers:
-      - name: cloud-native-mcp-server
-        image: mahmutabi/cloud-native-mcp-server:latest
-        ports:
-        - containerPort: 8080
-        env:
-        - name: MCP_MODE
-          value: "sse"
-        - name: MCP_ADDR
-          value: "0.0.0.0:8080"
-        - name: MCP_LOG_LEVEL
-          value: "info"
-        volumeMounts:
-        - name: kubeconfig
-          mountPath: /root/.kube
-          readOnly: true
-        resources:
-          requests:
-            memory: "256Mi"
-            cpu: "250m"
-          limits:
-            memory: "512Mi"
-            cpu: "500m"
-        livenessProbe:
-          httpGet:
-            path: /health
-            port: 8080
-          initialDelaySeconds: 30
-          periodSeconds: 10
-        readinessProbe:
-          httpGet:
-            path: /health
-            port: 8080
-          initialDelaySeconds: 5
-          periodSeconds: 5
-      volumes:
-      - name: kubeconfig
-        configMap:
-          name: kubeconfig
-```
-
-### Service Account with RBAC
-
-```yaml
-apiVersion: v1
-kind: ServiceAccount
-metadata:
-  name: cloud-native-mcp-server
-  namespace: default
----
-apiVersion: rbac.authorization.k8s.io/v1
-kind: ClusterRole
-metadata:
-  name: cloud-native-mcp-server
-rules:
-- apiGroups: ["*"]
-  resources: ["*"]
-  verbs: ["get", "list", "watch", "describe"]
----
-apiVersion: rbac.authorization.k8s.io/v1
-kind: ClusterRoleBinding
-metadata:
-  name: cloud-native-mcp-server
-roleRef:
-  apiGroup: rbac.authorization.k8s.io
-  kind: ClusterRole
-  name: cloud-native-mcp-server
-subjects:
-- kind: ServiceAccount
-  name: cloud-native-mcp-server
-  namespace: default
+        - name: cloud-native-mcp-server
+          image: mahmutabi/cloud-native-mcp-server:latest
+          ports:
+            - containerPort: 8080
+          env:
+            - name: MCP_MODE
+              value: "streamable-http"
+            - name: MCP_ADDR
+              value: "0.0.0.0:8080"
+            - name: MCP_LOG_LEVEL
+              value: "info"
+            - name: MCP_AUTH_ENABLED
+              value: "true"
+            - name: MCP_AUTH_MODE
+              value: "apikey"
+            - name: MCP_AUTH_API_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: cloud-native-mcp-secrets
+                  key: mcp-auth-api-key
+          resources:
+            requests:
+              cpu: "250m"
+              memory: "256Mi"
+            limits:
+              cpu: "1000m"
+              memory: "1Gi"
+          readinessProbe:
+            httpGet:
+              path: /health
+              port: 8080
+            initialDelaySeconds: 5
+            periodSeconds: 5
+          livenessProbe:
+            httpGet:
+              path: /health
+              port: 8080
+            initialDelaySeconds: 30
+            periodSeconds: 10
 ```
 
 ### Service
@@ -191,671 +135,176 @@ metadata:
   name: cloud-native-mcp-server
   namespace: default
 spec:
-  type: ClusterIP
-  ports:
-  - port: 8080
-    targetPort: 8080
-    protocol: TCP
   selector:
     app: cloud-native-mcp-server
+  ports:
+    - protocol: TCP
+      port: 8080
+      targetPort: 8080
 ```
 
-### Ingress
+### Secret
 
 ```yaml
-apiVersion: networking.k8s.io/v1
-kind: Ingress
+apiVersion: v1
+kind: Secret
 metadata:
-  name: cloud-native-mcp-server
+  name: cloud-native-mcp-secrets
   namespace: default
-  annotations:
-    nginx.ingress.kubernetes.io/rewrite-target: /
-spec:
-  rules:
-  - host: k8s-mcp.example.com
-    http:
-      paths:
-      - path: /
-        pathType: Prefix
-        backend:
-          service:
-            name: cloud-native-mcp-server
-            port:
-              number: 8080
-```
-
-### Deploy
-
-```bash
-# Apply all manifests
-kubectl apply -f deploy/kubernetes/
-
-# Verify deployment
-kubectl get pods -l app=cloud-native-mcp-server
-kubectl logs -l app=cloud-native-mcp-server
-
-# Test connection
-kubectl port-forward svc/cloud-native-mcp-server 8080:8080
-curl http://localhost:8080/health
-```
-
----
-
-## Docker Deployment
-
-### Docker Compose
-
-Create `docker-compose.yml`:
-
-```yaml
-version: '3.8'
-
-services:
-  cloud-native-mcp-server:
-    image: mahmutabi/cloud-native-mcp-server:latest
-    container_name: cloud-native-mcp-server
-    ports:
-      - "8080:8080"
-    volumes:
-      - ~/.kube:/root/.kube:ro
-      - ./config.yaml:/app/config.yaml:ro
-    environment:
-      - MCP_MODE=sse
-      - MCP_ADDR=0.0.0.0:8080
-      - MCP_LOG_LEVEL=info
-    restart: unless-stopped
-    healthcheck:
-      test: ["CMD", "wget", "--spider", "http://localhost:8080/health"]
-      interval: 30s
-      timeout: 10s
-      retries: 3
-      start_period: 40s
-    networks:
-      - monitoring
-
-networks:
-  monitoring:
-    external: true
-```
-
-### Run with Docker Compose
-
-```bash
-# Start
-docker-compose up -d
-
-# View logs
-docker-compose logs -f
-
-# Stop
-docker-compose down
-
-# Restart
-docker-compose restart
-```
-
-### Custom Docker Image
-
-Build your own image:
-
-```dockerfile
-FROM golang:1.25-alpine AS builder
-
-WORKDIR /app
-COPY go.mod go.sum ./
-RUN go mod download
-
-COPY . .
-RUN CGO_ENABLED=0 GOOS=linux go build -o cloud-native-mcp-server ./cmd/server
-
-FROM alpine:latest
-
-RUN apk --no-cache add ca-certificates
-WORKDIR /root/
-
-COPY --from=builder /app/cloud-native-mcp-server .
-
-EXPOSE 8080
-
-CMD ["./cloud-native-mcp-server"]
-```
-
-Build and push:
-
-```bash
-# Build
-docker build -t your-registry/cloud-native-mcp-server:latest .
-
-# Push
-docker push your-registry/cloud-native-mcp-server:latest
+type: Opaque
+stringData:
+  mcp-auth-api-key: "ChangeMe-Strong-Key-123!"
 ```
 
 ---
 
 ## Helm Deployment
 
-### Install from Chart Repository
-
 ```bash
-# Add repository
-helm repo add k8s-mcp https://mahmut-Abi.github.io/cloud-native-mcp-server
-
-# Update repository
-helm repo update
-
-# Install
-helm install cloud-native-mcp-server k8s-mcp/cloud-native-mcp-server
-
-# Upgrade
-helm upgrade cloud-native-mcp-server k8s-mcp/cloud-native-mcp-server
-
-# Uninstall
-helm uninstall cloud-native-mcp-server
+helm install cloud-native-mcp-server ./deploy/helm/cloud-native-mcp-server \
+  --set replicaCount=2
 ```
 
-### Custom Values
-
-Create `values.yaml`:
+Recommended values (aligned with current config keys):
 
 ```yaml
 replicaCount: 2
 
-image:
-  repository: mahmutabi/cloud-native-mcp-server
-  tag: latest
-  pullPolicy: IfNotPresent
-
-service:
-  type: ClusterIP
-  port: 8080
-
-ingress:
-  enabled: true
-  annotations:
-    cert-manager.io/cluster-issuer: "letsencrypt-prod"
-  hosts:
-    - host: k8s-mcp.example.com
-      paths:
-        - path: /
-          pathType: Prefix
-  tls:
-    - secretName: k8s-mcp-tls
-      hosts:
-        - k8s-mcp.example.com
-
 resources:
   requests:
-    memory: "256Mi"
     cpu: "250m"
+    memory: "256Mi"
   limits:
-    memory: "512Mi"
-    cpu: "500m"
-
-autoscaling:
-  enabled: true
-  minReplicas: 2
-  maxReplicas: 10
-  targetCPUUtilizationPercentage: 80
-  targetMemoryUtilizationPercentage: 80
+    cpu: "1000m"
+    memory: "1Gi"
 
 config:
   server:
-    mode: "sse"
+    mode: "streamable-http"
     addr: "0.0.0.0:8080"
+    readTimeoutSec: 30
+    writeTimeoutSec: 0
+    idleTimeoutSec: 60
+
   logging:
     level: "info"
-    format: "json"
-  kubernetes:
-    enabled: true
-  grafana:
-    enabled: true
-    url: "http://grafana:3000"
-    apiKey: "${GRAFANA_API_KEY}"
-  prometheus:
-    enabled: true
-    address: "http://prometheus:9090"
+    json: true
 
-rbac:
-  create: true
-  rules:
-  - apiGroups: ["*"]
-    resources: ["*"]
-    verbs: ["get", "list", "watch", "describe"]
-
-serviceAccount:
-  create: true
-  name: ""
-
-podAnnotations: {}
-
-podSecurityContext: {}
-  # fsGroup: 2000
-
-securityContext: {}
-  # capabilities:
-  #   drop:
-  #   - ALL
-  # readOnlyRootFilesystem: true
-  # runAsNonRoot: true
-  # runAsUser: 1000
-
-nodeSelector: {}
-
-tolerations: []
-
-affinity: {}
-```
-
-### Install with Custom Values
-
-```bash
-helm install cloud-native-mcp-server ./deploy/helm/cloud-native-mcp-server -f values.yaml
-```
-
----
-
-## Production Considerations
-
-### High Availability
-
-Deploy multiple replicas with proper resource limits:
-
-```yaml
-replicaCount: 3
-
-resources:
-  requests:
-    memory: "512Mi"
-    cpu: "500m"
-  limits:
-    memory: "1Gi"
-    cpu: "1000m"
-
-autoscaling:
-  enabled: true
-  minReplicas: 3
-  maxReplicas: 10
-```
-
-### Resource Optimization
-
-Enable caching and tune parameters:
-
-```yaml
-config:
-  cache:
-    enabled: true
-    type: "lru"
-    max_size: 2000
-    default_ttl: 300
-
-  performance:
-    max_response_size: 5242880
-    compression_enabled: true
-    json_pool_size: 200
-```
-
-### Security
-
-1. **Enable Authentication**:
-```yaml
-config:
   auth:
     enabled: true
     mode: "apikey"
-    api_key: "${MCP_AUTH_API_KEY}"
-```
+    apiKey: "${MCP_AUTH_API_KEY}"
 
-2. **Use Secrets**:
-```yaml
-apiVersion: v1
-kind: Secret
-metadata:
-  name: k8s-mcp-secrets
-type: Opaque
-stringData:
-  mcp-api-key: "your-secret-key"
-  grafana-api-key: "your-grafana-key"
-```
+  kubernetes:
+    timeoutSec: 30
+    qps: 100.0
+    burst: 200
 
-3. **Network Policies**:
-```yaml
-apiVersion: networking.k8s.io/v1
-kind: NetworkPolicy
-metadata:
-  name: cloud-native-mcp-server
-spec:
-  podSelector:
-    matchLabels:
-      app: cloud-native-mcp-server
-  policyTypes:
-  - Ingress
-  - Egress
-  ingress:
-  - from:
-    - namespaceSelector: {}
-    ports:
-    - protocol: TCP
-      port: 8080
-  egress:
-  - to:
-    - namespaceSelector: {}
-    ports:
-    - protocol: TCP
-      port: 443
-```
-
-### Logging and Monitoring
-
-```yaml
-config:
-  logging:
-    level: "info"
-    format: "json"
-    output: "stdout"
-
-  audit:
+  ratelimit:
     enabled: true
-    storage: "file"
-    file_path: "/var/log/k8s-mcp-audit.log"
-```
-
-Add Prometheus monitoring:
-
-```yaml
-apiVersion: v1
-kind: Service
-metadata:
-  name: cloud-native-mcp-server
-  namespace: default
-  annotations:
-    prometheus.io/scrape: "true"
-    prometheus.io/port: "8080"
-    prometheus.io/path: "/metrics"
-spec:
-  type: ClusterIP
-  ports:
-  - port: 8080
-    targetPort: 8080
-  selector:
-    app: cloud-native-mcp-server
+    requests_per_second: 100
+    burst: 200
 ```
 
 ---
 
-## Monitoring and Observability
+## Production Recommendations
 
-### Health Checks
+### 1. Limit Scope of Enabled Services
 
-The server provides health endpoints:
-
-```bash
-# Basic health check
-curl http://localhost:8080/health
-
-# Detailed health
-curl http://localhost:8080/health/detailed
-
-# Readiness
-curl http://localhost:8080/ready
+```yaml
+enableDisable:
+  enabledServices: ["kubernetes", "prometheus", "grafana", "aggregate"]
 ```
 
-### Metrics
+### 2. Configure Timeouts and Rate Limit
 
-Prometheus metrics are available at `/metrics`:
+```yaml
+server:
+  readTimeoutSec: 30
+  writeTimeoutSec: 0
+  idleTimeoutSec: 60
 
-```bash
-curl http://localhost:8080/metrics
+ratelimit:
+  enabled: true
+  requests_per_second: 100
+  burst: 200
 ```
 
-Key metrics:
-- `mcp_requests_total` - Total requests
-- `mcp_request_duration_seconds` - Request duration
-- `mcp_cache_hits_total` - Cache hits
-- `mcp_cache_misses_total` - Cache misses
-- `mcp_active_connections` - Active connections
+### 3. Secure Authentication Secrets
 
-### Logging
+- Use Kubernetes `Secret` for `MCP_AUTH_API_KEY`
+- Avoid committing plain-text credentials into `values.yaml`
 
-Structured JSON logs:
+### 4. Enable Audit Logs for Traceability
 
-```json
-{
-  "level": "info",
-  "timestamp": "2024-01-01T00:00:00Z",
-  "message": "Starting K8s MCP Server",
-  "version": "1.0.0",
-  "mode": "sse"
-}
-```
-
-### Audit Logs
-
-Audit logs track all operations:
-
-```json
-{
-  "timestamp": "2024-01-01T00:00:00Z",
-  "request_id": "abc123",
-  "tool": "kubernetes_list_resources_summary",
-  "params": {"kind": "Pod"},
-  "duration_ms": 123,
-  "status": "success"
-}
+```yaml
+audit:
+  enabled: true
+  storage: "file"
+  format: "json"
+  file:
+    path: "/var/log/cloud-native-mcp-server/audit.log"
+    maxSizeMB: 100
+    maxBackups: 10
+    maxAgeDays: 30
+    compress: true
 ```
 
 ---
 
-## Security Best Practices
+## Monitoring and Health
 
-### 1. Least Privilege RBAC
-
-```yaml
-apiVersion: rbac.authorization.k8s.io/v1
-kind: ClusterRole
-metadata:
-  name: cloud-native-mcp-server
-rules:
-# Allow read-only access to most resources
-- apiGroups: [""]
-  resources: ["pods", "services", "configmaps", "secrets"]
-  verbs: ["get", "list", "watch"]
-- apiGroups: ["apps"]
-  resources: ["deployments", "replicasets"]
-  verbs: ["get", "list", "watch"]
-# Allow describe for troubleshooting
-- apiGroups: ["*"]
-  resources: ["*"]
-  verbs: ["describe"]
-```
-
-### 2. Secrets Management
-
-Use Kubernetes secrets for sensitive data:
+### Health Endpoint
 
 ```bash
-kubectl create secret generic k8s-mcp-secrets \
-  --from-literal=mcp-api-key='your-key' \
-  --from-literal=grafana-api-key='your-grafana-key'
+curl -sS http://127.0.0.1:8080/health
 ```
 
-Mount secrets as environment variables:
+### OpenAPI/Docs Endpoints
 
-```yaml
-env:
-- name: MCP_AUTH_API_KEY
-  valueFrom:
-    secretKeyRef:
-      name: k8s-mcp-secrets
-      key: mcp-api-key
+```bash
+curl -sS http://127.0.0.1:8080/api/openapi.json
+# Swagger UI:
+# http://127.0.0.1:8080/api/docs
 ```
 
-### 3. Network Security
+### Audit Endpoints (when audit is enabled)
 
-- Use TLS for external access
-- Implement network policies
-- Restrict ingress/egress traffic
-- Use service mesh for mTLS
+```bash
+curl -sS -H "X-API-Key: ${MCP_AUTH_API_KEY}" \
+  "http://127.0.0.1:8080/api/audit/logs?limit=50"
 
-### 4. Pod Security
-
-```yaml
-securityContext:
-  runAsNonRoot: true
-  runAsUser: 1000
-  fsGroup: 1000
-  capabilities:
-    drop:
-    - ALL
-  readOnlyRootFilesystem: true
+curl -sS -H "X-API-Key: ${MCP_AUTH_API_KEY}" \
+  "http://127.0.0.1:8080/api/audit/stats"
 ```
-
-### 5. Image Security
-
-- Use signed images
-- Scan images for vulnerabilities
-- Keep images updated
-- Use specific version tags
 
 ---
 
 ## Troubleshooting
 
-### Common Issues
+### Config Not Applied
 
-#### 1. Connection Refused
+- Confirm startup logs include `Configuration loaded successfully from file`
+- Verify the file path passed to `--config`
 
-**Problem**: Cannot connect to server
+### Authentication Errors (401)
 
-**Solution**:
-```bash
-# Check pod status
-kubectl get pods -l app=cloud-native-mcp-server
+- Confirm `MCP_AUTH_ENABLED=true`
+- Confirm `MCP_AUTH_MODE` and corresponding credential variable are set
+- Confirm the client sends matching auth headers/credentials
 
-# Check logs
-kubectl logs -l app=cloud-native-mcp-server
+### Slow Requests
 
-# Check service
-kubectl get svc cloud-native-mcp-server
-
-# Port forward test
-kubectl port-forward svc/cloud-native-mcp-server 8080:8080
-curl http://localhost:8080/health
-```
-
-#### 2. Authentication Failed
-
-**Problem**: 401 Unauthorized
-
-**Solution**:
-```bash
-# Check auth configuration
-kubectl get configmap k8s-mcp-config -o yaml
-
-# Verify secrets
-kubectl get secret k8s-mcp-secrets -o yaml
-
-# Test with correct headers
-curl -H "X-API-Key: your-key" http://localhost:8080/health
-```
-
-#### 3. Kubernetes API Access Denied
-
-**Problem**: Cannot access Kubernetes API
-
-**Solution**:
-```bash
-# Check RBAC
-kubectl get clusterrole cloud-native-mcp-server -o yaml
-
-# Check service account
-kubectl get sa cloud-native-mcp-server
-
-# Verify cluster role binding
-kubectl get clusterrolebinding cloud-native-mcp-server
-
-# Test permissions
-kubectl auth can-i list pods --as=system:serviceaccount:default:cloud-native-mcp-server
-```
-
-#### 4. High Memory Usage
-
-**Problem**: Pod OOMKilled
-
-**Solution**:
-```yaml
-# Increase memory limits
-resources:
-  limits:
-    memory: "1Gi"
-
-# Reduce cache size
-config:
-  cache:
-    max_size: 500
-
-# Enable response compression
-config:
-  performance:
-    compression_enabled: true
-```
-
-#### 5. Slow Response Times
-
-**Problem**: Requests timing out
-
-**Solution**:
-```yaml
-# Increase timeouts
-kubernetes:
-  timeout_sec: 60
-
-# Enable caching
-config:
-  cache:
-    enabled: true
-
-# Use summary tools
-# Replace kubernetes_list_resources with kubernetes_list_resources_summary
-```
-
-### Debug Mode
-
-Enable debug logging:
-
-```yaml
-logging:
-  level: "debug"
-```
-
-Or via environment:
-
-```bash
-export MCP_LOG_LEVEL=debug
-```
-
-### Health Check Script
-
-```bash
-#!/bin/bash
-
-echo "Checking K8s MCP Server health..."
-
-# Check endpoint
-curl -f http://localhost:8080/health || exit 1
-
-# Check metrics
-curl -f http://localhost:8080/metrics > /dev/null || exit 1
-
-# Check readiness
-curl -f http://localhost:8080/ready || exit 1
-
-echo "All checks passed!"
-```
+- Increase `kubernetes.timeoutSec` for heavy operations
+- Tune `kubernetes.qps` and `kubernetes.burst`
+- Enable `ratelimit` to protect service under burst traffic
 
 ---
 
-For more information, see:
-- [Complete Tools Reference](TOOLS.md)
-- [Configuration Guide](CONFIGURATION.md)
-- [Main README](../README.md)
+## Related Docs
+
+- `docs/CONFIGURATION.md`
+- `README.md`
+- `website/content/en/docs/deployment.md`
+- `website/content/zh/docs/deployment.md`

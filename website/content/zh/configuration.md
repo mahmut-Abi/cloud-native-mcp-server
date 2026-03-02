@@ -663,24 +663,23 @@ enableDisable:
 
 ## 性能调优
 
-### 响应大小控制
+使用当前版本已支持的调优项：
 
 ```yaml
-# 在代码中实现
-performance:
-  max_response_size: 5242880  # 5MB
-  truncate_large_responses: true
-  compression_enabled: true
-  compression_level: 6
-```
+server:
+  readTimeoutSec: 30
+  writeTimeoutSec: 0
+  idleTimeoutSec: 60
 
-### JSON 编码池
+kubernetes:
+  timeoutSec: 30
+  qps: 100.0
+  burst: 200
 
-```yaml
-# 在代码中实现
-performance:
-  json_pool_size: 100
-  json_buffer_size: 8192
+ratelimit:
+  enabled: true
+  requests_per_second: 100
+  burst: 200
 ```
 
 ---
@@ -790,19 +789,19 @@ audit:
 
 服务器在启动时验证配置。常见验证错误：
 
-### 无效的服务器模式
-```
-Error: invalid server mode "invalid". Must be one of: sse, streamable-http, http, stdio
-```
-
 ### 缺少必需字段
 ```
-Error: missing required field "api_key" in auth configuration
+Error: auth API key is required for apikey mode
 ```
 
-### 无效的服务 URL
+### 无效的认证模式
 ```
-Error: invalid service URL "grafana:3000". Must include scheme (http/https)
+Error: invalid auth mode: invalid (must be apikey, bearer, or basic)
+```
+
+### 缺少服务地址
+```
+Error: grafana URL is required when service is enabled
 ```
 
 ---
@@ -838,7 +837,7 @@ export MCP_AUTH_API_KEY="your-mcp-key"
 
 ```bash
 # 检查配置文件语法
-./cloud-native-mcp-server --config=config.yaml --validate-config
+./cloud-native-mcp-server --config=config.yaml --list=services --output=table
 ```
 
 这将会：

@@ -115,20 +115,24 @@ autoscaling:
 
 ### 资源优化
 
-启用缓存并调优参数：
+调优当前版本已支持的服务参数：
 
 ```yaml
 config:
-  cache:
-    enabled: true
-    type: "lru"
-    max_size: 2000
-    default_ttl: 300
+  server:
+    readTimeoutSec: 30
+    writeTimeoutSec: 0
+    idleTimeoutSec: 60
 
-  performance:
-    max_response_size: 5242880
-    compression_enabled: true
-    json_pool_size: 200
+  kubernetes:
+    timeoutSec: 30
+    qps: 100.0
+    burst: 200
+
+  ratelimit:
+    enabled: true
+    requests_per_second: 100
+    burst: 200
 ```
 
 ### 安全

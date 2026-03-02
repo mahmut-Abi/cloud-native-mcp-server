@@ -61,6 +61,20 @@ report_warn_missing_description() {
   fi
 }
 
+report_fail_files() {
+  local title="$1"
+  local pattern="$2"
+  shift 2
+  local -a files=("$@")
+
+  print_section "$title"
+  if rg -n "$pattern" "${files[@]}"; then
+    FAIL_COUNT=$((FAIL_COUNT + 1))
+  else
+    echo "OK"
+  fi
+}
+
 # 1) Legacy variables and endpoints that should no longer appear in docs/content.
 report_fail \
   "Legacy MCP variables or endpoints" \
@@ -73,13 +87,44 @@ report_fail \
   '\bMCP_API_KEY\b' \
   '.'
 
-# 3) Chinese pages should not point to English doc/getting-started absolute paths.
+# 3) Core configuration/deployment docs should not drift to legacy key names.
+CORE_DOC_FILES=(
+  "docs/CONFIGURATION.md"
+  "docs/DEPLOYMENT.md"
+  "website/content/en/configuration.md"
+  "website/content/en/docs/configuration.md"
+  "website/content/zh/configuration.md"
+  "website/content/zh/docs/configuration.md"
+  "website/content/en/deployment.md"
+  "website/content/en/docs/deployment.md"
+  "website/content/zh/deployment.md"
+  "website/content/zh/docs/deployment.md"
+  "website/content/zh/guides/configuration/_index.md"
+  "website/content/zh/guides/deployment/_index.md"
+)
+
+report_fail_files \
+  "Legacy config key names in core docs" \
+  '\b(max_connections|cache_ttl|query_timeout|header_name|api_keys|max_response_size|compression_enabled|json_pool_size|file_path|read_timeout|write_timeout|timeout_sec|bearer_token|tls_skip_verify|tls_cert_file|tls_key_file|tls_ca_file)\s*:|\bapi_key\s*:' \
+  "${CORE_DOC_FILES[@]}"
+
+report_fail_files \
+  "Non-existent config validation flag in docs" \
+  'cloud-native-mcp-server[^\n`]*--validate-config' \
+  "${CORE_DOC_FILES[@]}"
+
+report_fail_files \
+  "Stale validation error text in docs" \
+  'missing required field "api_key"|invalid service URL "grafana:3000"|invalid server mode "invalid"' \
+  "${CORE_DOC_FILES[@]}"
+
+# 4) Chinese pages should not point to English doc/getting-started absolute paths.
 report_fail \
   "Cross-language path mismatch in Chinese content" \
   '\]\(/docs/|\]\(/getting-started/' \
   'website/content/zh'
 
-# 4) Soft check: key docs/posts should include a description field for SEO quality.
+# 5) Soft check: key docs/posts should include a description field for SEO quality.
 mapfile -t KEY_FILES < <(
   find website/content/en/docs website/content/zh/docs website/content/en/posts website/content/zh/posts \
     -type f -name '*.md' ! -name '_index.md' | sort
