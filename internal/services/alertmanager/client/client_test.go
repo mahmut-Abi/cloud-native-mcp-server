@@ -179,3 +179,66 @@ func TestInvalidURL(t *testing.T) {
 		t.Error("Expected error for invalid URL, got nil")
 	}
 }
+
+func TestRetryOnTransientStatusThenSuccess(t *testing.T) {
+	attempts := 0
+	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		attempts++
+		if attempts <= 2 {
+			w.WriteHeader(http.StatusServiceUnavailable)
+			_, _ = w.Write([]byte(`{"error":"temporary unavailable"}`))
+			return
+		}
+		w.WriteHeader(http.StatusOK)
+		_, _ = w.Write([]byte(`{"cluster":{"name":"test-cluster"}}`))
+	}))
+	defer server.Close()
+
+	client, err := NewClientWithOptions(&ClientOptions{
+		Address:        server.URL,
+		Timeout:        2 * time.Second,
+		MaxRetries:     2,
+		RetryBaseDelay: 1 * time.Millisecond,
+		RetryMaxDelay:  5 * time.Millisecond,
+	})
+	if err != nil {
+		t.Fatalf("NewClientWithOptions() error = %v", err)
+	}
+
+	_, err = client.GetStatus(context.Background())
+	if err != nil {
+		t.Fatalf("GetStatus() unexpected error = %v", err)
+	}
+	if attempts != 3 {
+		t.Fatalf("expected 3 attempts, got %d", attempts)
+	}
+}
+
+func TestNoRetryForNonIdempotentMethod(t *testing.T) {
+	attempts := 0
+	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		attempts++
+		w.WriteHeader(http.StatusServiceUnavailable)
+		_, _ = w.Write([]byte(`{"error":"temporary unavailable"}`))
+	}))
+	defer server.Close()
+
+	client, err := NewClientWithOptions(&ClientOptions{
+		Address:        server.URL,
+		Timeout:        2 * time.Second,
+		MaxRetries:     3,
+		RetryBaseDelay: 1 * time.Millisecond,
+		RetryMaxDelay:  5 * time.Millisecond,
+	})
+	if err != nil {
+		t.Fatalf("NewClientWithOptions() error = %v", err)
+	}
+
+	_, err = client.CreateSilence(context.Background(), map[string]interface{}{"matchers": []interface{}{}})
+	if err == nil {
+		t.Fatalf("expected error for non-idempotent request")
+	}
+	if attempts != 1 {
+		t.Fatalf("expected 1 attempt for non-idempotent request, got %d", attempts)
+	}
+}

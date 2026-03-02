@@ -7,6 +7,7 @@ import (
 	"bytes"
 	"context"
 	"encoding/json"
+	stderrs "errors"
 	"fmt"
 	"io"
 	"net/http"
@@ -22,24 +23,30 @@ import (
 
 // ClientOptions holds configuration parameters for creating a Kibana client.
 type ClientOptions struct {
-	URL        string        // Kibana server URL
-	APIKey     string        // Kibana API key for authentication
-	Username   string        // Username for basic authentication
-	Password   string        // Password for basic authentication
-	Timeout    time.Duration // HTTP request timeout
-	SkipVerify bool          // Skip TLS certificate verification
-	Space      string        // Kibana space (default: default)
+	URL            string        // Kibana server URL
+	APIKey         string        // Kibana API key for authentication
+	Username       string        // Username for basic authentication
+	Password       string        // Password for basic authentication
+	Timeout        time.Duration // HTTP request timeout
+	SkipVerify     bool          // Skip TLS certificate verification
+	Space          string        // Kibana space (default: default)
+	MaxRetries     int           // Retries for idempotent requests
+	RetryBaseDelay time.Duration // Base delay for exponential backoff
+	RetryMaxDelay  time.Duration // Maximum delay between retries
 }
 
 // Client provides operations for interacting with Kibana API.
 type Client struct {
-	baseURL    string            // Base URL for Kibana API
-	httpClient *http.Client      // HTTP client for API requests
-	apiKey     string            // API key for authentication
-	username   string            // Username for basic auth
-	password   string            // Password for basic auth
-	space      string            // Kibana space
-	headers    map[string]string // Additional headers
+	baseURL        string            // Base URL for Kibana API
+	httpClient     *http.Client      // HTTP client for API requests
+	apiKey         string            // API key for authentication
+	username       string            // Username for basic auth
+	password       string            // Password for basic auth
+	space          string            // Kibana space
+	headers        map[string]string // Additional headers
+	maxRetries     int
+	retryBaseDelay time.Duration
+	retryMaxDelay  time.Duration
 }
 
 // Space represents a Kibana space.
@@ -179,27 +186,31 @@ func NewClient(opts *ClientOptions) (*Client, error) {
 	headers["kbn-xsrf"] = "true" // Required by Kibana API
 
 	client := &Client{
-		baseURL:    baseURL.String(),
-		httpClient: httpClient,
-		apiKey:     opts.APIKey,
-		username:   opts.Username,
-		password:   opts.Password,
-		space:      space,
-		headers:    headers,
+		baseURL:        baseURL.String(),
+		httpClient:     httpClient,
+		apiKey:         opts.APIKey,
+		username:       opts.Username,
+		password:       opts.Password,
+		space:          space,
+		headers:        headers,
+		maxRetries:     opts.MaxRetries,
+		retryBaseDelay: opts.RetryBaseDelay,
+		retryMaxDelay:  opts.RetryMaxDelay,
 	}
+	client.maxRetries, client.retryBaseDelay, client.retryMaxDelay = optimize.NormalizeRetryConfig(client.maxRetries, client.retryBaseDelay, client.retryMaxDelay)
 
 	return client, nil
 }
 
 // makeRequest performs an HTTP request to the Kibana API.
 func (c *Client) makeRequest(ctx context.Context, method, endpoint string, body interface{}) (*http.Response, error) {
-	var reqBody io.Reader
+	var requestBody []byte
 	if body != nil {
 		jsonData, err := json.Marshal(body)
 		if err != nil {
 			return nil, fmt.Errorf("failed to marshal request body: %w", err)
 		}
-		reqBody = bytes.NewReader(jsonData)
+		requestBody = jsonData
 	}
 
 	// Build URL with space prefix if not default
@@ -210,31 +221,95 @@ func (c *Client) makeRequest(ctx context.Context, method, endpoint string, body 
 		reqURL = c.baseURL + endpoint
 	}
 
-	req, err := http.NewRequestWithContext(ctx, method, reqURL, reqBody)
-	if err != nil {
-		return nil, fmt.Errorf("failed to create request: %w", err)
+	allowRetry := optimize.IsRetryableMethod(method)
+	totalAttempts := 1
+	if allowRetry {
+		totalAttempts = c.maxRetries + 1
 	}
 
-	// Set headers
-	for key, value := range c.headers {
-		req.Header.Set(key, value)
+	for attempt := 1; attempt <= totalAttempts; attempt++ {
+		var reqBody io.Reader
+		if len(requestBody) > 0 {
+			reqBody = bytes.NewReader(requestBody)
+		}
+
+		req, err := http.NewRequestWithContext(ctx, method, reqURL, reqBody)
+		if err != nil {
+			return nil, fmt.Errorf("failed to create request: %w", err)
+		}
+
+		// Set headers
+		for key, value := range c.headers {
+			req.Header.Set(key, value)
+		}
+
+		// Set authentication
+		if c.apiKey != "" {
+			req.Header.Set("Authorization", "ApiKey "+c.apiKey)
+		} else if c.username != "" && c.password != "" {
+			req.SetBasicAuth(c.username, c.password)
+		}
+
+		logrus.WithFields(logrus.Fields{
+			"method":   method,
+			"url":      reqURL,
+			"has_auth": c.apiKey != "" || (c.username != "" && c.password != ""),
+			"space":    c.space,
+			"attempt":  attempt,
+		}).Debug("Making Kibana API request")
+
+		resp, err := c.httpClient.Do(req)
+		if err == nil {
+			if allowRetry && optimize.ShouldRetryStatusCode(resp.StatusCode) && attempt < totalAttempts {
+				_ = resp.Body.Close()
+				delay := optimize.NextRetryDelay(c.retryBaseDelay, c.retryMaxDelay, attempt)
+				logrus.WithFields(logrus.Fields{
+					"method":      method,
+					"url":         reqURL,
+					"status_code": resp.StatusCode,
+					"attempt":     attempt,
+					"retry_in":    delay,
+				}).Warn("Retrying Kibana API request after retryable status")
+				if waitErr := waitForRetry(ctx, delay); waitErr != nil {
+					return nil, waitErr
+				}
+				continue
+			}
+			return resp, nil
+		}
+
+		if stderrs.Is(err, context.Canceled) {
+			return nil, err
+		}
+		if allowRetry && optimize.ShouldRetryTransportError(err) && attempt < totalAttempts {
+			delay := optimize.NextRetryDelay(c.retryBaseDelay, c.retryMaxDelay, attempt)
+			logrus.WithFields(logrus.Fields{
+				"method":   method,
+				"url":      reqURL,
+				"attempt":  attempt,
+				"retry_in": delay,
+			}).WithError(err).Warn("Retrying Kibana API request after transient transport error")
+			if waitErr := waitForRetry(ctx, delay); waitErr != nil {
+				return nil, waitErr
+			}
+			continue
+		}
+		return nil, err
 	}
 
-	// Set authentication
-	if c.apiKey != "" {
-		req.Header.Set("Authorization", "ApiKey "+c.apiKey)
-	} else if c.username != "" && c.password != "" {
-		req.SetBasicAuth(c.username, c.password)
+	return nil, fmt.Errorf("retry attempts exhausted for request %s %s", method, reqURL)
+}
+
+func waitForRetry(ctx context.Context, delay time.Duration) error {
+	timer := time.NewTimer(delay)
+	defer timer.Stop()
+
+	select {
+	case <-ctx.Done():
+		return ctx.Err()
+	case <-timer.C:
+		return nil
 	}
-
-	logrus.WithFields(logrus.Fields{
-		"method":   method,
-		"url":      reqURL,
-		"has_auth": c.apiKey != "" || (c.username != "" && c.password != ""),
-		"space":    c.space,
-	}).Debug("Making Kibana API request")
-
-	return c.httpClient.Do(req)
 }
 
 // handleResponse processes the HTTP response and returns the body.
