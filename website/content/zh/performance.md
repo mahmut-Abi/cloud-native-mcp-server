@@ -358,7 +358,7 @@ ab -n 1000 -c 10 \
   -H "Content-Type: application/json" \
   -H "X-API-Key: your-key" \
   -p payload.json \
-  http://localhost:8080/api/kubernetes/http
+  http://localhost:8080/api/kubernetes/sse/message
 ```
 
 ### 基准测试结果
@@ -653,7 +653,7 @@ kubernetes:
 4. 检查审计日志
 ```bash
 curl -H "X-API-Key: your-key" \
-  "http://localhost:8080/api/audit/query?status=failed"
+  "http://localhost:8080/api/audit/logs?status=failed"
 ```
 
 ---

@@ -99,6 +99,9 @@ server:
     # Elasticsearch SSE endpoint
     elasticsearch: "/api/elasticsearch/sse"
 
+    # OpenTelemetry SSE endpoint
+    opentelemetry: "/api/opentelemetry/sse"
+
     # Utilities SSE endpoint
     utilities: "/api/utilities/sse"
 
@@ -131,6 +134,9 @@ server:
 
     # Elasticsearch Streamable-HTTP endpoint
     elasticsearch: "/api/elasticsearch/streamable-http"
+
+    # OpenTelemetry Streamable-HTTP endpoint
+    opentelemetry: "/api/opentelemetry/streamable-http"
 
     # Utilities Streamable-HTTP endpoint
     utilities: "/api/utilities/streamable-http"

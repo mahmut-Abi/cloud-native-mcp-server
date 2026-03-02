@@ -326,15 +326,15 @@ The following events are logged:
 ```bash
 # Query recent 100 audit logs
 curl -H "X-API-Key: your-key" \
-  "http://localhost:8080/api/audit/query?limit=100"
+  "http://localhost:8080/api/audit/logs?limit=100"
 
 # Query audit logs for a specific user
 curl -H "X-API-Key: your-key" \
-  "http://localhost:8080/api/audit/query?user=admin&limit=50"
+  "http://localhost:8080/api/audit/logs?user=admin&limit=50"
 
 # Query failed authentication attempts
 curl -H "X-API-Key: your-key" \
-  "http://localhost:8080/api/audit/query?tool=auth_login&status=failed"
+  "http://localhost:8080/api/audit/logs?tool=auth_login&status=failed"
 ```
 
 ---

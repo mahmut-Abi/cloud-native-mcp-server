@@ -517,7 +517,7 @@ grafana:
 auth:
   enabled: true
   mode: "apikey"
-  api_key: "${MCP_API_KEY}"
+  api_key: "${MCP_AUTH_API_KEY}"
 
 audit:
   enabled: true
@@ -576,7 +576,7 @@ grafana:
   api_key: "${GRAFANA_API_KEY}"
 
 auth:
-  api_key: "${MCP_API_KEY}"
+  api_key: "${MCP_AUTH_API_KEY}"
 ```
 
 Set environment variables before starting the server:
@@ -584,7 +584,7 @@ Set environment variables before starting the server:
 ```bash
 export GRAFANA_URL="http://grafana:3000"
 export GRAFANA_API_KEY="your-api-key"
-export MCP_API_KEY="your-mcp-key"
+export MCP_AUTH_API_KEY="your-mcp-key"
 
 ./cloud-native-mcp-server
 ```
