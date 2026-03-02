@@ -6,111 +6,108 @@ description: "认证、密钥、审计与请求安全策略的实践说明。"
 
 # 安全指南
 
-> 说明：当前页面内容以英文为主，中文完整版正在补充中。
+本文档描述了 Cloud Native MCP Server 的安全特性和最佳实践。
 
-This document describes the security features and best practices for Cloud Native MCP Server.
+## 目录
 
-## Table of Contents
+- [认证](#认证)
+- [密钥管理](#密钥管理)
+- [输入清理](#输入清理)
+- [审计日志](#审计日志)
+- [安全最佳实践](#安全最佳实践)
+- [安全头部](#安全头部)
+- [报告安全问题](#报告安全问题)
 
-- [Authentication](#authentication)
-- [Secret Management](#secret-management)
-- [Input Sanitization](#input-sanitization)
-- [Audit Logging](#audit-logging)
-- [Security Best Practices](#security-best-practices)
-- [Security Headers](#security-headers)
-- [Reporting Security Issues](#reporting-security-issues)
 
----
+## 认证
 
-## Authentication
+### API Key 认证
 
-### API Key Authentication
+API 密钥必须满足以下复杂度要求：
 
-API keys must meet the following complexity requirements:
+- **最小长度**: 16 个字符
+- **字符类型**: 以下 4 种类型中至少包含 3 种：
+  - 大写字母 (A-Z)
+  - 小写字母 (a-z)
+  - 数字 (0-9)
+  - 特殊字符 (!@#$%^&*()_+-=[]{}|;:,.<>?)
 
-- **Minimum Length**: 16 characters
-- **Character Types**: Must include at least 3 of the following 4 types:
-  - Uppercase letters (A-Z)
-  - Lowercase letters (a-z)
-  - Numbers (0-9)
-  - Special characters (!@#$%^&*()_+-=[]{}|;:,.<>?)
+**有效示例**:
+- `Abc123!@#Xyz789!@#` (大写、小写、数字、特殊字符)
+- `Abc123Xyz789Abc123` (大写、小写、数字)
+- `ABC123!@#XYZ789!@#` (大写、数字、特殊字符)
 
-**Valid Examples**:
-- `Abc123!@#Xyz789!@#` (uppercase, lowercase, numbers, special characters)
-- `Abc123Xyz789Abc123` (uppercase, lowercase, numbers)
-- `ABC123!@#XYZ789!@#` (uppercase, numbers, special characters)
+**无效示例**:
+- `Abc123!@#` (少于 16 个字符)
+- `abcdefgh12345678` (只有小写和数字，不满足 3 种字符类型)
+- `ABCDEFGHIJKLMNOPQRSTUVWXYZ` (只有大写)
 
-**Invalid Examples**:
-- `Abc123!@#` (less than 16 characters)
-- `abcdefgh12345678` (only lowercase and numbers, doesn't meet 3 character types)
-- `ABCDEFGHIJKLMNOPQRSTUVWXYZ` (only uppercase)
+### Bearer Token 认证
 
-### Bearer Token Authentication
+Bearer token 必须遵循 JWT 结构：
 
-Bearer tokens must follow JWT structure:
+- **格式**: `header.payload.signature`
+- **最小长度**: 32 个字符
+- **编码**: Base64URL 编码的各部分
+- **验证**: 每个部分必须只包含有效的 base64url 字符 (A-Z, a-z, 0-9, -, _, +)
 
-- **Format**: `header.payload.signature`
-- **Minimum Length**: 32 characters
-- **Encoding**: Base64URL encoded parts
-- **Validation**: Each part must contain only valid base64url characters (A-Z, a-z, 0-9, -, _, +)
-
-**Valid Example**:
+**有效示例**:
 ```
 eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxMjM0NTY3ODkwIiwibmFtZSI6IkpvaG4gRG9lIiwiaWF0IjoxNTE2MjM5MDIyfQ.SflKxwRJSMeKKF2QT4fwpMeJf36POk6yJV_adQssw5c
 ```
 
-**Invalid Examples**:
-- `abcdefgh12345678abcdefgh12345678` (no JWT structure)
-- `eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxMjM0NTY3ODkwIiwibmFtZSI6IkpvaG4gRG9lIiwiaWF0IjoxNTE2MjM5MDIyfQ` (less than 32 characters)
-- `eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxMjM0NTY3ODkwIiwibmFtZSI6IkpvaG4gRG9lIiwiaWF0IjoxNTE2MjM5MDIyfQ.SflKxwRJSMeKKF2QT4fwpMeJf36POk6yJV_adQssw5c$` (invalid character at end)
+**无效示例**:
+- `abcdefgh12345678abcdefgh12345678` (没有 JWT 结构)
+- `eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxMjM0NTY3ODkwIiwibmFtZSI6IkpvaG4gRG9lIiwiaWF0IjoxNTE2MjM5MDIyfQ` (少于 32 个字符)
+- `eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxMjM0NTY3ODkwIiwibmFtZSI6IkpvaG4gRG9lIiwiaWF0IjoxNTE2MjM5MDIyfQ.SflKxwRJSMeKKF2QT4fwpMeJf36POk6yJV_adQssw5c$` (末尾有无效字符)
 
-### Basic Authentication
+### Basic 认证
 
-Basic authentication uses username and password:
+Basic 认证使用用户名和密码：
 
-- **Username**: Non-empty string
-- **Password**: Non-empty string
+- **用户名**: 非空字符串
+- **密码**: 非空字符串
 
-**Example**:
+**示例**:
 ```bash
 curl -u admin:secret http://localhost:8080/api/aggregate/sse
 ```
 
-### Configuring Authentication
+### 配置认证
 
-Enable authentication in the configuration file:
+在配置文件中启用认证：
 
 ```yaml
 auth:
-  # Enable/disable authentication
+  # 启用/禁用认证
   enabled: true
 
-  # Authentication mode: apikey | bearer | basic
+  # 认证模式: apikey | bearer | basic
   mode: "apikey"
 
-  # API Key (for apikey mode)
-  # Minimum 16 characters, recommended 32+ characters
+  # API Key（用于 apikey 模式）
+  # 最少 16 字符，推荐 32+ 字符
   apiKey: "Abc123!@#Xyz789!@#Abc123!@#"
 
-  # Bearer token (for bearer mode)
+  # Bearer token（用于 bearer 模式）
   bearerToken: "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..."
 
-  # Basic Auth username
+  # Basic Auth 用户名
   username: "admin"
 
-  # Basic Auth password
+  # Basic Auth 密码
   password: "secret-password"
 
-  # JWT secret (for JWT verification)
+  # JWT 密钥（用于 JWT 验证）
   jwtSecret: "your-jwt-secret-key"
 
-  # JWT algorithm (HS256, RS256, etc.)
+  # JWT 算法 (HS256, RS256, etc.)
   jwtAlgorithm: "HS256"
 ```
 
-### Authentication via Environment Variables
+### 环境变量认证
 
-Configure authentication using environment variables:
+使用环境变量配置认证：
 
 ```bash
 export MCP_AUTH_ENABLED=true
@@ -120,29 +117,28 @@ export MCP_AUTH_API_KEY="Abc123!@#Xyz789!@#Abc123!@#"
 ./cloud-native-mcp-server
 ```
 
----
 
-## Secret Management
+## 密钥管理
 
-The server includes a secret management module for securely storing credentials.
+服务器包含密钥管理模块，用于安全地存储凭据。
 
-### Features
+### 特性
 
-- **Secure Storage**: In-memory storage with expiration support
-- **Key Rotation**: Automatic rotation for API keys and bearer tokens
-- **Key Generation**: Built-in generators for complex API keys and JWT-style tokens
-- **Environment Variables**: Support for loading secrets from environment variables
-- **Secret Types**: API keys, bearer tokens, basic auth credentials
+- **安全存储**: 带过期支持的内存存储
+- **密钥轮换**: API 密钥和 bearer token 的自动轮换
+- **密钥生成**: 内置生成器，用于复杂的 API 密钥和 JWT 类型的 token
+- **环境变量**: 支持从环境变量加载密钥
+- **密钥类型**: API 密钥、bearer token、basic auth 凭据
 
-### Using the Secret Manager
+### 使用密钥管理器
 
 ```go
 import "github.com/mahmut-Abi/cloud-native-mcp-server/internal/secrets"
 
-// Create a new secret manager
+// 创建新的密钥管理器
 manager := secrets.NewInMemoryManager()
 
-// Store a secret
+// 存储密钥
 secret := &secrets.Secret{
     Type:  secrets.SecretTypeAPIKey,
     Name:  "my-api-key",
@@ -150,37 +146,37 @@ secret := &secrets.Secret{
 }
 manager.Store(secret)
 
-// Retrieve a secret
+// 检索密钥
 retrieved, err := manager.Retrieve(secret.ID)
 
-// Rotate a secret
+// 轮换密钥
 rotated, err := manager.Rotate(secret.ID)
 
-// Generate a new API key
+// 生成新的 API 密钥
 newKey, err := manager.GenerateAPIKey("my-new-key")
 
-// Generate a new bearer token
+// 生成新的 bearer token
 newToken, err := manager.GenerateBearerToken("my-new-token")
 ```
 
-### Secret Expiration
+### 密钥过期
 
-Secrets can have expiration times:
+密钥可以有过期时间：
 
 ```go
 secret := &secrets.Secret{
     Type:       secrets.SecretTypeAPIKey,
     Name:       "temporary-key",
     Value:      "Abc123!@#Xyz789!@#",
-    ExpiresAt:  time.Now().Add(24 * time.Hour), // Expires in 24 hours
+    ExpiresAt:  time.Now().Add(24 * time.Hour), // 24 小时后过期
 }
 ```
 
-Expired secrets are automatically excluded from the list and cannot be retrieved.
+过期的密钥会自动从列表中排除，无法检索。
 
-### Key Rotation Strategy
+### 密钥轮换策略
 
-Regularly rotating keys is a security best practice:
+定期轮换密钥是安全最佳实践：
 
 ```yaml
 auth:
@@ -189,71 +185,70 @@ auth:
   apiKey: "${MCP_AUTH_API_KEY}"
 
 secrets:
-  # Automatic rotation interval (hours)
-  rotation_interval: 168  # 7 days
+  # 自动轮换间隔（小时）
+  rotation_interval: 168  # 7 天
 
-  # Secret expiration time (days)
+  # 密钥过期时间（天）
   max_age: 30
 
-  # Keep expired secrets (for auditing)
+  # 保留过期密钥（用于审计）
   keep_expired: true
 ```
 
----
 
-## Input Sanitization
+## 输入清理
 
-All user input is sanitized to prevent injection attacks.
+所有用户输入都经过清理，以防止注入攻击。
 
-### Sanitization Features
+### 清理特性
 
-- **Filter Values**: Removes dangerous characters (SQL injection, XSS, command injection)
-- **URL Validation**: Only allows http/https protocols for web fetching
-- **Length Limits**: Maximum string length enforced (1000 characters)
-- **Special Character Removal**: Removes semicolons, quotes, and other injection vectors
+- **过滤值**: 移除危险字符（SQL 注入、XSS、命令注入）
+- **URL 验证**: 只允许 http/https 协议用于 web 获取
+- **长度限制**: 最大字符串长度强制（1000 个字符）
+- **特殊字符移除**: 移除分号、引号和其他注入向量
 
-### Sanitization Rules
+### 清理规则
 
-The following characters are removed from user input:
+以下字符会从用户输入中移除：
 
-- **SQL Injection**: `;`, `'`, `"`, `--`, `/*`, `*/`
-- **Command Injection**: `|`, `&`, `$`, `(`, `)`, `<`, `>`, `\``, `\`
+- **SQL 注入**: `;`, `'`, `"`, `--`, `/*`, `*/`
+- **命令注入**: `|`, `&`, `$`, `(`, `)`, `<`, `>`, `\``, `\`
 - **XSS**: `<script>`, `javascript:`, `onload=`, `onerror=`
 
-### Examples
+### 示例
 
 ```go
 import "github.com/mahmut-Abi/cloud-native-mcp-server/internal/util/sanitize"
 
-// Sanitize filter value
+// 清理过滤值
 cleanValue := sanitize.SanitizeFilterValue("'; DROP TABLE users; --")
-// Result: " DROP TABLE users "
+// 结果: " DROP TABLE users "
 
-// Sanitize JSONPath
+// 清理 JSONPath
 cleanPath := sanitize.SanitizeJSONPath("$.data[*].name; rm -rf /")
-// Result: "$.data[*].name rm -rf "
+// 结果: "$.data[*].name rm -rf "
 
-// Validate string
+// 验证字符串
 isValid := sanitize.ValidateString("normal input")
-// Result: true
+// 结果: true
 ```
 
-### Configuring Input Sanitization
+### 配置输入清理
 
 ```yaml
 sanitization:
-  # Enable input sanitization
+  # 启用输入清理
   enabled: true
 
-  # Maximum string length
+  # 最大字符串长度
   max_length: 1000
 
-  # Allowed URL protocols
+  # 允许的 URL 协议
   allowed_protocols:
     - http
     - https
 
-  # Blocked character patterns
+  # 禁用的字符模式
   blocked_patterns:
     - "';"
     - "DROP TABLE"
@@ -261,13 +256,12 @@ sanitization:
     - "<script>"
 ```
 
----
 
-## Audit Logging
+## 审计日志
 
-Audit logs track all operations for security monitoring and compliance.
+审计日志跟踪所有操作，有助于安全监控和合规性。
 
-### Enabling Audit Logging
+### 启用审计日志
 
 ```yaml
 audit:
@@ -276,7 +270,7 @@ audit:
   storage: "database"
   format: "json"
 
-  # Sensitive data masking
+  # 敏感数据掩码
   masking:
     enabled: true
     fields:
@@ -287,24 +281,24 @@ audit:
       - authorization
     maskValue: "***REDACTED***"
 
-  # Storage configuration
+  # 存储配置
   database:
     type: "sqlite"
     sqlitePath: "/var/lib/cloud-native-mcp-server/audit.db"
     maxRecords: 100000
 ```
 
-### Audit Events
+### 审计事件
 
-The following events are logged:
+以下事件会被记录：
 
-- Authentication success/failure
-- Tool calls
-- Configuration changes
-- Errors and exceptions
-- Access denials
+- 认证成功/失败
+- 工具调用
+- 配置更改
+- 错误和异常
+- 访问拒绝
 
-### Audit Log Format
+### 审计日志格式
 
 ```json
 {
@@ -321,34 +315,33 @@ The following events are logged:
 }
 ```
 
-### Querying Audit Logs
+### 查询审计日志
 
 ```bash
-# Query recent 100 audit logs
+# 查询最近 100 条审计日志
 curl -H "X-API-Key: your-key" \
   "http://localhost:8080/api/audit/logs?limit=100"
 
-# Query audit logs for a specific user
+# 查询特定用户的审计日志
 curl -H "X-API-Key: your-key" \
   "http://localhost:8080/api/audit/logs?user=admin&limit=50"
 
-# Query failed authentication attempts
+# 查询失败的认证尝试
 curl -H "X-API-Key: your-key" \
   "http://localhost:8080/api/audit/logs?tool=auth_login&status=failed"
 ```
 
----
 
-## Security Best Practices
+## 安全最佳实践
 
-### 1. Use Strong Authentication
+### 1. 使用强认证
 
-- Always use API keys that meet complexity requirements
-- Rotate API keys regularly
-- Use bearer tokens for JWT-based authentication
-- Never commit credentials to version control
+- 始终使用满足复杂度要求的 API 密钥
+- 定期轮换 API 密钥
+- 使用 bearer token 进行基于 JWT 的认证
+- 永远不要将凭据提交到版本控制
 
-### 2. Enable Audit Logging
+### 2. 启用审计日志
 
 ```yaml
 audit:
@@ -363,9 +356,9 @@ audit:
     maskValue: "***REDACTED***"
 ```
 
-### 3. Use HTTPS in Production
+### 3. 生产环境使用 HTTPS
 
-Always use HTTPS when deploying in production:
+在生产环境部署时始终使用 HTTPS：
 
 ```yaml
 server:
@@ -376,12 +369,12 @@ server:
     keyFile: "/path/to/key.pem"
 ```
 
-### 4. Restrict Access
+### 4. 限制访问
 
-- Use firewall rules to limit access to the server
-- Implement network policies in Kubernetes
-- Use RBAC to control access to Kubernetes resources
-- Implement rate limiting to prevent brute force attacks
+- 使用防火墙规则限制对服务器的访问
+- 在 Kubernetes 中实施网络策略
+- 使用 RBAC 控制 Kubernetes 资源的访问
+- 实施速率限制防止暴力破解
 
 ```yaml
 ratelimit:
@@ -390,49 +383,49 @@ ratelimit:
   burst: 200
 ```
 
-### 5. Monitor Suspicious Activity
+### 5. 监控可疑活动
 
-- Enable metrics and monitoring
-- Set up alerts for failed authentication attempts
-- Regularly review audit logs
-- Implement anomaly detection
+- 启用指标和监控
+- 为失败的认证尝试设置告警
+- 定期审查审计日志
+- 实施异常检测
 
 ```yaml
 monitoring:
-  # Failed authentication alert threshold
+  # 失败认证告警阈值
   auth_failure_threshold: 5
-  auth_failure_window: 300  # 5 minutes
+  auth_failure_window: 300  # 5 分钟
 
-  # Anomaly behavior detection
+  # 异常行为检测
   anomaly_detection:
     enabled: true
     sensitivity: "medium"
 ```
 
-### 6. Keep Dependencies Updated
+### 6. 保持依赖更新
 
-Regularly update dependencies to patch security vulnerabilities:
+定期更新依赖以修补安全漏洞：
 
 ```bash
 go get -u ./...
 go mod tidy
 ```
 
-### 7. Use Kubernetes Secrets
+### 7. 使用 Kubernetes Secrets
 
-Never hardcode sensitive information in configuration files:
+永远不要在配置文件中硬编码敏感信息：
 
 ```yaml
-# Bad practice
+# 不好的做法
 auth:
   apiKey: "Abc123!@#Xyz789!@#"
 
-# Good practice
+# 好的做法
 auth:
   apiKey: "${MCP_AUTH_API_KEY}"
 ```
 
-Create a Kubernetes Secret:
+创建 Kubernetes Secret：
 
 ```bash
 kubectl create secret generic mcp-secrets \
@@ -440,7 +433,7 @@ kubectl create secret generic mcp-secrets \
   --from-literal=jwt-secret='your-jwt-secret'
 ```
 
-Reference in deployment:
+在部署中引用：
 
 ```yaml
 env:
@@ -451,12 +444,12 @@ env:
       key: api-key
 ```
 
-### 8. Implement Least Privilege Principle
+### 8. 实施最小权限原则
 
-- Grant only necessary permissions
-- Use RBAC to limit Kubernetes access
-- Regularly review and update permissions
-- Use service accounts for isolation
+- 只授予必要的权限
+- 使用 RBAC 限制 Kubernetes 访问
+- 定期审查和更新权限
+- 使用服务账号隔离
 
 ```yaml
 apiVersion: rbac.authorization.k8s.io/v1
@@ -469,12 +462,12 @@ rules:
   verbs: ["get", "list", "watch"]
 ```
 
-### 9. Network Isolation
+### 9. 网络隔离
 
-- Use network policies to restrict pod-to-pod communication
-- Isolate services in different namespaces
-- Use ingress controllers for external access management
-- Consider using service mesh for mTLS
+- 使用网络策略限制 Pod 间通信
+- 在不同命名空间中隔离服务
+- 使用 Ingress 控制器管理外部访问
+- 考虑使用服务网格进行 mTLS
 
 ```yaml
 apiVersion: networking.k8s.io/v1
@@ -498,12 +491,12 @@ spec:
       port: 8080
 ```
 
-### 10. Container Security
+### 10. 容器安全
 
-- Run containers as non-root user
-- Use read-only filesystems
-- Remove unnecessary privileges
-- Scan images for vulnerabilities
+- 使用非 root 用户运行容器
+- 使用只读文件系统
+- 删除不必要的特权
+- 扫描镜像漏洞
 
 ```yaml
 securityContext:
@@ -515,11 +508,10 @@ securityContext:
     - ALL
 ```
 
----
 
-## Security Headers
+## 安全头部
 
-The server automatically filters sensitive headers in debug logs:
+服务器会自动过滤调试日志中的敏感头部：
 
 - `Authorization`
 - `Cookie`
@@ -527,13 +519,13 @@ The server automatically filters sensitive headers in debug logs:
 - `X-Api-Key`
 - `x-api-key`
 
-These headers are never logged in plaintext.
+这些头部永远不会以明文形式记录。
 
-### Custom Security Headers
+### 自定义安全头部
 
 ```yaml
 security:
-  # Additional security headers
+  # 额外的安全头部
   headers:
     X-Frame-Options: "DENY"
     X-Content-Type-Options: "nosniff"
@@ -541,7 +533,7 @@ security:
     Strict-Transport-Security: "max-age=31536000; includeSubDomains"
     Content-Security-Policy: "default-src 'self'"
 
-  # Header filtering
+  # 头部过滤
   header_filtering:
     enabled: true
     filtered_headers:
@@ -551,13 +543,12 @@ security:
       - x-auth-token
 ```
 
----
 
-## TLS/SSL Configuration
+## TLS/SSL 配置
 
-Use TLS/SSL for encrypted communication in production environments:
+在生产环境中使用 TLS/SSL 加密通信：
 
-### Basic TLS Configuration
+### 基本 TLS 配置
 
 ```yaml
 server:
@@ -570,7 +561,7 @@ server:
     maxVersion: "TLS1.3"
 ```
 
-### mTLS Configuration
+### mTLS 配置
 
 ```yaml
 server:
@@ -583,7 +574,7 @@ server:
     caFile: "/path/to/ca-cert.pem"
 ```
 
-### Let's Encrypt Integration
+### Let's Encrypt 集成
 
 ```yaml
 server:
@@ -597,11 +588,10 @@ server:
       cacheDir: "/var/lib/letsencrypt"
 ```
 
----
 
-## Rate Limiting
+## 速率限制
 
-Prevent brute force attacks and abuse:
+防止暴力攻击和滥用：
 
 ```yaml
 ratelimit:
@@ -610,76 +600,73 @@ ratelimit:
   burst: 200
   cleanup_interval: 60
 
-  # Specific client limits
+  # 特定客户端限制
   client_limits:
     default:
       requests_per_second: 100
     authenticated:
       requests_per_second: 200
 
-  # Whitelist
+  # 白名单
   whitelist:
     - "10.0.0.0/8"
     - "192.168.0.0/16"
 
-  # Blacklist
+  # 黑名单
   blacklist:
-    - "malicious.example.com"
+    - " malicious.example.com"
 ```
 
----
 
-## Reporting Security Issues
+## 报告安全问题
 
-If you discover a security vulnerability, please report it privately:
+如果您发现安全漏洞，请私下报告：
 
 - **Email**: security@example.com
 - **GitHub Security Advisories**: https://github.com/mahmut-Abi/cloud-native-mcp-server/security/advisories
 
-Please do not create public issues for security vulnerabilities.
+请不要为安全漏洞公开创建 issue。
 
-### Security Disclosure Process
+### 安全披露流程
 
-1. Report vulnerability through private channels
-2. We will acknowledge receipt within 48 hours
-3. Assess severity and impact of the vulnerability
-4. Develop and test the fix
-5. Coordinate disclosure timeline before release
-6. Release security update
+1. 通过私密渠道报告漏洞
+2. 我们会在 48 小时内确认收到
+3. 评估漏洞的严重程度和影响范围
+4. 开发和测试修复
+5. 在修复发布前协调披露时间表
+6. 发布安全更新
 
-### Acknowledgments
+### 致谢
 
-We will credit all researchers who responsibly report security issues.
+我们会感谢所有负责任地报告安全问题的研究人员。
 
----
 
-## Compliance
+## 合规性
 
-### GDPR Compliance
+### GDPR 合规
 
-- Data protection
-- Access control
-- Audit logging
-- Data deletion
+- 数据保护
+- 访问控制
+- 审计日志
+- 数据删除
 
-### SOC 2 Compliance
+### SOC 2 合规
 
-- Security monitoring
-- Access management
-- Change management
-- Incident response
+- 安全监控
+- 访问管理
+- 变更管理
+- 事件响应
 
-### HIPAA Compliance
+### HIPAA 合规
 
-- PHI protection
-- Access auditing
-- Encrypted transmission
-- Business continuity
+- PHI 保护
+- 访问审计
+- 加密传输
+- 业务连续性
 
----
 
-## Related Documentation
+## 相关文档
 
-- [Complete Tools Reference](/zh/docs/tools/)
-- [Configuration Guide](/zh/docs/configuration/)
-- [Deployment Guide](/zh/docs/deployment/)
+- [完整工具参考](/zh/docs/tools/)
+- [配置指南](/zh/docs/configuration/)
+- [部署指南](/zh/docs/deployment/)

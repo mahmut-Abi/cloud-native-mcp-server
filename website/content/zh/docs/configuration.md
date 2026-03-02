@@ -6,181 +6,176 @@ description: "服务器、服务、认证与日志等核心配置项说明。"
 
 # 配置指南
 
-> 说明：当前页面内容以英文为主，中文完整版正在补充中。
+本指南涵盖 Cloud Native MCP Server 的所有配置选项。
 
-This guide covers all configuration options for Cloud Native MCP Server.
+## 目录
 
-## Table of Contents
+- [配置方法](#配置方法)
+- [服务器配置](#服务器配置)
+- [服务配置](#服务配置)
+- [认证配置](#认证配置)
+- [日志配置](#日志配置)
+- [审计日志](#审计日志)
+- [缓存配置](#缓存配置)
+- [性能调优](#性能调优)
+- [示例配置](#示例配置)
 
-- [Configuration Methods](#configuration-methods)
-- [Server Configuration](#server-configuration)
-- [Service Configuration](#service-configuration)
-- [Authentication Configuration](#authentication-configuration)
-- [Logging Configuration](#logging-configuration)
-- [Audit Logs](#audit-logs)
-- [Cache Configuration](#cache-configuration)
-- [Performance Tuning](#performance-tuning)
-- [Example Configurations](#example-configurations)
 
----
+## 配置方法
 
-## Configuration Methods
+K8s MCP Server 支持三种配置方法（按优先级排序）：
 
-K8s MCP Server supports three configuration methods (in order of priority):
+1. **命令行参数** - 最高优先级
+2. **环境变量** - 中等优先级
+3. **YAML 配置文件** - 最低优先级
 
-1. **Command Line Arguments** - Highest priority
-2. **Environment Variables** - Medium priority
-3. **YAML Configuration File** - Lowest priority
-
-### Configuration Priority Example
+### 配置优先级示例
 
 ```bash
-# Configuration file sets default values
-# Environment variables override configuration file
-# Command line arguments override all settings
+# 配置文件设置默认值
+# 环境变量覆盖配置文件
+# 命令行参数覆盖所有设置
 
 ./cloud-native-mcp-server \
   --config=config.yaml \
   --log-level=debug
 ```
 
----
 
-## Server Configuration
+## 服务器配置
 
-### Basic Settings
+### 基本设置
 
 ```yaml
 server:
-  # Run mode: sse | streamable-http | http | stdio
-  # Recommended: stdio for development, streamable-http for production
+  # 运行模式: sse | streamable-http | http | stdio
+  # 推荐开发环境使用 stdio，生产环境使用 streamable-http
   mode: "sse"
 
-  # Server listen address
+  # 服务器监听地址
   addr: "0.0.0.0:8080"
 
-  # HTTP read timeout (seconds)
-  # 0 = no timeout (not recommended for production)
-  # Recommended: 30-60 seconds
+  # HTTP 读取超时（秒）
+  # 0 = 无超时（生产环境不推荐）
+  # 推荐: 30-60 秒
   readTimeoutSec: 30
 
-  # HTTP write timeout (seconds)
-  # Should be set to 0 for SSE connections to keep them alive
+  # HTTP 写入超时（秒）
+  # SSE 连接应设置为 0 以保持连接
   writeTimeoutSec: 0
 
-  # HTTP idle timeout (seconds)
-  # Default: 60 seconds
+  # HTTP 空闲超时（秒）
+  # 默认: 60 秒
   idleTimeoutSec: 60
 ```
 
-### SSE Path Configuration
+### SSE 路径配置
 
 ```yaml
 server:
   ssePaths:
-    # Kubernetes SSE endpoint
+    # Kubernetes SSE 端点
     kubernetes: "/api/kubernetes/sse"
 
-    # Grafana SSE endpoint
+    # Grafana SSE 端点
     grafana: "/api/grafana/sse"
 
-    # Prometheus SSE endpoint
+    # Prometheus SSE 端点
     prometheus: "/api/prometheus/sse"
 
-    # Kibana SSE endpoint
+    # Kibana SSE 端点
     kibana: "/api/kibana/sse"
 
-    # Helm SSE endpoint
+    # Helm SSE 端点
     helm: "/api/helm/sse"
 
-    # Alertmanager SSE endpoint
+    # Alertmanager SSE 端点
     alertmanager: "/api/alertmanager/sse"
 
-    # Elasticsearch SSE endpoint
+    # Elasticsearch SSE 端点
     elasticsearch: "/api/elasticsearch/sse"
 
-    # OpenTelemetry SSE endpoint
+    # OpenTelemetry SSE 端点
     opentelemetry: "/api/opentelemetry/sse"
 
-    # Utilities SSE endpoint
+    # Utilities SSE 端点
     utilities: "/api/utilities/sse"
 
-    # Aggregated SSE endpoint for all services
+    # 聚合所有服务的 SSE 端点
     aggregate: "/api/aggregate/sse"
 ```
 
-### Streamable-HTTP Path Configuration
+### Streamable-HTTP 路径配置
 
 ```yaml
 server:
   streamableHttpPaths:
-    # Kubernetes Streamable-HTTP endpoint
+    # Kubernetes Streamable-HTTP 端点
     kubernetes: "/api/kubernetes/streamable-http"
 
-    # Grafana Streamable-HTTP endpoint
+    # Grafana Streamable-HTTP 端点
     grafana: "/api/grafana/streamable-http"
 
-    # Prometheus Streamable-HTTP endpoint
+    # Prometheus Streamable-HTTP 端点
     prometheus: "/api/prometheus/streamable-http"
 
-    # Kibana Streamable-HTTP endpoint
+    # Kibana Streamable-HTTP 端点
     kibana: "/api/kibana/streamable-http"
 
-    # Helm Streamable-HTTP endpoint
+    # Helm Streamable-HTTP 端点
     helm: "/api/helm/streamable-http"
 
-    # Alertmanager Streamable-HTTP endpoint
+    # Alertmanager Streamable-HTTP 端点
     alertmanager: "/api/alertmanager/streamable-http"
 
-    # Elasticsearch Streamable-HTTP endpoint
+    # Elasticsearch Streamable-HTTP 端点
     elasticsearch: "/api/elasticsearch/streamable-http"
 
-    # OpenTelemetry Streamable-HTTP endpoint
+    # OpenTelemetry Streamable-HTTP 端点
     opentelemetry: "/api/opentelemetry/streamable-http"
 
-    # Utilities Streamable-HTTP endpoint
+    # Utilities Streamable-HTTP 端点
     utilities: "/api/utilities/streamable-http"
 
-    # Aggregated Streamable-HTTP endpoint for all services
+    # 聚合所有服务的 Streamable-HTTP 端点
     aggregate: "/api/aggregate/streamable-http"
 ```
 
-### Command Line Arguments
+### 命令行参数
 
-| Parameter | Description | Default |
-|-----------|-------------|---------|
-| `--mode` | Server mode (sse, streamable-http, http, stdio) | sse |
-| `--addr` | Listen address | 0.0.0.0:8080 |
-| `--config` | Configuration file path | config.yaml |
-| `--log-level` | Log level (debug, info, warn, error) | info |
+| 参数 | 描述 | 默认值 |
+|------|------|--------|
+| `--mode` | 服务器模式 (sse, streamable-http, http, stdio) | sse |
+| `--addr` | 监听地址 | 0.0.0.0:8080 |
+| `--config` | 配置文件路径 | config.yaml |
+| `--log-level` | 日志级别 (debug, info, warn, error) | info |
 
-### Environment Variables
+### 环境变量
 
-| Variable | Description | Default |
-|----------|-------------|---------|
-| `MCP_MODE` | Server mode | sse |
-| `MCP_ADDR` | Listen address | 0.0.0.0:8080 |
-| `MCP_LOG_LEVEL` | Log level | info |
+| 变量 | 描述 | 默认值 |
+|------|------|--------|
+| `MCP_MODE` | 服务器模式 | sse |
+| `MCP_ADDR` | 监听地址 | 0.0.0.0:8080 |
+| `MCP_LOG_LEVEL` | 日志级别 | info |
 
----
 
-## Service Configuration
+## 服务配置
 
 ### Kubernetes
 
 ```yaml
 kubernetes:
-  # kubeconfig file path
-  # If empty, uses default: $KUBECONFIG → ~/.kube/config → service account
+  # kubeconfig 文件路径
+  # 如果为空，使用默认: $KUBECONFIG → ~/.kube/config → service account
   kubeconfig: ""
 
-  # Timeout for a single API call (seconds)
+  # 单个 API 调用超时（秒）
   timeoutSec: 30
 
-  # API client queries per second (QPS)
+  # API 客户端每秒查询数 (QPS)
   qps: 100.0
 
-  # API client burst rate
+  # API 客户端突发速率
   burst: 200
 ```
 
@@ -188,36 +183,36 @@ kubernetes:
 
 ```yaml
 prometheus:
-  # Enable/disable Prometheus service
+  # 启用/禁用 Prometheus 服务
   enabled: false
 
-  # Prometheus server address
-  # Format: http://host:port or https://host:port
+  # Prometheus 服务器地址
+  # 格式: http://host:port 或 https://host:port
   address: "http://localhost:9090"
 
-  # Request timeout (seconds)
+  # 请求超时（秒）
   timeoutSec: 30
 
-  # Basic auth username (optional)
+  # Basic auth 用户名（可选）
   username: ""
 
-  # Basic auth password (optional)
+  # Basic auth 密码（可选）
   password: ""
 
-  # Bearer token authentication (optional, higher priority than Basic Auth)
+  # Bearer token 认证（可选，优先级高于 Basic Auth）
   bearerToken: ""
 
-  # Skip TLS certificate verification
-  # Do not use in production!
+  # 跳过 TLS 证书验证
+  # 生产环境不要使用！
   tlsSkipVerify: false
 
-  # TLS client certificate file path (for mTLS authentication)
+  # TLS 客户端证书文件路径（用于 mTLS 认证）
   tlsCertFile: ""
 
-  # TLS client key file path
+  # TLS 客户端密钥文件路径
   tlsKeyFile: ""
 
-  # TLS CA certificate file path
+  # TLS CA 证书文件路径
   tlsCAFile: ""
 ```
 
@@ -225,24 +220,24 @@ prometheus:
 
 ```yaml
 grafana:
-  # Enable/disable Grafana service
+  # 启用/禁用 Grafana 服务
   enabled: false
 
-  # Grafana server URL
-  # Format: http://host:port or https://host:port
+  # Grafana 服务器 URL
+  # 格式: http://host:port 或 https://host:port
   url: "http://localhost:3000"
 
-  # Grafana API Key (recommended)
-  # Create in Grafana: Administration → API Keys
+  # Grafana API Key（推荐）
+  # 在 Grafana 中创建: Administration → API Keys
   apiKey: ""
 
-  # Basic auth username (alternative to API Key)
+  # Basic auth 用户名（API Key 的替代方案）
   username: ""
 
-  # Basic auth password
+  # Basic auth 密码
   password: ""
 
-  # Request timeout (seconds)
+  # 请求超时（秒）
   timeoutSec: 30
 ```
 
@@ -250,32 +245,32 @@ grafana:
 
 ```yaml
 kibana:
-  # Enable/disable Kibana service
+  # 启用/禁用 Kibana 服务
   enabled: false
 
-  # Kibana server URL
-  # Format: http://host:port or https://host:port
+  # Kibana 服务器 URL
+  # 格式: http://host:port 或 https://host:port
   url: "https://localhost:5601"
 
-  # Kibana API Key (recommended)
-  # Create in Kibana: Stack Management → API Keys
+  # Kibana API Key（推荐）
+  # 在 Kibana 中创建: Stack Management → API Keys
   apiKey: ""
 
-  # Basic auth username (alternative to API Key)
+  # Basic auth 用户名（API Key 的替代方案）
   username: ""
 
-  # Basic auth password
+  # Basic auth 密码
   password: ""
 
-  # Request timeout (seconds)
+  # 请求超时（秒）
   timeoutSec: 30
 
-  # Skip TLS certificate verification
-  # Do not use in production!
+  # 跳过 TLS 证书验证
+  # 生产环境不要使用！
   skipVerify: false
 
-  # Kibana space name
-  # Default: "default"
+  # Kibana 空间名称
+  # 默认: "default"
   space: "default"
 ```
 
@@ -283,37 +278,37 @@ kibana:
 
 ```yaml
 helm:
-  # Enable/disable Helm service
+  # 启用/禁用 Helm 服务
   enabled: false
 
-  # Helm operations kubeconfig path
-  # If empty, uses the same kubeconfig as Kubernetes client
+  # Helm 操作 kubeconfig 路径
+  # 如果为空，使用与 Kubernetes 客户端相同的 kubeconfig
   kubeconfigPath: ""
 
-  # Default namespace for Helm operations
+  # Helm 操作默认命名空间
   namespace: "default"
 
-  # Enable Helm debug mode
+  # 启用 Helm 调试模式
   debug: false
 
-  # Repository update timeout (seconds)
-  # Default: 300 (5 minutes)
-  # Recommended for China: 600-900
+  # 仓库更新超时（秒）
+  # 默认: 300 (5 分钟)
+  # 国内环境推荐: 600-900
   timeoutSec: 300
 
-  # Maximum retry attempts
-  # Number of retries for failed repository updates
-  # Default: 3
-  # Recommended: 3-5
+  # 最大重试次数
+  # 失败的仓库更新的重试次数
+  # 默认: 3
+  # 推荐: 3-5
   maxRetries: 3
 
-  # Enable mirrors
-  # Used to accelerate Helm repository pulls
-  # Default: false
+  # 启用镜像
+  # 用于加速 Helm 仓库拉取
+  # 默认: false
   useMirrors: false
 
-  # Custom mirror mapping
-  # Format: original repository URL -> mirror URL
+  # 自定义镜像映射
+  # 格式: 原始仓库 URL -> 镜像 URL
   mirrors: {}
 ```
 
@@ -321,44 +316,44 @@ helm:
 
 ```yaml
 elasticsearch:
-  # Enable/disable Elasticsearch service
+  # 启用/禁用 Elasticsearch 服务
   enabled: false
 
-  # Elasticsearch server addresses (supports multi-node HA)
+  # Elasticsearch 服务器地址（支持多节点高可用）
   addresses:
     - "http://localhost:9200"
 
-  # Single Elasticsearch server address (alternative to addresses)
-  # Used when addresses is empty
+  # 单个 Elasticsearch 服务器地址（addresses 的替代方案）
+  # 当 addresses 为空时使用
   address: ""
 
-  # Basic auth username
+  # Basic auth 用户名
   username: ""
 
-  # Basic auth password
+  # Basic auth 密码
   password: ""
 
-  # Bearer token authentication (optional, higher priority than Basic Auth)
+  # Bearer token 认证（可选，优先级高于 Basic Auth）
   bearerToken: ""
 
-  # API Key authentication (optional, highest priority)
-  # Format: id:api_key
+  # API Key 认证（可选，最高优先级）
+  # 格式: id:api_key
   apiKey: ""
 
-  # Request timeout (seconds)
+  # 请求超时（秒）
   timeoutSec: 30
 
-  # Skip TLS certificate verification
-  # Do not use in production!
+  # 跳过 TLS 证书验证
+  # 生产环境不要使用！
   tlsSkipVerify: false
 
-  # TLS client certificate file path (for mTLS authentication)
+  # TLS 客户端证书文件路径（用于 mTLS 认证）
   tlsCertFile: ""
 
-  # TLS client key file path
+  # TLS 客户端密钥文件路径
   tlsKeyFile: ""
 
-  # TLS CA certificate file path
+  # TLS CA 证书文件路径
   tlsCAFile: ""
 ```
 
@@ -366,36 +361,36 @@ elasticsearch:
 
 ```yaml
 alertmanager:
-  # Enable/disable Alertmanager service
+  # 启用/禁用 Alertmanager 服务
   enabled: false
 
-  # Alertmanager server address
-  # Format: http://host:port or https://host:port
+  # Alertmanager 服务器地址
+  # 格式: http://host:port 或 https://host:port
   address: "http://localhost:9093"
 
-  # Request timeout (seconds)
+  # 请求超时（秒）
   timeoutSec: 30
 
-  # Basic auth username (optional)
+  # Basic auth 用户名（可选）
   username: ""
 
-  # Basic auth password (optional)
+  # Basic auth 密码（可选）
   password: ""
 
-  # Bearer token authentication (optional, higher priority than Basic Auth)
+  # Bearer token 认证（可选，优先级高于 Basic Auth）
   bearerToken: ""
 
-  # Skip TLS certificate verification
-  # Do not use in production!
+  # 跳过 TLS 证书验证
+  # 生产环境不要使用！
   tlsSkipVerify: false
 
-  # TLS client certificate file path (for mTLS authentication)
+  # TLS 客户端证书文件路径（用于 mTLS 认证）
   tlsCertFile: ""
 
-  # TLS client key file path
+  # TLS 客户端密钥文件路径
   tlsKeyFile: ""
 
-  # TLS CA certificate file path
+  # TLS CA 证书文件路径
   tlsCAFile: ""
 ```
 
@@ -403,36 +398,36 @@ alertmanager:
 
 ```yaml
 opentelemetry:
-  # Enable/disable OpenTelemetry service
+  # 启用/禁用 OpenTelemetry 服务
   enabled: false
 
-  # OpenTelemetry Collector address
-  # Format: http://host:port or https://host:port
+  # OpenTelemetry Collector 地址
+  # 格式: http://host:port 或 https://host:port
   address: "http://localhost:4318"
 
-  # Request timeout (seconds)
+  # 请求超时（秒）
   timeoutSec: 30
 
-  # Basic auth username (optional)
+  # Basic auth 用户名（可选）
   username: ""
 
-  # Basic auth password (optional)
+  # Basic auth 密码（可选）
   password: ""
 
-  # Bearer token authentication (optional, higher priority than Basic Auth)
+  # Bearer token 认证（可选，优先级高于 Basic Auth）
   bearerToken: ""
 
-  # Skip TLS certificate verification
-  # Do not use in production!
+  # 跳过 TLS 证书验证
+  # 生产环境不要使用！
   tlsSkipVerify: false
 
-  # TLS client certificate file path (for mTLS authentication)
+  # TLS 客户端证书文件路径（用于 mTLS 认证）
   tlsCertFile: ""
 
-  # TLS client key file path
+  # TLS 客户端密钥文件路径
   tlsKeyFile: ""
 
-  # TLS CA certificate file path
+  # TLS CA 证书文件路径
   tlsCAFile: ""
 ```
 
@@ -440,187 +435,184 @@ opentelemetry:
 
 ```yaml
 utilities:
-  # Utilities service is always enabled
+  # Utilities 服务始终启用
   enabled: true
 ```
 
----
 
-## Authentication Configuration
+## 认证配置
 
-### API Key Authentication
+### API Key 认证
 
 ```yaml
 auth:
-  # Enable/disable authentication
+  # 启用/禁用认证
   enabled: false
 
-  # Authentication mode: apikey | bearer | basic
-  # apikey: X-API-Key simple API key authentication
-  # bearer: Bearer Token (JWT) authentication
+  # 认证模式: apikey | bearer | basic
+  # apikey: X-API-Key 简单 API 密钥认证
+  # bearer: Bearer Token (JWT) 认证
   # basic: HTTP Basic Auth
   mode: "apikey"
 
-  # API Key (for apikey mode)
-  # Minimum 8 characters, recommended 16+ characters
+  # API Key（用于 apikey 模式）
+  # 最少 8 字符，推荐 16+ 字符
   apiKey: ""
 
-  # Bearer token (for bearer mode)
-  # Minimum 16 characters recommended (JWT token)
+  # Bearer token（用于 bearer 模式）
+  # 最少 16 字符推荐（JWT token）
   bearerToken: ""
 
-  # Basic Auth username
+  # Basic Auth 用户名
   username: ""
 
-  # Basic Auth password
+  # Basic Auth 密码
   password: ""
 
-  # JWT secret (for JWT verification)
+  # JWT 密钥（用于 JWT 验证）
   jwtSecret: ""
 
-  # JWT algorithm (HS256, RS256, etc.)
+  # JWT 算法 (HS256, RS256, etc.)
   jwtAlgorithm: "HS256"
 ```
 
-### Authentication Environment Variables
+### 认证环境变量
 
-| Variable | Description |
-|----------|-------------|
-| `MCP_AUTH_ENABLED` | Enable authentication (1, true, yes, on) |
-| `MCP_AUTH_MODE` | Authentication mode (apikey, bearer, basic) |
-| `MCP_AUTH_API_KEY` | API key or bearer token |
-| `MCP_AUTH_USERNAME` | Basic auth username |
-| `MCP_AUTH_PASSWORD` | Basic auth password |
-| `MCP_AUTH_JWT_SECRET` | JWT secret |
-| `MCP_AUTH_JWT_ALGORITHM` | JWT algorithm |
+| 变量 | 描述 |
+|------|------|
+| `MCP_AUTH_ENABLED` | 启用认证 (1, true, yes, on) |
+| `MCP_AUTH_MODE` | 认证模式 (apikey, bearer, basic) |
+| `MCP_AUTH_API_KEY` | API key 或 bearer token |
+| `MCP_AUTH_USERNAME` | Basic auth 用户名 |
+| `MCP_AUTH_PASSWORD` | Basic auth 密码 |
+| `MCP_AUTH_JWT_SECRET` | JWT 密钥 |
+| `MCP_AUTH_JWT_ALGORITHM` | JWT 算法 |
 
----
 
-## Logging Configuration
+## 日志配置
 
 ```yaml
 logging:
-  # Log level: debug | info | warn | error
+  # 日志级别: debug | info | warn | error
   level: "info"
 
-  # Use JSON format logs
-  # Suitable for log aggregation systems (ELK, Splunk, etc.)
+  # 使用 JSON 格式日志
+  # 适用于日志聚合系统 (ELK, Splunk, etc.)
   json: false
 ```
 
-### Log Level Description
+### 日志级别说明
 
-- **debug**: Detailed debugging information, including all requests and responses
-- **info**: General information, including important operations and status changes
-- **warn**: Warning information, does not affect functionality but needs attention
-- **error**: Error information, functionality is impaired
+- **debug**: 详细的调试信息，包括所有请求和响应
+- **info**: 一般信息，包括重要操作和状态变化
+- **warn**: 警告信息，不影响功能但需要注意
+- **error**: 错误信息，功能受损
 
----
 
-## Audit Logs
+## 审计日志
 
-### Basic Configuration
+### 基本配置
 
 ```yaml
 audit:
-  # Enable/disable audit logging
+  # 启用/禁用审计日志
   enabled: false
 
-  # Audit log level: debug | info | warn | error
+  # 审计日志级别: debug | info | warn | error
   level: "info"
 
-  # Audit log storage: stdout | file | database | all
+  # 审计日志存储: stdout | file | database | all
   storage: "memory"
 
-  # Log format: text | json
-  # json: Structured JSON format, suitable for log aggregation
-  # text: Human-readable text format
+  # 日志格式: text | json
+  # json: 结构化 JSON 格式，适合日志聚合
+  # text: 人类可读的文本格式
   format: "json"
 
-  # Maximum query results
+  # 最大查询结果数
   maxResults: 1000
 
-  # Query time range (days)
+  # 查询时间范围（天）
   timeRange: 90
 ```
 
-### File Storage Configuration
+### 文件存储配置
 
 ```yaml
 audit:
   storage: "file"
   file:
-    # Log file path
+    # 日志文件路径
     path: "/var/log/cloud-native-mcp-server/audit.log"
 
-    # Maximum log file size (MB)
+    # 最大日志文件大小 (MB)
     maxSizeMB: 100
 
-    # Maximum number of backup files
+    # 最大备份文件数
     maxBackups: 10
 
-    # Maximum log file age (days)
+    # 最大日志文件年龄（天）
     maxAgeDays: 30
 
-    # Compress rotated log files
+    # 压缩轮转的日志文件
     compress: true
 
-    # Maximum number of logs in memory storage
+    # 内存存储的最大日志数
     maxLogs: 10000
 ```
 
-### Database Storage Configuration
+### 数据库存储配置
 
 ```yaml
 audit:
   storage: "database"
   database:
-    # Database type: sqlite | postgresql | mysql
+    # 数据库类型: sqlite | postgresql | mysql
     type: "sqlite"
 
-    # SQLite database file path
-    # Used only when type="sqlite"
+    # SQLite 数据库文件路径
+    # 仅当 type="sqlite" 时使用
     sqlitePath: "/var/lib/cloud-native-mcp-server/audit.db"
 
-    # PostgreSQL connection string
-    # Used only when type="postgresql"
-    # Format: postgresql://user:password@host:port/dbname
+    # PostgreSQL 连接字符串
+    # 仅当 type="postgresql" 时使用
+    # 格式: postgresql://user:password@host:port/dbname
     connectionString: ""
 
-    # Database table name
+    # 数据库表名
     tableName: "audit_logs"
 
-    # Maximum number of records
+    # 最大记录数
     maxRecords: 100000
 
-    # Cleanup interval (hours)
+    # 清理间隔（小时）
     cleanupInterval: 24
 ```
 
-### Query API Configuration
+### 查询 API 配置
 
 ```yaml
 audit:
   query:
-    # Enable query API
+    # 启用查询 API
     enabled: true
 
-    # Maximum results per query
+    # 每个查询的最大结果数
     maxResults: 1000
 
-    # Maximum time range (days)
+    # 最大时间范围（天）
     timeRange: 90
 ```
 
-### Sensitive Data Masking Configuration
+### 敏感数据掩码配置
 
 ```yaml
 audit:
   masking:
-    # Enable masking
+    # 启用掩码
     enabled: true
 
-    # Fields to mask
+    # 要掩码的字段
     fields:
       - password
       - token
@@ -630,44 +622,42 @@ audit:
       - pwd
       - authorization
 
-    # Mask replacement value
+    # 掩码替换值
     maskValue: "***REDACTED***"
 ```
 
-### Sampling Configuration (High Traffic Scenarios)
+### 采样配置（高流量场景）
 
 ```yaml
 audit:
   sampling:
-    # Enable sampling
+    # 启用采样
     enabled: false
 
-    # Sampling rate (0-1)
-    # 1.0 = log all, 0.1 = log 10%
+    # 采样率 (0-1)
+    # 1.0 = 记录所有, 0.1 = 记录 10%
     rate: 1.0
 ```
 
----
 
-## Service and Tool Filtering
+## 服务和工具过滤
 
 ```yaml
 enableDisable:
-  # Disabled services (comma-separated)
+  # 禁用的服务（逗号分隔）
   disabledServices: []
 
-  # Enabled services (comma-separated, overrides disabled list)
+  # 启用的服务（逗号分隔，覆盖禁用列表）
   enabledServices: []
 
-  # Disabled tools (comma-separated)
+  # 禁用的工具（逗号分隔）
   disabledTools: []
 ```
 
----
 
-## Performance Tuning
+## 性能调优
 
-Use currently supported tuning knobs:
+使用当前版本已支持的调优项：
 
 ```yaml
 server:
@@ -686,11 +676,10 @@ ratelimit:
   burst: 200
 ```
 
----
 
-## Example Configurations
+## 示例配置
 
-### Minimal Configuration (Kubernetes Only)
+### 最小配置（仅 Kubernetes）
 
 ```yaml
 server:
@@ -704,7 +693,7 @@ kubernetes:
   kubeconfig: ""
 ```
 
-### Complete Monitoring Stack
+### 完整监控栈
 
 ```yaml
 server:
@@ -737,7 +726,7 @@ audit:
   format: "json"
 ```
 
-### Production Configuration (Authentication and Caching)
+### 生产环境配置（认证和缓存）
 
 ```yaml
 server:
@@ -787,32 +776,30 @@ audit:
     maskValue: "***REDACTED***"
 ```
 
----
 
-## Configuration Validation
+## 配置验证
 
-The server validates configuration on startup. Common validation errors:
+服务器在启动时验证配置。常见验证错误：
 
-### Missing Required Field
+### 缺少必需字段
 ```
 Error: auth API key is required for apikey mode
 ```
 
-### Invalid Auth Mode
+### 无效的认证模式
 ```
 Error: invalid auth mode: invalid (must be apikey, bearer, or basic)
 ```
 
-### Missing Service Endpoint
+### 缺少服务地址
 ```
 Error: grafana URL is required when service is enabled
 ```
 
----
 
-## Environment Variable Substitution
+## 环境变量替换
 
-You can use environment variables in the YAML configuration file:
+可以在 YAML 配置文件中使用环境变量：
 
 ```yaml
 grafana:
@@ -823,7 +810,7 @@ auth:
   apiKey: "${MCP_AUTH_API_KEY}"
 ```
 
-Set environment variables before starting the server:
+在启动服务器前设置环境变量：
 
 ```bash
 export GRAFANA_URL="http://grafana:3000"
@@ -833,34 +820,32 @@ export MCP_AUTH_API_KEY="your-mcp-key"
 ./cloud-native-mcp-server
 ```
 
----
 
-## Testing Configuration
+## 测试配置
 
-Test configuration without starting the server:
+在不启动服务器的情况下测试配置：
 
 ```bash
-# Check configuration file syntax
+# 检查配置文件语法
 ./cloud-native-mcp-server --config=config.yaml --list=services --output=table
 ```
 
-This will:
-- Parse the configuration file
-- Validate all fields
-- Check service connectivity
-- Report any errors
+这将会：
+- 解析配置文件
+- 验证所有字段
+- 检查服务连通性
+- 报告任何错误
 
----
 
-## Hot Reload
+## 热重载
 
-Hot reload is not supported. Restart the server to apply configuration changes:
+不支持热重载。重启服务器以应用配置更改：
 
 ```bash
-# Send SIGTERM for graceful shutdown
+# 发送 SIGTERM 以优雅关闭
 kill -TERM <pid>
 
-# Server will complete in-flight requests and exit
-# Then start with new configuration
+# 服务器将完成进行中的请求并退出
+# 然后使用新配置启动
 ./cloud-native-mcp-server --config=new-config.yaml
 ```
