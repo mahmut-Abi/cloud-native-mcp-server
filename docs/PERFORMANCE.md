@@ -1,435 +1,228 @@
 # Performance
 
-This document describes the performance features and optimizations of the cloud-native-mcp-server.
+This document describes performance tuning that matches the **current** Cloud Native MCP Server implementation.
 
-## Performance Features
+For website docs:
+- English: `website/content/en/docs/performance.md`
+- Chinese: `website/content/zh/docs/performance.md`
 
-- **Intelligent Caching**: LRU cache with TTL for frequently accessed data
-- **Response Size Control**: Automatic truncation and optimization
-- **JSON Encoding Pool**: Reuse JSON encoders for better performance
-- **Circuit Breaker**: Prevent cascading failures
-- **Pagination**: Support for large datasets
-- **Summary Tools**: Optimized tools for LLM consumption
-- **Input Sanitization**: Protection against injection attacks
-- **Secrets Management**: Secure credential storage with rotation support
-- **Enhanced Validation**: Strict API key and token validation
+---
 
-## Caching
+## What You Can Tune Today
 
-### LRU Cache with TTL
-
-The server uses a segmented LRU cache to optimize performance:
-
-- **Capacity**: Configurable (default: 10,000 entries)
-- **TTL**: Configurable (default: 5 minutes)
-- **Hot Segment**: 20% of capacity for frequently accessed items
-- **Cold Segment**: 80% of capacity for less frequently accessed items
-
-### Cache Configuration
+### 1. Server Timeouts
 
 ```yaml
-cache:
+server:
+  readTimeoutSec: 30
+  writeTimeoutSec: 0
+  idleTimeoutSec: 60
+```
+
+Guidance:
+- Keep `writeTimeoutSec: 0` for SSE-heavy traffic.
+- Increase `readTimeoutSec` for slow clients or larger request bodies.
+- Increase `idleTimeoutSec` for long-lived connections behind reverse proxies.
+
+### 2. Kubernetes Client Throughput
+
+```yaml
+kubernetes:
+  timeoutSec: 30
+  qps: 100.0
+  burst: 200
+```
+
+Guidance:
+- Increase `qps`/`burst` for larger clusters.
+- Increase `timeoutSec` for expensive list/query operations.
+
+### 3. Rate Limiting
+
+```yaml
+ratelimit:
   enabled: true
-  maxSize: 10000
-  ttl: 300s
-  hotSegmentRatio: 0.2
+  requests_per_second: 100
+  burst: 200
 ```
 
-### Cache Keys
+Guidance:
+- Enable in internet-facing or multi-tenant deployments.
+- Start conservative, then raise based on real metrics.
 
-Cache keys are constructed from:
-- Service name
-- Tool name
-- Request parameters (sorted and hashed)
-
-Example:
-```
-kubernetes:list_resources:namespace=default:resource=pods
-```
-
-### Cache Hit Rate
-
-Typical cache hit rates:
-- **Kubernetes resources**: 70-80%
-- **Grafana dashboards**: 60-70%
-- **Prometheus metrics**: 50-60%
-- **Elasticsearch indices**: 40-50%
-
-## Response Size Control
-
-### Automatic Truncation
-
-Large responses are automatically truncated to prevent context overflow:
+### 4. Service Scope Reduction
 
 ```yaml
-response:
-  maxSize: 1000000  # 1MB
-  truncate: true
-  truncateMessage: "... (truncated)"
+enableDisable:
+  enabledServices: ["kubernetes", "prometheus", "grafana", "aggregate"]
 ```
 
-### Summary Tools
+Guidance:
+- Enable only services actually used by clients.
+- Disable unused tools/services to reduce startup and runtime overhead.
 
-Many tools have LLM-optimized versions that return 70-95% smaller responses:
-
-| Tool | Full Size | Summary Size | Reduction |
-|------|-----------|--------------|-----------|
-| `kubernetes_list_resources` | 50KB | 5KB | 90% |
-| `grafana_dashboards` | 30KB | 3KB | 90% |
-| `prometheus_get_alerts` | 40KB | 8KB | 80% |
-| `elasticsearch_list_indices` | 60KB | 10KB | 83% |
-
-### Pagination
-
-Support for large datasets with pagination:
-
-```json
-{
-  "limit": 50,
-  "offset": 0
-}
-```
-
-## JSON Encoding Pool
-
-### Object Pooling
-
-The server uses object pooling to reduce allocations:
-
-```go
-var GlobalJSONPool = NewJSONEncoderPool(100)
-```
-
-### Benefits
-
-- **Reduced GC Pressure**: Fewer allocations mean less garbage collection
-- **Better Performance**: Reused encoders are faster than creating new ones
-- **Memory Efficiency**: Pool size is configurable
-
-### StringBuilder Pool
-
-Reusable string builders for string operations:
-
-```go
-var StringBuilderPool = sync.Pool{
-    New: func() interface{} {
-        return &strings.Builder{}
-    },
-}
-```
-
-## Circuit Breaker
-
-### Circuit Breaker Pattern
-
-Prevents cascading failures by stopping requests to failing services:
+### 5. Audit Cost Control (When Audit Is Enabled)
 
 ```yaml
-circuitBreaker:
+audit:
   enabled: true
-  failureThreshold: 5
-  successThreshold: 2
-  timeout: 30s
+  storage: "database"
+  sampling:
+    enabled: true
+    rate: 0.3
 ```
 
-### States
+Guidance:
+- Use sampling for high-QPS deployments.
+- Use database storage for large audit datasets and frequent queries.
 
-1. **Closed**: Normal operation, requests pass through
-2. **Open**: Requests are blocked, circuit is tripped
-3. **Half-Open**: Testing if service has recovered
+---
 
-### Metrics
+## Built-In Optimizations (No Public YAML Key)
 
-- **Circuit Breaker State Changes**: Track state transitions
-- **Failure Count**: Count of failures before tripping
-- **Success Count**: Count of successes in half-open state
+The server includes internal optimizations such as:
+- response truncation safeguards
+- optimized JSON processing paths
+- internal pooling/caching in service and tool layers
 
-## Rate Limiting
+These are implementation details, not stable public config keys.
+Tune supported keys first: `server`, `kubernetes`, `ratelimit`, `enableDisable`, `audit`.
 
-### Token Bucket Algorithm
+---
 
-Rate limiting using token bucket algorithm:
+## Metrics to Watch
 
-```yaml
-rateLimit:
-  enabled: true
-  requestsPerSecond: 10
-  burstSize: 20
+Track:
+- request throughput
+- p95/p99 latency
+- error rate
+- active connections
+- memory and CPU usage
+
+Example Prometheus queries:
+
+```promql
+rate(mcp_requests_total[5m])
 ```
 
-### Benefits
-
-- **Protection**: Prevents abuse and DoS attacks
-- **Fairness**: Ensures equal access for all clients
-- **Configurable**: Can be adjusted per client or globally
-
-## HTTP Connection Pooling
-
-### Connection Pool Configuration
-
-```go
-transport := &http.Transport{
-    MaxIdleConns:        256,
-    MaxIdleConnsPerHost: 100,
-    IdleConnTimeout:     120 * time.Second,
-}
+```promql
+histogram_quantile(0.99, rate(mcp_request_duration_seconds_bucket[5m]))
 ```
 
-### Benefits
-
-- **Reduced Latency**: Reused connections are faster
-- **Lower Resource Usage**: Fewer TCP handshakes
-- **Better Scalability**: Handles more concurrent requests
-
-## Goroutine Management
-
-### Goroutine Pool
-
-Reusable goroutines for concurrent operations:
-
-```go
-pool := NewWorkerPool(100)
+```promql
+rate(mcp_errors_total[5m])
 ```
 
-### Context Cancellation
+---
 
-Proper cleanup on context cancellation:
+## Benchmarking
 
-```go
-select {
-case <-ctx.Done():
-    return ctx.Err()
-case result := <-results:
-    return result
-}
-```
-
-### Benefits
-
-- **Efficient**: Reusable goroutines reduce overhead
-- **Scalable**: Handles high concurrency
-- **Safe**: Proper cleanup prevents resource leaks
-
-## Performance Metrics
-
-### HTTP Metrics
-
-- **Request Count**: Total number of requests
-- **Response Time**: Time to process requests
-- **Active Connections**: Number of active connections
-- **Error Rate**: Percentage of failed requests
-
-### Service Metrics
-
-- **Tool Calls**: Number of tool invocations
-- **Cache Hit Rate**: Percentage of cache hits
-- **Backend Latency**: Time spent calling backends
-- **Error Rate**: Percentage of tool failures
-
-### Circuit Breaker Metrics
-
-- **State Changes**: Number of state transitions
-- **Failure Count**: Count of failures
-- **Success Count**: Count of successes
-
-### Rate Limiter Metrics
-
-- **Requests Allowed**: Number of requests allowed
-- **Requests Denied**: Number of requests denied
-- **Current Rate**: Current request rate
-
-## Performance Tuning
-
-### Cache Tuning
-
-Increase cache size for frequently accessed data:
-
-```yaml
-cache:
-  maxSize: 20000  # Double the default
-  ttl: 600s      # Increase TTL to 10 minutes
-```
-
-### Rate Limiting
-
-Adjust rate limits based on your needs:
-
-```yaml
-rateLimit:
-  requestsPerSecond: 50  # Increase for high-traffic scenarios
-  burstSize: 100          # Increase burst size
-```
-
-### Connection Pooling
-
-Adjust connection pool for high concurrency:
-
-```yaml
-http:
-  maxIdleConns: 500
-  maxIdleConnsPerHost: 200
-```
-
-## Performance Benchmarks
-
-### Tool Execution Time
-
-| Tool | Average Time | P95 Time | P99 Time |
-|------|--------------|----------|----------|
-| `kubernetes_list_resources` | 50ms | 100ms | 200ms |
-| `grafana_dashboards` | 30ms | 60ms | 100ms |
-| `prometheus_query` | 40ms | 80ms | 150ms |
-| `elasticsearch_search` | 60ms | 120ms | 250ms |
-
-### Throughput
-
-- **Requests per Second**: 1000+ (with caching)
-- **Concurrent Connections**: 500+
-- **Memory Usage**: 100-200MB (typical)
-
-### Latency
-
-- **P50 Latency**: 30ms
-- **P95 Latency**: 100ms
-- **P99 Latency**: 200ms
-
-## Performance Monitoring
-
-### Metrics Endpoint
-
-```
-GET /metrics
-```
-
-Returns Prometheus-formatted metrics:
-
-```
-http_requests_total{method="GET",path="/api/kubernetes/sse"} 1234
-http_request_duration_seconds{method="GET",path="/api/kubernetes/sse",quantile="0.95"} 0.1
-cache_hits_total{service="kubernetes"} 5678
-cache_misses_total{service="kubernetes"} 123
-```
-
-### Health Check
-
-```
-GET /health
-```
-
-Returns server health status:
-
-```json
-{
-  "status": "healthy",
-  "uptime": 3600,
-  "version": "1.0.0"
-}
-```
-
-## Performance Best Practices
-
-### 1. Enable Caching
-
-Always enable caching for frequently accessed data:
-
-```yaml
-cache:
-  enabled: true
-```
-
-### 2. Use Summary Tools
-
-Use summary tools to reduce response size:
-
-```json
-{
-  "tool": "kubernetes_list_resources_summary"
-}
-```
-
-### 3. Enable Circuit Breaker
-
-Prevent cascading failures:
-
-```yaml
-circuitBreaker:
-  enabled: true
-```
-
-### 4. Configure Rate Limiting
-
-Protect against abuse:
-
-```yaml
-rateLimit:
-  enabled: true
-  requestsPerSecond: 10
-```
-
-### 5. Monitor Metrics
-
-Regularly monitor performance metrics:
+### Health Endpoint
 
 ```bash
-curl http://localhost:8080/metrics
+ab -n 10000 -c 100 http://127.0.0.1:8080/health
 ```
 
-### 6. Tune for Your Workload
+### Tool Call Endpoint (Legacy Message Endpoint Compatibility)
 
-Adjust configuration based on your specific workload:
+Create payload file (`payload.json`):
 
-- High traffic: Increase rate limits and connection pool
-- Large datasets: Increase cache size and TTL
-- Low latency: Enable caching and use summary tools
+```json
+{"jsonrpc":"2.0","id":1,"method":"tools/list","params":{}}
+```
 
-## Performance Troubleshooting
+Run benchmark:
+
+```bash
+ab -n 1000 -c 10 \
+  -H "Content-Type: application/json" \
+  -H "X-API-Key: your-key" \
+  -p payload.json \
+  http://127.0.0.1:8080/api/kubernetes/sse/message
+```
+
+---
+
+## Production Baseline Example
+
+```yaml
+server:
+  mode: "streamable-http"
+  addr: "0.0.0.0:8080"
+  readTimeoutSec: 30
+  writeTimeoutSec: 0
+  idleTimeoutSec: 60
+
+logging:
+  level: "info"
+  json: true
+
+kubernetes:
+  kubeconfig: ""
+  timeoutSec: 30
+  qps: 100.0
+  burst: 200
+
+ratelimit:
+  enabled: true
+  requests_per_second: 100
+  burst: 200
+
+auth:
+  enabled: true
+  mode: "apikey"
+  apiKey: "${MCP_AUTH_API_KEY}"
+
+audit:
+  enabled: true
+  storage: "database"
+  sampling:
+    enabled: true
+    rate: 0.3
+
+enableDisable:
+  enabledServices: ["kubernetes", "prometheus", "grafana", "aggregate"]
+```
+
+---
+
+## Troubleshooting
 
 ### High Latency
 
-**Symptoms**: Slow response times
+Actions:
+1. Increase `kubernetes.timeoutSec` for slow backend queries.
+2. Increase `kubernetes.qps`/`kubernetes.burst` if client-side throttling appears.
+3. Correlate p99 latency with backend service saturation.
 
-**Solutions**:
-- Enable caching
-- Increase cache size
-- Use summary tools
-- Check backend latency
+### High Error Rate
+
+Actions:
+1. Verify auth mode and credentials.
+2. Check backend service availability.
+3. Inspect `/api/audit/logs` when audit is enabled.
 
 ### High Memory Usage
 
-**Symptoms**: High memory consumption
+Actions:
+1. Reduce enabled services/tools.
+2. Enable audit sampling.
+3. Lower burst values if traffic spikes create memory pressure.
 
-**Solutions**:
-- Reduce cache size
-- Reduce TTL
-- Enable response truncation
-- Check for memory leaks
+---
 
-### High CPU Usage
+## Best Practices
 
-**Symptoms**: High CPU utilization
+1. Prefer `streamable-http` in production unless a client requires SSE.
+2. Tune one dimension at a time (`timeout` -> `qps/burst` -> `ratelimit`).
+3. Keep load tests representative of real tool usage.
+4. Track p95/p99, not only average latency.
 
-**Solutions**:
-- Reduce rate limit
-- Enable circuit breaker
-- Check for inefficient queries
-- Profile the application
+---
 
-### Cache Miss Rate
+## Related Docs
 
-**Symptoms**: Low cache hit rate
-
-**Solutions**:
-- Increase TTL
-- Increase cache size
-- Check cache key generation
-- Monitor cache usage
-
-## Future Performance Enhancements
-
-- [ ] Redis caching for distributed deployments
-- [ ] Response compression (gzip, brotli)
-- [ ] HTTP/2 support
-- [ ] gRPC support
-- [ ] Query optimization
-- [ ] Predictive caching
-- [ ] Adaptive rate limiting
+- `docs/CONFIGURATION.md`
+- `docs/DEPLOYMENT.md`
+- `website/content/en/docs/performance.md`
+- `website/content/zh/docs/performance.md`
