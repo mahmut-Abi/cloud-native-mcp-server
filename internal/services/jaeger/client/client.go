@@ -4,11 +4,8 @@ import (
 	"bytes"
 	"context"
 	"encoding/json"
-	stderrs "errors"
 	"fmt"
 	"io"
-	"math/rand"
-	"net"
 	"net/http"
 	"net/url"
 	"strings"
@@ -21,9 +18,6 @@ import (
 
 const (
 	defaultRequestTimeout = 30 * time.Second
-	defaultMaxRetries     = 2
-	defaultRetryDelay     = 200 * time.Millisecond
-	defaultRetryMaxDelay  = 2 * time.Second
 )
 
 // ClientOptions holds configuration parameters for creating a Jaeger client.
@@ -144,26 +138,11 @@ func NewClient(opts *ClientOptions) (*Client, error) {
 		timeout = defaultRequestTimeout
 	}
 
-	maxRetries := opts.MaxRetries
-	if maxRetries < 0 {
-		maxRetries = 0
-	}
-	if maxRetries == 0 {
-		maxRetries = defaultMaxRetries
-	}
-
-	retryBaseDelay := opts.RetryBaseDelay
-	if retryBaseDelay <= 0 {
-		retryBaseDelay = defaultRetryDelay
-	}
-
-	retryMaxDelay := opts.RetryMaxDelay
-	if retryMaxDelay <= 0 {
-		retryMaxDelay = defaultRetryMaxDelay
-	}
-	if retryMaxDelay < retryBaseDelay {
-		retryMaxDelay = retryBaseDelay
-	}
+	maxRetries, retryBaseDelay, retryMaxDelay := optimize.NormalizeRetryConfig(
+		opts.MaxRetries,
+		opts.RetryBaseDelay,
+		opts.RetryMaxDelay,
+	)
 
 	httpClient := optimize.NewOptimizedHTTPClientWithTimeout(timeout)
 
@@ -190,128 +169,56 @@ func (c *Client) makeRequest(ctx context.Context, method, endpoint string, body 
 		}
 	}
 
-	totalAttempts := c.maxRetries + 1
-	for attempt := 1; attempt <= totalAttempts; attempt++ {
-		var reqBody io.Reader
-		if len(bodyBytes) > 0 {
-			reqBody = bytes.NewReader(bodyBytes)
-		}
-
-		req, err := http.NewRequestWithContext(ctx, method, requestURL, reqBody)
-		if err != nil {
-			return nil, fmt.Errorf("failed to create request: %w", err)
-		}
-
-		req.Header.Set("Accept", "application/json")
-		if body != nil {
-			req.Header.Set("Content-Type", "application/json")
-		}
-
-		logrus.WithFields(logrus.Fields{
-			"method":  method,
-			"url":     requestURL,
-			"attempt": attempt,
-		}).Debug("Making Jaeger API request")
-
-		resp, reqErr := c.httpClient.Do(req)
-		if reqErr == nil {
-			if c.shouldRetryStatusCode(resp.StatusCode) && attempt < totalAttempts {
-				_ = resp.Body.Close()
-				delay := c.nextRetryDelay(attempt)
-				logrus.WithFields(logrus.Fields{
-					"method":      method,
-					"url":         requestURL,
-					"status_code": resp.StatusCode,
-					"attempt":     attempt,
-					"retry_in":    delay,
-				}).Warn("Retrying Jaeger API request after retryable status")
-				if waitErr := waitForRetry(ctx, delay); waitErr != nil {
-					return nil, waitErr
-				}
-				continue
+	resp, err := optimize.DoWithHTTPRetry(
+		ctx,
+		method,
+		c.maxRetries,
+		c.retryBaseDelay,
+		c.retryMaxDelay,
+		func(attempt int) (*http.Response, error) {
+			var reqBody io.Reader
+			if len(bodyBytes) > 0 {
+				reqBody = bytes.NewReader(bodyBytes)
 			}
-			return resp, nil
-		}
 
-		if attempt < totalAttempts && c.shouldRetryError(reqErr) {
-			delay := c.nextRetryDelay(attempt)
+			req, reqErr := http.NewRequestWithContext(ctx, method, requestURL, reqBody)
+			if reqErr != nil {
+				return nil, fmt.Errorf("failed to create request: %w", reqErr)
+			}
+
+			req.Header.Set("Accept", "application/json")
+			if body != nil {
+				req.Header.Set("Content-Type", "application/json")
+			}
+
 			logrus.WithFields(logrus.Fields{
+				"method":  method,
+				"url":     requestURL,
+				"attempt": attempt,
+			}).Debug("Making Jaeger API request")
+
+			return c.httpClient.Do(req)
+		},
+		func(event optimize.HTTPRetryEvent) {
+			fields := logrus.Fields{
 				"method":   method,
 				"url":      requestURL,
-				"attempt":  attempt,
-				"retry_in": delay,
-			}).WithError(reqErr).Warn("Retrying Jaeger API request after transient transport error")
-			if waitErr := waitForRetry(ctx, delay); waitErr != nil {
-				return nil, waitErr
+				"attempt":  event.Attempt,
+				"retry_in": event.Delay,
 			}
-			continue
-		}
-
-		return nil, errors.Wrap(reqErr, "JAEGER_CONNECTION_FAILED", "failed to connect to Jaeger").
+			if event.Err != nil {
+				logrus.WithFields(fields).WithError(event.Err).Warn("Retrying Jaeger API request after transient transport error")
+				return
+			}
+			fields["status_code"] = event.StatusCode
+			logrus.WithFields(fields).Warn("Retrying Jaeger API request after retryable status")
+		},
+	)
+	if err != nil {
+		return nil, errors.Wrap(err, "JAEGER_CONNECTION_FAILED", "failed to connect to Jaeger").
 			WithHTTPStatus(503)
 	}
-
-	return nil, errors.New("JAEGER_RETRY_EXHAUSTED", "retry attempts exhausted for Jaeger API request").
-		WithHTTPStatus(503).
-		WithContext("url", requestURL).
-		WithContext("max_retries", c.maxRetries)
-}
-
-func (c *Client) shouldRetryError(err error) bool {
-	if err == nil {
-		return false
-	}
-	if stderrs.Is(err, context.Canceled) {
-		return false
-	}
-	var netErr net.Error
-	if stderrs.As(err, &netErr) {
-		return netErr.Timeout() || netErr.Temporary()
-	}
-	msg := strings.ToLower(err.Error())
-	return strings.Contains(msg, "connection reset") ||
-		strings.Contains(msg, "broken pipe") ||
-		strings.Contains(msg, "connection refused") ||
-		strings.Contains(msg, "timeout")
-}
-
-func (c *Client) shouldRetryStatusCode(statusCode int) bool {
-	switch statusCode {
-	case http.StatusRequestTimeout, http.StatusTooManyRequests, http.StatusBadGateway, http.StatusServiceUnavailable, http.StatusGatewayTimeout:
-		return true
-	default:
-		return false
-	}
-}
-
-func (c *Client) nextRetryDelay(attempt int) time.Duration {
-	delay := c.retryBaseDelay
-	for i := 1; i < attempt; i++ {
-		delay *= 2
-		if delay >= c.retryMaxDelay {
-			delay = c.retryMaxDelay
-			break
-		}
-	}
-	if delay > c.retryMaxDelay {
-		delay = c.retryMaxDelay
-	}
-
-	// Add bounded jitter so repeated calls don't synchronize retries.
-	jitter := time.Duration(rand.Int63n(int64(delay/4 + 1)))
-	return delay + jitter
-}
-
-func waitForRetry(ctx context.Context, delay time.Duration) error {
-	timer := time.NewTimer(delay)
-	defer timer.Stop()
-
-	select {
-	case <-ctx.Done():
-		return ctx.Err()
-	case <-timer.C:
-		return nil
-	}
+	return resp, nil
 }
 
 // handleResponse processes the HTTP response and returns the body.

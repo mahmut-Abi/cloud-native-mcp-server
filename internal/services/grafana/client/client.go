@@ -174,99 +174,67 @@ func (c *Client) makeRequest(ctx context.Context, method, endpoint string, body 
 	}
 
 	requestURL := c.baseURL + strings.TrimPrefix(endpoint, "/")
-	allowRetry := optimize.IsRetryableMethod(method)
-	totalAttempts := 1
-	if allowRetry {
-		totalAttempts = c.maxRetries + 1
-	}
-
-	for attempt := 1; attempt <= totalAttempts; attempt++ {
-		var reqBody io.Reader
-		if len(bodyBytes) > 0 {
-			reqBody = bytes.NewReader(bodyBytes)
-		}
-
-		req, err := http.NewRequestWithContext(ctx, method, requestURL, reqBody)
-		if err != nil {
-			return nil, fmt.Errorf("failed to create request: %w", err)
-		}
-
-		// Set headers
-		for key, value := range c.headers {
-			req.Header.Set(key, value)
-		}
-
-		// Set authentication
-		if c.apiKey != "" {
-			req.Header.Set("Authorization", "Bearer "+c.apiKey)
-		} else if c.username != "" && c.password != "" {
-			req.SetBasicAuth(c.username, c.password)
-		}
-
-		logrus.WithFields(logrus.Fields{
-			"method":   method,
-			"url":      requestURL,
-			"has_body": body != nil,
-			"attempt":  attempt,
-		}).Debug("Making Grafana API request")
-
-		resp, reqErr := c.httpClient.Do(req)
-		if reqErr == nil {
-			if allowRetry && optimize.ShouldRetryStatusCode(resp.StatusCode) && attempt < totalAttempts {
-				_ = resp.Body.Close()
-				delay := optimize.NextRetryDelay(c.retryBaseDelay, c.retryMaxDelay, attempt)
-				logrus.WithFields(logrus.Fields{
-					"method":      method,
-					"url":         requestURL,
-					"status_code": resp.StatusCode,
-					"attempt":     attempt,
-					"retry_in":    delay,
-				}).Warn("Retrying Grafana API request after retryable status")
-				if waitErr := waitForRetry(ctx, delay); waitErr != nil {
-					return nil, waitErr
-				}
-				continue
+	resp, err := optimize.DoWithHTTPRetry(
+		ctx,
+		method,
+		c.maxRetries,
+		c.retryBaseDelay,
+		c.retryMaxDelay,
+		func(attempt int) (*http.Response, error) {
+			var reqBody io.Reader
+			if len(bodyBytes) > 0 {
+				reqBody = bytes.NewReader(bodyBytes)
 			}
-			return resp, nil
-		}
 
-		if stderrs.Is(reqErr, context.Canceled) {
-			return nil, reqErr
-		}
-		if allowRetry && optimize.ShouldRetryTransportError(reqErr) && attempt < totalAttempts {
-			delay := optimize.NextRetryDelay(c.retryBaseDelay, c.retryMaxDelay, attempt)
+			req, reqErr := http.NewRequestWithContext(ctx, method, requestURL, reqBody)
+			if reqErr != nil {
+				return nil, fmt.Errorf("failed to create request: %w", reqErr)
+			}
+
+			// Set headers
+			for key, value := range c.headers {
+				req.Header.Set(key, value)
+			}
+
+			// Set authentication
+			if c.apiKey != "" {
+				req.Header.Set("Authorization", "Bearer "+c.apiKey)
+			} else if c.username != "" && c.password != "" {
+				req.SetBasicAuth(c.username, c.password)
+			}
+
 			logrus.WithFields(logrus.Fields{
 				"method":   method,
 				"url":      requestURL,
+				"has_body": body != nil,
 				"attempt":  attempt,
-				"retry_in": delay,
-			}).WithError(reqErr).Warn("Retrying Grafana API request after transient transport error")
-			if waitErr := waitForRetry(ctx, delay); waitErr != nil {
-				return nil, waitErr
-			}
-			continue
-		}
+			}).Debug("Making Grafana API request")
 
-		return nil, errors.Wrap(reqErr, "GRAFANA_CONNECTION_FAILED", "failed to connect to Grafana").
+			return c.httpClient.Do(req)
+		},
+		func(event optimize.HTTPRetryEvent) {
+			fields := logrus.Fields{
+				"method":   method,
+				"url":      requestURL,
+				"attempt":  event.Attempt,
+				"retry_in": event.Delay,
+			}
+			if event.Err != nil {
+				logrus.WithFields(fields).WithError(event.Err).Warn("Retrying Grafana API request after transient transport error")
+				return
+			}
+			fields["status_code"] = event.StatusCode
+			logrus.WithFields(fields).Warn("Retrying Grafana API request after retryable status")
+		},
+	)
+	if err != nil {
+		if stderrs.Is(err, context.Canceled) || stderrs.Is(err, context.DeadlineExceeded) {
+			return nil, err
+		}
+		return nil, errors.Wrap(err, "GRAFANA_CONNECTION_FAILED", "failed to connect to Grafana").
 			WithHTTPStatus(503)
 	}
-
-	return nil, errors.New("GRAFANA_RETRY_EXHAUSTED", "retry attempts exhausted for Grafana API request").
-		WithHTTPStatus(503).
-		WithContext("url", requestURL).
-		WithContext("max_retries", c.maxRetries)
-}
-
-func waitForRetry(ctx context.Context, delay time.Duration) error {
-	timer := time.NewTimer(delay)
-	defer timer.Stop()
-
-	select {
-	case <-ctx.Done():
-		return ctx.Err()
-	case <-timer.C:
-		return nil
-	}
+	return resp, nil
 }
 
 // handleResponse processes the HTTP response and returns the body.

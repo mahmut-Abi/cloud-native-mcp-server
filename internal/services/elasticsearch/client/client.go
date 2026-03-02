@@ -786,82 +786,54 @@ func (c *Client) doRequest(ctx context.Context, method, path string, body io.Rea
 		}
 	}
 
-	allowRetry := optimize.IsRetryableMethod(method)
-	totalAttempts := 1
-	if allowRetry {
-		totalAttempts = c.maxRetries + 1
-	}
-
-	for attempt := 1; attempt <= totalAttempts; attempt++ {
-		var reqBody io.Reader
-		if len(bodyBytes) > 0 {
-			reqBody = bytes.NewReader(bodyBytes)
-		}
-
-		req, err := http.NewRequestWithContext(ctx, method, requestURL, reqBody)
-		if err != nil {
-			return nil, fmt.Errorf("failed to create request: %w", err)
-		}
-
-		req.Header.Set("Content-Type", "application/json")
-		c.addAuthHeaders(req)
-
-		logrus.WithFields(logrus.Fields{
-			"method":  method,
-			"path":    path,
-			"attempt": attempt,
-		}).Debug("Elasticsearch request")
-
-		resp, reqErr := c.httpClient.Do(req)
-		if reqErr == nil {
-			if allowRetry && optimize.ShouldRetryStatusCode(resp.StatusCode) && attempt < totalAttempts {
-				_ = resp.Body.Close()
-				delay := optimize.NextRetryDelay(c.retryBaseDelay, c.retryMaxDelay, attempt)
-				logrus.WithFields(logrus.Fields{
-					"method":      method,
-					"path":        path,
-					"status_code": resp.StatusCode,
-					"attempt":     attempt,
-					"retry_in":    delay,
-				}).Warn("Retrying Elasticsearch request after retryable status")
-				if waitErr := waitForRetry(ctx, delay); waitErr != nil {
-					return nil, waitErr
-				}
-				continue
+	resp, err := optimize.DoWithHTTPRetry(
+		ctx,
+		method,
+		c.maxRetries,
+		c.retryBaseDelay,
+		c.retryMaxDelay,
+		func(attempt int) (*http.Response, error) {
+			var reqBody io.Reader
+			if len(bodyBytes) > 0 {
+				reqBody = bytes.NewReader(bodyBytes)
 			}
-			return resp, nil
-		}
 
-		if stderrs.Is(reqErr, context.Canceled) {
-			return nil, reqErr
-		}
-		if allowRetry && optimize.ShouldRetryTransportError(reqErr) && attempt < totalAttempts {
-			delay := optimize.NextRetryDelay(c.retryBaseDelay, c.retryMaxDelay, attempt)
+			req, reqErr := http.NewRequestWithContext(ctx, method, requestURL, reqBody)
+			if reqErr != nil {
+				return nil, fmt.Errorf("failed to create request: %w", reqErr)
+			}
+
+			req.Header.Set("Content-Type", "application/json")
+			c.addAuthHeaders(req)
+
 			logrus.WithFields(logrus.Fields{
+				"method":  method,
+				"path":    path,
+				"attempt": attempt,
+			}).Debug("Elasticsearch request")
+
+			return c.httpClient.Do(req)
+		},
+		func(event optimize.HTTPRetryEvent) {
+			fields := logrus.Fields{
 				"method":   method,
 				"path":     path,
-				"attempt":  attempt,
-				"retry_in": delay,
-			}).WithError(reqErr).Warn("Retrying Elasticsearch request after transient transport error")
-			if waitErr := waitForRetry(ctx, delay); waitErr != nil {
-				return nil, waitErr
+				"attempt":  event.Attempt,
+				"retry_in": event.Delay,
 			}
-			continue
+			if event.Err != nil {
+				logrus.WithFields(fields).WithError(event.Err).Warn("Retrying Elasticsearch request after transient transport error")
+				return
+			}
+			fields["status_code"] = event.StatusCode
+			logrus.WithFields(fields).Warn("Retrying Elasticsearch request after retryable status")
+		},
+	)
+	if err != nil {
+		if stderrs.Is(err, context.Canceled) || stderrs.Is(err, context.DeadlineExceeded) {
+			return nil, err
 		}
-		return nil, fmt.Errorf("request failed: %w", reqErr)
+		return nil, fmt.Errorf("request failed: %w", err)
 	}
-
-	return nil, fmt.Errorf("retry attempts exhausted for request %s %s", method, requestURL)
-}
-
-func waitForRetry(ctx context.Context, delay time.Duration) error {
-	timer := time.NewTimer(delay)
-	defer timer.Stop()
-
-	select {
-	case <-ctx.Done():
-		return ctx.Err()
-	case <-timer.C:
-		return nil
-	}
+	return resp, nil
 }
