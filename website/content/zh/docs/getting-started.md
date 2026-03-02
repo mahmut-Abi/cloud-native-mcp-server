@@ -30,8 +30,8 @@ make sse-smoke BASE_URL=http://127.0.0.1:8080
 
 ## 常用入口
 
-- SSE 聚合入口（`--mode=sse`）: `http://127.0.0.1:8080/api/aggregate/sse`
-- Streamable HTTP 聚合入口（`--mode=streamable-http`）: `http://127.0.0.1:8080/api/aggregate/streamable-http`
+- SSE 聚合端点（`--mode=sse`）: `http://127.0.0.1:8080/api/aggregate/sse`
+- Streamable-HTTP 聚合端点（`--mode=streamable-http`）: `http://127.0.0.1:8080/api/aggregate/streamable-http`
 - 健康检查: `http://127.0.0.1:8080/health`
 
 ---

@@ -68,7 +68,7 @@ make build
 | --- | --- | --- |
 | `sse` | 兼容性优先的 MCP 客户端接入 | `/api/aggregate/sse` |
 | `streamable-http` | 推荐的现代 MCP 传输（生产优先） | `/api/aggregate/streamable-http` |
-| `http` | 仅兼容历史 message 端点 | `/api/aggregate/sse/message` |
+| `http` | 仅兼容 message 端点（历史兼容） | `/api/aggregate/sse/message` |
 | `stdio` | 本地 Agent/运行时集成 | stdin/stdout |
 
 ---
