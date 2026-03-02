@@ -4,6 +4,7 @@ languageCode = 'en-us'
 title = 'Cloud Native MCP Server'
 theme = 'hugo-book'
 enableGitInfo = true
+enableRobotsTXT = true
 
 [params]
   BookSection = 'docs'
@@ -16,6 +17,8 @@ enableGitInfo = true
   BookDateFormat = '2006-01-02'
   description = 'High-performance Model Context Protocol server for Kubernetes and cloud-native operations.'
   keywords = 'cloud native, kubernetes, mcp, model context protocol, observability, devops, grafana, prometheus, helm'
+  ogImage = 'images/og-cover.svg'
+  twitterCard = 'summary_large_image'
 
 # Default language configuration
 defaultContentLanguage = 'en'
@@ -41,9 +44,13 @@ defaultContentLanguage = 'en'
     url = '/getting-started/'
     weight = 3
   [[languages.en.menu.before]]
+    name = 'FAQ'
+    url = '/getting-started/faq/'
+    weight = 4
+  [[languages.en.menu.before]]
     name = 'Blog'
     url = '/posts/'
-    weight = 4
+    weight = 5
 
 [languages.zh]
   languageName = '中文'
@@ -66,9 +73,13 @@ defaultContentLanguage = 'en'
     url = '/zh/getting-started/'
     weight = 3
   [[languages.zh.menu.before]]
+    name = 'FAQ/排障'
+    url = '/zh/getting-started/faq/'
+    weight = 4
+  [[languages.zh.menu.before]]
     name = '博客'
     url = '/zh/posts/'
-    weight = 4
+    weight = 5
 
 [markup]
   [markup.goldmark]

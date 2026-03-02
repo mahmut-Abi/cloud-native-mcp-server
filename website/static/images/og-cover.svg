@@ -1,0 +1,26 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="630" viewBox="0 0 1200 630" role="img" aria-labelledby="title desc">
+  <title id="title">Cloud Native MCP Server</title>
+  <desc id="desc">High-performance MCP server for Kubernetes and cloud-native operations.</desc>
+  <defs>
+    <linearGradient id="bg" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#0b7285"/>
+      <stop offset="55%" stop-color="#2a9d8f"/>
+      <stop offset="100%" stop-color="#f4a261"/>
+    </linearGradient>
+    <linearGradient id="card" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#ffffff" stop-opacity="0.28"/>
+      <stop offset="100%" stop-color="#ffffff" stop-opacity="0.08"/>
+    </linearGradient>
+  </defs>
+  <rect width="1200" height="630" fill="url(#bg)"/>
+  <circle cx="1040" cy="120" r="190" fill="#ffffff" fill-opacity="0.10"/>
+  <circle cx="180" cy="560" r="180" fill="#ffffff" fill-opacity="0.10"/>
+  <rect x="80" y="80" width="1040" height="470" rx="28" fill="url(#card)" stroke="#ffffff" stroke-opacity="0.3"/>
+  <text x="140" y="230" fill="#ffffff" font-size="54" font-weight="700" font-family="Segoe UI, Arial, sans-serif">Cloud Native MCP Server</text>
+  <text x="140" y="300" fill="#ffffff" font-size="31" font-weight="500" font-family="Segoe UI, Arial, sans-serif">
+    High-performance MCP server for Kubernetes and cloud-native operations
+  </text>
+  <text x="140" y="390" fill="#ffffff" font-size="25" font-weight="600" font-family="Segoe UI, Arial, sans-serif">10 services | 220+ tools | SSE and Streamable HTTP</text>
+  <rect x="140" y="438" width="420" height="56" rx="10" fill="#ffffff"/>
+  <text x="170" y="476" fill="#0b7285" font-size="28" font-weight="700" font-family="Segoe UI, Arial, sans-serif">github.com/mahmut-Abi</text>
+</svg>

@@ -1,5 +1,6 @@
 ---
 title: "Features"
+description: "Overview of Cloud Native MCP Server features, including performance, security, integrated services, and runtime modes."
 ---
 
 # Core Features
@@ -74,9 +75,9 @@ title: "Features"
 - Suitable for real-time monitoring scenarios
 
 ### HTTP Mode
-- Standard REST API
-- Easy integration
-- Suitable for traditional applications
+- Legacy message endpoint compatibility
+- Useful for older integrations
+- For modern deployments, prefer `streamable-http`
 
 ### stdio Mode
 - Standard input/output communication

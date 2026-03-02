@@ -680,6 +680,6 @@ We will credit all researchers who responsibly report security issues.
 
 ## Related Documentation
 
-- [Complete Tools Reference](/docs/tools/)
-- [Configuration Guide](/docs/configuration/)
-- [Deployment Guide](/docs/deployment/)
+- [Complete Tools Reference](/zh/docs/tools/)
+- [Configuration Guide](/zh/docs/configuration/)
+- [Deployment Guide](/zh/docs/deployment/)

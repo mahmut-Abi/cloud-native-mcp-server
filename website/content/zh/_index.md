@@ -6,7 +6,7 @@ description: 面向 Kubernetes 与云原生运维场景的高性能 Model Contex
 
 <div class="hero">
   <h1>Cloud Native MCP Server</h1>
-  <p>面向 Kubernetes 与云原生基础设施管理的生产级 MCP 服务器。</p>
+  <p>面向 Kubernetes 与云原生基础设施管理的生产级 MCP 服务器，聚合 10 个服务与 220+ 工具，支持 SSE / Streamable HTTP / HTTP / Stdio 四种运行模式。</p>
   <div class="hero-buttons">
     <a href="https://github.com/mahmut-Abi/cloud-native-mcp-server" class="cta-button"><span>GitHub 仓库</span></a>
     <a href="#quick-start" class="cta-button transparent"><span>快速开始</span></a>
@@ -17,25 +17,41 @@ description: 面向 Kubernetes 与云原生运维场景的高性能 Model Contex
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 [![Go Version](https://img.shields.io/badge/Go-1.25+-blue.svg)](https://golang.org)
 
-## 核心特性
+## 核心价值
 
-{{< columns >}}
-<h3>高性能执行</h3>
-<p>LRU 缓存、JSON 编码池与响应裁剪策略，确保稳定吞吐与低延迟。</p>
-<--->
+<div class="value-grid">
+  <article class="value-card">
+    <h3>统一运维入口</h3>
+    <p>将 Kubernetes、Helm、Grafana、Prometheus、Kibana 等能力收敛到单一 MCP 接口，减少跨系统切换成本。</p>
+  </article>
+  <article class="value-card">
+    <h3>面向生产的安全策略</h3>
+    <p>支持 apikey / bearer / basic 认证、速率限制与审计日志，便于在企业环境中落地安全合规要求。</p>
+  </article>
+  <article class="value-card">
+    <h3>对 AI Agent 友好</h3>
+    <p>内置分页与摘要能力，降低上下文爆炸风险，让大模型在复杂排障中保持稳定输出。</p>
+  </article>
+</div>
 
-<h3>安全与审计</h3>
-<p>支持 API Key、Bearer、Basic 认证，并提供审计日志能力。</p>
-{{< /columns >}}
+---
 
-{{< columns >}}
-<h3>可观测性集成</h3>
-<p>原生对接 Prometheus、Grafana、Jaeger、OpenTelemetry。</p>
-<--->
+## 典型使用场景
 
-<h3>面向 AI 交互优化</h3>
-<p>为 LLM 设计的摘要工具与分页策略，降低上下文溢出风险。</p>
-{{< /columns >}}
+<div class="usecase-grid">
+  <article class="usecase-card">
+    <h3>故障定位与快速止血</h3>
+    <p>聚合查看 Pod 状态、事件、日志与监控指标，缩短从告警到定位根因的路径。</p>
+  </article>
+  <article class="usecase-card">
+    <h3>发布与变更管控</h3>
+    <p>通过 Helm 与 Kubernetes 工具链执行发布、回滚、扩缩容，并保留审计痕迹。</p>
+  </article>
+  <article class="usecase-card">
+    <h3>可观测性协同分析</h3>
+    <p>跨 Prometheus、Grafana、Jaeger、OpenTelemetry 联动，串联指标、日志与链路数据。</p>
+  </article>
+</div>
 
 ---
 
@@ -118,6 +134,9 @@ docker run -d \
   --name cloud-native-mcp-server \
   -p 8080:8080 \
   -v ~/.kube:/root/.kube:ro \
+  -e MCP_AUTH_ENABLED=true \
+  -e MCP_AUTH_MODE=apikey \
+  -e MCP_AUTH_API_KEY='ChangeMe-Strong-Key-123!' \
   mahmutabi/cloud-native-mcp-server:latest
 {{< /highlight >}}
 {{< /tab >}}
@@ -135,16 +154,65 @@ chmod +x cloud-native-mcp-server-linux-amd64
 git clone https://github.com/mahmut-Abi/cloud-native-mcp-server.git
 cd cloud-native-mcp-server
 make build
-./cloud-native-mcp-server --mode=sse --addr=0.0.0.0:8080
+./cloud-native-mcp-server --mode=streamable-http --addr=0.0.0.0:8080
 {{< /highlight >}}
 {{< /tab >}}
 {{< /tabs >}}
+
+### 可用性验证
+
+{{< highlight bash >}}
+# 1) 健康检查
+curl -sS http://127.0.0.1:8080/health
+
+# 2) SSE 握手与 initialize 全链路验证（在仓库根目录执行）
+make sse-smoke BASE_URL=http://127.0.0.1:8080
+{{< /highlight >}}
+
+### 常用入口
+
+- SSE 聚合入口（`--mode=sse`）: `http://127.0.0.1:8080/api/aggregate/sse`
+- Streamable HTTP 聚合入口（`--mode=streamable-http`）: `http://127.0.0.1:8080/api/aggregate/streamable-http`
+- 健康检查: `http://127.0.0.1:8080/health`
+
+---
+
+## 上线前检查清单
+
+<div class="ops-grid">
+  <article class="ops-card">
+    <h3>认证与权限</h3>
+    <ul>
+      <li>启用 `MCP_AUTH_ENABLED=true`。</li>
+      <li>使用 `apikey` / `bearer` / `basic` 模式之一。</li>
+      <li>最小化 Kubernetes 与第三方系统权限范围。</li>
+    </ul>
+  </article>
+  <article class="ops-card">
+    <h3>可观测性与审计</h3>
+    <ul>
+      <li>开启结构化日志与必要的指标采集。</li>
+      <li>根据审计要求启用审计日志与存储策略。</li>
+      <li>确认 `/health` 与关键服务检查稳定。</li>
+    </ul>
+  </article>
+  <article class="ops-card">
+    <h3>性能与稳定性</h3>
+    <ul>
+      <li>按业务压力调优限流、超时与并发参数。</li>
+      <li>优先使用分页与摘要工具降低上下文体积。</li>
+      <li>压测时覆盖高峰期真实工具调用组合。</li>
+    </ul>
+  </article>
+</div>
 
 ---
 
 ## 文档导航
 
 - [快速开始]({{< relref "getting-started/_index.md" >}})
+- [快速开始 FAQ]({{< relref "getting-started/faq.md" >}})
+- [故障排除]({{< relref "getting-started/troubleshooting.md" >}})
 - [架构设计]({{< relref "docs/architecture.md" >}})
 - [配置说明]({{< relref "docs/configuration.md" >}})
 - [部署指南]({{< relref "docs/deployment.md" >}})
@@ -153,6 +221,23 @@ make build
 - [工具参考]({{< relref "docs/tools.md" >}})
 - [服务概览]({{< relref "services/_index.md" >}})
 - [站点地图]({{< relref "sitemap.md" >}})
+
+---
+
+## 常见问题与排障入口
+
+<div class="resource-grid">
+  <article class="resource-card">
+    <h3>快速开始 FAQ</h3>
+    <p>覆盖认证模式、运行模式选择、连接方式和上线建议，适合首次接入团队快速统一认知。</p>
+    <a class="resource-link" href='{{< relref "getting-started/faq.md" >}}'>查看 FAQ</a>
+  </article>
+  <article class="resource-card">
+    <h3>故障排除手册</h3>
+    <p>提供启动失败、401、SSE 连接异常、服务不可用等高频问题的排查路径和命令清单。</p>
+    <a class="resource-link" href='{{< relref "getting-started/troubleshooting.md" >}}'>进入排障</a>
+  </article>
+</div>
 
 ---
 

@@ -1,192 +1,140 @@
 ---
 title: "Getting Started"
 weight: 1
+description: "Install Cloud Native MCP Server, validate endpoints, and move to production with a safe baseline."
 ---
 
-# Getting Started with Cloud Native MCP Server
+# Getting Started
 
-Welcome to the Cloud Native MCP Server! This guide will help you get up and running quickly with the most powerful Model Context Protocol (MCP) server for Kubernetes and cloud-native infrastructure management.
+This guide helps you install Cloud Native MCP Server, validate connectivity, and prepare for production rollout.
 
-## Overview
+## What You Will Set Up
 
-Cloud Native MCP Server is a high-performance Model Context Protocol (MCP) server that integrates 10 services and 220+ tools to enable AI assistants to effortlessly manage your cloud-native infrastructure.
+- Run the server in one of four modes: `sse`, `streamable-http`, `http`, `stdio`
+- Enable authentication with the correct environment variables
+- Verify runtime health and MCP handshake behavior
+- Continue with FAQ and troubleshooting playbooks
 
-### What You'll Learn
+---
 
-- How to install and deploy Cloud Native MCP Server
-- Basic configuration options
-- How to use the core services
-- Best practices for security and performance
+## Prerequisites
+
+- Kubernetes access (`~/.kube/config` or in-cluster credentials)
+- Docker or a Linux host for binary execution
+- Go `1.25+` (only needed for source build)
+- Network access to observability backends you plan to integrate
 
 ---
 
 ## Installation Options
 
-Choose the installation method that best fits your environment:
-
 {{< tabs >}}
 {{< tab "Docker" >}}
-### Docker Installation
-
-The easiest way to get started is using Docker:
-
 ```bash
-# Pull the latest image
-docker pull mahmutabi/cloud-native-mcp-server:latest
-
-# Run the server
 docker run -d \
   --name cloud-native-mcp-server \
   -p 8080:8080 \
   -v ~/.kube:/root/.kube:ro \
-  -e MCP_SERVER_API_KEY="your-secure-api-key" \
+  -e MCP_AUTH_ENABLED=true \
+  -e MCP_AUTH_MODE=apikey \
+  -e MCP_AUTH_API_KEY='ChangeMe-Strong-Key-123!' \
   mahmutabi/cloud-native-mcp-server:latest
 ```
-
-Once running, you can access the server at `http://localhost:8080`.
 {{< /tab >}}
 
 {{< tab "Binary" >}}
-### Binary Installation
-
-Download the pre-compiled binary for your OS:
-
 ```bash
-# Linux (amd64)
 curl -LO https://github.com/mahmut-Abi/cloud-native-mcp-server/releases/latest/download/cloud-native-mcp-server-linux-amd64
 chmod +x cloud-native-mcp-server-linux-amd64
-
-# Run the server
 ./cloud-native-mcp-server-linux-amd64 --mode=sse --addr=0.0.0.0:8080
 ```
-
-The binary includes all 10 integrated services and 220+ tools.
 {{< /tab >}}
 
 {{< tab "Source" >}}
-### From Source
-
-Build from source for development or customization:
-
 ```bash
-# Clone the repository
 git clone https://github.com/mahmut-Abi/cloud-native-mcp-server.git
 cd cloud-native-mcp-server
-
-# Build the server
 make build
-
-# Run with default settings
-./cloud-native-mcp-server --mode=sse --addr=0.0.0.0:8080
+./cloud-native-mcp-server --mode=streamable-http --addr=0.0.0.0:8080
 ```
-
-Make sure you have Go 1.25+ installed.
 {{< /tab >}}
 {{< /tabs >}}
 
 ---
 
-## Initial Configuration
+## Choose a Run Mode
 
-After installation, you'll need to configure your server with appropriate authentication and service endpoints.
-
-### Authentication Setup
-
-The server supports multiple authentication methods:
-
-```bash
-# API Key (recommended for production)
-export MCP_SERVER_API_KEY="your-very-secure-api-key-with-32-chars-minimum"
-
-# Or Bearer Token (JWT)
-export MCP_SERVER_BEARER_TOKEN="your-jwt-token"
-
-# Or Basic Auth
-export MCP_SERVER_BASIC_AUTH_USER="admin"
-export MCP_SERVER_BASIC_AUTH_PASS="secure-password"
-```
-
-### Service Configuration
-
-The server will automatically detect and configure services if they're accessible:
-
-- Kubernetes: Requires `~/.kube/config` or in-cluster config
-- Prometheus: Connects to `http://prometheus:9090` by default
-- Grafana: Connects to `http://grafana:3000` by default
-- And more...
+| Mode | Recommended For | Main Endpoint |
+| --- | --- | --- |
+| `sse` | Broad MCP client compatibility | `/api/aggregate/sse` |
+| `streamable-http` | Modern MCP transport in production | `/api/aggregate/streamable-http` |
+| `http` | Legacy message endpoint compatibility | `/api/aggregate/sse/message` |
+| `stdio` | Local agent/runtime integration | stdin/stdout |
 
 ---
 
-## Your First MCP Call
+## First Validation
 
-Once your server is running, you can make your first MCP call:
+Run these checks after startup:
 
 ```bash
-curl -X POST http://localhost:8080/v1/mcp/list-tools \
-  -H "Authorization: Bearer your-api-key" \
-  -H "Content-Type: application/json"
+# Health check
+curl -sS http://127.0.0.1:8080/health
+
+# End-to-end SSE handshake + initialize
+make sse-smoke BASE_URL=http://127.0.0.1:8080
 ```
 
-This will return a list of all 220+ available tools across the 10 integrated services.
+If you are not in the repository directory, run the script directly:
+
+```bash
+/path/to/cloud-native-mcp-server/scripts/sse_smoke_test.sh http://127.0.0.1:8080
+```
 
 ---
 
-## Integrated Services Overview
+## Authentication Check
 
-Cloud Native MCP Server integrates 10 core services:
+When `MCP_AUTH_ENABLED=true` and `MCP_AUTH_MODE=apikey`:
 
-{{< columns >}}
-### 🔧 Kubernetes
-Manage your Kubernetes clusters with 28 specialized tools for deployments, services, configmaps, secrets, and more.
-<--->
+```bash
+# SSE stream request with API key
+curl -sS -N "http://127.0.0.1:8080/api/aggregate/sse?api_key=ChangeMe-Strong-Key-123!"
+```
 
-### 📦 Helm
-Deploy and manage Helm charts with 31 tools for chart management, releases, and repositories.
-{{< /columns >}}
+You can also pass the key via request header:
 
-{{< columns >}}
-### 📊 Grafana
-Create and manage dashboards, alerts, and data sources with 36 monitoring tools.
-<--->
+```bash
+curl -sS -N \
+  -H "X-Api-Key: ChangeMe-Strong-Key-123!" \
+  http://127.0.0.1:8080/api/aggregate/sse
+```
 
-### 📈 Prometheus
-Query metrics, manage rules, and configure alerting with 20 observability tools.
-{{< /columns >}}
+---
 
-{{< columns >}}
-### 🔍 Kibana
-Analyze logs and visualize data with 52 Elasticsearch integration tools.
-<--->
+## Common Runtime Settings
 
-### ⚡ Elasticsearch
-Index, search, and analyze data with 14 advanced search tools.
-{{< /columns >}}
+```bash
+# Server mode and bind address
+export MCP_MODE=sse
+export MCP_ADDR=0.0.0.0:8080
+
+# Authentication (apikey mode)
+export MCP_AUTH_ENABLED=true
+export MCP_AUTH_MODE=apikey
+export MCP_AUTH_API_KEY='ChangeMe-Strong-Key-123!'
+
+# Optional: disable non-required services
+export MCP_DISABLED_SERVICES="kibana,jaeger"
+```
 
 ---
 
 ## Next Steps
 
-Now that you've installed and configured Cloud Native MCP Server, you might want to:
-
-- [Configure authentication and security settings](/docs/security/)
-- [Explore service-specific configurations](/docs/configuration/)
-- [Learn about performance optimization](/docs/performance/)
-- [Review the complete tools reference](/docs/tools/)
-
-### Quick Links
-
-- [Architecture Overview](/docs/architecture/)
-- [Security Best Practices](/docs/security/)
-- [Performance Tuning](/docs/performance/)
-- [Troubleshooting](/getting-started/)
-
----
-
-## Support and Community
-
-Need help? Check out these resources:
-
-- [GitHub Issues](https://github.com/mahmut-Abi/cloud-native-mcp-server/issues) for bug reports
-- [GitHub Discussions](https://github.com/mahmut-Abi/cloud-native-mcp-server/discussions) for questions
-- [Documentation](/) for complete reference
-- [Contributing Guide](https://github.com/mahmut-Abi/cloud-native-mcp-server/blob/main/CONTRIBUTING.md) to get involved
+- [Getting Started FAQ]({{< relref "faq.md" >}})
+- [Troubleshooting]({{< relref "troubleshooting.md" >}})
+- [Security Guide]({{< relref "/docs/security.md" >}})
+- [Configuration Guide]({{< relref "/docs/configuration.md" >}})
+- [Performance Guide]({{< relref "/docs/performance.md" >}})
+- [Tools Reference]({{< relref "/docs/tools.md" >}})

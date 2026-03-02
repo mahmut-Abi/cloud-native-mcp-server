@@ -1,114 +1,101 @@
 ---
 title: "Performance Optimization Tips for Cloud Native MCP Server"
 date: 2025-01-15T10:00:00Z
+description: "Practical tuning tips for Cloud Native MCP Server: timeouts, rate limits, metrics, and production performance checks."
 tags: ["performance", "optimization", "tutorials"]
 ---
 
-Learn how to optimize Cloud Native MCP Server for maximum performance in your environment. These tips will help you achieve the best response times and resource utilization.
+Learn how to optimize Cloud Native MCP Server for predictable latency and higher throughput in real production workloads.
 
-## Caching Strategies
+## Cache and Response Strategy
 
-One of the most effective performance improvements comes from leveraging the built-in caching mechanisms:
+The server already includes internal cache and response shaping mechanisms. You can improve performance further by reducing response scope per call:
 
-### LRU Cache Configuration
-```bash
-# Increase cache size for high-volume environments
-export MCP_SERVER_CACHE_SIZE=1000
-export MCP_SERVER_CACHE_TTL=300  # 5 minutes
-```
+- Prefer namespace-scoped queries over cluster-wide queries.
+- Use pagination parameters (for tools that support them) on large datasets.
+- Query only the fields you actually need for the current decision.
 
-The LRU cache stores frequently requested data, reducing load on downstream services and improving response times.
-
-### Response Size Management
-Large responses can impact performance. Consider using pagination for large datasets:
+### Example: Limit payload size
 
 ```json
 {
   "method": "kubernetes-get-pods",
   "params": {
     "namespace": "default",
-    "limit": 50,
-    "continue": "eyJ2IjoibWV0YS5rOHMuaW8vdjEiLCJydiI6NTA1NTQ5LCJzdGFydCI6ImFwcC14eHgtNTc4OTY2Y2QtYmJ0c24ifQ=="
+    "limit": 50
   }
 }
 ```
 
-## Connection Pooling
+## Tune Kubernetes and Service Timeouts
 
-Properly configured connection pooling can significantly improve performance:
-
-### Service Connection Settings
-```bash
-# Kubernetes API server connections
-export MCP_KUBERNETES_MAX_CONNECTIONS=50
-export MCP_KUBERNETES_CONNECTION_TIMEOUT=30s
-
-# Prometheus connection settings
-export MCP_PROMETHEUS_MAX_CONNECTIONS=20
-export MCP_PROMETHEUS_CONNECTION_TIMEOUT=15s
-```
-
-## Parallel Request Handling
-
-Cloud Native MCP Server can process related requests in parallel. When making multiple related calls, consider batching them:
-
-```json
-{
-  "method": "tools/batch-call",
-  "params": {
-    "calls": [
-      {
-        "name": "kubernetes-get-pods",
-        "arguments": {"namespace": "frontend"}
-      },
-      {
-        "name": "kubernetes-get-pods",
-        "arguments": {"namespace": "backend"}
-      },
-      {
-        "name": "prometheus-query",
-        "arguments": {"query": "up"}
-      }
-    ]
-  }
-}
-```
-
-## Resource Optimization
-
-### Memory Management
-Monitor and tune memory usage based on your workload:
-
-- For environments with 100+ daily API calls: 512MB - 1GB RAM recommended
-- For environments with 1000+ daily API calls: 1GB - 2GB RAM recommended
-- For high-volume environments: 2GB+ RAM recommended
-
-### CPU Considerations
-The server uses JSON encoding pools to optimize CPU usage. In CPU-constrained environments, you might want to limit concurrent requests:
+Use runtime variables that are supported by the current server:
 
 ```bash
-export MCP_SERVER_MAX_CONCURRENT_REQUESTS=10
+# Kubernetes client tuning
+export MCP_K8S_TIMEOUT=30
+export MCP_K8S_QPS=100
+export MCP_K8S_BURST=200
+
+# Upstream service request timeout (example: Prometheus)
+export MCP_PROM_TIMEOUT=30
 ```
 
-## Monitoring Performance
+These settings should match your cluster size and backend responsiveness.
 
-Use the built-in metrics endpoint to monitor performance:
+## Control Request Pressure
+
+For busy environments, apply built-in rate limiting:
 
 ```bash
-curl http://localhost:8080/metrics | grep mcp
+export MCP_RATELIMIT_ENABLED=true
+export MCP_RATELIMIT_REQUESTS_PER_SECOND=25
+export MCP_RATELIMIT_BURST=80
 ```
 
-Key metrics to watch:
-- `mcp_request_duration_seconds`: Request processing time
-- `mcp_cache_hits_total`: Cache effectiveness
-- `mcp_tool_calls_total`: Tool usage patterns
+This helps prevent overload during traffic spikes and protects upstream services.
 
-## Best Practices Summary
+## Resource Planning
 
-1. **Configure appropriate cache settings** based on your data volatility
-2. **Use pagination** for large dataset queries
-3. **Monitor connection pools** and tune based on downstream service capacity
-4. **Batch related requests** when possible
-5. **Regularly review metrics** to identify performance bottlenecks
+### Memory
 
-Following these optimization techniques will ensure your Cloud Native MCP Server deployment performs at its peak capacity. Need more specific guidance? Check out our [Performance Guide](/docs/performance/).
+- Small environments: 512MB - 1GB
+- Medium environments: 1GB - 2GB
+- Large/high-concurrency environments: 2GB+
+
+### CPU
+
+Cloud Native MCP Server uses optimized encoding and transport paths. In CPU-constrained environments:
+
+- reduce burst rate
+- reduce query fan-out
+- disable non-required services
+
+```bash
+export MCP_DISABLED_SERVICES="kibana,jaeger"
+```
+
+## Monitor Performance with `/metrics`
+
+```bash
+curl -sS http://localhost:8080/metrics
+```
+
+Useful metrics include:
+
+- `http_request_duration_seconds`
+- `http_requests_total`
+- `tool_call_duration_seconds`
+- `tool_calls_total`
+- `cache_hits_total`
+- `cache_misses_total`
+
+## Practical Checklist
+
+1. Keep requests narrow and paginated.
+2. Tune `MCP_K8S_QPS` / `MCP_K8S_BURST` for your cluster profile.
+3. Set realistic upstream timeouts.
+4. Enable rate limiting in production.
+5. Watch metrics continuously and iterate.
+
+Need deeper guidance? Read the [Performance Guide](/docs/performance/).

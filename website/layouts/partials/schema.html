@@ -1,0 +1,54 @@
+{{- $title := .Title | plainify | htmlUnescape -}}
+{{- $desc := (or .Description .Summary .Site.Params.description) | plainify | htmlUnescape -}}
+{{- $desc = strings.TrimSpace $desc -}}
+{{- if gt (len $desc) 420 -}}
+  {{- $desc = printf "%.417s..." $desc -}}
+{{- end -}}
+{{- $lang := default .Site.LanguageCode .Site.Language.Lang -}}
+{{- $publisher := dict
+  "@type" "Organization"
+  "name" "Cloud Native MCP Server"
+  "url" (or .Site.Params.BookRepo .Site.Home.Permalink)
+-}}
+
+{{- if .IsHome -}}
+  {{- $website := dict
+    "@context" "https://schema.org"
+    "@type" "WebSite"
+    "name" .Site.Title
+    "url" .Site.Home.Permalink
+    "description" (or $desc .Site.Params.description)
+    "inLanguage" $lang
+    "publisher" $publisher
+  -}}
+  <script type="application/ld+json">{{ $website | jsonify | safeJS }}</script>
+{{- else -}}
+  {{- $type := "WebPage" -}}
+  {{- if .IsPage -}}
+    {{- $type = "TechArticle" -}}
+    {{- if eq .Type "posts" -}}
+      {{- $type = "BlogPosting" -}}
+    {{- end -}}
+  {{- end -}}
+  {{- $page := dict
+    "@context" "https://schema.org"
+    "@type" $type
+    "headline" $title
+    "name" $title
+    "description" $desc
+    "url" .Permalink
+    "inLanguage" $lang
+    "isPartOf" (dict "@type" "WebSite" "name" .Site.Title "url" .Site.Home.Permalink)
+    "publisher" $publisher
+    "dateModified" (.Lastmod.Format "2006-01-02T15:04:05Z07:00")
+  -}}
+  {{- if .IsPage -}}
+    {{- $page = merge $page (dict
+      "mainEntityOfPage" (dict "@type" "WebPage" "@id" .Permalink)
+    ) -}}
+    {{- if not .Date.IsZero -}}
+      {{- $page = merge $page (dict "datePublished" (.Date.Format "2006-01-02T15:04:05Z07:00")) -}}
+    {{- end -}}
+  {{- end -}}
+  <script type="application/ld+json">{{ $page | jsonify | safeJS }}</script>
+{{- end -}}
