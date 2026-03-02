@@ -430,13 +430,10 @@ kubernetes:
   timeoutSec: 30
 ```
 
-### 3. 响应压缩
+### 3. 响应链路优化
 
-```yaml
-performance:
-  compression_enabled: true
-  compression_level: 6
-```
+响应压缩/截断与 JSON 处理优化由服务内部实现。
+性能调优请优先使用公开可配置项（`server`、`kubernetes`、`ratelimit`）。
 
 ### 4. JSON 编码池
 

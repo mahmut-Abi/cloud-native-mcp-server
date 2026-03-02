@@ -432,13 +432,10 @@ kubernetes:
   timeoutSec: 30
 ```
 
-### 3. Response Compression
+### 3. Response Path Optimizations
 
-```yaml
-performance:
-  compression_enabled: true
-  compression_level: 6
-```
+Response compression/truncation and JSON pipeline optimizations are handled internally.
+Use supported public knobs (`server`, `kubernetes`, `ratelimit`) for performance tuning.
 
 ### 4. JSON Encoding Pool
 

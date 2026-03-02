@@ -72,30 +72,21 @@ mcp_active_connections 10
 
 ## 性能调优
 
-### 缓存配置
+### 推荐配置
 
 ```yaml
-cache:
+server:
+  readTimeoutSec: 30
+  writeTimeoutSec: 0
+  idleTimeoutSec: 60
+
+ratelimit:
   enabled: true
-  type: "segmented"
-  max_size: 2000
-  segments: 10
-  default_ttl: 300
+  requests_per_second: 100
+  burst: 200
 ```
 
-### 性能配置
-
-```yaml
-performance:
-  compression_enabled: true
-  compression_level: 6
-  max_response_size: 5242880
-  truncate_large_responses: true
-  worker_threads: 4
-  buffer_size: 8192
-```
-
-### 连接池配置
+### Kubernetes 客户端配置
 
 ```yaml
 kubernetes:
