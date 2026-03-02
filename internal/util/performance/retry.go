@@ -1,7 +1,9 @@
 package optimize
 
 import (
+	"context"
 	stderrs "errors"
+	"fmt"
 	"math/rand"
 	"net"
 	"net/http"
@@ -14,6 +16,14 @@ const (
 	DefaultRetryBaseDelay  = 200 * time.Millisecond
 	DefaultRetryMaxDelay   = 2 * time.Second
 )
+
+// HTTPRetryEvent describes one retry event emitted from DoWithHTTPRetry.
+type HTTPRetryEvent struct {
+	Attempt    int
+	Delay      time.Duration
+	StatusCode int
+	Err        error
+}
 
 // NormalizeRetryConfig clamps retry settings to safe defaults.
 func NormalizeRetryConfig(maxRetries int, baseDelay, maxDelay time.Duration) (int, time.Duration, time.Duration) {
@@ -92,4 +102,77 @@ func NextRetryDelay(baseDelay, maxDelay time.Duration, attempt int) time.Duratio
 	// Add bounded jitter to avoid synchronized retries.
 	jitter := time.Duration(rand.Int63n(int64(delay/4 + 1)))
 	return delay + jitter
+}
+
+// WaitForRetry blocks for a retry delay or exits early when the context is done.
+func WaitForRetry(ctx context.Context, delay time.Duration) error {
+	timer := time.NewTimer(delay)
+	defer timer.Stop()
+
+	select {
+	case <-ctx.Done():
+		return ctx.Err()
+	case <-timer.C:
+		return nil
+	}
+}
+
+// DoWithHTTPRetry executes an HTTP request with idempotent retries and backoff.
+// Callers should pass normalized retry values (see NormalizeRetryConfig).
+func DoWithHTTPRetry(
+	ctx context.Context,
+	method string,
+	maxRetries int,
+	baseDelay, maxDelay time.Duration,
+	do func(attempt int) (*http.Response, error),
+	onRetry func(event HTTPRetryEvent),
+) (*http.Response, error) {
+	allowRetry := IsRetryableMethod(method)
+	totalAttempts := 1
+	if allowRetry {
+		totalAttempts = maxRetries + 1
+	}
+
+	for attempt := 1; attempt <= totalAttempts; attempt++ {
+		resp, err := do(attempt)
+		if err == nil {
+			if allowRetry && ShouldRetryStatusCode(resp.StatusCode) && attempt < totalAttempts {
+				_ = resp.Body.Close()
+				delay := NextRetryDelay(baseDelay, maxDelay, attempt)
+				if onRetry != nil {
+					onRetry(HTTPRetryEvent{
+						Attempt:    attempt,
+						Delay:      delay,
+						StatusCode: resp.StatusCode,
+					})
+				}
+				if waitErr := WaitForRetry(ctx, delay); waitErr != nil {
+					return nil, waitErr
+				}
+				continue
+			}
+			return resp, nil
+		}
+
+		if stderrs.Is(err, context.Canceled) || stderrs.Is(err, context.DeadlineExceeded) {
+			return nil, err
+		}
+		if allowRetry && ShouldRetryTransportError(err) && attempt < totalAttempts {
+			delay := NextRetryDelay(baseDelay, maxDelay, attempt)
+			if onRetry != nil {
+				onRetry(HTTPRetryEvent{
+					Attempt: attempt,
+					Delay:   delay,
+					Err:     err,
+				})
+			}
+			if waitErr := WaitForRetry(ctx, delay); waitErr != nil {
+				return nil, waitErr
+			}
+			continue
+		}
+		return nil, err
+	}
+
+	return nil, fmt.Errorf("retry attempts exhausted for request %s", method)
 }

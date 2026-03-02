@@ -130,96 +130,66 @@ func (c *Client) doRequest(ctx context.Context, method, endpoint string, body in
 	}
 
 	requestURL := c.buildURL(endpoint)
-	allowRetry := optimize.IsRetryableMethod(method)
-	totalAttempts := 1
-	if allowRetry {
-		totalAttempts = c.maxRetries + 1
-	}
-
-	for attempt := 1; attempt <= totalAttempts; attempt++ {
-		var reqBody io.Reader
-		if len(bodyBytes) > 0 {
-			reqBody = bytes.NewReader(bodyBytes)
-		}
-
-		req, err := http.NewRequestWithContext(ctx, method, requestURL, reqBody)
-		if err != nil {
-			return nil, fmt.Errorf("failed to create request: %w", err)
-		}
-
-		// Set headers
-		req.Header.Set("Content-Type", "application/json")
-		req.Header.Set("Accept", "application/json")
-
-		// Add authentication
-		if c.token != "" {
-			req.Header.Set("Authorization", "Bearer "+c.token)
-		} else if c.username != "" && c.password != "" {
-			req.SetBasicAuth(c.username, c.password)
-		}
-
-		logger.WithFields(logrus.Fields{
-			"method":   method,
-			"endpoint": endpoint,
-			"url":      requestURL,
-			"attempt":  attempt,
-		}).Debug("Making HTTP request")
-
-		resp, err := c.httpClient.Do(req)
-		if err == nil {
-			if allowRetry && optimize.ShouldRetryStatusCode(resp.StatusCode) && attempt < totalAttempts {
-				_ = resp.Body.Close()
-				delay := optimize.NextRetryDelay(c.retryBaseDelay, c.retryMaxDelay, attempt)
-				logger.WithFields(logrus.Fields{
-					"method":      method,
-					"endpoint":    endpoint,
-					"url":         requestURL,
-					"status_code": resp.StatusCode,
-					"attempt":     attempt,
-					"retry_in":    delay,
-				}).Warn("Retrying Alertmanager API request after retryable status")
-				if waitErr := waitForRetry(ctx, delay); waitErr != nil {
-					return nil, waitErr
-				}
-				continue
+	resp, err := optimize.DoWithHTTPRetry(
+		ctx,
+		method,
+		c.maxRetries,
+		c.retryBaseDelay,
+		c.retryMaxDelay,
+		func(attempt int) (*http.Response, error) {
+			var reqBody io.Reader
+			if len(bodyBytes) > 0 {
+				reqBody = bytes.NewReader(bodyBytes)
 			}
-			return resp, nil
-		}
 
-		if stderrs.Is(err, context.Canceled) {
-			return nil, err
-		}
-		if allowRetry && optimize.ShouldRetryTransportError(err) && attempt < totalAttempts {
-			delay := optimize.NextRetryDelay(c.retryBaseDelay, c.retryMaxDelay, attempt)
+			req, err := http.NewRequestWithContext(ctx, method, requestURL, reqBody)
+			if err != nil {
+				return nil, fmt.Errorf("failed to create request: %w", err)
+			}
+
+			// Set headers
+			req.Header.Set("Content-Type", "application/json")
+			req.Header.Set("Accept", "application/json")
+
+			// Add authentication
+			if c.token != "" {
+				req.Header.Set("Authorization", "Bearer "+c.token)
+			} else if c.username != "" && c.password != "" {
+				req.SetBasicAuth(c.username, c.password)
+			}
+
 			logger.WithFields(logrus.Fields{
 				"method":   method,
 				"endpoint": endpoint,
 				"url":      requestURL,
 				"attempt":  attempt,
-				"retry_in": delay,
-			}).WithError(err).Warn("Retrying Alertmanager API request after transient transport error")
-			if waitErr := waitForRetry(ctx, delay); waitErr != nil {
-				return nil, waitErr
-			}
-			continue
-		}
+			}).Debug("Making HTTP request")
 
+			return c.httpClient.Do(req)
+		},
+		func(event optimize.HTTPRetryEvent) {
+			fields := logrus.Fields{
+				"method":   method,
+				"endpoint": endpoint,
+				"url":      requestURL,
+				"attempt":  event.Attempt,
+				"retry_in": event.Delay,
+			}
+			if event.Err != nil {
+				logger.WithFields(fields).WithError(event.Err).Warn("Retrying Alertmanager API request after transient transport error")
+				return
+			}
+			fields["status_code"] = event.StatusCode
+			logger.WithFields(fields).Warn("Retrying Alertmanager API request after retryable status")
+		},
+	)
+	if err != nil {
+		if stderrs.Is(err, context.Canceled) || stderrs.Is(err, context.DeadlineExceeded) {
+			return nil, err
+		}
 		return nil, fmt.Errorf("request failed: %w", err)
 	}
-
-	return nil, fmt.Errorf("retry attempts exhausted for request %s %s", method, requestURL)
-}
-
-func waitForRetry(ctx context.Context, delay time.Duration) error {
-	timer := time.NewTimer(delay)
-	defer timer.Stop()
-
-	select {
-	case <-ctx.Done():
-		return ctx.Err()
-	case <-timer.C:
-		return nil
-	}
+	return resp, nil
 }
 
 // parseResponse parses HTTP response into target struct

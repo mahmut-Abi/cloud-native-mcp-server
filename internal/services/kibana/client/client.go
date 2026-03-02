@@ -7,7 +7,6 @@ import (
 	"bytes"
 	"context"
 	"encoding/json"
-	stderrs "errors"
 	"fmt"
 	"io"
 	"net/http"
@@ -221,95 +220,60 @@ func (c *Client) makeRequest(ctx context.Context, method, endpoint string, body 
 		reqURL = c.baseURL + endpoint
 	}
 
-	allowRetry := optimize.IsRetryableMethod(method)
-	totalAttempts := 1
-	if allowRetry {
-		totalAttempts = c.maxRetries + 1
-	}
-
-	for attempt := 1; attempt <= totalAttempts; attempt++ {
-		var reqBody io.Reader
-		if len(requestBody) > 0 {
-			reqBody = bytes.NewReader(requestBody)
-		}
-
-		req, err := http.NewRequestWithContext(ctx, method, reqURL, reqBody)
-		if err != nil {
-			return nil, fmt.Errorf("failed to create request: %w", err)
-		}
-
-		// Set headers
-		for key, value := range c.headers {
-			req.Header.Set(key, value)
-		}
-
-		// Set authentication
-		if c.apiKey != "" {
-			req.Header.Set("Authorization", "ApiKey "+c.apiKey)
-		} else if c.username != "" && c.password != "" {
-			req.SetBasicAuth(c.username, c.password)
-		}
-
-		logrus.WithFields(logrus.Fields{
-			"method":   method,
-			"url":      reqURL,
-			"has_auth": c.apiKey != "" || (c.username != "" && c.password != ""),
-			"space":    c.space,
-			"attempt":  attempt,
-		}).Debug("Making Kibana API request")
-
-		resp, err := c.httpClient.Do(req)
-		if err == nil {
-			if allowRetry && optimize.ShouldRetryStatusCode(resp.StatusCode) && attempt < totalAttempts {
-				_ = resp.Body.Close()
-				delay := optimize.NextRetryDelay(c.retryBaseDelay, c.retryMaxDelay, attempt)
-				logrus.WithFields(logrus.Fields{
-					"method":      method,
-					"url":         reqURL,
-					"status_code": resp.StatusCode,
-					"attempt":     attempt,
-					"retry_in":    delay,
-				}).Warn("Retrying Kibana API request after retryable status")
-				if waitErr := waitForRetry(ctx, delay); waitErr != nil {
-					return nil, waitErr
-				}
-				continue
+	return optimize.DoWithHTTPRetry(
+		ctx,
+		method,
+		c.maxRetries,
+		c.retryBaseDelay,
+		c.retryMaxDelay,
+		func(attempt int) (*http.Response, error) {
+			var reqBody io.Reader
+			if len(requestBody) > 0 {
+				reqBody = bytes.NewReader(requestBody)
 			}
-			return resp, nil
-		}
 
-		if stderrs.Is(err, context.Canceled) {
-			return nil, err
-		}
-		if allowRetry && optimize.ShouldRetryTransportError(err) && attempt < totalAttempts {
-			delay := optimize.NextRetryDelay(c.retryBaseDelay, c.retryMaxDelay, attempt)
+			req, err := http.NewRequestWithContext(ctx, method, reqURL, reqBody)
+			if err != nil {
+				return nil, fmt.Errorf("failed to create request: %w", err)
+			}
+
+			// Set headers
+			for key, value := range c.headers {
+				req.Header.Set(key, value)
+			}
+
+			// Set authentication
+			if c.apiKey != "" {
+				req.Header.Set("Authorization", "ApiKey "+c.apiKey)
+			} else if c.username != "" && c.password != "" {
+				req.SetBasicAuth(c.username, c.password)
+			}
+
 			logrus.WithFields(logrus.Fields{
 				"method":   method,
 				"url":      reqURL,
+				"has_auth": c.apiKey != "" || (c.username != "" && c.password != ""),
+				"space":    c.space,
 				"attempt":  attempt,
-				"retry_in": delay,
-			}).WithError(err).Warn("Retrying Kibana API request after transient transport error")
-			if waitErr := waitForRetry(ctx, delay); waitErr != nil {
-				return nil, waitErr
+			}).Debug("Making Kibana API request")
+
+			return c.httpClient.Do(req)
+		},
+		func(event optimize.HTTPRetryEvent) {
+			fields := logrus.Fields{
+				"method":   method,
+				"url":      reqURL,
+				"attempt":  event.Attempt,
+				"retry_in": event.Delay,
 			}
-			continue
-		}
-		return nil, err
-	}
-
-	return nil, fmt.Errorf("retry attempts exhausted for request %s %s", method, reqURL)
-}
-
-func waitForRetry(ctx context.Context, delay time.Duration) error {
-	timer := time.NewTimer(delay)
-	defer timer.Stop()
-
-	select {
-	case <-ctx.Done():
-		return ctx.Err()
-	case <-timer.C:
-		return nil
-	}
+			if event.Err != nil {
+				logrus.WithFields(fields).WithError(event.Err).Warn("Retrying Kibana API request after transient transport error")
+				return
+			}
+			fields["status_code"] = event.StatusCode
+			logrus.WithFields(fields).Warn("Retrying Kibana API request after retryable status")
+		},
+	)
 }
 
 // handleResponse processes the HTTP response and returns the body.
