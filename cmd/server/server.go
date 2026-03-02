@@ -2,6 +2,7 @@ package main
 
 import (
 	"context"
+	"fmt"
 	"net"
 	"net/http"
 	"runtime"
@@ -33,8 +34,11 @@ func createServer(config *CLIConfig, handler http.Handler) *http.Server {
 }
 
 // startHTTPServer starts the HTTP server
-func startHTTPServer(config *CLIConfig, appConfig *appconfig.AppConfig, mcpServer *server.MCPServer) (*http.Server, error) {
+func startHTTPServer(config *CLIConfig, appConfig *appconfig.AppConfig, mcpServer *server.MCPServer, sc *serverConfig.ServerConfig) (*http.Server, error) {
 	logrus.Infof("Starting cloud-native-mcp-server on %s (mode=%s)", config.Addr, config.Mode)
+	if sc == nil {
+		return nil, fmt.Errorf("server config is nil")
+	}
 
 	var sseServers map[string]*server.SSEServer
 	var streamableHTTPServers map[string]*server.StreamableHTTPServer
@@ -42,9 +46,9 @@ func startHTTPServer(config *CLIConfig, appConfig *appconfig.AppConfig, mcpServe
 	// Only initialize servers based on mode
 	switch config.Mode {
 	case "sse", "http":
-		sseServers = initSSEServers(mcpServer, config.Addr, appConfig)
+		sseServers = sc.InitSSEServers(mcpServer, config.Addr, appConfig)
 	case "streamable-http":
-		streamableHTTPServers = initStreamableHTTPServers(mcpServer, config.Addr, appConfig)
+		streamableHTTPServers = sc.InitStreamableHTTPServers(mcpServer, config.Addr, appConfig)
 	}
 
 	if config.Mode == "http" {
@@ -52,7 +56,7 @@ func startHTTPServer(config *CLIConfig, appConfig *appconfig.AppConfig, mcpServe
 	}
 
 	mux := http.NewServeMux()
-	setupMultipleRoutes(mux, sseServers, streamableHTTPServers, config.Mode, appConfig, mcpServer)
+	sc.SetupMultipleRoutes(mux, sseServers, streamableHTTPServers, config.Mode, appConfig, mcpServer)
 
 	// Register metrics endpoint with optional authentication
 	metricsHandler := metrics.Handler()
@@ -86,24 +90,6 @@ func startHTTPServer(config *CLIConfig, appConfig *appconfig.AppConfig, mcpServe
 	}()
 
 	return srv, nil
-}
-
-// initSSEServers initializes SSE servers
-func initSSEServers(mcpServer *server.MCPServer, addr string, appConfig *appconfig.AppConfig) map[string]*server.SSEServer {
-	var sc serverConfig.ServerConfig
-	return sc.InitSSEServers(mcpServer, addr, appConfig)
-}
-
-// initStreamableHTTPServers initializes streamable HTTP servers
-func initStreamableHTTPServers(mcpServer *server.MCPServer, addr string, appConfig *appconfig.AppConfig) map[string]*server.StreamableHTTPServer {
-	var sc serverConfig.ServerConfig
-	return sc.InitStreamableHTTPServers(mcpServer, addr, appConfig)
-}
-
-// setupMultipleRoutes sets up multiple routes for the server
-func setupMultipleRoutes(mux *http.ServeMux, sseServers map[string]*server.SSEServer, streamableHTTPServers map[string]*server.StreamableHTTPServer, mode string, appConfig *appconfig.AppConfig, mcpServer *server.MCPServer) {
-	var sc serverConfig.ServerConfig
-	sc.SetupMultipleRoutes(mux, sseServers, streamableHTTPServers, mode, appConfig, mcpServer)
 }
 
 // initMCPServer initializes the MCP server

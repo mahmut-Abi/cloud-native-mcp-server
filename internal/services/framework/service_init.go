@@ -66,7 +66,13 @@ func (csi *CommonServiceInit) Initialize(cfg interface{}, setEnabled func(bool),
 
 	// Step 3: Validate required configuration
 	url := csi.checker.GetURL(appConfig)
-	if url == "" || (csi.config.URLValidator != nil && !csi.config.URLValidator(url)) {
+	isValidURL := false
+	if csi.config.URLValidator != nil {
+		isValidURL = csi.config.URLValidator(url)
+	} else {
+		isValidURL = url != ""
+	}
+	if !isValidURL {
 		errMsg := fmt.Sprintf("%s URL is required but not provided or invalid", csi.initializer.serviceName)
 		if !csi.config.Required {
 			setEnabled(false)
