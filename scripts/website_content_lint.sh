@@ -64,16 +64,22 @@ report_warn_missing_description() {
 # 1) Legacy variables and endpoints that should no longer appear in docs/content.
 report_fail \
   "Legacy MCP variables or endpoints" \
-  'MCP_SERVER_|/api/aggregate/http|/v1/mcp/list-tools|/v1/mcp/call-tool|POST /v1/mcp|https?://[^ ]*/v1/mcp|MCP_PROMETHEUS_URL|MCP_ELASTICSEARCH_URL|MCP_ALERTMANAGER_URL' \
+  'MCP_SERVER_|/api/[a-z-]+/http|/api/audit/query|/v1/mcp/list-tools|/v1/mcp/call-tool|POST /v1/mcp|https?://[^ ]*/v1/mcp|MCP_PROMETHEUS_URL|MCP_ELASTICSEARCH_URL|MCP_ALERTMANAGER_URL' \
   'website/content'
 
-# 2) Chinese pages should not point to English doc/getting-started absolute paths.
+# 2) Root/project docs should not use legacy auth variable name.
+report_fail \
+  "Legacy auth env var names in markdown" \
+  '\bMCP_API_KEY\b' \
+  '.'
+
+# 3) Chinese pages should not point to English doc/getting-started absolute paths.
 report_fail \
   "Cross-language path mismatch in Chinese content" \
   '\]\(/docs/|\]\(/getting-started/' \
   'website/content/zh'
 
-# 3) Soft check: key docs/posts should include a description field for SEO quality.
+# 4) Soft check: key docs/posts should include a description field for SEO quality.
 mapfile -t KEY_FILES < <(
   find website/content/en/docs website/content/zh/docs website/content/en/posts website/content/zh/posts \
     -type f -name '*.md' ! -name '_index.md' | sort

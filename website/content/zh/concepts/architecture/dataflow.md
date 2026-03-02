@@ -58,7 +58,7 @@ weight: 30
 客户端通过以下方式之一连接到服务器：
 
 - **SSE**: `GET /api/kubernetes/sse`
-- **HTTP**: `POST /api/kubernetes/http`
+- **HTTP**: `POST /api/kubernetes/sse/message`
 - **Streamable-HTTP**: `POST /api/kubernetes/streamable-http`
 - **stdio**: 标准输入/输出
 

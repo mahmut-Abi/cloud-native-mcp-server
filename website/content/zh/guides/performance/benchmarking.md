@@ -27,7 +27,7 @@ ab -n 1000 -c 10 \
   -H "Content-Type: application/json" \
   -H "X-API-Key: your-key" \
   -p payload.json \
-  http://localhost:8080/api/kubernetes/http
+  http://localhost:8080/api/kubernetes/sse/message
 ```
 
 ## 测试场景
@@ -68,7 +68,7 @@ ab -n 1000 -c 10 \
   -H "Content-Type: application/json" \
   -H "X-API-Key: your-key" \
   -p payload.json \
-  http://localhost:8080/api/kubernetes/http
+  http://localhost:8080/api/kubernetes/sse/message
 ```
 
 **目的**: 测试 Kubernetes 工具性能
@@ -99,7 +99,7 @@ ab -n 1000 -c 10 \
   -H "Content-Type: application/json" \
   -H "X-API-Key: your-key" \
   -p payload.json \
-  http://localhost:8080/api/prometheus/http
+  http://localhost:8080/api/prometheus/sse/message
 ```
 
 **目的**: 测试 Prometheus 查询性能
@@ -128,7 +128,7 @@ ab -n 1000 -c 10 \
   -H "Content-Type: application/json" \
   -H "X-API-Key: your-key" \
   -p payload.json \
-  http://localhost:8080/api/grafana/http
+  http://localhost:8080/api/grafana/sse/message
 ```
 
 **目的**: 测试 Grafana 工具性能

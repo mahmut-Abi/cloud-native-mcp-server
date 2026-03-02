@@ -109,11 +109,11 @@ audit:
 ```bash
 # 查询最近的失败认证
 curl -H "X-API-Key: your-key" \
-  "http://localhost:8080/api/audit/query?status=failed&limit=50"
+  "http://localhost:8080/api/audit/logs?status=failed&limit=50"
 
 # 查询特定用户的操作
 curl -H "X-API-Key: your-key" \
-  "http://localhost:8080/api/audit/query?user=admin&limit=100"
+  "http://localhost:8080/api/audit/logs?user=admin&limit=100"
 ```
 
 ## 6. 生产环境使用 HTTPS

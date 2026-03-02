@@ -124,6 +124,9 @@ server:
     # Elasticsearch SSE 端点
     elasticsearch: "/api/elasticsearch/sse"
 
+    # OpenTelemetry SSE 端点
+    opentelemetry: "/api/opentelemetry/sse"
+
     # Utilities SSE 端点
     utilities: "/api/utilities/sse"
 
@@ -156,6 +159,9 @@ server:
 
     # Elasticsearch Streamable-HTTP 端点
     elasticsearch: "/api/elasticsearch/streamable-http"
+
+    # OpenTelemetry Streamable-HTTP 端点
+    opentelemetry: "/api/opentelemetry/streamable-http"
 
     # Utilities Streamable-HTTP 端点
     utilities: "/api/utilities/streamable-http"

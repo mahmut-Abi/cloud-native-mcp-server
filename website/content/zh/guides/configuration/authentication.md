@@ -38,7 +38,7 @@ auth:
 ```bash
 # 使用 curl
 curl -H "X-API-Key: Abc123!@#Xyz789!@#" \
-  http://localhost:8080/api/kubernetes/http
+  http://localhost:8080/api/kubernetes/sse/message
 ```
 
 ### API Key 复杂度要求
@@ -78,7 +78,7 @@ auth:
 ```bash
 # 使用 curl
 curl -H "Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..." \
-  http://localhost:8080/api/kubernetes/http
+  http://localhost:8080/api/kubernetes/sse/message
 ```
 
 ### Bearer Token 要求
@@ -122,11 +122,11 @@ auth:
 ```bash
 # 使用 curl
 curl -u admin:secure-password \
-  http://localhost:8080/api/kubernetes/http
+  http://localhost:8080/api/kubernetes/sse/message
 
 # 或者使用 Authorization 头
 curl -H "Authorization: Basic YWRtaW46c2VjdXJlLXBhc3N3b3Jk" \
-  http://localhost:8080/api/kubernetes/http
+  http://localhost:8080/api/kubernetes/sse/message
 ```
 
 ### Base64 编码

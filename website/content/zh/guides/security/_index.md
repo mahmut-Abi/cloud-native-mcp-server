@@ -122,15 +122,15 @@ audit:
 ```bash
 # 查询最近 100 条审计日志
 curl -H "X-API-Key: your-key" \
-  "http://localhost:8080/api/audit/query?limit=100"
+  "http://localhost:8080/api/audit/logs?limit=100"
 
 # 查询特定用户的审计日志
 curl -H "X-API-Key: your-key" \
-  "http://localhost:8080/api/audit/query?user=admin&limit=50"
+  "http://localhost:8080/api/audit/logs?user=admin&limit=50"
 
 # 查询失败的认证尝试
 curl -H "X-API-Key: your-key" \
-  "http://localhost:8080/api/audit/query?tool=auth_login&status=failed"
+  "http://localhost:8080/api/audit/logs?tool=auth_login&status=failed"
 ```
 
 ## 安全头部

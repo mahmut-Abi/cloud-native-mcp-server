@@ -503,7 +503,7 @@ config:
   auth:
     enabled: true
     mode: "apikey"
-    api_key: "${MCP_API_KEY}"
+    api_key: "${MCP_AUTH_API_KEY}"
 ```
 
 2. **Use Secrets**:
