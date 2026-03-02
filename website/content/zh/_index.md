@@ -6,7 +6,7 @@ description: 面向 Kubernetes 与云原生运维场景的高性能 Model Contex
 
 <div class="hero">
   <h1>Cloud Native MCP Server</h1>
-  <p>面向 Kubernetes 与云原生基础设施管理的生产级 MCP 服务器，聚合 10 个服务与 220+ 工具，支持 SSE / Streamable HTTP / HTTP / Stdio 四种运行模式。</p>
+  <p>面向 Kubernetes 与云原生基础设施管理的生产级 MCP 服务器，聚合 10 个服务与 220+ 工具，支持 SSE / Streamable-HTTP / HTTP / stdio 四种运行模式。</p>
   <div class="hero-buttons">
     <a href="https://github.com/mahmut-Abi/cloud-native-mcp-server" class="cta-button"><span>GitHub 仓库</span></a>
     <a href="#quick-start" class="cta-button transparent"><span>快速开始</span></a>
@@ -171,8 +171,8 @@ make sse-smoke BASE_URL=http://127.0.0.1:8080
 
 ### 常用入口
 
-- SSE 聚合入口（`--mode=sse`）: `http://127.0.0.1:8080/api/aggregate/sse`
-- Streamable HTTP 聚合入口（`--mode=streamable-http`）: `http://127.0.0.1:8080/api/aggregate/streamable-http`
+- SSE 聚合端点（`--mode=sse`）: `http://127.0.0.1:8080/api/aggregate/sse`
+- Streamable-HTTP 聚合端点（`--mode=streamable-http`）: `http://127.0.0.1:8080/api/aggregate/streamable-http`
 - 健康检查: `http://127.0.0.1:8080/health`
 
 ---

@@ -72,7 +72,7 @@ description: "Cloud Native MCP Server 的核心能力总览：性能、安全、
 - 生产环境推荐优先使用
 
 ### HTTP（历史兼容）模式
-- 兼容 legacy message endpoint
+- 兼容 message 端点（历史兼容）
 - 面向旧客户端过渡场景
 
 ### stdio 模式

@@ -123,7 +123,7 @@ rate(mcp_errors_total[5m])
 ab -n 10000 -c 100 http://127.0.0.1:8080/health
 ```
 
-### 工具调用端点（历史 message 端点兼容）
+### 工具调用端点（message 端点，历史兼容）
 
 先准备请求体：
 

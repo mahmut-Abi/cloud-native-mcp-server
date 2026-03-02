@@ -18,17 +18,17 @@ http://localhost:8080
 
 Cloud Native MCP Server 支持四种运行模式：
 
-| 模式 | 典型用途 | 聚合入口 |
+| 模式 | 典型用途 | 聚合端点 |
 | --- | --- | --- |
 | `sse` | MCP 客户端兼容性优先 | `/api/aggregate/sse` |
 | `streamable-http` | 推荐的现代 MCP 传输方式 | `/api/aggregate/streamable-http` |
-| `http` | 历史 message 端点兼容 | `/api/aggregate/sse/message` |
+| `http` | message 端点（历史兼容） | `/api/aggregate/sse/message` |
 | `stdio` | 本地运行时集成 | stdin/stdout |
 
 服务级端点模式：
 
 - SSE：`/api/<service>/sse`
-- Streamable HTTP：`/api/<service>/streamable-http`
+- Streamable-HTTP：`/api/<service>/streamable-http`
 
 常见 service 名称包括 `kubernetes`、`helm`、`grafana`、`prometheus`、`kibana`、`elasticsearch`、`alertmanager`、`jaeger`、`opentelemetry`、`utilities`、`aggregate`。
 
@@ -91,8 +91,8 @@ curl -sS -N -u "admin:strong-password" \
 在 `sse` 模式下，典型流程如下：
 
 1. 连接 `/api/aggregate/sse` 建立事件流。
-2. 从返回事件中获取 message endpoint。
-3. 向 message endpoint 发送 JSON-RPC 请求（例如 `initialize`）。
+2. 从返回事件中获取 `message` 端点（历史兼容）。
+3. 向该端点发送 JSON-RPC 请求（例如 `initialize`）。
 
 推荐使用内置自检命令验证链路：
 
@@ -108,7 +108,7 @@ make sse-smoke BASE_URL=http://127.0.0.1:8080
 
 ---
 
-## Streamable HTTP 示例
+## Streamable-HTTP 示例
 
 在 `streamable-http` 模式下，可直接使用聚合端点：
 

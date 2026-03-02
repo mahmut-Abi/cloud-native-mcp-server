@@ -38,7 +38,7 @@ docker run -d \
 启动后可访问：
 
 - `SSE`: `http://localhost:8080/api/aggregate/sse`
-- `Streamable HTTP`: `http://localhost:8080/api/aggregate/streamable-http`
+- `Streamable-HTTP`: `http://localhost:8080/api/aggregate/streamable-http`
 
 ## 文档结构
 
