@@ -253,5 +253,7 @@ func (sw *securityResponseWriter) setSecurityHeaders() {
 
 	// Additional security headers
 	sw.Header().Set("X-Permitted-Cross-Domain-Policies", "none")
-	sw.Header().Set("Cache-Control", "no-store, no-cache, must-revalidate, private")
+	if sw.Header().Get("Cache-Control") == "" {
+		sw.Header().Set("Cache-Control", "no-store, no-cache, must-revalidate, private")
+	}
 }

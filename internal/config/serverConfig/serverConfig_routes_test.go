@@ -282,6 +282,51 @@ func TestSetupMultipleRoutes_StreamableHTTPMode(t *testing.T) {
 	assert.Equal(t, http.StatusOK, w.Code)
 }
 
+func TestSetupMultipleRoutes_StreamableHTTPSetsStreamingHeaders(t *testing.T) {
+	sc := &ServerConfig{}
+	mcpServer := server.NewMCPServer("test", "1.0.0")
+	appConfig := &config.AppConfig{}
+
+	streamableHTTPServers := sc.InitStreamableHTTPServers(mcpServer, "127.0.0.1:8080", appConfig)
+
+	mux := http.NewServeMux()
+	sc.SetupMultipleRoutes(mux, nil, streamableHTTPServers, "streamable-http", appConfig, mcpServer)
+
+	ctx, cancel := context.WithCancel(context.Background())
+	defer cancel()
+
+	req := httptest.NewRequest(http.MethodGet, "/api/aggregate/streamable-http", nil).WithContext(ctx)
+	rec := newStreamingResponseRecorder()
+	done := make(chan struct{})
+	go func() {
+		mux.ServeHTTP(rec, req)
+		close(done)
+	}()
+
+	deadline := time.After(2 * time.Second)
+	for {
+		_, headers, _ := rec.snapshot()
+		if headers.Get("X-Accel-Buffering") != "" {
+			assert.Equal(t, "no", headers.Get("X-Accel-Buffering"))
+			assert.Equal(t, "no-cache, no-transform", headers.Get("Cache-Control"))
+			break
+		}
+
+		select {
+		case <-deadline:
+			t.Fatal("timed out waiting for streamable-http transport headers")
+		case <-time.After(10 * time.Millisecond):
+		}
+	}
+
+	cancel()
+	select {
+	case <-done:
+	case <-time.After(2 * time.Second):
+		t.Fatal("streamable-http handler did not stop after context cancellation")
+	}
+}
+
 // Test SetupMultipleRoutes with stdio mode
 func TestSetupMultipleRoutes_StdioMode(t *testing.T) {
 	sc := &ServerConfig{}

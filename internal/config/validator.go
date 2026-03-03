@@ -389,8 +389,29 @@ func (v *ConfigValidator) validateAuthConfig(cfg *AppConfig) error {
 			return fmt.Errorf("API key is required for apikey auth mode")
 		}
 	case "bearer":
-		if cfg.Auth.BearerToken == "" {
-			return fmt.Errorf("bearer token is required for bearer auth mode")
+		oidcConfigured := cfg.Auth.OIDCIssuerURL != "" || cfg.Auth.OIDCDiscoveryURL != ""
+		if !oidcConfigured && cfg.Auth.BearerToken == "" {
+			return fmt.Errorf("bearer token is required for bearer auth mode when OIDC discovery is not configured")
+		}
+		if oidcConfigured {
+			if cfg.Auth.OIDCIssuerURL != "" {
+				parsedIssuerURL, err := url.Parse(cfg.Auth.OIDCIssuerURL)
+				if err != nil || parsedIssuerURL.Scheme == "" || parsedIssuerURL.Host == "" {
+					return fmt.Errorf("invalid auth OIDC issuer URL: %s", cfg.Auth.OIDCIssuerURL)
+				}
+			}
+			if cfg.Auth.OIDCDiscoveryURL != "" {
+				parsedDiscoveryURL, err := url.Parse(cfg.Auth.OIDCDiscoveryURL)
+				if err != nil || parsedDiscoveryURL.Scheme == "" || parsedDiscoveryURL.Host == "" {
+					return fmt.Errorf("invalid auth OIDC discovery URL: %s", cfg.Auth.OIDCDiscoveryURL)
+				}
+			}
+			if cfg.Auth.OIDCHTTPTimeoutSec < 0 {
+				return fmt.Errorf("auth OIDC HTTP timeout must be non-negative")
+			}
+			if cfg.Auth.OIDCJWKSCacheTTLSec < 0 {
+				return fmt.Errorf("auth OIDC JWKS cache TTL must be non-negative")
+			}
 		}
 	case "basic":
 		if cfg.Auth.Username == "" || cfg.Auth.Password == "" {

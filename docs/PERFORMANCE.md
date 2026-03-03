@@ -217,6 +217,7 @@ Actions:
 2. Tune one dimension at a time (`timeout` -> `qps/burst` -> `ratelimit`).
 3. Keep load tests representative of real tool usage.
 4. Track p95/p99, not only average latency.
+5. Keep proxy buffering off for streaming paths; the server now emits `X-Accel-Buffering: no` and `Cache-Control: ... no-transform` on SSE and streamable-http routes.
 
 ---
 
