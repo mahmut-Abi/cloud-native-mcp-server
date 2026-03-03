@@ -3,6 +3,7 @@ package config
 import (
 	"fmt"
 	"net"
+	"net/url"
 	"regexp"
 )
 
@@ -243,6 +244,16 @@ func (v *ConfigValidator) validateHelmConfig(cfg *AppConfig) error {
 
 	if cfg.Helm.MaxRetries < 0 {
 		return fmt.Errorf("helm max retries must be non-negative")
+	}
+
+	if cfg.Helm.HTTPProxy != "" {
+		parsedProxy, err := url.Parse(cfg.Helm.HTTPProxy)
+		if err != nil {
+			return fmt.Errorf("invalid helm HTTP proxy URL: %w", err)
+		}
+		if parsedProxy.Scheme == "" || parsedProxy.Host == "" {
+			return fmt.Errorf("invalid helm HTTP proxy URL format: %s", cfg.Helm.HTTPProxy)
+		}
 	}
 
 	return nil

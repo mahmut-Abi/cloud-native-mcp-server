@@ -5,6 +5,7 @@ package client
 import (
 	"context"
 	"fmt"
+	"io"
 	"os"
 	"path/filepath"
 	"strings"
@@ -16,6 +17,7 @@ import (
 	"helm.sh/helm/v3/pkg/chart/loader"
 	"helm.sh/helm/v3/pkg/chartutil"
 	"helm.sh/helm/v3/pkg/cli"
+	"helm.sh/helm/v3/pkg/downloader"
 	"helm.sh/helm/v3/pkg/getter"
 	"helm.sh/helm/v3/pkg/helmpath"
 	"helm.sh/helm/v3/pkg/release"
@@ -45,7 +47,10 @@ type ClientOptions struct {
 	// If provided, it will be used instead of building a new configuration from KubeconfigPath.
 	RESTConfig *rest.Config
 
-	// Optimizer for handling Helm repository optimization
+	// HTTPProxy is a dedicated proxy URL for Helm repository/chart network requests.
+	HTTPProxy string
+
+	// Optimizer stores Helm repository network options.
 	Optimizer *RepositoryOptimizer
 }
 
@@ -196,6 +201,104 @@ func ensureHelmFilesystem(settings *cli.EnvSettings) error {
 	return nil
 }
 
+func (c *Client) getterOptions() ([]getter.Option, error) {
+	if c.optimizer == nil {
+		return nil, nil
+	}
+
+	getterOptions, err := c.optimizer.GetterOptions()
+	if err != nil {
+		return nil, fmt.Errorf("failed to build Helm getter options: %w", err)
+	}
+	return getterOptions, nil
+}
+
+func isLocalChartReference(chartRef string) bool {
+	if chartRef == "" {
+		return false
+	}
+
+	if strings.Contains(chartRef, "://") {
+		return false
+	}
+
+	if filepath.IsAbs(chartRef) || strings.HasPrefix(chartRef, ".") || strings.HasPrefix(chartRef, "~") {
+		return true
+	}
+
+	if _, err := os.Stat(chartRef); err == nil {
+		return true
+	}
+
+	return false
+}
+
+func buildChartPathGetterOptions(chartPathOptions *action.ChartPathOptions) []getter.Option {
+	if chartPathOptions == nil {
+		return nil
+	}
+
+	opts := make([]getter.Option, 0, 5)
+	if chartPathOptions.CertFile != "" || chartPathOptions.KeyFile != "" || chartPathOptions.CaFile != "" {
+		opts = append(opts, getter.WithTLSClientConfig(chartPathOptions.CertFile, chartPathOptions.KeyFile, chartPathOptions.CaFile))
+	}
+	if chartPathOptions.Username != "" || chartPathOptions.Password != "" {
+		opts = append(opts, getter.WithBasicAuth(chartPathOptions.Username, chartPathOptions.Password))
+	}
+	if chartPathOptions.PassCredentialsAll {
+		opts = append(opts, getter.WithPassCredentialsAll(true))
+	}
+	if chartPathOptions.InsecureSkipTLSverify {
+		opts = append(opts, getter.WithInsecureSkipVerifyTLS(true))
+	}
+	if chartPathOptions.PlainHTTP {
+		opts = append(opts, getter.WithPlainHTTP(true))
+	}
+	return opts
+}
+
+func (c *Client) locateChart(chartRef string, chartPathOptions *action.ChartPathOptions) (string, func(), error) {
+	if chartPathOptions == nil {
+		return "", func() {}, fmt.Errorf("chart path options are nil")
+	}
+
+	if c.optimizer == nil || c.optimizer.GetHTTPProxy() == "" || isLocalChartReference(chartRef) {
+		chartPath, err := chartPathOptions.LocateChart(chartRef, c.settings)
+		return chartPath, func() {}, err
+	}
+
+	getterOptions, err := c.getterOptions()
+	if err != nil {
+		return "", func() {}, err
+	}
+
+	downloadDir, err := os.MkdirTemp("", "helm-chart-download-*")
+	if err != nil {
+		return "", func() {}, fmt.Errorf("failed to create temporary chart directory: %w", err)
+	}
+	cleanup := func() {
+		_ = os.RemoveAll(downloadDir)
+	}
+
+	chartDownloader := downloader.ChartDownloader{
+		Out:              io.Discard,
+		Verify:           downloader.VerifyNever,
+		Getters:          getter.All(c.settings, getterOptions...),
+		RepositoryConfig: c.settings.RepositoryConfig,
+		RepositoryCache:  c.settings.RepositoryCache,
+		RegistryClient:   c.actionConfig.RegistryClient,
+	}
+	chartDownloader.Options = buildChartPathGetterOptions(chartPathOptions)
+
+	chartPath, _, err := chartDownloader.DownloadTo(chartRef, chartPathOptions.Version, downloadDir)
+	if err != nil {
+		cleanup()
+		return "", func() {}, fmt.Errorf("failed to download chart %q via Helm HTTP proxy: %w", chartRef, err)
+	}
+
+	return chartPath, cleanup, nil
+}
+
 // NewClient creates a new Helm client with the given options.
 func NewClient(options *ClientOptions) (*Client, error) {
 	if options == nil {
@@ -254,7 +357,7 @@ func NewClient(options *ClientOptions) (*Client, error) {
 	if options.Optimizer != nil {
 		client.optimizer = options.Optimizer
 	} else {
-		client.optimizer = NewRepositoryOptimizer(nil, 300, 3, false)
+		client.optimizer = NewRepositoryOptimizer(300, 3, options.HTTPProxy)
 	}
 
 	return client, nil
@@ -414,11 +517,12 @@ func (c *Client) InstallRelease(name string, chartPath string, namespace string,
 
 	// Load chart
 	logrus.Debugf("Locating chart '%s'", chartPath)
-	chart, err := client.LocateChart(chartPath, c.settings)
+	chart, cleanup, err := c.locateChart(chartPath, &client.ChartPathOptions)
 	if err != nil {
 		logrus.Errorf("Failed to locate chart '%s': %v", chartPath, err)
 		return nil, fmt.Errorf("could not locate chart '%s': %w", chartPath, err)
 	}
+	defer cleanup()
 	logrus.Debugf("Located chart at path '%s'", chart)
 
 	// Load chart
@@ -483,7 +587,7 @@ func (c *Client) UpgradeRelease(name string, chartPath string, namespace string,
 
 	// Load chart
 	logrus.Debugf("Locating chart '%s'", chartPath)
-	chart, err := client.LocateChart(chartPath, c.settings)
+	chart, cleanup, err := c.locateChart(chartPath, &client.ChartPathOptions)
 	if err != nil {
 		logrus.Errorf("Failed to locate chart '%s': %v", chartPath, err)
 		// Restore original namespace before returning error
@@ -501,6 +605,7 @@ func (c *Client) UpgradeRelease(name string, chartPath string, namespace string,
 		}
 		return nil, fmt.Errorf("could not locate chart '%s': %w", chartPath, err)
 	}
+	defer cleanup()
 	logrus.Debugf("Located chart at path '%s'", chart)
 
 	// Load chart
@@ -1199,10 +1304,11 @@ func (c *Client) TemplateChart(name, chartRef, namespace, valuesFile string) (st
 	}
 
 	// Locate chart
-	chartPath, err := client.LocateChart(chartRef, c.settings)
+	chartPath, cleanup, err := c.locateChart(chartRef, &client.ChartPathOptions)
 	if err != nil {
 		return "", fmt.Errorf("failed to locate chart: %w", err)
 	}
+	defer cleanup()
 
 	// Load chart
 	chartRequested, err := loader.Load(chartPath)
@@ -1256,6 +1362,11 @@ func (c *Client) UpdateRepositories() error {
 		return nil
 	}
 
+	getterOptions, err := c.getterOptions()
+	if err != nil {
+		return fmt.Errorf("invalid Helm repository network configuration: %w", err)
+	}
+
 	// Ensure repository cache directory exists
 	if err := os.MkdirAll(c.settings.RepositoryCache, 0755); err != nil {
 		return fmt.Errorf("failed to create repository cache directory: %w", err)
@@ -1264,7 +1375,7 @@ func (c *Client) UpdateRepositories() error {
 	// Create chart repositories and download index files
 	var repos []*repo.ChartRepository
 	for _, cfg := range f.Repositories {
-		r, err := repo.NewChartRepository(cfg, getter.All(c.settings))
+		r, err := repo.NewChartRepository(cfg, getter.All(c.settings, getterOptions...))
 		if err != nil {
 			logrus.Warnf("Failed to create chart repository for %s: %v", cfg.Name, err)
 			continue
@@ -1348,23 +1459,6 @@ func (c *Client) UpdateRepositories() error {
 	}
 
 	return nil
-}
-
-// GetMirrorConfiguration returns information about configured mirrors.
-func (c *Client) GetMirrorConfiguration() map[string]interface{} {
-	if c.optimizer == nil {
-		return map[string]interface{}{
-			"enabled": false,
-			"mirrors": map[string]string{},
-		}
-	}
-
-	return map[string]interface{}{
-		"enabled":     c.optimizer.IsMirrorEnabled(),
-		"mirrors":     c.optimizer.ListMirrors(),
-		"timeout_sec": int(c.optimizer.GetTimeout().Seconds()),
-		"max_retries": c.optimizer.GetMaxRetry(),
-	}
 }
 
 // ListReleasesPaginated lists Helm releases with pagination support

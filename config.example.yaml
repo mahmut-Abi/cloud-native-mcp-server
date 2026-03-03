@@ -284,15 +284,10 @@ helm:
   # Environment variable: MCP_HELM_MAX_RETRIES
   maxRetries: 3
 
-  # Enable mirrors
-  # For accelerating Helm repository pulls
-  # Default: false
-  # Environment variable: MCP_HELM_USE_MIRRORS (1, true, yes, on)
-  useMirrors: false
-
-  # Custom mirror mappings
-  # Format: original repo URL -> mirror URL
-  mirrors: {}
+  # Dedicated HTTP proxy for Helm repository/chart requests
+  # Example: http://127.0.0.1:7890
+  # Environment variable: MCP_HELM_HTTP_PROXY
+  httpProxy: ""
 
 ################################################################################
 # Elasticsearch Configuration

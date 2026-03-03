@@ -234,11 +234,3 @@ func UpdateRepositoriesTool() mcp.Tool {
 		mcp.WithDescription("Update all configured Helm repositories to get the latest chart information. Should be run periodically to see new chart versions."),
 	)
 }
-
-// GetMirrorConfigurationTool returns a tool definition for checking mirror configuration.
-func GetMirrorConfigurationTool() mcp.Tool {
-	logrus.Debug("Creating GetMirrorConfigurationTool")
-	return mcp.NewTool("helm_get_mirror_configuration",
-		mcp.WithDescription("Get information about the configured Helm repository mirrors. Shows whether mirrors are enabled, which repositories are mirrored, and optimization settings."),
-	)
-}

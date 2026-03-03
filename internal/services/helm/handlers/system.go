@@ -11,25 +11,6 @@ import (
 	optimize "github.com/mahmut-Abi/cloud-native-mcp-server/internal/util/performance"
 )
 
-// HandleGetMirrorConfiguration returns a handler function for getting mirror configuration.
-func HandleGetMirrorConfiguration(c *client.Client) func(ctx context.Context, request mcp.CallToolRequest) (*mcp.CallToolResult, error) {
-	return func(ctx context.Context, request mcp.CallToolRequest) (*mcp.CallToolResult, error) {
-		logrus.WithField("tool", "helm_get_mirror_configuration").Debug("Handler invoked")
-
-		// Get mirror configuration
-		mirrorConfig := c.GetMirrorConfiguration()
-
-		logrus.Debug("helm_get_mirror_configuration succeeded")
-
-		// Serialize to JSON for better readability
-		jsonData, err := marshalIndentJSON(mirrorConfig)
-		if err != nil {
-			return nil, fmt.Errorf("failed to serialize results: %w", err)
-		}
-		return mcp.NewToolResultText(string(jsonData)), nil
-	}
-}
-
 // HandleClearCache clears the Helm cache
 func HandleClearCache(c *client.Client) func(ctx context.Context, request mcp.CallToolRequest) (*mcp.CallToolResult, error) {
 	return func(ctx context.Context, request mcp.CallToolRequest) (*mcp.CallToolResult, error) {

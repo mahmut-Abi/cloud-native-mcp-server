@@ -255,11 +255,8 @@ func (p *EnvParser) parseHelmConfig(cfg *AppConfig, over func(string) (string, b
 	if v, ok := over("MCP_HELM_MAX_RETRIES"); ok {
 		cfg.Helm.MaxRetries = atoiDefault(v, cfg.Helm.MaxRetries)
 	}
-	if v, ok := over("MCP_HELM_USE_MIRRORS"); ok {
-		cfg.Helm.UseMirrors = isTrue(v)
-	}
-	if cfg.Helm.Mirrors == nil {
-		cfg.Helm.Mirrors = make(map[string]string)
+	if v, ok := over("MCP_HELM_HTTP_PROXY"); ok {
+		cfg.Helm.HTTPProxy = v
 	}
 }
 

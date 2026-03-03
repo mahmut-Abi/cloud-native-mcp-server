@@ -5,7 +5,7 @@ This document provides a comprehensive reference for all 210+ tools available in
 ## Table of Contents
 
 - [Kubernetes (28 tools)](#kubernetes-28-tools)
-- [Helm (31 tools)](#helm-31-tools)
+- [Helm (30 tools)](#helm-30-tools)
 - [Grafana (36 tools)](#grafana-36-tools)
 - [Prometheus (20 tools)](#prometheus-20-tools)
 - [Kibana (52 tools)](#kibana-52-tools)
@@ -81,7 +81,7 @@ This document provides a comprehensive reference for all 210+ tools available in
 
 ---
 
-## Helm (31 tools)
+## Helm (30 tools)
 
 ### Release Management
 

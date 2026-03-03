@@ -65,10 +65,9 @@ func (s *Service) Initialize(cfg interface{}) error {
 
 		// Create optimizer from config
 		optimizer := client.NewRepositoryOptimizer(
-			appConfig.Helm.Mirrors,
 			appConfig.Helm.TimeoutSec,
 			appConfig.Helm.MaxRetries,
-			appConfig.Helm.UseMirrors,
+			appConfig.Helm.HTTPProxy,
 		)
 		opts.Optimizer = optimizer
 		if opts.KubeconfigPath == "" && appConfig.Kubernetes.Kubeconfig != "" {
@@ -142,8 +141,6 @@ func (s *Service) GetTools() []mcp.Tool {
 
 			tools.UpdateRepositoriesTool(),
 
-			tools.GetMirrorConfigurationTool(),
-
 			// Additional specialized tools
 
 			tools.GetReleaseHistoryPaginatedTool(),
@@ -193,20 +190,19 @@ func (s *Service) GetHandlers() map[string]server.ToolHandlerFunc {
 		"helm_cluster_overview":        handlers.HandleGetClusterOverview(s.client),    // ⚠️ Recommended for overview
 
 		// Standard tools (for specific use cases)
-		"helm_list_releases":            handlers.HandleListReleases(s.client),
-		"helm_get_release":              handlers.HandleGetRelease(s.client),
-		"helm_list_repos":               handlers.HandleListRepositories(s.client),
-		"helm_get_release_values":       handlers.HandleGetReleaseValues(s.client),
-		"helm_get_release_manifest":     handlers.HandleGetReleaseManifest(s.client),
-		"helm_get_release_history":      handlers.HandleGetReleaseHistory(s.client),
-		"helm_search_charts":            handlers.HandleSearchCharts(s.client),
-		"helm_get_chart_info":           handlers.HandleGetChartInfo(s.client),
-		"helm_template_chart":           handlers.HandleTemplateChart(s.client),
-		"helm_compare_revisions":        handlers.HandleCompareRevisions(s.client),
-		"helm_add_repository":           handlers.HandleAddRepository(s.client),
-		"helm_remove_repository":        handlers.HandleRemoveRepository(s.client),
-		"helm_update_repositories":      handlers.HandleUpdateRepositories(s.client),
-		"helm_get_mirror_configuration": handlers.HandleGetMirrorConfiguration(s.client),
+		"helm_list_releases":        handlers.HandleListReleases(s.client),
+		"helm_get_release":          handlers.HandleGetRelease(s.client),
+		"helm_list_repos":           handlers.HandleListRepositories(s.client),
+		"helm_get_release_values":   handlers.HandleGetReleaseValues(s.client),
+		"helm_get_release_manifest": handlers.HandleGetReleaseManifest(s.client),
+		"helm_get_release_history":  handlers.HandleGetReleaseHistory(s.client),
+		"helm_search_charts":        handlers.HandleSearchCharts(s.client),
+		"helm_get_chart_info":       handlers.HandleGetChartInfo(s.client),
+		"helm_template_chart":       handlers.HandleTemplateChart(s.client),
+		"helm_compare_revisions":    handlers.HandleCompareRevisions(s.client),
+		"helm_add_repository":       handlers.HandleAddRepository(s.client),
+		"helm_remove_repository":    handlers.HandleRemoveRepository(s.client),
+		"helm_update_repositories":  handlers.HandleUpdateRepositories(s.client),
 
 		// Additional specialized tools
 		"helm_get_release_history_paginated": handlers.HandleGetReleaseHistoryPaginated(s.client),

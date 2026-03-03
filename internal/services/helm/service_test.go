@@ -50,37 +50,3 @@ func TestHelmServiceGetHandlers(t *testing.T) {
 		_ = handlers
 	}
 }
-
-func TestHelmServiceGetMirrorConfigurationTool(t *testing.T) {
-	svc := NewService()
-	err := svc.Initialize(nil)
-	if err != nil {
-		t.Fatalf("Failed to initialize service: %v", err)
-	}
-	tools := svc.GetTools()
-
-	found := false
-	for _, tool := range tools {
-		if tool.Name == "helm_get_mirror_configuration" {
-			found = true
-			break
-		}
-	}
-
-	if !found {
-		t.Error("helm_get_mirror_configuration tool not found in service tools")
-	}
-}
-
-func TestHelmServiceGetMirrorConfigurationHandler(t *testing.T) {
-	svc := NewService()
-	err := svc.Initialize(nil)
-	if err != nil {
-		t.Fatalf("Failed to initialize service: %v", err)
-	}
-	handlers := svc.GetHandlers()
-
-	if _, ok := handlers["helm_get_mirror_configuration"]; !ok {
-		t.Error("helm_get_mirror_configuration handler not found in service handlers")
-	}
-}

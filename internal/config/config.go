@@ -96,14 +96,13 @@ type AppConfig struct {
 	} `yaml:"kibana"`
 
 	Helm struct {
-		Enabled        bool              `yaml:"enabled"`        // Enable Helm service
-		KubeconfigPath string            `yaml:"kubeconfigPath"` // Path to kubeconfig file for Helm operations
-		Namespace      string            `yaml:"namespace"`      // Default namespace for Helm operations
-		Debug          bool              `yaml:"debug"`          // Enable Helm debug mode
-		TimeoutSec     int               `yaml:"timeoutSec"`     // Repository update timeout in seconds (default: 300)
-		MaxRetries     int               `yaml:"maxRetries"`     // Max retries for failed repository updates (default: 3)
-		UseMirrors     bool              `yaml:"useMirrors"`     // Use Chinese mirrors for overseas repositories (default: true)
-		Mirrors        map[string]string `yaml:"mirrors"`        // Mirror URL mappings (original URL -> mirror URL)
+		Enabled        bool   `yaml:"enabled"`        // Enable Helm service
+		KubeconfigPath string `yaml:"kubeconfigPath"` // Path to kubeconfig file for Helm operations
+		Namespace      string `yaml:"namespace"`      // Default namespace for Helm operations
+		Debug          bool   `yaml:"debug"`          // Enable Helm debug mode
+		TimeoutSec     int    `yaml:"timeoutSec"`     // Repository update timeout in seconds (default: 300)
+		MaxRetries     int    `yaml:"maxRetries"`     // Max retries for failed repository updates (default: 3)
+		HTTPProxy      string `yaml:"httpProxy"`      // Dedicated HTTP proxy for Helm repository/chart requests
 	} `yaml:"helm"`
 
 	Alertmanager struct {
@@ -270,7 +269,7 @@ type AppConfig struct {
 //	MCP_KIBANA_USERNAME, MCP_KIBANA_PASSWORD, MCP_KIBANA_TIMEOUT,
 //	MCP_KIBANA_SKIP_VERIFY, MCP_KIBANA_SPACE,
 //	MCP_HELM_ENABLED, MCP_HELM_KUBECONFIG, MCP_HELM_NAMESPACE, MCP_HELM_DEBUG,
-//	MCP_HELM_TIMEOUT, MCP_HELM_MAX_RETRIES, MCP_HELM_USE_MIRRORS,
+//	MCP_HELM_TIMEOUT, MCP_HELM_MAX_RETRIES, MCP_HELM_HTTP_PROXY,
 //	MCP_ELASTICSEARCH_ENABLED, MCP_ELASTICSEARCH_ADDRESSES, MCP_ELASTICSEARCH_ADDRESS,
 //	MCP_ELASTICSEARCH_USERNAME, MCP_ELASTICSEARCH_PASSWORD, MCP_ELASTICSEARCH_BEARER_TOKEN,
 //	MCP_ELASTICSEARCH_API_KEY, MCP_ELASTICSEARCH_TIMEOUT, MCP_ELASTICSEARCH_TLS_SKIP_VERIFY,
