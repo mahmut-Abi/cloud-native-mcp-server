@@ -5,8 +5,8 @@
 # Server Configuration
 ################################################################################
 server:
-  # Running mode: sse (Server-Sent Events) | streamable-http (MCP 2025-11-25 spec) | http (legacy) | stdio (Standard I/O)
-  # Recommended: stdio for dev, streamable-http for production (modern MCP spec)
+  # Running mode: sse (Server-Sent Events) | streamable-http (MCP 2025-11-25 spec)
+  # Recommended: streamable-http for production (modern MCP spec)
   # Environment variable: MCP_MODE
   mode: "sse"
 

@@ -29,7 +29,7 @@ Common startup command:
 
 ```yaml
 server:
-  # sse | http | streamable-http | stdio
+  # sse | streamable-http
   mode: "sse"
 
   # listen address

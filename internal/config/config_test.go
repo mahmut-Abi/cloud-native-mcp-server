@@ -23,7 +23,7 @@ func TestLoad_ValidYAML(t *testing.T) {
 
 	yamlContent := `
 server:
-  mode: "http"
+  mode: "streamable-http"
   addr: "localhost:8080"
   readTimeoutSec: 30
   writeTimeoutSec: 30
@@ -51,8 +51,8 @@ kubernetes:
 	}
 
 	// Verify config values
-	if cfg.Server.Mode != "http" {
-		t.Errorf("Expected mode 'http', got '%s'", cfg.Server.Mode)
+	if cfg.Server.Mode != "streamable-http" {
+		t.Errorf("Expected mode 'streamable-http', got '%s'", cfg.Server.Mode)
 	}
 	if cfg.Server.Addr != "localhost:8080" {
 		t.Errorf("Expected addr 'localhost:8080', got '%s'", cfg.Server.Addr)
@@ -185,8 +185,8 @@ func TestLoad_DefaultSSEMode_DisablesWriteTimeout(t *testing.T) {
 	}
 }
 
-func TestLoad_DefaultHTTPMode_UsesWriteTimeout30s(t *testing.T) {
-	t.Setenv("MCP_MODE", "http")
+func TestLoad_DefaultStreamableHTTPMode_UsesWriteTimeout30s(t *testing.T) {
+	t.Setenv("MCP_MODE", "streamable-http")
 	t.Setenv("MCP_WRITE_TIMEOUT", "")
 
 	cfg, err := Load("")
@@ -194,11 +194,29 @@ func TestLoad_DefaultHTTPMode_UsesWriteTimeout30s(t *testing.T) {
 		t.Fatalf("Expected no error, got %v", err)
 	}
 
-	if cfg.Server.Mode != "http" {
-		t.Fatalf("Expected mode 'http', got %q", cfg.Server.Mode)
+	if cfg.Server.Mode != "streamable-http" {
+		t.Fatalf("Expected mode 'streamable-http', got %q", cfg.Server.Mode)
 	}
 
 	if cfg.Server.WriteTimeoutSec != 30 {
-		t.Errorf("Expected write timeout 30 in HTTP mode, got %d", cfg.Server.WriteTimeoutSec)
+		t.Errorf("Expected write timeout 30 in streamable-http mode, got %d", cfg.Server.WriteTimeoutSec)
+	}
+}
+
+func TestLoad_LegacyHTTPModeIsRejected(t *testing.T) {
+	t.Setenv("MCP_MODE", "http")
+
+	_, err := Load("")
+	if err == nil {
+		t.Fatal("expected error for legacy http mode")
+	}
+}
+
+func TestLoad_StdioModeIsRejected(t *testing.T) {
+	t.Setenv("MCP_MODE", "stdio")
+
+	_, err := Load("")
+	if err == nil {
+		t.Fatal("expected error for stdio mode")
 	}
 }

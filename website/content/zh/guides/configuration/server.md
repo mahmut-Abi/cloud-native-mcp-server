@@ -9,14 +9,12 @@ weight: 10
 
 ## 运行模式
 
-服务器支持四种运行模式：
+服务器支持两种运行模式：
 
 | 模式 | 描述 | 适用场景 |
 |------|------|----------|
 | `sse` | Server-Sent Events | 实时推送，生产环境推荐 |
 | `streamable-http` | 流式 HTTP | 大数据量传输 |
-| `http` | 标准 HTTP | 简单请求/响应 |
-| `stdio` | 标准输入/输出 | 开发环境，本地测试 |
 
 ### SSE 模式
 
@@ -45,32 +43,6 @@ server:
 - 大数据量传输
 - 分块响应
 - 更好的内存管理
-
-### HTTP 模式
-
-```yaml
-server:
-  mode: "http"
-  addr: "0.0.0.0:8080"
-  writeTimeoutSec: 30
-```
-
-**优势**:
-- 简单请求/响应
-- 无状态
-- 易于缓存
-
-### stdio 模式
-
-```yaml
-server:
-  mode: "stdio"
-```
-
-**优势**:
-- 无需网络
-- 适合本地开发
-- 易于测试
 
 ## 基本设置
 
@@ -174,7 +146,7 @@ server:
 
 | 参数 | 描述 | 默认值 |
 |------|------|--------|
-| `--mode` | 服务器模式 (sse, streamable-http, http, stdio) | sse |
+| `--mode` | 服务器模式 (sse, streamable-http) | sse |
 | `--addr` | 监听地址 | 0.0.0.0:8080 |
 | `--config` | 配置文件路径 | config.yaml |
 | `--log-level` | 日志级别 (debug, info, warn, error) | info |
@@ -185,8 +157,8 @@ server:
 # 使用 SSE 模式
 ./cloud-native-mcp-server --mode=sse --addr=0.0.0.0:8080
 
-# 使用 stdio 模式
-./cloud-native-mcp-server --mode=stdio
+# 使用 Streamable-HTTP 模式
+./cloud-native-mcp-server --mode=streamable-http --addr=0.0.0.0:8080
 
 # 使用自定义配置文件
 ./cloud-native-mcp-server --config=/path/to/config.yaml

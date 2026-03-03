@@ -12,7 +12,7 @@ weight: 20
 **职责**: 处理传入的 HTTP/SSE 请求和连接
 
 **特性**:
-- 支持多种运行模式 (SSE, HTTP, stdio, Streamable-HTTP)
+- 支持多种运行模式 (SSE, Streamable-HTTP)
 - 可配置的超时和连接限制
 - 优雅关闭
 - 健康检查端点

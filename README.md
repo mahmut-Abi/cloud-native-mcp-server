@@ -14,7 +14,7 @@ A high-performance Model Context Protocol (MCP) server for Kubernetes and cloud-
 
 - **10 Integrated Services**: Kubernetes, Grafana, Prometheus, Kibana, Elasticsearch, Helm, Alertmanager, Jaeger, OpenTelemetry, Utilities
 - **220+ MCP Tools**: Comprehensive toolset for infrastructure operations
-- **Multi-Protocol Support**: SSE, HTTP, and stdio modes
+- **Multi-Protocol Support**: SSE and streamable-http modes
 - **Smart Caching**: LRU cache with TTL support for optimal performance
 - **Performance Optimized**: JSON encoding pool, response size control, intelligent limits
 - **Enhanced Authentication**: API Key (with complexity requirements), Bearer Token (JWT validation), Basic Auth
@@ -97,10 +97,10 @@ make build
 | `/api/opentelemetry/sse` | OpenTelemetry service |
 | `/api/utilities/sse` | Utilities service |
 
-### HTTP Mode (Legacy)
+### Streamable-HTTP Mode
 
-`http` mode keeps legacy JSON-RPC message endpoints (`/api/<service>/sse/message`) but does not expose SSE stream endpoints.  
-For MCP SSE clients, use `--mode=sse`.
+Use `--mode=streamable-http` to expose MCP streamable HTTP endpoints such as:
+- `/api/aggregate/streamable-http`
 
 ### SSE Smoke Test
 

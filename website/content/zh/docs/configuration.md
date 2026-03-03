@@ -48,8 +48,8 @@ K8s MCP Server 支持三种配置方法（按优先级排序）：
 
 ```yaml
 server:
-  # 运行模式: sse | streamable-http | http | stdio
-  # 推荐开发环境使用 stdio，生产环境使用 streamable-http
+  # 运行模式: sse | streamable-http
+  # 推荐生产环境使用 streamable-http，兼容性优先可使用 sse
   mode: "sse"
 
   # 服务器监听地址
@@ -145,7 +145,7 @@ server:
 
 | 参数 | 描述 | 默认值 |
 |------|------|--------|
-| `--mode` | 服务器模式 (sse, streamable-http, http, stdio) | sse |
+| `--mode` | 服务器模式 (sse, streamable-http) | sse |
 | `--addr` | 监听地址 | 0.0.0.0:8080 |
 | `--config` | 配置文件路径 | config.yaml |
 | `--log-level` | 日志级别 (debug, info, warn, error) | info |

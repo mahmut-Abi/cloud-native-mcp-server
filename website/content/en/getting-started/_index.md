@@ -10,7 +10,7 @@ This guide helps you install Cloud Native MCP Server, validate connectivity, and
 
 ## What You Will Set Up
 
-- Run the server in one of four modes: `sse`, `streamable-http`, `http`, `stdio`
+- Run the server in one of two modes: `sse`, `streamable-http`
 - Enable authentication with the correct environment variables
 - Verify runtime health and MCP handshake behavior
 - Continue with FAQ and troubleshooting playbooks
@@ -68,8 +68,6 @@ make build
 | --- | --- | --- |
 | `sse` | Broad MCP client compatibility | `/api/aggregate/sse` |
 | `streamable-http` | Modern MCP transport in production | `/api/aggregate/streamable-http` |
-| `http` | Legacy message endpoint compatibility | `/api/aggregate/sse/message` |
-| `stdio` | Local agent/runtime integration | stdin/stdout |
 
 ---
 

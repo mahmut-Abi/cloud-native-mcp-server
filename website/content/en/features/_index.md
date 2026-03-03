@@ -74,16 +74,6 @@ description: "Overview of Cloud Native MCP Server features, including performanc
 - Low latency communication
 - Suitable for real-time monitoring scenarios
 
-### HTTP Mode
-- Legacy message endpoint compatibility
-- Useful for older integrations
-- For modern deployments, prefer `streamable-http`
-
-### stdio Mode
-- Standard input/output communication
-- Suitable for development environments
-- MCP standard protocol
-
 ### Streamable-HTTP Mode
 - MCP 2025-11-25 specification
 - Single endpoint for both request/response and streaming

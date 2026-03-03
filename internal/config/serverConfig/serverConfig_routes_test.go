@@ -327,14 +327,14 @@ func TestSetupMultipleRoutes_StreamableHTTPSetsStreamingHeaders(t *testing.T) {
 	}
 }
 
-// Test SetupMultipleRoutes with stdio mode
-func TestSetupMultipleRoutes_StdioMode(t *testing.T) {
+// Test SetupMultipleRoutes with SSE mode for health route registration
+func TestSetupMultipleRoutes_HealthInSSEMode(t *testing.T) {
 	sc := &ServerConfig{}
 	mcpServer := server.NewMCPServer("test", "1.0.0")
 	appConfig := &config.AppConfig{}
 
 	mux := http.NewServeMux()
-	sc.SetupMultipleRoutes(mux, nil, nil, "stdio", appConfig, mcpServer)
+	sc.SetupMultipleRoutes(mux, nil, nil, "sse", appConfig, mcpServer)
 
 	assert.NotNil(t, mux)
 
@@ -352,7 +352,7 @@ func TestHealthCheckRoute_AlwaysRegistered(t *testing.T) {
 	appConfig := &config.AppConfig{}
 
 	mux := http.NewServeMux()
-	sc.SetupMultipleRoutes(mux, nil, nil, "stdio", appConfig, mcpServer)
+	sc.SetupMultipleRoutes(mux, nil, nil, "sse", appConfig, mcpServer)
 
 	req := httptest.NewRequest(http.MethodGet, "/health", nil)
 	w := httptest.NewRecorder()

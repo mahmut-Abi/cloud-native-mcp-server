@@ -65,7 +65,7 @@ func parseFlags() *CLIConfig {
 	flag.IntVar(&writeTimeout, "write-timeout", 0, "HTTP server write timeout in seconds (0 disables timeout; recommended for SSE)")
 	flag.IntVar(&idleTimeout, "idle-timeout", 60, "HTTP server idle timeout in seconds (default: 60, suitable for streaming)")
 	flag.StringVar(&configPath, "config", os.Getenv("MCP_CONFIG"), "path to YAML config file (env MCP_CONFIG)")
-	flag.StringVar(&mode, "mode", os.Getenv("MCP_MODE"), "run mode: sse | http | streamable-http | stdio")
+	flag.StringVar(&mode, "mode", os.Getenv("MCP_MODE"), "run mode: sse | streamable-http")
 	flag.StringVar(&listMode, "list", "", "list mode: services or tools")
 	flag.StringVar(&format, "output", "text", "output format for list command: text, json, table, csv")
 	flag.StringVar(&serviceName, "service", "", "filter by service name")

@@ -101,7 +101,7 @@ If a service is unexpectedly missing, check:
 
 Include these details in your issue report:
 
-- server mode (`sse` / `streamable-http` / `http` / `stdio`)
+- server mode (`sse` / `streamable-http`)
 - startup command and key env vars (mask secrets)
 - `curl` output for `/health` and transport endpoint
 - relevant logs (last 100-200 lines)

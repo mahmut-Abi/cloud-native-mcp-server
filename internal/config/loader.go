@@ -61,7 +61,7 @@ func (l *ConfigLoader) setDefaults(cfg *AppConfig) {
 		cfg.Server.ReadTimeoutSec = 30
 	}
 	// Keep SSE connections alive by default by disabling write timeout.
-	if cfg.Server.WriteTimeoutSec == 0 && cfg.Server.Mode != "sse" && cfg.Server.Mode != "stdio" {
+	if cfg.Server.WriteTimeoutSec == 0 && cfg.Server.Mode != "sse" {
 		cfg.Server.WriteTimeoutSec = 30
 	}
 	if cfg.Server.IdleTimeoutSec == 0 {

@@ -48,8 +48,8 @@ K8s MCP Server supports three configuration methods (in order of priority):
 
 ```yaml
 server:
-  # Run mode: sse | streamable-http | http | stdio
-  # Recommended: stdio for development, streamable-http for production
+  # Run mode: sse | streamable-http
+  # Recommended: streamable-http for production, sse for broad compatibility
   mode: "sse"
 
   # Server listen address
@@ -145,7 +145,7 @@ server:
 
 | Parameter | Description | Default |
 |-----------|-------------|---------|
-| `--mode` | Server mode (sse, streamable-http, http, stdio) | sse |
+| `--mode` | Server mode (sse, streamable-http) | sse |
 | `--addr` | Listen address | 0.0.0.0:8080 |
 | `--config` | Configuration file path | config.yaml |
 | `--log-level` | Log level (debug, info, warn, error) | info |

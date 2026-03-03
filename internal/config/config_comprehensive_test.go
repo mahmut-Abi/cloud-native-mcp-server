@@ -49,7 +49,7 @@ func TestEnvironmentVariableOverrides(t *testing.T) {
 	}()
 
 	// Test environment variable override
-	_ = os.Setenv("MCP_MODE", "http")
+	_ = os.Setenv("MCP_MODE", "streamable-http")
 	_ = os.Setenv("MCP_ADDR", "127.0.0.1:9090")
 	_ = os.Setenv("MCP_LOG_LEVEL", "debug")
 
@@ -58,8 +58,8 @@ func TestEnvironmentVariableOverrides(t *testing.T) {
 		t.Fatalf("Load() error = %v", err)
 	}
 
-	if cfg.Server.Mode != "http" {
-		t.Errorf("Expected mode 'http', got '%s'", cfg.Server.Mode)
+	if cfg.Server.Mode != "streamable-http" {
+		t.Errorf("Expected mode 'streamable-http', got '%s'", cfg.Server.Mode)
 	}
 
 	if cfg.Server.Addr != "127.0.0.1:9090" {

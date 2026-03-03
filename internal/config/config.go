@@ -8,7 +8,7 @@ import (
 // AppConfig represents application configuration loaded from YAML and environment variables.
 type AppConfig struct {
 	Server struct {
-		Mode            string `yaml:"mode"` // sse | http | streamable-http | stdio
+		Mode            string `yaml:"mode"` // sse | streamable-http
 		Addr            string `yaml:"addr"`
 		ReadTimeoutSec  int    `yaml:"readTimeoutSec"`  // 0 disables
 		WriteTimeoutSec int    `yaml:"writeTimeoutSec"` // 0 disables

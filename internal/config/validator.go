@@ -75,9 +75,7 @@ func (v *ConfigValidator) Validate(cfg *AppConfig) error {
 func (v *ConfigValidator) validateServerConfig(cfg *AppConfig) error {
 	validModes := map[string]bool{
 		"sse":             true,
-		"http":            true,
 		"streamable-http": true,
-		"stdio":           true,
 	}
 
 	// Set default mode if not specified
@@ -86,11 +84,11 @@ func (v *ConfigValidator) validateServerConfig(cfg *AppConfig) error {
 	}
 
 	if !validModes[cfg.Server.Mode] {
-		return fmt.Errorf("invalid server mode: %s, must be one of: sse, http, streamable-http, stdio", cfg.Server.Mode)
+		return fmt.Errorf("invalid server mode: %s, must be one of: sse, streamable-http", cfg.Server.Mode)
 	}
 
-	// Set default address if not specified and mode is not stdio
-	if cfg.Server.Mode != "stdio" && cfg.Server.Addr == "" {
+	// Set default address if not specified
+	if cfg.Server.Addr == "" {
 		cfg.Server.Addr = "0.0.0.0:8080"
 	}
 

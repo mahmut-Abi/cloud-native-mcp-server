@@ -6,7 +6,7 @@ description: 面向 Kubernetes 与云原生运维场景的高性能 Model Contex
 
 <div class="hero">
   <h1>Cloud Native MCP Server</h1>
-  <p>面向 Kubernetes 与云原生基础设施管理的生产级 MCP 服务器，聚合 10 个服务与 220+ 工具，支持 SSE / Streamable-HTTP / HTTP / stdio 四种运行模式。</p>
+  <p>面向 Kubernetes 与云原生基础设施管理的生产级 MCP 服务器，聚合 10 个服务与 220+ 工具，支持 SSE / Streamable-HTTP 两种运行模式。</p>
   <div class="hero-buttons">
     <a href="https://github.com/mahmut-Abi/cloud-native-mcp-server" class="cta-button"><span>GitHub 仓库</span></a>
     <a href="#quick-start" class="cta-button transparent"><span>快速开始</span></a>
@@ -67,7 +67,7 @@ description: 面向 Kubernetes 与云原生运维场景的高性能 Model Contex
     <div class="stat-label">MCP 工具</div>
   </div>
   <div class="stat-item">
-    <div class="stat-number">4</div>
+    <div class="stat-number">2</div>
     <div class="stat-label">运行模式</div>
   </div>
   <div class="stat-item">
