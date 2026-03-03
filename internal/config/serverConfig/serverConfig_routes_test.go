@@ -509,7 +509,9 @@ func TestSetupMultipleRoutes_SSEAuthQueryForwardingAllowsInitialize(t *testing.T
 
 	err = client.Start(ctx)
 	assert.NoError(t, err)
-	defer client.Close()
+	defer func() {
+		assert.NoError(t, client.Close())
+	}()
 
 	req := transport.JSONRPCRequest{
 		JSONRPC: "2.0",

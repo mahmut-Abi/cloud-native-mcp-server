@@ -75,14 +75,18 @@ func ShouldRetryTransportError(err error) bool {
 
 	var netErr net.Error
 	if stderrs.As(err, &netErr) {
-		return netErr.Timeout() || netErr.Temporary()
+		if netErr.Timeout() {
+			return true
+		}
 	}
 
 	msg := strings.ToLower(err.Error())
 	return strings.Contains(msg, "connection reset") ||
 		strings.Contains(msg, "broken pipe") ||
 		strings.Contains(msg, "connection refused") ||
-		strings.Contains(msg, "timeout")
+		strings.Contains(msg, "timeout") ||
+		strings.Contains(msg, "temporarily unavailable") ||
+		strings.Contains(msg, "try again")
 }
 
 // NextRetryDelay computes exponential backoff with bounded jitter.
