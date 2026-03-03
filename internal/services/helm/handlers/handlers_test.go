@@ -174,6 +174,71 @@ func TestGetOptionalIntParam(t *testing.T) {
 	}
 }
 
+func TestResolveSearchChartsKeyword(t *testing.T) {
+	tests := []struct {
+		name    string
+		req     mcp.CallToolRequest
+		wantVal string
+		wantErr bool
+	}{
+		{
+			name: "uses keyword when provided",
+			req: mcp.CallToolRequest{
+				Params: mcp.CallToolParams{
+					Arguments: map[string]interface{}{"keyword": "kube-prometheus-stack"},
+				},
+			},
+			wantVal: "kube-prometheus-stack",
+			wantErr: false,
+		},
+		{
+			name: "falls back to query alias",
+			req: mcp.CallToolRequest{
+				Params: mcp.CallToolParams{
+					Arguments: map[string]interface{}{"query": "grafana"},
+				},
+			},
+			wantVal: "grafana",
+			wantErr: false,
+		},
+		{
+			name: "keyword takes precedence over query",
+			req: mcp.CallToolRequest{
+				Params: mcp.CallToolParams{
+					Arguments: map[string]interface{}{
+						"keyword": "prometheus",
+						"query":   "ignored",
+					},
+				},
+			},
+			wantVal: "prometheus",
+			wantErr: false,
+		},
+		{
+			name: "returns error when both missing",
+			req: mcp.CallToolRequest{
+				Params: mcp.CallToolParams{
+					Arguments: map[string]interface{}{},
+				},
+			},
+			wantVal: "",
+			wantErr: true,
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			val, err := resolveSearchChartsKeyword(tt.req)
+			if (err != nil) != tt.wantErr {
+				t.Errorf("resolveSearchChartsKeyword() error = %v, wantErr %v", err, tt.wantErr)
+			}
+			if val != tt.wantVal {
+				t.Errorf("resolveSearchChartsKeyword() = %v, want %v", val, tt.wantVal)
+			}
+		})
+	}
+}
+
 // Temporarily commented out - tests require proper client mocking
 // func TestHandleListReleases(t *testing.T) {
 // 	handler := HandleListReleases(nil)

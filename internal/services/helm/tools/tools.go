@@ -142,8 +142,10 @@ func SearchChartsTool() mcp.Tool {
 	logrus.Debug("Creating SearchChartsTool")
 	return mcp.NewTool("helm_search_charts",
 		mcp.WithDescription("Search for Helm charts in configured repositories. Allows discovering available charts and their versions."),
-		mcp.WithString("keyword", mcp.Required(),
-			mcp.Description("The keyword or chart name to search for.")),
+		mcp.WithString("keyword",
+			mcp.Description("The keyword or chart name to search for. Preferred parameter name.")),
+		mcp.WithString("query",
+			mcp.Description("Alias of 'keyword' for backward compatibility. Use either keyword or query.")),
 		mcp.WithBoolean("devel",
 			mcp.Description("Include development versions (e.g., beta, alpha) in the search results.")),
 	)

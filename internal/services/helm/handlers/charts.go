@@ -3,6 +3,7 @@ package handlers
 import (
 	"context"
 	"fmt"
+	"strings"
 	"time"
 
 	"github.com/mark3labs/mcp-go/mcp"
@@ -11,11 +12,23 @@ import (
 	"github.com/mahmut-Abi/cloud-native-mcp-server/internal/services/helm/client"
 )
 
+func resolveSearchChartsKeyword(request mcp.CallToolRequest) (string, error) {
+	keyword := strings.TrimSpace(getOptionalStringParam(request, "keyword"))
+	if keyword == "" {
+		// Backward-compatibility alias for clients using "query".
+		keyword = strings.TrimSpace(getOptionalStringParam(request, "query"))
+	}
+	if keyword == "" {
+		return "", fmt.Errorf("%w: keyword or query", ErrMissingRequiredParam)
+	}
+	return keyword, nil
+}
+
 // HandleSearchCharts returns a handler function for searching Helm charts.
 func HandleSearchCharts(c *client.Client) func(ctx context.Context, request mcp.CallToolRequest) (*mcp.CallToolResult, error) {
 	return func(ctx context.Context, request mcp.CallToolRequest) (*mcp.CallToolResult, error) {
 		logrus.WithField("tool", "helm_search_charts").Debug("Handler invoked")
-		keyword, err := requireStringParam(request, "keyword")
+		keyword, err := resolveSearchChartsKeyword(request)
 		if err != nil {
 			return nil, err
 		}
@@ -44,9 +57,9 @@ func HandleSearchCharts(c *client.Client) func(ctx context.Context, request mcp.
 		var charts []map[string]interface{}
 		select {
 		case result := <-resultChan:
-			charts, err = result.charts, result.err
-			if err != nil {
-				return nil, fmt.Errorf("failed to search charts with keyword %s: %w", keyword, err)
+			charts = result.charts
+			if result.err != nil {
+				return nil, fmt.Errorf("failed to search charts with keyword %s: %w", keyword, result.err)
 			}
 		case <-searchCtx.Done():
 			return nil, fmt.Errorf("chart search timed out after 2 minutes")
