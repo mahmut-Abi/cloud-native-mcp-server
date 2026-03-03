@@ -67,6 +67,135 @@ type Client struct {
 	optimizer    *RepositoryOptimizer
 }
 
+func resolveHelmHomeDir() (string, error) {
+	currentHome := strings.TrimSpace(os.Getenv("HOME"))
+	if currentHome != "" && currentHome != "/" {
+		return currentHome, nil
+	}
+
+	detectedHome, err := os.UserHomeDir()
+	if err == nil {
+		detectedHome = strings.TrimSpace(detectedHome)
+		if detectedHome != "" && detectedHome != "/" {
+			if err := os.Setenv("HOME", detectedHome); err != nil {
+				return "", fmt.Errorf("failed to set HOME to %q: %w", detectedHome, err)
+			}
+			logrus.Warnf("HOME is %q. Using %q for Helm operations", currentHome, detectedHome)
+			return detectedHome, nil
+		}
+	}
+
+	// Fall back to a writable temporary directory when HOME is missing or root.
+	fallbackHome := filepath.Join(os.TempDir(), "cloud-native-mcp-server", "helm-home")
+	if err := os.MkdirAll(fallbackHome, 0755); err != nil {
+		return "", fmt.Errorf("failed to create fallback Helm home directory %q: %w", fallbackHome, err)
+	}
+	if err := os.Setenv("HOME", fallbackHome); err != nil {
+		return "", fmt.Errorf("failed to set fallback HOME to %q: %w", fallbackHome, err)
+	}
+	logrus.Warnf("HOME is %q and user home could not be determined. Using %q for Helm operations", currentHome, fallbackHome)
+	return fallbackHome, nil
+}
+
+func ensureHelmRuntimeEnv() error {
+	homeDir, err := resolveHelmHomeDir()
+	if err != nil {
+		return err
+	}
+
+	configHome := os.Getenv("HELM_CONFIG_HOME")
+	if configHome == "" {
+		baseConfigHome := os.Getenv("XDG_CONFIG_HOME")
+		if baseConfigHome == "" {
+			baseConfigHome = filepath.Join(homeDir, ".config")
+		}
+		configHome = filepath.Join(baseConfigHome, "helm")
+		if err := os.Setenv("HELM_CONFIG_HOME", configHome); err != nil {
+			return fmt.Errorf("failed to set HELM_CONFIG_HOME: %w", err)
+		}
+	}
+
+	cacheHome := os.Getenv("HELM_CACHE_HOME")
+	if cacheHome == "" {
+		baseCacheHome := os.Getenv("XDG_CACHE_HOME")
+		if baseCacheHome == "" {
+			baseCacheHome = filepath.Join(homeDir, ".cache")
+		}
+		cacheHome = filepath.Join(baseCacheHome, "helm")
+		if err := os.Setenv("HELM_CACHE_HOME", cacheHome); err != nil {
+			return fmt.Errorf("failed to set HELM_CACHE_HOME: %w", err)
+		}
+	}
+
+	dataHome := os.Getenv("HELM_DATA_HOME")
+	if dataHome == "" {
+		baseDataHome := os.Getenv("XDG_DATA_HOME")
+		if baseDataHome == "" {
+			baseDataHome = filepath.Join(homeDir, ".local", "share")
+		}
+		dataHome = filepath.Join(baseDataHome, "helm")
+		if err := os.Setenv("HELM_DATA_HOME", dataHome); err != nil {
+			return fmt.Errorf("failed to set HELM_DATA_HOME: %w", err)
+		}
+	}
+
+	for _, dir := range []string{configHome, cacheHome, dataHome} {
+		if err := os.MkdirAll(dir, 0755); err != nil {
+			return fmt.Errorf("failed to create Helm directory %q: %w", dir, err)
+		}
+	}
+
+	return nil
+}
+
+func ensureRepositoryConfigFile(repoFile string) error {
+	if strings.TrimSpace(repoFile) == "" {
+		return fmt.Errorf("repository config path is empty")
+	}
+
+	repoDir := filepath.Dir(repoFile)
+	if err := os.MkdirAll(repoDir, 0755); err != nil {
+		return fmt.Errorf("failed to create repository directory %q: %w", repoDir, err)
+	}
+
+	if _, err := os.Stat(repoFile); err != nil {
+		if os.IsNotExist(err) {
+			if err := repo.NewFile().WriteFile(repoFile, 0644); err != nil {
+				return fmt.Errorf("failed to create repository file %q: %w", repoFile, err)
+			}
+			return nil
+		}
+		return fmt.Errorf("failed to stat repository file %q: %w", repoFile, err)
+	}
+
+	return nil
+}
+
+func ensureHelmFilesystem(settings *cli.EnvSettings) error {
+	if settings == nil {
+		return fmt.Errorf("helm settings are nil")
+	}
+
+	if err := ensureRepositoryConfigFile(settings.RepositoryConfig); err != nil {
+		return err
+	}
+
+	if settings.RepositoryCache != "" {
+		if err := os.MkdirAll(settings.RepositoryCache, 0755); err != nil {
+			return fmt.Errorf("failed to create repository cache directory %q: %w", settings.RepositoryCache, err)
+		}
+	}
+
+	if settings.RegistryConfig != "" {
+		registryDir := filepath.Dir(settings.RegistryConfig)
+		if err := os.MkdirAll(registryDir, 0755); err != nil {
+			return fmt.Errorf("failed to create registry config directory %q: %w", registryDir, err)
+		}
+	}
+
+	return nil
+}
+
 // NewClient creates a new Helm client with the given options.
 func NewClient(options *ClientOptions) (*Client, error) {
 	if options == nil {
@@ -75,6 +204,10 @@ func NewClient(options *ClientOptions) (*Client, error) {
 
 	client := &Client{
 		options: *options,
+	}
+
+	if err := ensureHelmRuntimeEnv(); err != nil {
+		return nil, fmt.Errorf("failed to initialize Helm environment: %w", err)
 	}
 
 	// Create Helm settings
@@ -93,6 +226,11 @@ func NewClient(options *ClientOptions) (*Client, error) {
 	if options.Namespace != "" {
 		settings.SetNamespace(options.Namespace)
 	}
+
+	if err := ensureHelmFilesystem(settings); err != nil {
+		return nil, fmt.Errorf("failed to initialize Helm filesystem paths: %w", err)
+	}
+
 	client.settings = settings
 
 	// Create action configuration
@@ -574,16 +712,8 @@ func (c *Client) ListRepositories() ([]*Repository, error) {
 
 	repoFile := c.settings.RepositoryConfig
 
-	// Ensure the repositories file exists
-	if _, err := os.Stat(repoFile); os.IsNotExist(err) {
-		// Create parent directory if it doesn't exist
-		if err := os.MkdirAll(filepath.Dir(repoFile), 0755); err != nil {
-			return nil, fmt.Errorf("failed to create repository directory: %w", err)
-		}
-		// Create empty repositories file
-		if err := repo.NewFile().WriteFile(repoFile, 0644); err != nil {
-			return nil, fmt.Errorf("failed to create repository file: %w", err)
-		}
+	if err := ensureRepositoryConfigFile(repoFile); err != nil {
+		return nil, err
 	}
 
 	// Read repositories file
@@ -611,16 +741,8 @@ func (c *Client) AddRepository(name, url string) error {
 
 	repoFile := c.settings.RepositoryConfig
 
-	// Ensure the repositories file exists
-	if _, err := os.Stat(repoFile); os.IsNotExist(err) {
-		// Create parent directory if it doesn't exist
-		if err := os.MkdirAll(filepath.Dir(repoFile), 0755); err != nil {
-			return fmt.Errorf("failed to create repository directory: %w", err)
-		}
-		// Create empty repositories file
-		if err := repo.NewFile().WriteFile(repoFile, 0644); err != nil {
-			return fmt.Errorf("failed to create repository file: %w", err)
-		}
+	if err := ensureRepositoryConfigFile(repoFile); err != nil {
+		return err
 	}
 
 	// Read repositories file
@@ -1118,6 +1240,9 @@ func (c *Client) UpdateRepositories() error {
 
 	// Load the repositories.yaml file
 	repoFile := c.settings.RepositoryConfig
+	if err := ensureRepositoryConfigFile(repoFile); err != nil {
+		return fmt.Errorf("failed to initialize repository configuration: %w", err)
+	}
 	f, err := repo.LoadFile(repoFile)
 	if err != nil {
 		if os.IsNotExist(err) {
