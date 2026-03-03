@@ -7,6 +7,8 @@ import (
 	"time"
 
 	"github.com/mahmut-Abi/cloud-native-mcp-server/internal/config"
+	"github.com/mahmut-Abi/cloud-native-mcp-server/internal/config/serverConfig"
+	server "github.com/mark3labs/mcp-go/server"
 	"github.com/sirupsen/logrus"
 )
 
@@ -70,7 +72,7 @@ func TestParseFlagsWithCustomValues(t *testing.T) {
 		"-read-timeout", "30",
 		"-write-timeout", "60",
 		"-idle-timeout", "120",
-		"-mode", "http",
+		"-mode", "streamable-http",
 	}
 
 	config := parseFlags()
@@ -95,8 +97,8 @@ func TestParseFlagsWithCustomValues(t *testing.T) {
 		t.Errorf("Expected idle timeout 120s, got %v", config.IdleTimeout)
 	}
 
-	if config.Mode != "http" {
-		t.Errorf("Expected mode 'http', got '%s'", config.Mode)
+	if config.Mode != "streamable-http" {
+		t.Errorf("Expected mode 'streamable-http', got '%s'", config.Mode)
 	}
 }
 
@@ -220,7 +222,7 @@ func TestApplyAppConfigCLITakesPrecedence(t *testing.T) {
 	cliConfig := &CLIConfig{
 		Addr:        "custom-addr:8080",
 		LogLevel:    "warn",
-		Mode:        "stdio",
+		Mode:        "streamable-http",
 		addrSet:     true,
 		logLevelSet: true,
 		modeSet:     true,
@@ -288,8 +290,8 @@ func TestApplyAppConfigCLITakesPrecedence(t *testing.T) {
 		t.Errorf("CLI log level should take precedence, expected 'warn', got '%s'", cliConfig.LogLevel)
 	}
 
-	if cliConfig.Mode != "stdio" {
-		t.Errorf("CLI mode should take precedence, expected 'stdio', got '%s'", cliConfig.Mode)
+	if cliConfig.Mode != "streamable-http" {
+		t.Errorf("CLI mode should take precedence, expected 'streamable-http', got '%s'", cliConfig.Mode)
 	}
 }
 
@@ -333,5 +335,26 @@ func TestGetDefaultKubeconfig(t *testing.T) {
 	expected := "/home/user/.kube/config"
 	if kubeconfig != expected {
 		t.Errorf("Expected '%s', got '%s'", expected, kubeconfig)
+	}
+}
+
+func TestStartHTTPServer_RejectsUnsupportedMode(t *testing.T) {
+	cliConfig := &CLIConfig{
+		Addr:         "127.0.0.1:0",
+		Mode:         "http",
+		ReadTimeout:  0,
+		WriteTimeout: 0,
+		IdleTimeout:  60 * time.Second,
+	}
+
+	mcpServer := server.NewMCPServer("test", "1.0.0")
+	sc := &serverConfig.ServerConfig{}
+
+	srv, err := startHTTPServer(cliConfig, nil, mcpServer, sc)
+	if err == nil {
+		t.Fatal("expected unsupported mode error")
+	}
+	if srv != nil {
+		t.Fatal("expected server to be nil when mode is unsupported")
 	}
 }

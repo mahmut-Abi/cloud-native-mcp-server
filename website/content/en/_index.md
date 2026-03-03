@@ -6,7 +6,7 @@ description: High-performance Model Context Protocol server for Kubernetes and c
 
 <div class="hero">
   <h1>Cloud Native MCP Server</h1>
-  <p>A production-grade MCP server for Kubernetes and cloud-native infrastructure management, exposing 10 services and 220+ tools across SSE, Streamable HTTP, HTTP, and stdio modes.</p>
+  <p>A production-grade MCP server for Kubernetes and cloud-native infrastructure management, exposing 10 services and 220+ tools across SSE and Streamable HTTP modes.</p>
   <div class="hero-buttons">
     <a href="https://github.com/mahmut-Abi/cloud-native-mcp-server" class="cta-button"><span>GitHub Repository</span></a>
     <a href="#quick-start" class="cta-button transparent"><span>Quick Start</span></a>
@@ -67,7 +67,7 @@ description: High-performance Model Context Protocol server for Kubernetes and c
     <div class="stat-label">MCP Tools</div>
   </div>
   <div class="stat-item">
-    <div class="stat-number">4</div>
+    <div class="stat-number">2</div>
     <div class="stat-label">Run Modes</div>
   </div>
   <div class="stat-item">

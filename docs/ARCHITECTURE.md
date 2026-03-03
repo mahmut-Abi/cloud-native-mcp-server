@@ -93,7 +93,7 @@ The server is initialized in `cmd/server/server.go`:
 4. Initialize audit storage
 5. Initialize authentication provider
 6. Initialize services
-7. Create MCP servers for each mode (SSE, HTTP, stdio)
+7. Create MCP servers for each mode (SSE, streamable-http)
 8. Setup HTTP routes
 9. Start server
 
@@ -137,8 +137,7 @@ func InitService(config ServiceConfig) (*Service, error) {
 The server implements the Model Context Protocol (MCP):
 
 - **SSE Mode**: Server-Sent Events for real-time communication
-- **HTTP Mode**: RESTful HTTP API
-- **Stdio Mode**: Standard input/output for CLI tools
+- **Streamable-HTTP Mode**: MCP streamable HTTP transport for modern clients
 
 ### 4. Middleware Pipeline
 

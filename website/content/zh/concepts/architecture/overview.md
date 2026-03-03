@@ -21,9 +21,7 @@ Cloud Native MCP Server 采用分层架构设计，从上到下分为：
 
 客户端通过 MCP 协议与服务器通信，支持以下传输方式：
 - **SSE (Server-Sent Events)**: 实时事件推送
-- **HTTP**: 标准请求/响应
 - **Streamable-HTTP**: 流式 HTTP 响应
-- **stdio**: 标准输入/输出（适用于开发环境）
 
 ### 2. HTTP 服务器层
 

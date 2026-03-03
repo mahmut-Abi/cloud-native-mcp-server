@@ -16,14 +16,12 @@ http://localhost:8080
 
 ## Transport Modes and Endpoints
 
-Cloud Native MCP Server supports four runtime modes:
+Cloud Native MCP Server supports two runtime modes:
 
 | Mode | Typical Usage | Aggregate Endpoint |
 | --- | --- | --- |
 | `sse` | Broad MCP client compatibility | `/api/aggregate/sse` |
 | `streamable-http` | Modern MCP transport | `/api/aggregate/streamable-http` |
-| `http` | Legacy message endpoint compatibility | `/api/aggregate/sse/message` |
-| `stdio` | Local runtime integration | stdin/stdout |
 
 Service-specific endpoint pattern:
 
@@ -151,7 +149,7 @@ For production integration, prefer MCP SDK/client implementations over manual cu
 
 ### Server and Transport
 
-- `MCP_MODE` (`sse`, `streamable-http`, `http`, `stdio`)
+- `MCP_MODE` (`sse`, `streamable-http`)
 - `MCP_ADDR`
 - `MCP_READ_TIMEOUT`
 - `MCP_WRITE_TIMEOUT`

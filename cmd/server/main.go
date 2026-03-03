@@ -5,8 +5,6 @@ import (
 
 	appconfig "github.com/mahmut-Abi/cloud-native-mcp-server/internal/config"
 	"github.com/sirupsen/logrus"
-
-	server "github.com/mark3labs/mcp-go/server"
 )
 
 func main() {
@@ -94,14 +92,6 @@ func main() {
 		default:
 			logrus.Fatalf("invalid --list mode: %s (expected services|tools)", config.ListMode)
 		}
-	}
-
-	if config.Mode == "stdio" {
-		logrus.Info("Starting in stdio mode")
-		if err := server.ServeStdio(mcpServer); err != nil {
-			logrus.Fatalf("stdio server error: %v", err)
-		}
-		return
 	}
 
 	// Start HTTP server

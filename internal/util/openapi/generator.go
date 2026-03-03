@@ -35,7 +35,7 @@ func (g *Generator) Generate() (*OpenAPISpec, error) {
 		OpenAPI: "3.0.0",
 		Info: Info{
 			Title:       "Kubernetes MCP Server API",
-			Description: "Model Context Protocol Server for Kubernetes cluster management with integrated observability tools. Supports SSE, HTTP, and stdio communication modes.",
+			Description: "Model Context Protocol Server for Kubernetes cluster management with integrated observability tools. Supports SSE and streamable-http communication modes.",
 			Version:     "1.0.0",
 			Contact: &map[string]interface{}{
 				"name": "Kubernetes MCP Team",
@@ -981,7 +981,7 @@ func (g *Generator) addModeInformation() {
 	// Add a tag for mode-specific information
 	g.spec.Tags = append(g.spec.Tags, Tag{
 		Name:        "Communication Modes",
-		Description: "Different communication modes supported by the server: SSE, HTTP, and stdio",
+		Description: "Different communication modes supported by the server: SSE and streamable-http",
 	})
 
 	// Add mode information to the info description
@@ -990,13 +990,9 @@ func (g *Generator) addModeInformation() {
 			"description": "Server-Sent Events mode for real-time streaming communication",
 			"endpoints":   []string{"/api/*/sse", "/api/*/sse/message"},
 		},
-		"http": map[string]interface{}{
-			"description": "Traditional HTTP REST API mode",
-			"endpoints":   []string{"/tools", "/tools/call", "/tools/{toolName}"},
-		},
-		"stdio": map[string]interface{}{
-			"description": "Standard input/output mode for direct command-line interaction",
-			"usage":       "Use --mode=stdio flag when starting the server",
+		"streamable-http": map[string]interface{}{
+			"description": "MCP streamable HTTP mode for modern production deployments",
+			"endpoints":   []string{"/api/*/streamable-http"},
 		},
 	}
 

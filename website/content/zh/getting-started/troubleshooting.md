@@ -52,7 +52,7 @@ curl -svN --connect-timeout 5 --max-time 15 \
 make sse-smoke BASE_URL=http://127.0.0.1:8080
 ```
 
-如果失败，重点查看首个事件和 message 端点（历史兼容）返回。
+如果失败，重点查看首个事件和 message 端点返回。
 
 ## 4. 认证持续返回 401
 
@@ -99,7 +99,7 @@ curl -sS -N "http://127.0.0.1:8080/api/aggregate/sse?api_key=ChangeMe-Strong-Key
 
 ## 7. 提交 Issue 前建议收集的信息
 
-- 运行模式（`sse` / `streamable-http` / `http` / `stdio`）
+- 运行模式（`sse` / `streamable-http`）
 - 启动命令与关键环境变量（注意脱敏）
 - `/health` 与传输端点的 `curl` 输出
 - 关键日志（最近 100-200 行）

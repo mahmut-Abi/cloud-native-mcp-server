@@ -41,12 +41,12 @@ Cloud Native MCP Server is a high-performance Model Context Protocol (MCP) serve
 │  (Claude Desktop, Browser, Custom MCP Clients)              │
 └────────────────────┬────────────────────────────────────────┘
                      │
-                     │ MCP Protocol (SSE/HTTP/stdio)
+                     │ MCP Protocol (SSE/Streamable-HTTP)
                      │
 ┌────────────────────▼────────────────────────────────────────┐
 │                    HTTP Server                               │
 │  ┌────────────────────────────────────────────────────────┐ │
-│  │  Routing Layer (SSE/HTTP/Streamable-HTTP)              │ │
+│  │  Routing Layer (SSE/Streamable-HTTP)              │ │
 │  └────────────────────────────────────────────────────────┘ │
 │  ┌────────────────────────────────────────────────────────┐ │
 │  │  Middleware Layer                                       │ │
@@ -105,7 +105,7 @@ Cloud Native MCP Server is a high-performance Model Context Protocol (MCP) serve
 **Responsibility**: Handle incoming HTTP/SSE requests and connections
 
 **Features**:
-- Support for multiple runtime modes (SSE, HTTP, stdio, Streamable-HTTP)
+- Support for multiple runtime modes (SSE, Streamable-HTTP)
 - Configurable timeouts and connection limits
 - Graceful shutdown
 - Health check endpoints

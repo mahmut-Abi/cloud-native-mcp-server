@@ -10,7 +10,7 @@ description: "完成安装、端点连通性验证与生产基线配置。"
 
 ## 本文将完成
 
-- 在 `sse`、`streamable-http`、`http`、`stdio` 四种模式中选择运行方式
+- 在 `sse`、`streamable-http` 两种模式中选择运行方式
 - 使用正确的环境变量启用认证
 - 验证健康状态与 MCP 握手链路
 - 进入 FAQ 与排障手册继续深化
@@ -68,8 +68,6 @@ make build
 | --- | --- | --- |
 | `sse` | 兼容性优先的 MCP 客户端接入 | `/api/aggregate/sse` |
 | `streamable-http` | 推荐的现代 MCP 传输（生产优先） | `/api/aggregate/streamable-http` |
-| `http` | 仅兼容 message 端点（历史兼容） | `/api/aggregate/sse/message` |
-| `stdio` | 本地 Agent/运行时集成 | stdin/stdout |
 
 ---
 

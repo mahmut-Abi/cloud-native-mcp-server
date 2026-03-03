@@ -12,8 +12,6 @@ description: "首次接入与生产落地中最常见问题汇总。"
 
 - `streamable-http`: 更现代的 MCP 传输方式，生产环境优先
 - `sse`: 兼容性最好，适合快速接入和广泛客户端适配
-- `stdio`: 本地 Agent 运行时集成
-- `http`: 历史兼容模式，仅在必要时使用
 
 如果没有明确约束，先用 `sse` 验证链路，再迁移到 `streamable-http`。
 

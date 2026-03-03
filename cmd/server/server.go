@@ -44,14 +44,12 @@ func startHTTPServer(config *CLIConfig, appConfig *appconfig.AppConfig, mcpServe
 
 	// Only initialize servers based on mode
 	switch config.Mode {
-	case "sse", "http":
+	case "sse":
 		sseServers = sc.InitSSEServers(mcpServer, config.Addr, appConfig)
 	case "streamable-http":
 		streamableHTTPServers = sc.InitStreamableHTTPServers(mcpServer, config.Addr, appConfig)
-	}
-
-	if config.Mode == "http" {
-		logrus.Warn("Mode 'http' is legacy and does not expose SSE stream endpoints; use --mode=sse for MCP SSE clients")
+	default:
+		return nil, fmt.Errorf("unsupported mode %q (supported: sse, streamable-http)", config.Mode)
 	}
 
 	mux := http.NewServeMux()

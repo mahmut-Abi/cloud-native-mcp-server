@@ -12,8 +12,6 @@ Use this default decision path:
 
 - `streamable-http`: best fit for modern MCP transport in production
 - `sse`: broad compatibility with existing MCP clients and integrations
-- `stdio`: local agent runtime integration
-- `http`: legacy compatibility mode only
 
 If you are unsure, start with `sse`, complete validation, then migrate to `streamable-http`.
 

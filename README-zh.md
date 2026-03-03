@@ -11,7 +11,7 @@
 ## 功能特性
 
 - **多服务集成**: Kubernetes、Grafana、Prometheus、Kibana、Elasticsearch、Helm、Alertmanager、Jaeger、OpenTelemetry、Utilities
-- **多协议支持**: SSE、HTTP 和 stdio 模式
+- **多协议支持**: SSE 和 streamable-http 模式
 - **智能缓存**: 支持 TTL 的 LRU 缓存以优化性能
 - **性能优化**: JSON 编码池、响应大小控制、智能限制
 - **增强的身份验证**: 支持 API Key（复杂度要求）、Bearer Token（JWT 验证）、Basic Auth
@@ -86,10 +86,10 @@ make build
 | `/api/opentelemetry/sse` | OpenTelemetry 服务 |
 | `/api/utilities/sse` | Utilities 服务 |
 
-### HTTP 模式（Legacy）
+### Streamable-HTTP 模式
 
-`http` 模式仅保留旧版 JSON-RPC 消息端点（`/api/<service>/sse/message`），不会暴露 SSE 流端点。  
-MCP SSE 客户端请使用 `--mode=sse`。
+使用 `--mode=streamable-http` 可暴露 MCP streamable HTTP 端点，例如：
+- `/api/aggregate/streamable-http`
 
 ### SSE 联调自检
 
