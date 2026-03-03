@@ -110,7 +110,7 @@ auth:
   # for apikey mode
   apiKey: "ChangeMe-Strong-Key-123!"
 
-  # for bearer mode
+  # for bearer mode (static token mode)
   bearerToken: ""
 
   # for basic mode
@@ -120,12 +120,35 @@ auth:
   # optional JWT verification settings
   jwtSecret: ""
   jwtAlgorithm: "HS256"
+
+  # OIDC discovery (bearer mode): provide issuer URL OR discovery URL
+  oidcIssuerUrl: ""
+  oidcDiscoveryUrl: ""
+
+  # optional OIDC claim checks
+  oidcIssuer: ""
+  oidcAudience: ""
+  oidcClientId: ""
+
+  # optional OIDC transport/cache tuning
+  oidcHttpTimeoutSec: 5
+  oidcJwksCacheTtlSec: 600
 ```
 
 Validation behavior:
 - when `mode: apikey`, `auth.apiKey` is required
-- when `mode: bearer`, `auth.bearerToken` is required
+- when `mode: bearer`, either `auth.bearerToken` OR OIDC discovery config (`auth.oidcIssuerUrl` / `auth.oidcDiscoveryUrl`) is required
 - when `mode: basic`, both `auth.username` and `auth.password` are required
+- when OIDC discovery is configured, token signature/issuer/audience are validated from discovery + JWKS (OpenID Connect Discovery 1.0)
+
+Environment variables (OIDC):
+- `MCP_AUTH_OIDC_ISSUER_URL`
+- `MCP_AUTH_OIDC_DISCOVERY_URL`
+- `MCP_AUTH_OIDC_ISSUER`
+- `MCP_AUTH_OIDC_AUDIENCE`
+- `MCP_AUTH_OIDC_CLIENT_ID`
+- `MCP_AUTH_OIDC_HTTP_TIMEOUT`
+- `MCP_AUTH_OIDC_JWKS_CACHE_TTL`
 
 ---
 

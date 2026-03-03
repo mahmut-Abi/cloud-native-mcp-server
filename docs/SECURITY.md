@@ -44,6 +44,26 @@ eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxMjM0NTY3ODkwIiwibmFtZSI6IkpvaG4
 - `eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxMjM0NTY3ODkwIiwibmFtZSI6IkpvaG4gRG9lIiwiaWF0IjoxNTE2MjM5MDIyfQ` (less than 32 chars)
 - `eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxMjM0NTY3ODkwIiwibmFtZSI6IkpvaG4gRG9lIiwiaWF0IjoxNTE2MjM5MDIyfQ.SflKxwRJSMeKKF2QT4fwpMeJf36POk6yJV_adQssw5c$` (invalid character at end)
 
+### OIDC Discovery For Bearer Mode
+
+Bearer authentication also supports OpenID Connect Discovery 1.0. When configured, the server:
+
+- fetches `/.well-known/openid-configuration`
+- resolves `jwks_uri` and validates JWT signatures via JWKS
+- validates issuer (`iss`) and audience (`aud`) claims when configured
+
+Configuration example:
+
+```yaml
+auth:
+  enabled: true
+  mode: "bearer"
+  oidcIssuerUrl: "https://idp.example.com/realms/observability"
+  oidcAudience: "cloud-native-mcp"
+  oidcHttpTimeoutSec: 5
+  oidcJwksCacheTtlSec: 600
+```
+
 ### Basic Authentication
 
 Basic authentication uses username and password:

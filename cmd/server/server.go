@@ -61,12 +61,19 @@ func startHTTPServer(config *CLIConfig, appConfig *appconfig.AppConfig, mcpServe
 	metricsHandler := metrics.Handler()
 	if appConfig != nil && appConfig.Auth.Enabled {
 		authConfig := middleware.AuthConfig{
-			Enabled:     true,
-			Mode:        appConfig.Auth.Mode,
-			APIKey:      appConfig.Auth.APIKey,
-			BearerToken: appConfig.Auth.BearerToken,
-			Username:    appConfig.Auth.Username,
-			Password:    appConfig.Auth.Password,
+			Enabled:             true,
+			Mode:                appConfig.Auth.Mode,
+			APIKey:              appConfig.Auth.APIKey,
+			BearerToken:         appConfig.Auth.BearerToken,
+			Username:            appConfig.Auth.Username,
+			Password:            appConfig.Auth.Password,
+			OIDCIssuerURL:       appConfig.Auth.OIDCIssuerURL,
+			OIDCDiscoveryURL:    appConfig.Auth.OIDCDiscoveryURL,
+			OIDCIssuer:          appConfig.Auth.OIDCIssuer,
+			OIDCAudience:        appConfig.Auth.OIDCAudience,
+			OIDCClientID:        appConfig.Auth.OIDCClientID,
+			OIDCHTTPTimeoutSec:  appConfig.Auth.OIDCHTTPTimeoutSec,
+			OIDCJWKSCacheTTLSec: appConfig.Auth.OIDCJWKSCacheTTLSec,
 		}
 		metricsHandler = middleware.AuthMiddleware(authConfig)(metricsHandler)
 		logrus.Info("Metrics endpoint protected with authentication")

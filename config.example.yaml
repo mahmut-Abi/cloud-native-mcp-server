@@ -519,7 +519,7 @@ auth:
 
   # Authentication mode: apikey | bearer | basic
   # apikey: X-API-Key simple API key auth
-  # bearer: Bearer Token (JWT) auth
+  # bearer: static bearer token OR OIDC-discovered JWT validation
   # basic: HTTP Basic Auth
   # Environment variable: MCP_AUTH_MODE
   mode: "apikey"
@@ -529,8 +529,8 @@ auth:
   # Environment variable: MCP_AUTH_API_KEY
   apiKey: ""
 
-  # Bearer token for bearer mode
-  # Minimum 16 characters recommended (JWT token)
+  # Bearer token for bearer mode (static token mode)
+  # Not required if OIDC issuer/discovery URL is configured below
   # Environment variable: MCP_AUTH_BEARER_TOKEN
   bearerToken: ""
 
@@ -549,6 +549,35 @@ auth:
   # JWT algorithm (HS256, RS256, etc.)
   # Environment variable: MCP_AUTH_JWT_ALGORITHM
   jwtAlgorithm: "HS256"
+
+  # OIDC issuer URL for OpenID Connect Discovery (auto appends
+  # /.well-known/openid-configuration)
+  # Environment variable: MCP_AUTH_OIDC_ISSUER_URL
+  oidcIssuerUrl: ""
+
+  # Explicit OIDC discovery URL override
+  # Environment variable: MCP_AUTH_OIDC_DISCOVERY_URL
+  oidcDiscoveryUrl: ""
+
+  # Expected issuer claim override (defaults to discovery document issuer)
+  # Environment variable: MCP_AUTH_OIDC_ISSUER
+  oidcIssuer: ""
+
+  # Expected audience claim
+  # Environment variable: MCP_AUTH_OIDC_AUDIENCE
+  oidcAudience: ""
+
+  # Optional client ID fallback (used when oidcAudience is empty)
+  # Environment variable: MCP_AUTH_OIDC_CLIENT_ID
+  oidcClientId: ""
+
+  # HTTP timeout for OIDC discovery and JWKS requests (seconds)
+  # Environment variable: MCP_AUTH_OIDC_HTTP_TIMEOUT
+  oidcHttpTimeoutSec: 5
+
+  # Cache TTL for OIDC discovery and JWKS responses (seconds)
+  # Environment variable: MCP_AUTH_OIDC_JWKS_CACHE_TTL
+  oidcJwksCacheTtlSec: 600
 
 ################################################################################
 # Audit Logging Configuration

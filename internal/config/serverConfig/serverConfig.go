@@ -1055,16 +1055,20 @@ func (s *ServerConfig) corsMiddleware(next http.Handler) http.Handler {
 	})
 }
 
-// sseStreamingMiddleware sets SSE-friendly transport headers before proxy/middleware layers.
-// In particular, X-Accel-Buffering disables Nginx proxy buffering so the initial endpoint
-// event is flushed to MCP clients immediately.
-func (s *ServerConfig) sseStreamingMiddleware(next http.Handler) http.Handler {
+// streamingTransportMiddleware sets transport headers that improve streaming behavior across
+// reverse proxies and CDNs. It is intentionally lightweight so it can be applied to both
+// SSE and streamable-http endpoints.
+func (s *ServerConfig) streamingTransportMiddleware(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		headers := w.Header()
-		headers.Set("X-Accel-Buffering", "no")
-
-		next.ServeHTTP(w, r)
+		sw := &streamingHeaderResponseWriter{ResponseWriter: w}
+		sw.setStreamingHeaders()
+		next.ServeHTTP(sw, r)
 	})
+}
+
+// sseStreamingMiddleware is kept for compatibility and delegates to the shared transport middleware.
+func (s *ServerConfig) sseStreamingMiddleware(next http.Handler) http.Handler {
+	return s.streamingTransportMiddleware(next)
 }
 
 type responseWriter struct {
@@ -1072,6 +1076,50 @@ type responseWriter struct {
 	status int
 	size   int
 	buffer bytes.Buffer
+}
+
+type streamingHeaderResponseWriter struct {
+	http.ResponseWriter
+	headersSet bool
+}
+
+func (sw *streamingHeaderResponseWriter) WriteHeader(statusCode int) {
+	if !sw.headersSet {
+		sw.setStreamingHeaders()
+		sw.headersSet = true
+	}
+	sw.ResponseWriter.WriteHeader(statusCode)
+}
+
+func (sw *streamingHeaderResponseWriter) Write(b []byte) (int, error) {
+	if !sw.headersSet {
+		sw.setStreamingHeaders()
+		sw.headersSet = true
+	}
+	return sw.ResponseWriter.Write(b)
+}
+
+func (sw *streamingHeaderResponseWriter) Flush() {
+	if !sw.headersSet {
+		sw.setStreamingHeaders()
+		sw.headersSet = true
+	}
+	if flusher, ok := sw.ResponseWriter.(http.Flusher); ok {
+		flusher.Flush()
+	}
+}
+
+func (sw *streamingHeaderResponseWriter) setStreamingHeaders() {
+	headers := sw.Header()
+	headers.Set("X-Accel-Buffering", "no")
+
+	cacheControl := strings.TrimSpace(headers.Get("Cache-Control"))
+	switch {
+	case cacheControl == "":
+		headers.Set("Cache-Control", "no-cache, no-transform")
+	case !strings.Contains(strings.ToLower(cacheControl), "no-transform"):
+		headers.Set("Cache-Control", cacheControl+", no-transform")
+	}
 }
 
 func (rw *responseWriter) WriteHeader(status int) {
@@ -1404,12 +1452,19 @@ func (s *ServerConfig) SetupMultipleRoutes(mux *http.ServeMux, sseServers map[st
 			// Apply authentication middleware if enabled
 			if appConfig != nil && appConfig.Auth.Enabled {
 				authConfig := middleware.AuthConfig{
-					Enabled:     appConfig.Auth.Enabled,
-					Mode:        appConfig.Auth.Mode,
-					APIKey:      appConfig.Auth.APIKey,
-					BearerToken: appConfig.Auth.BearerToken,
-					Username:    appConfig.Auth.Username,
-					Password:    appConfig.Auth.Password,
+					Enabled:             appConfig.Auth.Enabled,
+					Mode:                appConfig.Auth.Mode,
+					APIKey:              appConfig.Auth.APIKey,
+					BearerToken:         appConfig.Auth.BearerToken,
+					Username:            appConfig.Auth.Username,
+					Password:            appConfig.Auth.Password,
+					OIDCIssuerURL:       appConfig.Auth.OIDCIssuerURL,
+					OIDCDiscoveryURL:    appConfig.Auth.OIDCDiscoveryURL,
+					OIDCIssuer:          appConfig.Auth.OIDCIssuer,
+					OIDCAudience:        appConfig.Auth.OIDCAudience,
+					OIDCClientID:        appConfig.Auth.OIDCClientID,
+					OIDCHTTPTimeoutSec:  appConfig.Auth.OIDCHTTPTimeoutSec,
+					OIDCJWKSCacheTTLSec: appConfig.Auth.OIDCJWKSCacheTTLSec,
 				}
 				messageHandler = middleware.AuthMiddleware(authConfig)(messageHandler)
 			}
@@ -1442,12 +1497,19 @@ func (s *ServerConfig) SetupMultipleRoutes(mux *http.ServeMux, sseServers map[st
 				// Apply authentication middleware if enabled
 				if appConfig != nil && appConfig.Auth.Enabled {
 					authConfig := middleware.AuthConfig{
-						Enabled:     appConfig.Auth.Enabled,
-						Mode:        appConfig.Auth.Mode,
-						APIKey:      appConfig.Auth.APIKey,
-						BearerToken: appConfig.Auth.BearerToken,
-						Username:    appConfig.Auth.Username,
-						Password:    appConfig.Auth.Password,
+						Enabled:             appConfig.Auth.Enabled,
+						Mode:                appConfig.Auth.Mode,
+						APIKey:              appConfig.Auth.APIKey,
+						BearerToken:         appConfig.Auth.BearerToken,
+						Username:            appConfig.Auth.Username,
+						Password:            appConfig.Auth.Password,
+						OIDCIssuerURL:       appConfig.Auth.OIDCIssuerURL,
+						OIDCDiscoveryURL:    appConfig.Auth.OIDCDiscoveryURL,
+						OIDCIssuer:          appConfig.Auth.OIDCIssuer,
+						OIDCAudience:        appConfig.Auth.OIDCAudience,
+						OIDCClientID:        appConfig.Auth.OIDCClientID,
+						OIDCHTTPTimeoutSec:  appConfig.Auth.OIDCHTTPTimeoutSec,
+						OIDCJWKSCacheTTLSec: appConfig.Auth.OIDCJWKSCacheTTLSec,
 					}
 					sseHandler = middleware.AuthMiddleware(authConfig)(sseHandler)
 				}
@@ -1548,12 +1610,19 @@ func (s *ServerConfig) SetupMultipleRoutes(mux *http.ServeMux, sseServers map[st
 			// Apply authentication middleware if enabled
 			if appConfig != nil && appConfig.Auth.Enabled {
 				authConfig := middleware.AuthConfig{
-					Enabled:     appConfig.Auth.Enabled,
-					Mode:        appConfig.Auth.Mode,
-					APIKey:      appConfig.Auth.APIKey,
-					BearerToken: appConfig.Auth.BearerToken,
-					Username:    appConfig.Auth.Username,
-					Password:    appConfig.Auth.Password,
+					Enabled:             appConfig.Auth.Enabled,
+					Mode:                appConfig.Auth.Mode,
+					APIKey:              appConfig.Auth.APIKey,
+					BearerToken:         appConfig.Auth.BearerToken,
+					Username:            appConfig.Auth.Username,
+					Password:            appConfig.Auth.Password,
+					OIDCIssuerURL:       appConfig.Auth.OIDCIssuerURL,
+					OIDCDiscoveryURL:    appConfig.Auth.OIDCDiscoveryURL,
+					OIDCIssuer:          appConfig.Auth.OIDCIssuer,
+					OIDCAudience:        appConfig.Auth.OIDCAudience,
+					OIDCClientID:        appConfig.Auth.OIDCClientID,
+					OIDCHTTPTimeoutSec:  appConfig.Auth.OIDCHTTPTimeoutSec,
+					OIDCJWKSCacheTTLSec: appConfig.Auth.OIDCJWKSCacheTTLSec,
 				}
 				httpHandler = middleware.AuthMiddleware(authConfig)(httpHandler)
 			}
@@ -1567,6 +1636,7 @@ func (s *ServerConfig) SetupMultipleRoutes(mux *http.ServeMux, sseServers map[st
 			// Apply security middleware
 			securityConfig := middleware.DefaultSecurityConfig()
 			httpHandler = middleware.SecurityMiddleware(securityConfig)(httpHandler)
+			httpHandler = s.streamingTransportMiddleware(httpHandler)
 
 			mux.Handle(httpPath, httpHandler)
 

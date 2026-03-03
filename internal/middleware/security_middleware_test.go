@@ -43,3 +43,23 @@ func TestSecurityMiddleware_PreservesFlusherForStreaming(t *testing.T) {
 		t.Fatal("expected security headers to be set")
 	}
 }
+
+func TestSecurityMiddleware_PreservesExistingCacheControl(t *testing.T) {
+	handler := http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		w.Header().Set("Cache-Control", "no-cache, no-transform")
+		w.WriteHeader(http.StatusOK)
+	})
+
+	wrapped := SecurityMiddleware(DefaultSecurityConfig())(handler)
+	req := httptest.NewRequest(http.MethodGet, "/api/aggregate/streamable-http", nil)
+	rec := httptest.NewRecorder()
+
+	wrapped.ServeHTTP(rec, req)
+
+	if rec.Code != http.StatusOK {
+		t.Fatalf("expected status 200, got %d", rec.Code)
+	}
+	if got := rec.Header().Get("Cache-Control"); got != "no-cache, no-transform" {
+		t.Fatalf("expected Cache-Control to be preserved, got %q", got)
+	}
+}

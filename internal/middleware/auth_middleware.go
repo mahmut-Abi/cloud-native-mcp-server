@@ -16,16 +16,35 @@ var (
 )
 
 type AuthConfig struct {
-	Enabled     bool
-	Mode        string // apikey, bearer, basic
-	APIKey      string
-	BearerToken string
-	Username    string
-	Password    string
+	Enabled             bool
+	Mode                string // apikey, bearer, basic
+	APIKey              string
+	BearerToken         string
+	Username            string
+	Password            string
+	OIDCIssuerURL       string
+	OIDCDiscoveryURL    string
+	OIDCIssuer          string
+	OIDCAudience        string
+	OIDCClientID        string
+	OIDCHTTPTimeoutSec  int
+	OIDCJWKSCacheTTLSec int
 }
 
 // AuthMiddleware creates an HTTP middleware for authentication
 func AuthMiddleware(config AuthConfig) func(http.Handler) http.Handler {
+	var (
+		oidcVerifier *oidcVerifier
+		oidcInitErr  error
+	)
+
+	if config.Enabled && config.Mode == "bearer" && isOIDCConfigured(config) {
+		oidcVerifier, oidcInitErr = newOIDCVerifier(config)
+		if oidcInitErr != nil {
+			authLogger.WithError(oidcInitErr).Error("Failed to initialize OIDC bearer authentication")
+		}
+	}
+
 	return func(next http.Handler) http.Handler {
 		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 			// Log auth middleware entry
@@ -33,6 +52,7 @@ func AuthMiddleware(config AuthConfig) func(http.Handler) http.Handler {
 				"enabled": config.Enabled,
 				"mode":    config.Mode,
 				"path":    r.URL.Path,
+				"oidc":    oidcVerifier != nil,
 			}).Debug("Auth middleware processing request")
 
 			if !config.Enabled {
@@ -41,7 +61,7 @@ func AuthMiddleware(config AuthConfig) func(http.Handler) http.Handler {
 				return
 			}
 
-			if !authenticate(r, config) {
+			if oidcInitErr != nil || !authenticate(r, config, oidcVerifier) {
 				authLogger.Error("Authentication failed - returning 401")
 				authLogger.Warnf("Authentication failed for request from %s to %s", r.RemoteAddr, r.RequestURI)
 				w.WriteHeader(http.StatusUnauthorized)
@@ -63,10 +83,11 @@ func AuthMiddleware(config AuthConfig) func(http.Handler) http.Handler {
 }
 
 // authenticate checks if the request has valid authentication
-func authenticate(r *http.Request, config AuthConfig) bool {
+func authenticate(r *http.Request, config AuthConfig, oidcVerifier *oidcVerifier) bool {
 	authLogger.WithFields(logrus.Fields{
 		"mode":        config.Mode,
 		"has_api_key": getAPIKeyFromRequest(r) != "",
+		"oidc":        oidcVerifier != nil,
 	}).Debug("Starting authentication process")
 
 	switch config.Mode {
@@ -81,7 +102,7 @@ func authenticate(r *http.Request, config AuthConfig) bool {
 		return authenticateAPIKey(r, config.APIKey)
 	case "bearer":
 		authLogger.Debug("Processing Bearer token authentication")
-		return authenticateBearer(r, config.BearerToken)
+		return authenticateBearer(r, config.BearerToken, oidcVerifier)
 	case "basic":
 		authLogger.Debug("Processing Basic authentication")
 		return authenticateBasic(r, config.Username, config.Password)
@@ -126,12 +147,21 @@ func authenticateAPIKey(r *http.Request, expectedKey string) bool {
 }
 
 // authenticateBearer checks Bearer token authentication
-func authenticateBearer(r *http.Request, expectedToken string) bool {
+func authenticateBearer(r *http.Request, expectedToken string, oidcVerifier *oidcVerifier) bool {
 	auth := r.Header.Get("Authorization")
 	if !strings.HasPrefix(auth, "Bearer ") {
 		return false
 	}
 	token := strings.TrimPrefix(auth, "Bearer ")
+
+	if oidcVerifier != nil {
+		if err := oidcVerifier.VerifyToken(token); err != nil {
+			authLogger.WithError(err).Debug("OIDC bearer token validation failed")
+			return false
+		}
+		return true
+	}
+
 	return token == expectedToken && expectedToken != ""
 }
 

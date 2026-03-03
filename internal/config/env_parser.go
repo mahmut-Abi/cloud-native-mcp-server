@@ -580,6 +580,27 @@ func (p *EnvParser) parseAuthConfig(cfg *AppConfig, over func(string) (string, b
 	if v, ok := over("MCP_AUTH_JWT_ALGORITHM"); ok {
 		cfg.Auth.JWTAlgorithm = v
 	}
+	if v, ok := over("MCP_AUTH_OIDC_ISSUER_URL"); ok {
+		cfg.Auth.OIDCIssuerURL = v
+	}
+	if v, ok := over("MCP_AUTH_OIDC_DISCOVERY_URL"); ok {
+		cfg.Auth.OIDCDiscoveryURL = v
+	}
+	if v, ok := over("MCP_AUTH_OIDC_ISSUER"); ok {
+		cfg.Auth.OIDCIssuer = v
+	}
+	if v, ok := over("MCP_AUTH_OIDC_AUDIENCE"); ok {
+		cfg.Auth.OIDCAudience = v
+	}
+	if v, ok := over("MCP_AUTH_OIDC_CLIENT_ID"); ok {
+		cfg.Auth.OIDCClientID = v
+	}
+	if v, ok := over("MCP_AUTH_OIDC_HTTP_TIMEOUT"); ok {
+		cfg.Auth.OIDCHTTPTimeoutSec = atoiDefault(v, cfg.Auth.OIDCHTTPTimeoutSec)
+	}
+	if v, ok := over("MCP_AUTH_OIDC_JWKS_CACHE_TTL"); ok {
+		cfg.Auth.OIDCJWKSCacheTTLSec = atoiDefault(v, cfg.Auth.OIDCJWKSCacheTTLSec)
+	}
 }
 
 func (p *EnvParser) parseEnableDisableConfig(cfg *AppConfig, over func(string) (string, bool)) {

@@ -1,6 +1,9 @@
 package config
 
-import "fmt"
+import (
+	"fmt"
+	"net/url"
+)
 
 // AppConfig represents application configuration loaded from YAML and environment variables.
 type AppConfig struct {
@@ -164,14 +167,21 @@ type AppConfig struct {
 
 	// Authentication configuration
 	Auth struct {
-		Enabled      bool   `yaml:"enabled"`      // Enable authentication
-		Mode         string `yaml:"mode"`         // auth mode: apikey | bearer | basic
-		APIKey       string `yaml:"apiKey"`       // API key for apikey mode
-		BearerToken  string `yaml:"bearerToken"`  // Bearer token for bearer mode
-		Username     string `yaml:"username"`     // Username for basic auth
-		Password     string `yaml:"password"`     // Password for basic auth
-		JWTSecret    string `yaml:"jwtSecret"`    // Secret key for JWT validation
-		JWTAlgorithm string `yaml:"jwtAlgorithm"` // JWT algorithm (HS256, RS256, etc.)
+		Enabled             bool   `yaml:"enabled"`             // Enable authentication
+		Mode                string `yaml:"mode"`                // auth mode: apikey | bearer | basic
+		APIKey              string `yaml:"apiKey"`              // API key for apikey mode
+		BearerToken         string `yaml:"bearerToken"`         // Bearer token for bearer mode (static mode)
+		Username            string `yaml:"username"`            // Username for basic auth
+		Password            string `yaml:"password"`            // Password for basic auth
+		JWTSecret           string `yaml:"jwtSecret"`           // Secret key for JWT validation
+		JWTAlgorithm        string `yaml:"jwtAlgorithm"`        // JWT algorithm (HS256, RS256, etc.)
+		OIDCIssuerURL       string `yaml:"oidcIssuerUrl"`       // Issuer base URL used to auto-discover OIDC metadata
+		OIDCDiscoveryURL    string `yaml:"oidcDiscoveryUrl"`    // Explicit OIDC discovery document URL override
+		OIDCIssuer          string `yaml:"oidcIssuer"`          // Expected token issuer claim (defaults to discovery issuer)
+		OIDCAudience        string `yaml:"oidcAudience"`        // Expected token audience claim
+		OIDCClientID        string `yaml:"oidcClientId"`        // Optional client ID fallback used when audience is empty
+		OIDCHTTPTimeoutSec  int    `yaml:"oidcHttpTimeoutSec"`  // HTTP timeout for discovery/JWKS requests
+		OIDCJWKSCacheTTLSec int    `yaml:"oidcJwksCacheTtlSec"` // Discovery/JWKS cache TTL
 	} `yaml:"auth"`
 
 	// Audit configuration
@@ -292,6 +302,9 @@ type AppConfig struct {
 //	MCP_AUDIT_SAMPLING_ENABLED, MCP_AUDIT_SAMPLING_RATE,
 //	MCP_AUTH_ENABLED, MCP_AUTH_MODE, MCP_AUTH_API_KEY, MCP_AUTH_BEARER_TOKEN,
 //	MCP_AUTH_USERNAME, MCP_AUTH_PASSWORD, MCP_AUTH_JWT_SECRET, MCP_AUTH_JWT_ALGORITHM,
+//	MCP_AUTH_OIDC_ISSUER_URL, MCP_AUTH_OIDC_DISCOVERY_URL, MCP_AUTH_OIDC_ISSUER,
+//	MCP_AUTH_OIDC_AUDIENCE, MCP_AUTH_OIDC_CLIENT_ID, MCP_AUTH_OIDC_HTTP_TIMEOUT,
+//	MCP_AUTH_OIDC_JWKS_CACHE_TTL,
 //	MCP_OPENTELEMETRY_ENABLED, MCP_OPENTELEMETRY_ADDRESS, MCP_OPENTELEMETRY_TIMEOUT,
 //	MCP_OPENTELEMETRY_USERNAME, MCP_OPENTELEMETRY_PASSWORD, MCP_OPENTELEMETRY_BEARER_TOKEN,
 //	MCP_OPENTELEMETRY_TLS_SKIP_VERIFY, MCP_OPENTELEMETRY_TLS_CERT_FILE, MCP_OPENTELEMETRY_TLS_KEY_FILE,
@@ -328,8 +341,29 @@ func (c *AppConfig) Validate() error {
 				return fmt.Errorf("auth API key is required for apikey mode")
 			}
 		case "bearer":
-			if c.Auth.BearerToken == "" {
-				return fmt.Errorf("auth bearer token is required for bearer mode")
+			oidcConfigured := c.Auth.OIDCIssuerURL != "" || c.Auth.OIDCDiscoveryURL != ""
+			if !oidcConfigured && c.Auth.BearerToken == "" {
+				return fmt.Errorf("auth bearer token is required for bearer mode when OIDC discovery is not configured")
+			}
+			if oidcConfigured {
+				if c.Auth.OIDCIssuerURL != "" {
+					parsedIssuerURL, err := url.Parse(c.Auth.OIDCIssuerURL)
+					if err != nil || parsedIssuerURL.Scheme == "" || parsedIssuerURL.Host == "" {
+						return fmt.Errorf("invalid auth OIDC issuer URL: %s", c.Auth.OIDCIssuerURL)
+					}
+				}
+				if c.Auth.OIDCDiscoveryURL != "" {
+					parsedDiscoveryURL, err := url.Parse(c.Auth.OIDCDiscoveryURL)
+					if err != nil || parsedDiscoveryURL.Scheme == "" || parsedDiscoveryURL.Host == "" {
+						return fmt.Errorf("invalid auth OIDC discovery URL: %s", c.Auth.OIDCDiscoveryURL)
+					}
+				}
+				if c.Auth.OIDCHTTPTimeoutSec < 0 {
+					return fmt.Errorf("auth OIDC HTTP timeout must be non-negative")
+				}
+				if c.Auth.OIDCJWKSCacheTTLSec < 0 {
+					return fmt.Errorf("auth OIDC JWKS cache TTL must be non-negative")
+				}
 			}
 		case "basic":
 			if c.Auth.Username == "" || c.Auth.Password == "" {
