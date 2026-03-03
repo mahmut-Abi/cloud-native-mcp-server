@@ -209,6 +209,7 @@ func TestKibanaConfig(t *testing.T) {
 func TestHelmConfig(t *testing.T) {
 	originalNamespace := os.Getenv("MCP_HELM_NAMESPACE")
 	originalDebug := os.Getenv("MCP_HELM_DEBUG")
+	originalHTTPProxy := os.Getenv("MCP_HELM_HTTP_PROXY")
 
 	defer func() {
 		if originalNamespace != "" {
@@ -221,10 +222,16 @@ func TestHelmConfig(t *testing.T) {
 		} else {
 			_ = os.Unsetenv("MCP_HELM_DEBUG")
 		}
+		if originalHTTPProxy != "" {
+			_ = os.Setenv("MCP_HELM_HTTP_PROXY", originalHTTPProxy)
+		} else {
+			_ = os.Unsetenv("MCP_HELM_HTTP_PROXY")
+		}
 	}()
 
 	_ = os.Setenv("MCP_HELM_NAMESPACE", "helm-system")
 	_ = os.Setenv("MCP_HELM_DEBUG", "true")
+	_ = os.Setenv("MCP_HELM_HTTP_PROXY", "http://127.0.0.1:7890")
 
 	cfg, err := Load("")
 	if err != nil {
@@ -233,6 +240,9 @@ func TestHelmConfig(t *testing.T) {
 
 	if cfg.Helm.Namespace != "helm-system" {
 		t.Errorf("Expected namespace 'helm-system', got '%s'", cfg.Helm.Namespace)
+	}
+	if cfg.Helm.HTTPProxy != "http://127.0.0.1:7890" {
+		t.Errorf("Expected HTTP proxy 'http://127.0.0.1:7890', got '%s'", cfg.Helm.HTTPProxy)
 	}
 
 }

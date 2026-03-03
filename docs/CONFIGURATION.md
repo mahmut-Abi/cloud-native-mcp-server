@@ -175,8 +175,7 @@ helm:
   debug: false
   timeoutSec: 300
   maxRetries: 3
-  useMirrors: true
-  mirrors: {}
+  httpProxy: ""
 
 elasticsearch:
   enabled: false

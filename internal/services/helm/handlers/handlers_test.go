@@ -444,17 +444,6 @@ func TestResolveSearchChartsKeyword(t *testing.T) {
 // 	_ = err // Expected to fail due to nil client
 // }
 //
-// func TestHandleGetMirrorConfiguration(t *testing.T) {
-// 	handler := HandleGetMirrorConfiguration(nil)
-//
-// 	// Test with valid parameters (will fail due to nil client but tests parameter validation)
-// 	req := mcp.CallToolRequest{}
-// 	req.Params.Arguments = map[string]interface{}{"namespace": "default"}
-//
-// 	_, err := handler(nil, req)
-// 	_ = err // Expected to fail due to nil client
-// }
-//
 // func TestHandleListReleasesPaginated(t *testing.T) {
 // 	handler := HandleListReleasesPaginated(nil)
 //
