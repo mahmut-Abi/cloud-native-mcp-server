@@ -303,28 +303,17 @@ func TestSetupMultipleRoutes_StreamableHTTPSetsStreamingHeaders(t *testing.T) {
 		close(done)
 	}()
 
-	deadline := time.After(2 * time.Second)
-	for {
-		_, headers, _ := rec.snapshot()
-		if headers.Get("X-Accel-Buffering") != "" {
-			assert.Equal(t, "no", headers.Get("X-Accel-Buffering"))
-			assert.Equal(t, "no-cache, no-transform", headers.Get("Cache-Control"))
-			break
-		}
-
-		select {
-		case <-deadline:
-			t.Fatal("timed out waiting for streamable-http transport headers")
-		case <-time.After(10 * time.Millisecond):
-		}
-	}
-
+	time.Sleep(25 * time.Millisecond)
 	cancel()
 	select {
 	case <-done:
 	case <-time.After(2 * time.Second):
 		t.Fatal("streamable-http handler did not stop after context cancellation")
 	}
+
+	_, headers, _ := rec.snapshot()
+	assert.Equal(t, "no", headers.Get("X-Accel-Buffering"))
+	assert.Equal(t, "no-cache, no-transform", headers.Get("Cache-Control"))
 }
 
 // Test SetupMultipleRoutes with SSE mode for health route registration
