@@ -531,6 +531,40 @@ func HandleUpdateResource(client *client.Client) func(ctx context.Context, reque
 	}
 }
 
+// HandlePatchResource handles patch requests for Kubernetes resources.
+func HandlePatchResource(client *client.Client) func(ctx context.Context, request mcp.CallToolRequest) (*mcp.CallToolResult, error) {
+	return func(ctx context.Context, request mcp.CallToolRequest) (*mcp.CallToolResult, error) {
+		kind, err := requireStringParam(request, "kind")
+		if err != nil {
+			return nil, err
+		}
+		name, err := requireStringParam(request, "name")
+		if err != nil {
+			return nil, err
+		}
+		namespace := getOptionalStringParam(request, "namespace")
+		patchJSON, err := requireStringParam(request, "patch")
+		if err != nil {
+			return nil, err
+		}
+		patchType := getOptionalStringParam(request, "patchType")
+		if patchType == "" {
+			patchType = "merge"
+		}
+		logrus.WithFields(logrus.Fields{"tool": "patch_resource", "kind": kind, "name": name, "ns": namespace, "patchType": patchType}).Debug("Handler invoked")
+
+		// Convert patch string to bytes
+		patchBytes := []byte(patchJSON)
+		result, err := client.PatchResource(ctx, kind, name, namespace, patchBytes, patchType)
+		if err != nil {
+			return nil, err
+		}
+		logrus.Debug("patch_resource succeeded")
+		return marshalJSONResponse(result)
+	}
+}
+
+
 // HandleContainerExec handles command execution requests in containers.
 func HandleContainerExec(client *client.Client) func(ctx context.Context, request mcp.CallToolRequest) (*mcp.CallToolResult, error) {
 	return func(ctx context.Context, request mcp.CallToolRequest) (*mcp.CallToolResult, error) {
