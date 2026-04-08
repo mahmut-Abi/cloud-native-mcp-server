@@ -4,6 +4,7 @@ go 1.25.0
 
 require (
 	github.com/Masterminds/semver/v3 v3.4.0
+	github.com/golang-jwt/jwt/v5 v5.3.1
 	github.com/lib/pq v1.11.2
 	github.com/mark3labs/mcp-go v0.44.1
 	github.com/mattn/go-sqlite3 v1.14.34
@@ -42,8 +43,7 @@ require (
 	github.com/bahlo/generic-list-go v0.2.0 // indirect
 	github.com/beorn7/perks v1.0.1 // indirect
 	github.com/blang/semver/v4 v4.0.0 // indirect
-	github.com/buger/jsonparser v1.1.1 // indirect
-	github.com/cenkalti/backoff/v4 v4.3.0 // indirect
+	github.com/buger/jsonparser v1.1.2 // indirect
 	github.com/cenkalti/backoff/v5 v5.0.3 // indirect
 	github.com/cespare/xxhash/v2 v2.3.0 // indirect
 	github.com/chai2010/gettext-go v1.0.3 // indirect
@@ -81,7 +81,6 @@ require (
 	github.com/go-openapi/swag/typeutils v0.25.4 // indirect
 	github.com/go-openapi/swag/yamlutils v0.25.4 // indirect
 	github.com/gobwas/glob v0.2.3 // indirect
-	github.com/golang-jwt/jwt/v5 v5.3.1 // indirect
 	github.com/google/btree v1.1.3 // indirect
 	github.com/google/gnostic-models v0.7.1 // indirect
 	github.com/google/go-cmp v0.7.0 // indirect
