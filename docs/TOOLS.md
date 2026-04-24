@@ -29,7 +29,7 @@ This document provides a comprehensive reference for all 210+ tools available in
 | `kubernetes_get_resource` | Get resource details with JSONPath support. | - |
 | `kubernetes_describe_resource` | Describe resource in detail (similar to kubectl describe). | - |
 | `kubernetes_create_resource` | Create Kubernetes resource from YAML/JSON. | - |
-| `kubernetes_update_resource` | Update existing resource. | - |
+| `kubernetes_patch_resource` | Patch existing resource with partial updates (merge/json/apply). | - |
 | `kubernetes_delete_resource` | Delete resource. | - |
 
 ### Pod Operations

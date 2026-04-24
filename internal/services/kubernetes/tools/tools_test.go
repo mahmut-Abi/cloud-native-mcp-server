@@ -32,6 +32,13 @@ func TestUpdateResourceTool_Definition(t *testing.T) {
 	}
 }
 
+func TestPatchResourceTool_Definition(t *testing.T) {
+	tool := PatchResourceTool()
+	if tool.Name != "kubernetes_patch_resource" {
+		t.Fatalf("unexpected name: %s", tool.Name)
+	}
+}
+
 func TestCreateResourceTool_Definition(t *testing.T) {
 	tool := CreateResourceTool()
 	if tool.Name != "kubernetes_create_resource" {
