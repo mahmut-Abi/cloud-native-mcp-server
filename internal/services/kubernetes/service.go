@@ -108,7 +108,6 @@ func (s *Service) GetTools() []mcp.Tool {
 
 			// Resource creation and management
 			tools.CreateResourceTool(),
-			tools.UpdateResourceTool(),
 			tools.PatchResourceTool(),
 			tools.DeleteResourceTool(),
 
@@ -170,7 +169,6 @@ func (s *Service) GetHandlers() map[string]server.ToolHandlerFunc {
 
 		// Resource creation and management
 		"kubernetes_create_resource": handlers.HandleCreateResource(s.client),
-		"kubernetes_update_resource": handlers.HandleUpdateResource(s.client),
 		"kubernetes_patch_resource": handlers.HandlePatchResource(s.client),
 		"kubernetes_delete_resource": handlers.HandleDeleteResource(s.client),
 
