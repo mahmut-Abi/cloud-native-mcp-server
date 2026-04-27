@@ -326,6 +326,68 @@ func ScaleResourceTool() mcp.Tool {
 	)
 }
 
+// GetRolloutStatusTool retrieves rollout status for workload resources.
+func GetRolloutStatusTool() mcp.Tool {
+	logrus.Debug("Creating GetRolloutStatusTool")
+	return mcp.NewTool("kubernetes_get_rollout_status",
+		mcp.WithDescription("Get rollout status for a workload such as a Deployment or StatefulSet. Use this after scaling, patching, or image updates to verify progress."),
+		mcp.WithString("kind", mcp.Required(),
+			mcp.Description("Workload kind, typically `Deployment`, `StatefulSet`, or `DaemonSet`.")),
+		mcp.WithString("name", mcp.Required(),
+			mcp.Description("Exact resource name.")),
+		mcp.WithString("namespace", mcp.Required(),
+			mcp.Description("Namespace of the workload resource.")),
+		mcp.WithNumber("timeoutSeconds",
+			mcp.Description("Optional timeout hint in seconds. The current implementation records it in the response but does not wait server-side yet.")),
+		mcp.WithString("debug",
+			mcp.Description("Enable debug output for troubleshooting rollout status retrieval.")),
+	)
+}
+
+// CordonNodeTool marks a node unschedulable.
+func CordonNodeTool() mcp.Tool {
+	logrus.Debug("Creating CordonNodeTool")
+	return mcp.NewTool("kubernetes_cordon_node",
+		mcp.WithDescription("Mark a node as unschedulable so new Pods are not placed on it. Use before maintenance or drain operations."),
+		mcp.WithString("name", mcp.Required(),
+			mcp.Description("Exact node name.")),
+		mcp.WithString("debug",
+			mcp.Description("Enable debug output for troubleshooting the node operation.")),
+	)
+}
+
+// UncordonNodeTool marks a node schedulable again.
+func UncordonNodeTool() mcp.Tool {
+	logrus.Debug("Creating UncordonNodeTool")
+	return mcp.NewTool("kubernetes_uncordon_node",
+		mcp.WithDescription("Mark a node schedulable again after maintenance or drain operations."),
+		mcp.WithString("name", mcp.Required(),
+			mcp.Description("Exact node name.")),
+		mcp.WithString("debug",
+			mcp.Description("Enable debug output for troubleshooting the node operation.")),
+	)
+}
+
+// DrainNodeTool cordons and drains a node.
+func DrainNodeTool() mcp.Tool {
+	logrus.Debug("Creating DrainNodeTool")
+	return mcp.NewTool("kubernetes_drain_node",
+		mcp.WithDescription("Safely prepare a node for maintenance by cordoning it and evicting workloads. Use with caution because it affects scheduling and running Pods."),
+		mcp.WithString("name", mcp.Required(),
+			mcp.Description("Exact node name.")),
+		mcp.WithBoolean("deleteEmptyDir",
+			mcp.Description("Whether Pods using emptyDir volumes may be removed. Default: false.")),
+		mcp.WithBoolean("ignoreDaemonsets",
+			mcp.Description("Whether to ignore DaemonSet-managed Pods. Default: true.")),
+		mcp.WithNumber("gracePeriodSeconds",
+			mcp.Description("Optional grace period in seconds for Pod termination. Default: 30.")),
+		mcp.WithNumber("timeoutSeconds",
+			mcp.Description("Optional overall timeout in seconds. Default: 120.")),
+		mcp.WithString("debug",
+			mcp.Description("Enable debug output for troubleshooting the drain operation.")),
+	)
+}
+
 // GetAPIVersionsTool retrieves available Kubernetes API versions
 func GetAPIVersionsTool() mcp.Tool {
 	logrus.Debug("Creating GetAPIVersionsTool")

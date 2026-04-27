@@ -121,6 +121,10 @@ func (s *Service) GetTools() []mcp.Tool {
 
 			// Cluster operations
 			tools.ScaleResourceTool(),
+			tools.GetRolloutStatusTool(),
+			tools.CordonNodeTool(),
+			tools.UncordonNodeTool(),
+			tools.DrainNodeTool(),
 			tools.PortForwardTool(),
 
 			// Container and pod operations
@@ -170,7 +174,7 @@ func (s *Service) GetHandlers() map[string]server.ToolHandlerFunc {
 
 		// Resource creation and management
 		"kubernetes_create_resource": handlers.HandleCreateResource(s.client),
-		"kubernetes_patch_resource": handlers.HandlePatchResource(s.client),
+		"kubernetes_patch_resource":  handlers.HandlePatchResource(s.client),
 		"kubernetes_delete_resource": handlers.HandleDeleteResource(s.client),
 
 		// Resource discovery and inspection
@@ -181,8 +185,12 @@ func (s *Service) GetHandlers() map[string]server.ToolHandlerFunc {
 		"kubernetes_get_api_resources":            s.wrapWithCache("kubernetes_get_api_resources", handlers.HandleGetAPIResources(s.client)),
 
 		// Cluster operations
-		"kubernetes_scale_resource": handlers.HandleScaleResource(s.client),
-		"kubernetes_port_forward":   handlers.HandlePortForward(s.client),
+		"kubernetes_scale_resource":     handlers.HandleScaleResource(s.client),
+		"kubernetes_get_rollout_status": handlers.HandleGetRolloutStatus(s.client),
+		"kubernetes_cordon_node":        handlers.HandleCordonNode(s.client),
+		"kubernetes_uncordon_node":      handlers.HandleUncordonNode(s.client),
+		"kubernetes_drain_node":         handlers.HandleDrainNode(s.client),
+		"kubernetes_port_forward":       handlers.HandlePortForward(s.client),
 
 		// Container and pod operations
 		"kubernetes_get_pod_logs":      handlers.HandleContainerLogs(s.client),

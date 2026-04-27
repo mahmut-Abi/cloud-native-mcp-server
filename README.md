@@ -37,7 +37,7 @@ A high-performance Model Context Protocol (MCP) server for Kubernetes and cloud-
 
 | Service | Tools | Description |
 |---------|-------|-------------|
-| **kubernetes** | 28 | Core container orchestration and resource management |
+| **kubernetes** | 32 | Core container orchestration and resource management |
 | **helm** | 30 | Application package management and deployment |
 | **grafana** | 36 | Visualization, monitoring dashboards, and alerting |
 | **prometheus** | 20 | Metrics collection, querying, and monitoring |
