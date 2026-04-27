@@ -10,6 +10,7 @@ For the exact runtime inventory, prefer `--list tools`.
 - Many handlers still accept legacy JSON strings for compatibility, but structured JSON is preferred.
 - Prometheus and tracing timestamps should use RFC3339.
 - Kibana tools may accept both `camelCase` and `snake_case` forms for some parameters, but the schema field name remains the canonical form.
+- Prefer flat tool arguments over nested `params`, even though Kubernetes handlers now accept nested `params` for compatibility.
 
 ## Table of Contents
 
@@ -84,7 +85,7 @@ For the exact runtime inventory, prefer `--list tools`.
 
 | Tool | Description | Priority |
 |------|-------------|----------|
-| `kubernetes_search_resources` | Search resources by labels, annotations, or fields. | - |
+| `kubernetes_search_resources` | Search resources by name. Accepts `kind` or `resourceTypes`, and `query` or `name`. If no query is provided, it lists matching resources of the selected kinds up to `limit`. | - |
 
 ---
 
