@@ -7,11 +7,11 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
-	"strconv"
 
 	"github.com/mark3labs/mcp-go/mcp"
 	"github.com/sirupsen/logrus"
 
+	svccommon "github.com/mahmut-Abi/cloud-native-mcp-server/internal/services/common"
 	"github.com/mahmut-Abi/cloud-native-mcp-server/internal/services/kibana/client"
 	optimize "github.com/mahmut-Abi/cloud-native-mcp-server/internal/util/performance"
 )
@@ -33,17 +33,12 @@ func marshalIndentJSON(data interface{}) ([]byte, error) {
 
 // parseLimitWithWarnings validates and parses limit parameter with warnings
 func parseLimitWithWarnings(request mcp.CallToolRequest, toolName string) int {
-	limit := 20
-	if v, ok := request.GetArguments()["limit"]; ok {
-		if f, ok := v.(float64); ok {
-			limit = int(f)
-			if limit <= 0 {
-				limit = 20
-			} else if limit > 100 {
-				logrus.WithField("requested", limit).WithField("max", 100).Warn("Limit too high, resetting to safe maximum")
-				limit = 100
-			}
-		}
+	limit := svccommon.GetIntArg(request.GetArguments(), 20, "limit")
+	if limit <= 0 {
+		limit = 20
+	} else if limit > 100 {
+		logrus.WithField("requested", limit).WithField("max", 100).Warn("Limit too high, resetting to safe maximum")
+		limit = 100
 	}
 
 	if limit > 50 {
@@ -58,33 +53,46 @@ func parseLimitWithWarnings(request mcp.CallToolRequest, toolName string) int {
 
 // getOptionalIntParam gets optional numeric parameter
 func getOptionalIntParam(request mcp.CallToolRequest, param string, defaultValue int) int {
-	if v, ok := request.GetArguments()[param]; ok {
-		if f, ok := v.(float64); ok {
-			val := int(f)
-			if val > 0 {
-				return val
-			}
-		} else if s, ok := v.(string); ok {
-			if val, err := strconv.Atoi(s); err == nil && val > 0 {
-				return val
-			}
-		}
+	value := svccommon.GetIntArg(request.GetArguments(), defaultValue, param)
+	if value > 0 {
+		return value
 	}
 	return defaultValue
 }
 
 // getOptionalBoolParam gets optional boolean parameter
 func getOptionalBoolParam(request mcp.CallToolRequest, param string) *bool {
-	if value, ok := request.GetArguments()[param].(bool); ok {
-		return &value
+	value, err := svccommon.GetBoolArg(request.GetArguments(), param)
+	if err != nil {
+		return nil
 	}
-	return nil
+	return value
 }
 
 // getOptionalStringParam gets optional string parameter
 func getOptionalStringParam(request mcp.CallToolRequest, param string) string {
-	value, _ := request.GetArguments()[param].(string)
+	value, _ := svccommon.GetStringArg(request.GetArguments(), param)
 	return value
+}
+
+func getOptionalObjectParam(request mcp.CallToolRequest, param string) (map[string]interface{}, error) {
+	value, _, err := svccommon.GetObjectArg(request.GetArguments(), param)
+	return value, err
+}
+
+func getOptionalObjectArrayParam(request mcp.CallToolRequest, param string) ([]map[string]interface{}, error) {
+	value, _, err := svccommon.GetObjectSliceArg(request.GetArguments(), param)
+	return value, err
+}
+
+func getOptionalStringArrayParam(request mcp.CallToolRequest, param string) ([]string, error) {
+	value, _, err := svccommon.GetStringSliceArg(request.GetArguments(), param)
+	return value, err
+}
+
+func getOptionalJSONStringParam(request mcp.CallToolRequest, param string) (string, error) {
+	value, _, err := svccommon.GetJSONStringArg(request.GetArguments(), param)
+	return value, err
 }
 
 // marshalOptimizedResponse marshals optimized response with size warning
@@ -112,11 +120,7 @@ func marshalOptimizedResponse(data any, toolName string) (*mcp.CallToolResult, e
 
 // requireStringParam validates required string parameter
 func requireStringParam(request mcp.CallToolRequest, param string) (string, error) {
-	value, ok := request.GetArguments()[param].(string)
-	if !ok || value == "" {
-		return "", fmt.Errorf("missing required parameter: %s", param)
-	}
-	return value, nil
+	return svccommon.RequireStringArg(request.GetArguments(), param)
 }
 
 // getStringFieldFromMap gets string field from map

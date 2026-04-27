@@ -57,13 +57,17 @@ internal/services/yourservice/
 
 ### Tool Definitions
 - Use `mcp.NewTool()` to create tools
-- Add clear descriptions
-- Define required and optional parameters
+- Prefer concise descriptions that tell the model when to choose the tool, not just what the tool is
+- Define required and optional parameters with exact payload shapes for objects and arrays
+- Use standard JSON Schema types such as `object`, `array`, `string`, `number`, and `boolean`
+- Avoid unsupported schema types like `map`
+- Keep field naming consistent; if handlers accept aliases, document the canonical field name in the schema
 
 ### Handler Implementation
 - Parse parameters from `request.Params.Arguments`
+- Accept common LLM payload variations when practical, especially JSON strings for object and array fields
 - Call client methods
-- Return structured results using `mcp.NewToolResultText()`
+- Return structured results using `mcp.NewToolResultText()` and surface failures as MCP tool errors
 
 ## Testing
 

@@ -65,8 +65,8 @@ func HandleGetSpace(c *client.Client) func(ctx context.Context, req mcp.CallTool
 		}
 
 		// Get space ID parameter
-		spaceID, ok := req.GetArguments()["space_id"].(string)
-		if !ok || spaceID == "" {
+		spaceID, err := requireStringParam(req, "space_id")
+		if err != nil {
 			return &mcp.CallToolResult{
 				IsError: true,
 				Content: []mcp.Content{
@@ -110,19 +110,19 @@ func HandleCreateSpace(c *client.Client) func(ctx context.Context, req mcp.CallT
 	return func(ctx context.Context, req mcp.CallToolRequest) (*mcp.CallToolResult, error) {
 		logrus.Debug("Executing Kibana create space handler")
 
-		spaceID, _ := req.GetArguments()["id"].(string)
-		name, _ := req.GetArguments()["name"].(string)
-		description, _ := req.GetArguments()["description"].(string)
-		color, _ := req.GetArguments()["color"].(string)
-		initials, _ := req.GetArguments()["initials"].(string)
+		spaceID := getOptionalStringParam(req, "id")
+		name := getOptionalStringParam(req, "name")
+		description := getOptionalStringParam(req, "description")
+		color := getOptionalStringParam(req, "color")
+		initials := getOptionalStringParam(req, "initials")
 
-		var disabledFeatures []string
-		if feats, ok := req.GetArguments()["disabledFeatures"].([]interface{}); ok {
-			for _, f := range feats {
-				if s, ok := f.(string); ok {
-					disabledFeatures = append(disabledFeatures, s)
-				}
-			}
+		disabledFeatures, err := getOptionalStringArrayParam(req, "disabledFeatures")
+		if err != nil {
+			return mcp.NewToolResultError(err.Error()), nil
+		}
+
+		if spaceID == "" || name == "" {
+			return mcp.NewToolResultError("id and name are required"), nil
 		}
 
 		space := client.Space{
@@ -167,19 +167,19 @@ func HandleUpdateSpace(c *client.Client) func(ctx context.Context, req mcp.CallT
 	return func(ctx context.Context, req mcp.CallToolRequest) (*mcp.CallToolResult, error) {
 		logrus.Debug("Executing Kibana update space handler")
 
-		spaceID, _ := req.GetArguments()["space_id"].(string)
-		name, _ := req.GetArguments()["name"].(string)
-		description, _ := req.GetArguments()["description"].(string)
-		color, _ := req.GetArguments()["color"].(string)
-		initials, _ := req.GetArguments()["initials"].(string)
+		spaceID := getOptionalStringParam(req, "space_id")
+		name := getOptionalStringParam(req, "name")
+		description := getOptionalStringParam(req, "description")
+		color := getOptionalStringParam(req, "color")
+		initials := getOptionalStringParam(req, "initials")
 
-		var disabledFeatures []string
-		if feats, ok := req.GetArguments()["disabledFeatures"].([]interface{}); ok {
-			for _, f := range feats {
-				if s, ok := f.(string); ok {
-					disabledFeatures = append(disabledFeatures, s)
-				}
-			}
+		disabledFeatures, err := getOptionalStringArrayParam(req, "disabledFeatures")
+		if err != nil {
+			return mcp.NewToolResultError(err.Error()), nil
+		}
+
+		if spaceID == "" {
+			return mcp.NewToolResultError("space_id is required"), nil
 		}
 
 		space := client.Space{
@@ -223,10 +223,10 @@ func HandleDeleteSpace(c *client.Client) func(ctx context.Context, req mcp.CallT
 	return func(ctx context.Context, req mcp.CallToolRequest) (*mcp.CallToolResult, error) {
 		logrus.Debug("Executing Kibana delete space handler")
 
-		spaceID, _ := req.GetArguments()["space_id"].(string)
+		spaceID := getOptionalStringParam(req, "space_id")
 		force := false
-		if f, ok := req.GetArguments()["force"].(bool); ok {
-			force = f
+		if f := getOptionalBoolParam(req, "force"); f != nil {
+			force = *f
 		}
 
 		if spaceID == "" {

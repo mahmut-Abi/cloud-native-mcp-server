@@ -1478,7 +1478,7 @@ func (c *Client) DeleteSpace(ctx context.Context, spaceID string, force bool) er
 // ============ Write Operations: Index Patterns ============
 
 // CreateIndexPattern creates a new index pattern
-func (c *Client) CreateIndexPattern(ctx context.Context, title string, timeField string) (*IndexPattern, error) {
+func (c *Client) CreateIndexPattern(ctx context.Context, title string, timeField string, customSource, fieldFormatMap map[string]interface{}) (*IndexPattern, error) {
 	logrus.WithField("title", title).Debug("Creating index pattern")
 
 	attributes := map[string]interface{}{
@@ -1486,6 +1486,12 @@ func (c *Client) CreateIndexPattern(ctx context.Context, title string, timeField
 	}
 	if timeField != "" {
 		attributes["timeFieldName"] = timeField
+	}
+	if customSource != nil {
+		attributes["customSource"] = customSource
+	}
+	if fieldFormatMap != nil {
+		attributes["fieldFormatMap"] = fieldFormatMap
 	}
 
 	obj := SavedObject{
@@ -1520,7 +1526,7 @@ func (c *Client) CreateIndexPattern(ctx context.Context, title string, timeField
 }
 
 // UpdateIndexPattern updates an index pattern
-func (c *Client) UpdateIndexPattern(ctx context.Context, patternID string, title string, timeField string) (*IndexPattern, error) {
+func (c *Client) UpdateIndexPattern(ctx context.Context, patternID string, title string, timeField string, fieldFormatMap map[string]interface{}) (*IndexPattern, error) {
 	logrus.WithField("pattern_id", patternID).Debug("Updating index pattern")
 
 	attributes := map[string]interface{}{}
@@ -1529,6 +1535,9 @@ func (c *Client) UpdateIndexPattern(ctx context.Context, patternID string, title
 	}
 	if timeField != "" {
 		attributes["timeFieldName"] = timeField
+	}
+	if fieldFormatMap != nil {
+		attributes["fieldFormatMap"] = fieldFormatMap
 	}
 
 	obj := map[string]interface{}{
@@ -2382,26 +2391,20 @@ func (c *Client) CreateAlertRule(ctx context.Context, name, alertTypeID string, 
 }
 
 // UpdateAlertRule updates an existing alert rule.
-func (c *Client) UpdateAlertRule(ctx context.Context, ruleID string, name, schedule string, params, actions map[string]interface{}, tags []string) (*KibanaAlertRule, error) {
+func (c *Client) UpdateAlertRule(ctx context.Context, ruleID string, name string, schedule, params map[string]interface{}, actions []map[string]interface{}, tags []string) (*KibanaAlertRule, error) {
 	logrus.WithField("rule_id", ruleID).Debug("Updating alert rule")
 
 	rule := map[string]interface{}{}
 	if name != "" {
 		rule["name"] = name
 	}
-	if schedule != "" {
-		// Parse schedule if it's a string
-		var scheduleMap map[string]interface{}
-		if err := json.Unmarshal([]byte(schedule), &scheduleMap); err == nil {
-			rule["schedule"] = scheduleMap
-		} else {
-			rule["schedule"] = map[string]interface{}{"interval": schedule}
-		}
+	if schedule != nil {
+		rule["schedule"] = schedule
 	}
 	if params != nil {
 		rule["params"] = params
 	}
-	if actions != nil {
+	if len(actions) > 0 {
 		rule["actions"] = actions
 	}
 	if tags != nil {

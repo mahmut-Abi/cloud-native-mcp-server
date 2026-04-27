@@ -94,13 +94,13 @@ func HandleCreateConnector(c *client.Client) func(ctx context.Context, req mcp.C
 	return func(ctx context.Context, req mcp.CallToolRequest) (*mcp.CallToolResult, error) {
 		name := getOptionalStringParam(req, "name")
 		connectorTypeID := getOptionalStringParam(req, "connectorTypeId")
-
-		var config, secrets map[string]interface{}
-		if c, ok := req.GetArguments()["config"].(map[string]interface{}); ok {
-			config = c
+		config, err := getOptionalObjectParam(req, "config")
+		if err != nil {
+			return mcp.NewToolResultError(err.Error()), nil
 		}
-		if s, ok := req.GetArguments()["secrets"].(map[string]interface{}); ok {
-			secrets = s
+		secrets, err := getOptionalObjectParam(req, "secrets")
+		if err != nil {
+			return mcp.NewToolResultError(err.Error()), nil
 		}
 
 		if name == "" || connectorTypeID == "" {
@@ -151,13 +151,13 @@ func HandleUpdateConnector(c *client.Client) func(ctx context.Context, req mcp.C
 		}
 
 		name := getOptionalStringParam(req, "name")
-
-		var config, secrets map[string]interface{}
-		if c, ok := req.GetArguments()["config"].(map[string]interface{}); ok {
-			config = c
+		config, err := getOptionalObjectParam(req, "config")
+		if err != nil {
+			return mcp.NewToolResultError(err.Error()), nil
 		}
-		if s, ok := req.GetArguments()["secrets"].(map[string]interface{}); ok {
-			secrets = s
+		secrets, err := getOptionalObjectParam(req, "secrets")
+		if err != nil {
+			return mcp.NewToolResultError(err.Error()), nil
 		}
 
 		logrus.WithField("connector_id", connectorID).Debug("Executing Kibana update connector handler")
@@ -226,9 +226,9 @@ func HandleTestConnector(c *client.Client) func(ctx context.Context, req mcp.Cal
 			return nil, err
 		}
 
-		var body map[string]interface{}
-		if b, ok := req.GetArguments()["body"].(map[string]interface{}); ok {
-			body = b
+		body, err := getOptionalObjectParam(req, "body")
+		if err != nil {
+			return mcp.NewToolResultError(err.Error()), nil
 		}
 
 		logrus.WithField("connector_id", connectorID).Debug("Executing Kibana test connector handler")

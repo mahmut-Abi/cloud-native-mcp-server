@@ -566,7 +566,7 @@ func GetIndexPatternFieldsTool() mcp.Tool {
 func CreateSpaceTool() mcp.Tool {
 	return mcp.Tool{
 		Name:        "kibana_create_space",
-		Description: "🏗️ Create a new Kibana space. Spaces help organize your dashboards, visualizations, and other saved objects into logical groupings.",
+		Description: "Create a Kibana space. Use this for a new logical workspace. Prefer concise names and only set `disabledFeatures` when you know the exact feature IDs.",
 		InputSchema: mcp.ToolInputSchema{
 			Type: "object",
 			Properties: map[string]interface{}{
@@ -592,7 +592,7 @@ func CreateSpaceTool() mcp.Tool {
 				},
 				"disabledFeatures": map[string]interface{}{
 					"type":        "array",
-					"description": "List of features to disable in this space (e.g., ['visualize', 'dashboard'])",
+					"description": "Optional array of feature IDs to disable. A JSON array string is accepted by the server for compatibility.",
 					"items": map[string]interface{}{
 						"type": "string",
 					},
@@ -607,7 +607,7 @@ func CreateSpaceTool() mcp.Tool {
 func UpdateSpaceTool() mcp.Tool {
 	return mcp.Tool{
 		Name:        "kibana_update_space",
-		Description: "✏️ Update an existing Kibana space. Modify the name, description, color, or other properties of a space.",
+		Description: "Update an existing Kibana space. `space_id` is required; all other fields are partial updates.",
 		InputSchema: mcp.ToolInputSchema{
 			Type: "object",
 			Properties: map[string]interface{}{
@@ -633,7 +633,7 @@ func UpdateSpaceTool() mcp.Tool {
 				},
 				"disabledFeatures": map[string]interface{}{
 					"type":        "array",
-					"description": "Updated list of disabled features",
+					"description": "Optional replacement array of disabled feature IDs. A JSON array string is accepted by the server for compatibility.",
 					"items": map[string]interface{}{
 						"type": "string",
 					},
@@ -673,7 +673,7 @@ func DeleteSpaceTool() mcp.Tool {
 func CreateIndexPatternTool() mcp.Tool {
 	return mcp.Tool{
 		Name:        "kibana_create_index_pattern",
-		Description: "🔍 Create a new index pattern in Kibana. Index patterns define how to access your Elasticsearch indices for Discover, visualizations, and dashboards.",
+		Description: "Create a Kibana index pattern. `title` is the pattern such as `logs-*`; optional object fields are forwarded as saved-object attributes.",
 		InputSchema: mcp.ToolInputSchema{
 			Type: "object",
 			Properties: map[string]interface{}{
@@ -686,12 +686,12 @@ func CreateIndexPatternTool() mcp.Tool {
 					"description": "Optional name of the time field for time-based queries (e.g., '@timestamp', 'timestamp')",
 				},
 				"customSource": map[string]interface{}{
-					"type":        "map",
-					"description": "Optional custom source configuration",
+					"type":        "object",
+					"description": "Optional custom source object. Snake_case alias `custom_source` is also accepted.",
 				},
 				"fieldFormatMap": map[string]interface{}{
-					"type":        "map",
-					"description": "Optional field format mappings for custom display formats",
+					"type":        "object",
+					"description": "Optional field format object. Snake_case alias `field_format_map` is also accepted.",
 				},
 			},
 			Required: []string{"title"},
@@ -703,7 +703,7 @@ func CreateIndexPatternTool() mcp.Tool {
 func UpdateIndexPatternTool() mcp.Tool {
 	return mcp.Tool{
 		Name:        "kibana_update_index_pattern",
-		Description: "✏️ Update an existing index pattern. Modify the title, time field, or format configurations.",
+		Description: "Update a Kibana index pattern. `index_pattern_id` is required; the other fields are partial updates.",
 		InputSchema: mcp.ToolInputSchema{
 			Type: "object",
 			Properties: map[string]interface{}{
@@ -717,11 +717,11 @@ func UpdateIndexPatternTool() mcp.Tool {
 				},
 				"timeField": map[string]interface{}{
 					"type":        "string",
-					"description": "New time field name",
+					"description": "Updated time field name. Snake_case alias `time_field` is also accepted.",
 				},
 				"fieldFormatMap": map[string]interface{}{
-					"type":        "map",
-					"description": "Updated field format mappings",
+					"type":        "object",
+					"description": "Updated field format object. Snake_case alias `field_format_map` is also accepted.",
 				},
 			},
 			Required: []string{"index_pattern_id"},
@@ -789,7 +789,7 @@ func RefreshIndexPatternFieldsTool() mcp.Tool {
 func CreateDashboardTool() mcp.Tool {
 	return mcp.Tool{
 		Name:        "kibana_create_dashboard",
-		Description: "📊 Create a new dashboard in Kibana. Dashboards display collections of visualizations and saved searches.",
+		Description: "Create a Kibana dashboard. Start with `title`; only include time settings when you want a default time range persisted on the dashboard.",
 		InputSchema: mcp.ToolInputSchema{
 			Type: "object",
 			Properties: map[string]interface{}{
@@ -803,20 +803,20 @@ func CreateDashboardTool() mcp.Tool {
 				},
 				"timeRestore": map[string]interface{}{
 					"type":        "boolean",
-					"description": "Enable time picker and time-based filtering (default: true)",
+					"description": "Persist the dashboard time range. Snake_case alias `time_restore` is also accepted by the server.",
 					"default":     true,
 				},
 				"timeFrom": map[string]interface{}{
 					"type":        "string",
-					"description": "Default time range start (e.g., 'now-24h')",
+					"description": "Optional default time range start such as `now-24h`. Snake_case alias `time_from` is also accepted.",
 				},
 				"timeTo": map[string]interface{}{
 					"type":        "string",
-					"description": "Default time range end (e.g., 'now')",
+					"description": "Optional default time range end such as `now`. Snake_case alias `time_to` is also accepted.",
 				},
 				"refreshInterval": map[string]interface{}{
-					"type":        "map",
-					"description": "Auto-refresh interval configuration",
+					"type":        "object",
+					"description": "Optional refresh configuration object. Example: {\"pause\": false, \"value\": 60000}. Snake_case alias `refresh_interval` is also accepted.",
 				},
 			},
 			Required: []string{"title"},
@@ -828,7 +828,7 @@ func CreateDashboardTool() mcp.Tool {
 func UpdateDashboardTool() mcp.Tool {
 	return mcp.Tool{
 		Name:        "kibana_update_dashboard",
-		Description: "✏️ Update an existing dashboard. Modify the title, description, panels, or time settings.",
+		Description: "Update a Kibana dashboard. `dashboard_id` is required. `panelsJSON` may be a JSON string or structured JSON array/object; snake_case aliases are accepted for time fields.",
 		InputSchema: mcp.ToolInputSchema{
 			Type: "object",
 			Properties: map[string]interface{}{
@@ -846,7 +846,7 @@ func UpdateDashboardTool() mcp.Tool {
 				},
 				"panelsJSON": map[string]interface{}{
 					"type":        "string",
-					"description": "JSON string of dashboard panels layout",
+					"description": "Optional dashboard panel layout JSON. The server also accepts structured JSON and will serialize it.",
 				},
 				"timeFrom": map[string]interface{}{
 					"type":        "string",
@@ -912,7 +912,7 @@ func CloneDashboardTool() mcp.Tool {
 func CreateVisualizationTool() mcp.Tool {
 	return mcp.Tool{
 		Name:        "kibana_create_visualization",
-		Description: "📈 Create a new visualization in Kibana. Visualizations display data from Elasticsearch indices in various chart types.",
+		Description: "Create a Kibana visualization. Start with `title` and optionally provide `visState` plus `savedSearchRefName` if the visualization depends on an existing saved search.",
 		InputSchema: mcp.ToolInputSchema{
 			Type: "object",
 			Properties: map[string]interface{}{
@@ -921,8 +921,8 @@ func CreateVisualizationTool() mcp.Tool {
 					"description": "Visualization title",
 				},
 				"visState": map[string]interface{}{
-					"type":        "map",
-					"description": "Visualization state configuration (type, aggs, params)",
+					"type":        "object",
+					"description": "Visualization state object. Snake_case alias `vis_state` is also accepted, and JSON strings are accepted for compatibility.",
 				},
 				"description": map[string]interface{}{
 					"type":        "string",
@@ -930,7 +930,7 @@ func CreateVisualizationTool() mcp.Tool {
 				},
 				"savedSearchRefName": map[string]interface{}{
 					"type":        "string",
-					"description": "Reference to an existing saved search (optional)",
+					"description": "Optional saved search reference name. Snake_case alias `saved_search_ref_name` is also accepted.",
 				},
 			},
 			Required: []string{"title"},
@@ -942,7 +942,7 @@ func CreateVisualizationTool() mcp.Tool {
 func UpdateVisualizationTool() mcp.Tool {
 	return mcp.Tool{
 		Name:        "kibana_update_visualization",
-		Description: "✏️ Update an existing visualization. Modify the title, visState, or description.",
+		Description: "Update a Kibana visualization. `visualization_id` is required; `visState` may be a structured object or a JSON string.",
 		InputSchema: mcp.ToolInputSchema{
 			Type: "object",
 			Properties: map[string]interface{}{
@@ -955,8 +955,8 @@ func UpdateVisualizationTool() mcp.Tool {
 					"description": "New visualization title",
 				},
 				"visState": map[string]interface{}{
-					"type":        "map",
-					"description": "Updated visualization state configuration",
+					"type":        "object",
+					"description": "Updated visualization state object. Snake_case alias `vis_state` is also accepted.",
 				},
 				"description": map[string]interface{}{
 					"type":        "string",
@@ -1018,7 +1018,7 @@ func CloneVisualizationTool() mcp.Tool {
 func CreateSavedObjectTool() mcp.Tool {
 	return mcp.Tool{
 		Name:        "kibana_create_saved_object",
-		Description: "💾 Create a generic saved object in Kibana. Supports any saved object type (dashboard, visualization, search, etc.).",
+		Description: "Create a generic Kibana saved object. `attributes` should be a structured object; `references` should be an array of `{name,type,id}` objects.",
 		InputSchema: mcp.ToolInputSchema{
 			Type: "object",
 			Properties: map[string]interface{}{
@@ -1027,8 +1027,8 @@ func CreateSavedObjectTool() mcp.Tool {
 					"description": "Saved object type (e.g., 'dashboard', 'visualization', 'search', 'index-pattern', 'lens', 'map', 'canvas-workpad')",
 				},
 				"attributes": map[string]interface{}{
-					"type":        "map",
-					"description": "Object attributes (title, description, visState, etc.)",
+					"type":        "object",
+					"description": "Saved object attributes as a structured object. JSON strings are accepted by the server for compatibility.",
 				},
 				"references": map[string]interface{}{
 					"type":        "array",
@@ -1039,7 +1039,7 @@ func CreateSavedObjectTool() mcp.Tool {
 				},
 				"initialObjectType": map[string]interface{}{
 					"type":        "string",
-					"description": "Optional initial object type for migration",
+					"description": "Optional initial object type for migration. Snake_case alias `initial_object_type` is also accepted.",
 				},
 			},
 			Required: []string{"type", "attributes"},
@@ -1051,7 +1051,7 @@ func CreateSavedObjectTool() mcp.Tool {
 func UpdateSavedObjectTool() mcp.Tool {
 	return mcp.Tool{
 		Name:        "kibana_update_saved_object",
-		Description: "✏️ Update attributes of a saved object. Use this for partial updates.",
+		Description: "Update a Kibana saved object. `attributes` and `references` are partial replacements and may be sent as structured JSON values.",
 		InputSchema: mcp.ToolInputSchema{
 			Type: "object",
 			Properties: map[string]interface{}{
@@ -1064,7 +1064,7 @@ func UpdateSavedObjectTool() mcp.Tool {
 					"description": "The ID of the object to update",
 				},
 				"attributes": map[string]interface{}{
-					"type":        "map",
+					"type":        "object",
 					"description": "Updated attributes to merge with existing",
 				},
 				"references": map[string]interface{}{
@@ -1252,7 +1252,7 @@ func GetAlertRuleTool() mcp.Tool {
 func CreateAlertRuleTool() mcp.Tool {
 	return mcp.Tool{
 		Name:        "kibana_create_alert_rule",
-		Description: "🔔 Create a new alert rule in Kibana. Define when and how to be notified when conditions are met.",
+		Description: "Create a Kibana alert rule. `schedule` and `params` should be structured objects; `actions` should be an array of action objects; `tags` should be an array of strings.",
 		InputSchema: mcp.ToolInputSchema{
 			Type: "object",
 			Properties: map[string]interface{}{
@@ -1262,15 +1262,15 @@ func CreateAlertRuleTool() mcp.Tool {
 				},
 				"alertTypeId": map[string]interface{}{
 					"type":        "string",
-					"description": "Alert type identifier (e.g., 'threshold', 'inventory_changed', 'metrics_threshold')",
+					"description": "Alert type identifier such as `threshold` or `metrics_threshold`. Snake_case alias `alert_type_id` is also accepted.",
 				},
 				"schedule": map[string]interface{}{
-					"type":        "map",
-					"description": "Alert schedule (e.g., {\"interval\": \"5m\"})",
+					"type":        "object",
+					"description": "Schedule object such as {\"interval\": \"5m\"}. JSON strings are accepted by the server for compatibility.",
 				},
 				"params": map[string]interface{}{
-					"type":        "map",
-					"description": "Alert-specific parameters",
+					"type":        "object",
+					"description": "Alert-specific parameter object. JSON strings are accepted by the server for compatibility.",
 				},
 				"actions": map[string]interface{}{
 					"type":        "array",
@@ -1296,7 +1296,7 @@ func CreateAlertRuleTool() mcp.Tool {
 func UpdateAlertRuleTool() mcp.Tool {
 	return mcp.Tool{
 		Name:        "kibana_update_alert_rule",
-		Description: "✏️ Update an existing alert rule. Modify the name, schedule, actions, or parameters.",
+		Description: "Update a Kibana alert rule. `rule_id` is required. `schedule`, `params`, and `actions` accept structured JSON values and support snake_case aliases on the server side.",
 		InputSchema: mcp.ToolInputSchema{
 			Type: "object",
 			Properties: map[string]interface{}{
@@ -1309,11 +1309,11 @@ func UpdateAlertRuleTool() mcp.Tool {
 					"description": "Updated display name",
 				},
 				"schedule": map[string]interface{}{
-					"type":        "map",
-					"description": "Updated schedule",
+					"type":        "object",
+					"description": "Updated schedule object such as {\"interval\": \"10m\"}.",
 				},
 				"params": map[string]interface{}{
-					"type":        "map",
+					"type":        "object",
 					"description": "Updated alert parameters",
 				},
 				"actions": map[string]interface{}{
@@ -1517,7 +1517,7 @@ func GetConnectorTool() mcp.Tool {
 func CreateConnectorTool() mcp.Tool {
 	return mcp.Tool{
 		Name:        "kibana_create_connector",
-		Description: "🔧 Create a new action connector for sending alert notifications via Slack, email, webhook, etc.",
+		Description: "Create a Kibana connector. `config` and `secrets` should be structured objects. The server accepts both camelCase and snake_case key variants.",
 		InputSchema: mcp.ToolInputSchema{
 			Type: "object",
 			Properties: map[string]interface{}{
@@ -1527,15 +1527,15 @@ func CreateConnectorTool() mcp.Tool {
 				},
 				"connectorTypeId": map[string]interface{}{
 					"type":        "string",
-					"description": "Connector type (e.g., '.slack', '.email', '.webhook', '.pagerduty', '.teams')",
+					"description": "Connector type such as `.slack`, `.email`, `.webhook`, `.pagerduty`, or `.teams`. Snake_case alias `connector_type_id` is also accepted.",
 				},
 				"config": map[string]interface{}{
-					"type":        "map",
-					"description": "Connector-specific configuration",
+					"type":        "object",
+					"description": "Connector configuration object. JSON strings are accepted by the server for compatibility.",
 				},
 				"secrets": map[string]interface{}{
-					"type":        "map",
-					"description": "Sensitive configuration (API keys, tokens, etc.)",
+					"type":        "object",
+					"description": "Sensitive connector secrets object. JSON strings are accepted by the server for compatibility.",
 				},
 			},
 			Required: []string{"name", "connectorTypeId"},
@@ -1547,7 +1547,7 @@ func CreateConnectorTool() mcp.Tool {
 func UpdateConnectorTool() mcp.Tool {
 	return mcp.Tool{
 		Name:        "kibana_update_connector",
-		Description: "✏️ Update an existing connector's configuration or secrets.",
+		Description: "Update a Kibana connector. `config` and `secrets` are partial replacements and may be sent as structured JSON values.",
 		InputSchema: mcp.ToolInputSchema{
 			Type: "object",
 			Properties: map[string]interface{}{
@@ -1560,11 +1560,11 @@ func UpdateConnectorTool() mcp.Tool {
 					"description": "Updated display name",
 				},
 				"config": map[string]interface{}{
-					"type":        "map",
+					"type":        "object",
 					"description": "Updated configuration",
 				},
 				"secrets": map[string]interface{}{
-					"type":        "map",
+					"type":        "object",
 					"description": "Updated secrets",
 				},
 			},
@@ -1595,7 +1595,7 @@ func DeleteConnectorTool() mcp.Tool {
 func TestConnectorTool() mcp.Tool {
 	return mcp.Tool{
 		Name:        "kibana_test_connector",
-		Description: "🧪 Test a connector by sending a test notification. Verifies the connector is properly configured.",
+		Description: "Test a Kibana connector. `body` is optional and should be a structured object describing the test payload.",
 		InputSchema: mcp.ToolInputSchema{
 			Type: "object",
 			Properties: map[string]interface{}{
@@ -1604,8 +1604,8 @@ func TestConnectorTool() mcp.Tool {
 					"description": "The ID of the connector to test",
 				},
 				"body": map[string]interface{}{
-					"type":        "map",
-					"description": "Optional custom message body to send",
+					"type":        "object",
+					"description": "Optional test payload object. JSON strings are accepted by the server for compatibility.",
 				},
 			},
 			Required: []string{"connector_id"},
@@ -1672,7 +1672,7 @@ func GetDataViewTool() mcp.Tool {
 func CreateDataViewTool() mcp.Tool {
 	return mcp.Tool{
 		Name:        "kibana_create_data_view",
-		Description: "🔍 Create a new data view in Kibana. Defines how to access one or more Elasticsearch indices.",
+		Description: "Create a Kibana data view. Use `title` for the index pattern, and optionally pass `sourceFilters`, `fieldFormats`, and `allowNoIndex` as structured JSON values.",
 		InputSchema: mcp.ToolInputSchema{
 			Type: "object",
 			Properties: map[string]interface{}{
@@ -1686,7 +1686,7 @@ func CreateDataViewTool() mcp.Tool {
 				},
 				"timeField": map[string]interface{}{
 					"type":        "string",
-					"description": "Optional time field name for time-based queries",
+					"description": "Optional time field name. Snake_case alias `time_field` is also accepted.",
 				},
 				"sourceFilters": map[string]interface{}{
 					"type":        "array",
@@ -1696,8 +1696,13 @@ func CreateDataViewTool() mcp.Tool {
 					},
 				},
 				"fieldFormats": map[string]interface{}{
-					"type":        "map",
-					"description": "Optional custom field format configurations",
+					"type":        "object",
+					"description": "Optional field format configuration object. JSON strings are accepted by the server for compatibility.",
+				},
+				"allowNoIndex": map[string]interface{}{
+					"type":        "boolean",
+					"description": "Allow creation when matching indices do not currently exist. Snake_case alias `allow_no_index` is also accepted.",
+					"default":     false,
 				},
 			},
 			Required: []string{"title"},
@@ -1709,7 +1714,7 @@ func CreateDataViewTool() mcp.Tool {
 func UpdateDataViewTool() mcp.Tool {
 	return mcp.Tool{
 		Name:        "kibana_update_data_view",
-		Description: "✏️ Update an existing data view's configuration.",
+		Description: "Update a Kibana data view. `data_view_id` is required; the other fields are partial updates. Snake_case aliases are accepted by the server.",
 		InputSchema: mcp.ToolInputSchema{
 			Type: "object",
 			Properties: map[string]interface{}{
@@ -1727,7 +1732,7 @@ func UpdateDataViewTool() mcp.Tool {
 				},
 				"timeField": map[string]interface{}{
 					"type":        "string",
-					"description": "Updated time field",
+					"description": "Updated time field. Snake_case alias `time_field` is also accepted.",
 				},
 			},
 			Required: []string{"data_view_id"},

@@ -2,6 +2,8 @@ package tools
 
 import (
 	"testing"
+
+	"github.com/mark3labs/mcp-go/mcp"
 )
 
 func TestGetTimeTool(t *testing.T) {
@@ -46,6 +48,9 @@ func TestPauseTool(t *testing.T) {
 	if tool.Description == "" {
 		t.Error("PauseTool() should have a description")
 	}
+	if tool.Execution == nil || tool.Execution.TaskSupport != mcp.TaskSupportOptional {
+		t.Errorf("PauseTool() should support optional task augmentation")
+	}
 }
 
 func TestSleepTool(t *testing.T) {
@@ -56,6 +61,9 @@ func TestSleepTool(t *testing.T) {
 
 	if tool.Description == "" {
 		t.Error("SleepTool() should have a description")
+	}
+	if tool.Execution == nil || tool.Execution.TaskSupport != mcp.TaskSupportOptional {
+		t.Errorf("SleepTool() should support optional task augmentation")
 	}
 }
 

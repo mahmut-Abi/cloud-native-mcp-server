@@ -5,11 +5,11 @@ package handlers
 import (
 	"context"
 	"fmt"
-	"time"
 
 	"github.com/mark3labs/mcp-go/mcp"
 	"github.com/sirupsen/logrus"
 
+	svccommon "github.com/mahmut-Abi/cloud-native-mcp-server/internal/services/common"
 	"github.com/mahmut-Abi/cloud-native-mcp-server/internal/services/prometheus/client"
 )
 
@@ -30,18 +30,9 @@ func HandleGetSeries(c *client.Client) func(ctx context.Context, req mcp.CallToo
 		}
 
 		// Get matches parameter
-		var matches []string
-		if m, exists := req.GetArguments()["match"]; exists {
-			switch v := m.(type) {
-			case string:
-				matches = []string{v}
-			case []interface{}:
-				for _, item := range v {
-					if str, ok := item.(string); ok {
-						matches = append(matches, str)
-					}
-				}
-			}
+		matches, _, err := svccommon.GetStringSliceArg(req.GetArguments(), "match")
+		if err != nil {
+			return mcp.NewToolResultError(err.Error()), nil
 		}
 
 		if len(matches) == 0 {
@@ -54,20 +45,13 @@ func HandleGetSeries(c *client.Client) func(ctx context.Context, req mcp.CallToo
 		}
 
 		// Parse optional time range
-		var start, end *time.Time
-		if s, exists := req.GetArguments()["start"]; exists {
-			if startStr, ok := s.(string); ok && startStr != "" {
-				if parsed, err := time.Parse(time.RFC3339, startStr); err == nil {
-					start = &parsed
-				}
-			}
+		start, err := svccommon.GetRFC3339TimeArg(req.GetArguments(), "start")
+		if err != nil {
+			return mcp.NewToolResultError(err.Error()), nil
 		}
-		if e, exists := req.GetArguments()["end"]; exists {
-			if endStr, ok := e.(string); ok && endStr != "" {
-				if parsed, err := time.Parse(time.RFC3339, endStr); err == nil {
-					end = &parsed
-				}
-			}
+		end, err := svccommon.GetRFC3339TimeArg(req.GetArguments(), "end")
+		if err != nil {
+			return mcp.NewToolResultError(err.Error()), nil
 		}
 
 		// Get series

@@ -9,6 +9,7 @@ import (
 	"github.com/mark3labs/mcp-go/mcp"
 	"github.com/sirupsen/logrus"
 
+	svccommon "github.com/mahmut-Abi/cloud-native-mcp-server/internal/services/common"
 	"github.com/mahmut-Abi/cloud-native-mcp-server/internal/services/prometheus/client"
 )
 
@@ -18,14 +19,7 @@ func HandleGetTargets(c *client.Client) func(ctx context.Context, req mcp.CallTo
 		logrus.Debug("Executing Prometheus get targets handler")
 
 		// Extract optional state filter
-		var state string
-		if req.GetArguments() != nil {
-			if s, exists := req.GetArguments()["state"]; exists {
-				if stateStr, ok := s.(string); ok {
-					state = stateStr
-				}
-			}
-		}
+		state, _ := svccommon.GetStringArg(req.GetArguments(), "state")
 
 		// Get targets
 		targets, err := c.GetTargets(ctx, state)
@@ -61,7 +55,7 @@ func HandleGetTargets(c *client.Client) func(ctx context.Context, req mcp.CallTo
 func HandleGetTargetsSummary(c *client.Client) func(ctx context.Context, req mcp.CallToolRequest) (*mcp.CallToolResult, error) {
 	return func(ctx context.Context, req mcp.CallToolRequest) (*mcp.CallToolResult, error) {
 		state := "any"
-		if s, ok := req.GetArguments()["state"].(string); ok {
+		if s, ok := svccommon.GetStringArg(req.GetArguments(), "state"); ok {
 			state = s
 		}
 

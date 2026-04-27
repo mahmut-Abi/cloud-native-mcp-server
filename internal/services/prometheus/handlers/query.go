@@ -10,6 +10,7 @@ import (
 	"github.com/mark3labs/mcp-go/mcp"
 	"github.com/sirupsen/logrus"
 
+	svccommon "github.com/mahmut-Abi/cloud-native-mcp-server/internal/services/common"
 	"github.com/mahmut-Abi/cloud-native-mcp-server/internal/services/prometheus/client"
 )
 
@@ -30,7 +31,7 @@ func HandleQuery(c *client.Client) func(ctx context.Context, req mcp.CallToolReq
 		}
 
 		// Get query parameter
-		query, ok := req.GetArguments()["query"].(string)
+		query, ok := svccommon.GetStringArg(req.GetArguments(), "query")
 		if !ok || query == "" {
 			return &mcp.CallToolResult{
 				IsError: true,
@@ -41,13 +42,9 @@ func HandleQuery(c *client.Client) func(ctx context.Context, req mcp.CallToolReq
 		}
 
 		// Parse optional timestamp
-		var timestamp *time.Time
-		if ts, exists := req.GetArguments()["time"]; exists {
-			if tsStr, ok := ts.(string); ok && tsStr != "" {
-				if parsed, err := time.Parse(time.RFC3339, tsStr); err == nil {
-					timestamp = &parsed
-				}
-			}
+		timestamp, err := svccommon.GetRFC3339TimeArg(req.GetArguments(), "time")
+		if err != nil {
+			return mcp.NewToolResultError(err.Error()), nil
 		}
 
 		// Execute query
@@ -97,7 +94,7 @@ func HandleQueryRange(c *client.Client) func(ctx context.Context, req mcp.CallTo
 		}
 
 		// Get required parameters
-		query, ok := req.GetArguments()["query"].(string)
+		query, ok := svccommon.GetStringArg(req.GetArguments(), "query")
 		if !ok || query == "" {
 			return &mcp.CallToolResult{
 				IsError: true,
@@ -107,7 +104,7 @@ func HandleQueryRange(c *client.Client) func(ctx context.Context, req mcp.CallTo
 			}, nil
 		}
 
-		startStr, ok := req.GetArguments()["start"].(string)
+		startStr, ok := svccommon.GetStringArg(req.GetArguments(), "start")
 		if !ok || startStr == "" {
 			return &mcp.CallToolResult{
 				IsError: true,
@@ -117,7 +114,7 @@ func HandleQueryRange(c *client.Client) func(ctx context.Context, req mcp.CallTo
 			}, nil
 		}
 
-		endStr, ok := req.GetArguments()["end"].(string)
+		endStr, ok := svccommon.GetStringArg(req.GetArguments(), "end")
 		if !ok || endStr == "" {
 			return &mcp.CallToolResult{
 				IsError: true,
@@ -127,7 +124,7 @@ func HandleQueryRange(c *client.Client) func(ctx context.Context, req mcp.CallTo
 			}, nil
 		}
 
-		step, ok := req.GetArguments()["step"].(string)
+		step, ok := svccommon.GetStringArg(req.GetArguments(), "step")
 		if !ok || step == "" {
 			step = "15s" // Default step
 		}

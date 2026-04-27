@@ -9,6 +9,7 @@ import (
 	"github.com/mark3labs/mcp-go/mcp"
 	"github.com/sirupsen/logrus"
 
+	svccommon "github.com/mahmut-Abi/cloud-native-mcp-server/internal/services/common"
 	"github.com/mahmut-Abi/cloud-native-mcp-server/internal/services/prometheus/client"
 )
 
@@ -17,12 +18,7 @@ func HandleGetMetricsMetadata(c *client.Client) func(ctx context.Context, req mc
 	return func(ctx context.Context, req mcp.CallToolRequest) (*mcp.CallToolResult, error) {
 		logrus.Debug("Executing Prometheus metrics metadata handler")
 
-		metric := ""
-		if m, exists := req.GetArguments()["metric"]; exists {
-			if metricStr, ok := m.(string); ok {
-				metric = metricStr
-			}
-		}
+		metric, _ := svccommon.GetStringArg(req.GetArguments(), "metric")
 
 		metadata, err := c.GetMetricsMetadata(ctx, metric)
 		if err != nil {
@@ -57,12 +53,7 @@ func HandleGetTargetMetadata(c *client.Client) func(ctx context.Context, req mcp
 	return func(ctx context.Context, req mcp.CallToolRequest) (*mcp.CallToolResult, error) {
 		logrus.Debug("Executing Prometheus target metadata handler")
 
-		metric := ""
-		if m, exists := req.GetArguments()["metric"]; exists {
-			if metricStr, ok := m.(string); ok {
-				metric = metricStr
-			}
-		}
+		metric, _ := svccommon.GetStringArg(req.GetArguments(), "metric")
 
 		metadata, err := c.GetTargetMetadata(ctx, metric)
 		if err != nil {

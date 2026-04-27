@@ -5,6 +5,7 @@ import (
 	"net/http"
 	"net/http/httptest"
 	"testing"
+	"time"
 
 	mcp "github.com/mark3labs/mcp-go/mcp"
 )
@@ -180,6 +181,49 @@ func TestHandleSleep(t *testing.T) {
 
 	if result == nil {
 		t.Error("HandleSleep() should return non-nil result")
+	}
+}
+
+func TestHandleSleepCancelledContext(t *testing.T) {
+	ctx, cancel := context.WithCancel(context.Background())
+	cancel()
+
+	request := mcp.CallToolRequest{
+		Params: mcp.CallToolParams{
+			Arguments: map[string]interface{}{
+				"duration": float64(1),
+				"unit":     "seconds",
+			},
+		},
+	}
+
+	result, err := HandleSleep(ctx, request)
+	if err == nil {
+		t.Fatal("HandleSleep() should return context cancellation error")
+	}
+	if result != nil {
+		t.Error("HandleSleep() should return nil result on cancellation")
+	}
+}
+
+func TestHandlePauseCancelledContext(t *testing.T) {
+	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Millisecond)
+	defer cancel()
+
+	request := mcp.CallToolRequest{
+		Params: mcp.CallToolParams{
+			Arguments: map[string]interface{}{
+				"seconds": float64(1),
+			},
+		},
+	}
+
+	result, err := HandlePause(ctx, request)
+	if err == nil {
+		t.Fatal("HandlePause() should return context cancellation error")
+	}
+	if result != nil {
+		t.Error("HandlePause() should return nil result on cancellation")
 	}
 }
 

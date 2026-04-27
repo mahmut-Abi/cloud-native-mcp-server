@@ -1,6 +1,7 @@
 package jaeger
 
 import (
+	"context"
 	"time"
 
 	"github.com/mahmut-Abi/cloud-native-mcp-server/internal/config"
@@ -11,6 +12,7 @@ import (
 	"github.com/mahmut-Abi/cloud-native-mcp-server/internal/services/jaeger/tools"
 	"github.com/mark3labs/mcp-go/mcp"
 	server "github.com/mark3labs/mcp-go/server"
+	"github.com/sirupsen/logrus"
 )
 
 // Service provides Jaeger distributed tracing functionality.
@@ -79,7 +81,7 @@ func (s *Service) GetTools() []mcp.Tool {
 
 // GetHandlers returns all tool handlers for the Jaeger service.
 func (s *Service) GetHandlers() map[string]server.ToolHandlerFunc {
-	return map[string]server.ToolHandlerFunc{
+	handlersMap := map[string]server.ToolHandlerFunc{
 		"jaeger_get_traces":           handlers.GetTracesHandler(s),
 		"jaeger_get_trace":            handlers.GetTraceHandler(s),
 		"jaeger_get_services":         handlers.GetServicesHandler(s),
@@ -89,6 +91,12 @@ func (s *Service) GetHandlers() map[string]server.ToolHandlerFunc {
 		"jaeger_get_traces_summary":   handlers.GetTracesSummaryHandler(s),
 		"jaeger_get_services_summary": handlers.GetServicesSummaryHandler(s),
 	}
+
+	for name, handler := range handlersMap {
+		handlersMap[name] = s.wrapToolErrors(name, handler)
+	}
+
+	return handlersMap
 }
 
 // Initialize initializes the Jaeger service with the given configuration.
@@ -116,4 +124,15 @@ func (s *Service) GetToolsCache() *cache.ToolsCache {
 // GetClient returns the Jaeger client.
 func (s *Service) GetClient() *client.Client {
 	return s.client
+}
+
+func (s *Service) wrapToolErrors(toolName string, handler server.ToolHandlerFunc) server.ToolHandlerFunc {
+	return func(ctx context.Context, request mcp.CallToolRequest) (*mcp.CallToolResult, error) {
+		result, err := handler(ctx, request)
+		if err != nil {
+			logrus.WithError(err).WithField("tool", toolName).Warn("Tool execution failed")
+			return mcp.NewToolResultError(err.Error()), nil
+		}
+		return result, nil
+	}
 }

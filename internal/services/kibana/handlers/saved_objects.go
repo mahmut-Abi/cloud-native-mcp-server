@@ -6,7 +6,6 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
-	"strconv"
 
 	"github.com/mark3labs/mcp-go/mcp"
 	"github.com/sirupsen/logrus"
@@ -20,30 +19,10 @@ func HandleSearchSavedObjects(c *client.Client) func(ctx context.Context, req mc
 		logrus.Debug("Executing Kibana search saved objects handler")
 
 		// Get optional parameters
-		objectType, _ := req.GetArguments()["type"].(string)
-		search, _ := req.GetArguments()["search"].(string)
-
-		page := 1
-		if p, exists := req.GetArguments()["page"]; exists {
-			if pageStr, ok := p.(string); ok {
-				if parsed, err := strconv.Atoi(pageStr); err == nil && parsed > 0 {
-					page = parsed
-				}
-			} else if pageFloat, ok := p.(float64); ok && pageFloat > 0 {
-				page = int(pageFloat)
-			}
-		}
-
-		perPage := 20
-		if pp, exists := req.GetArguments()["per_page"]; exists {
-			if perPageStr, ok := pp.(string); ok {
-				if parsed, err := strconv.Atoi(perPageStr); err == nil && parsed > 0 {
-					perPage = parsed
-				}
-			} else if perPageFloat, ok := pp.(float64); ok && perPageFloat > 0 {
-				perPage = int(perPageFloat)
-			}
-		}
+		objectType := getOptionalStringParam(req, "type")
+		search := getOptionalStringParam(req, "search")
+		page := getOptionalIntParam(req, "page", 1)
+		perPage := getOptionalIntParam(req, "per_page", 20)
 
 		// Search saved objects
 		result, err := c.SearchSavedObjects(ctx, objectType, search, page, perPage)
@@ -127,8 +106,8 @@ func HandleGetSavedSearch(c *client.Client) func(ctx context.Context, req mcp.Ca
 		}
 
 		// Get search ID parameter
-		searchID, ok := req.GetArguments()["search_id"].(string)
-		if !ok || searchID == "" {
+		searchID, err := requireStringParam(req, "search_id")
+		if err != nil {
 			return &mcp.CallToolResult{
 				IsError: true,
 				Content: []mcp.Content{
@@ -172,25 +151,23 @@ func HandleCreateSavedObject(c *client.Client) func(ctx context.Context, req mcp
 	return func(ctx context.Context, req mcp.CallToolRequest) (*mcp.CallToolResult, error) {
 		logrus.Debug("Executing Kibana create saved object handler")
 
-		objectType, _ := req.GetArguments()["type"].(string)
-		initialObjectType, _ := req.GetArguments()["initialObjectType"].(string)
-
-		var attributes map[string]interface{}
-		if attrs, ok := req.GetArguments()["attributes"].(map[string]interface{}); ok {
-			attributes = attrs
+		objectType := getOptionalStringParam(req, "type")
+		initialObjectType := getOptionalStringParam(req, "initialObjectType")
+		attributes, err := getOptionalObjectParam(req, "attributes")
+		if err != nil {
+			return mcp.NewToolResultError(err.Error()), nil
 		}
-
+		referenceObjects, err := getOptionalObjectArrayParam(req, "references")
+		if err != nil {
+			return mcp.NewToolResultError(err.Error()), nil
+		}
 		var references []client.Reference
-		if refs, ok := req.GetArguments()["references"].([]interface{}); ok {
-			for _, r := range refs {
-				if refMap, ok := r.(map[string]interface{}); ok {
-					references = append(references, client.Reference{
-						Name: getStringFieldFromMap(refMap, "name"),
-						Type: getStringFieldFromMap(refMap, "type"),
-						ID:   getStringFieldFromMap(refMap, "id"),
-					})
-				}
-			}
+		for _, refMap := range referenceObjects {
+			references = append(references, client.Reference{
+				Name: getStringFieldFromMap(refMap, "name"),
+				Type: getStringFieldFromMap(refMap, "type"),
+				ID:   getStringFieldFromMap(refMap, "id"),
+			})
 		}
 
 		if objectType == "" || len(attributes) == 0 {
@@ -235,26 +212,24 @@ func HandleUpdateSavedObject(c *client.Client) func(ctx context.Context, req mcp
 	return func(ctx context.Context, req mcp.CallToolRequest) (*mcp.CallToolResult, error) {
 		logrus.Debug("Executing Kibana update saved object handler")
 
-		objectType, _ := req.GetArguments()["type"].(string)
-		objectID, _ := req.GetArguments()["object_id"].(string)
-		version, _ := req.GetArguments()["version"].(string)
-
-		var attributes map[string]interface{}
-		if attrs, ok := req.GetArguments()["attributes"].(map[string]interface{}); ok {
-			attributes = attrs
+		objectType := getOptionalStringParam(req, "type")
+		objectID := getOptionalStringParam(req, "object_id")
+		version := getOptionalStringParam(req, "version")
+		attributes, err := getOptionalObjectParam(req, "attributes")
+		if err != nil {
+			return mcp.NewToolResultError(err.Error()), nil
 		}
-
+		referenceObjects, err := getOptionalObjectArrayParam(req, "references")
+		if err != nil {
+			return mcp.NewToolResultError(err.Error()), nil
+		}
 		var references []client.Reference
-		if refs, ok := req.GetArguments()["references"].([]interface{}); ok {
-			for _, r := range refs {
-				if refMap, ok := r.(map[string]interface{}); ok {
-					references = append(references, client.Reference{
-						Name: getStringFieldFromMap(refMap, "name"),
-						Type: getStringFieldFromMap(refMap, "type"),
-						ID:   getStringFieldFromMap(refMap, "id"),
-					})
-				}
-			}
+		for _, refMap := range referenceObjects {
+			references = append(references, client.Reference{
+				Name: getStringFieldFromMap(refMap, "name"),
+				Type: getStringFieldFromMap(refMap, "type"),
+				ID:   getStringFieldFromMap(refMap, "id"),
+			})
 		}
 
 		if objectType == "" || objectID == "" {
@@ -299,12 +274,12 @@ func HandleDeleteSavedObject(c *client.Client) func(ctx context.Context, req mcp
 	return func(ctx context.Context, req mcp.CallToolRequest) (*mcp.CallToolResult, error) {
 		logrus.Debug("Executing Kibana delete saved object handler")
 
-		objectType, _ := req.GetArguments()["type"].(string)
-		objectID, _ := req.GetArguments()["object_id"].(string)
+		objectType := getOptionalStringParam(req, "type")
+		objectID := getOptionalStringParam(req, "object_id")
 
 		force := false
-		if f, ok := req.GetArguments()["force"].(bool); ok {
-			force = f
+		if f := getOptionalBoolParam(req, "force"); f != nil {
+			force = *f
 		}
 
 		if objectType == "" || objectID == "" {
@@ -339,16 +314,16 @@ func HandleBulkDeleteSavedObjects(c *client.Client) func(ctx context.Context, re
 	return func(ctx context.Context, req mcp.CallToolRequest) (*mcp.CallToolResult, error) {
 		logrus.Debug("Executing Kibana bulk delete saved objects handler")
 
+		objectMaps, err := getOptionalObjectArrayParam(req, "objects")
+		if err != nil {
+			return mcp.NewToolResultError(err.Error()), nil
+		}
 		var objects []client.SavedObject
-		if objs, ok := req.GetArguments()["objects"].([]interface{}); ok {
-			for _, o := range objs {
-				if objMap, ok := o.(map[string]interface{}); ok {
-					objects = append(objects, client.SavedObject{
-						Type: getStringFieldFromMap(objMap, "type"),
-						ID:   getStringFieldFromMap(objMap, "id"),
-					})
-				}
-			}
+		for _, objMap := range objectMaps {
+			objects = append(objects, client.SavedObject{
+				Type: getStringFieldFromMap(objMap, "type"),
+				ID:   getStringFieldFromMap(objMap, "id"),
+			})
 		}
 
 		if len(objects) == 0 {
@@ -360,7 +335,7 @@ func HandleBulkDeleteSavedObjects(c *client.Client) func(ctx context.Context, re
 			}, nil
 		}
 
-		err := c.BulkDeleteSavedObjects(ctx, objects)
+		err = c.BulkDeleteSavedObjects(ctx, objects)
 		if err != nil {
 			return &mcp.CallToolResult{
 				IsError: true,
@@ -383,21 +358,21 @@ func HandleExportSavedObjects(c *client.Client) func(ctx context.Context, req mc
 	return func(ctx context.Context, req mcp.CallToolRequest) (*mcp.CallToolResult, error) {
 		logrus.Debug("Executing Kibana export saved objects handler")
 
+		objectMaps, err := getOptionalObjectArrayParam(req, "objects")
+		if err != nil {
+			return mcp.NewToolResultError(err.Error()), nil
+		}
 		var objects []client.SavedObject
-		if objs, ok := req.GetArguments()["objects"].([]interface{}); ok {
-			for _, o := range objs {
-				if objMap, ok := o.(map[string]interface{}); ok {
-					objects = append(objects, client.SavedObject{
-						Type: getStringFieldFromMap(objMap, "type"),
-						ID:   getStringFieldFromMap(objMap, "id"),
-					})
-				}
-			}
+		for _, objMap := range objectMaps {
+			objects = append(objects, client.SavedObject{
+				Type: getStringFieldFromMap(objMap, "type"),
+				ID:   getStringFieldFromMap(objMap, "id"),
+			})
 		}
 
 		includeReferences := true
-		if ir, ok := req.GetArguments()["includeReferences"].(bool); ok {
-			includeReferences = ir
+		if ir := getOptionalBoolParam(req, "includeReferences"); ir != nil {
+			includeReferences = *ir
 		}
 
 		if len(objects) == 0 {
@@ -432,11 +407,11 @@ func HandleImportSavedObjects(c *client.Client) func(ctx context.Context, req mc
 	return func(ctx context.Context, req mcp.CallToolRequest) (*mcp.CallToolResult, error) {
 		logrus.Debug("Executing Kibana import saved objects handler")
 
-		fileContent, _ := req.GetArguments()["file"].(string)
+		fileContent := getOptionalStringParam(req, "file")
 
 		createNewCopies := false
-		if cnc, ok := req.GetArguments()["createNewCopies"].(bool); ok {
-			createNewCopies = cnc
+		if cnc := getOptionalBoolParam(req, "createNewCopies"); cnc != nil {
+			createNewCopies = *cnc
 		}
 
 		if fileContent == "" {
@@ -477,13 +452,9 @@ func HandleSearchSavedObjectsAdvanced(c *client.Client) func(ctx context.Context
 		sortOrder := getOptionalStringParam(request, "sort_order")
 		hasReference := getOptionalStringParam(request, "has_reference")
 
-		var fields []string
-		if f, ok := request.GetArguments()["fields"].([]interface{}); ok {
-			for _, field := range f {
-				if fieldStr, ok := field.(string); ok {
-					fields = append(fields, fieldStr)
-				}
-			}
+		fields, err := getOptionalStringArrayParam(request, "fields")
+		if err != nil {
+			return mcp.NewToolResultError(err.Error()), nil
 		}
 
 		logrus.WithFields(logrus.Fields{

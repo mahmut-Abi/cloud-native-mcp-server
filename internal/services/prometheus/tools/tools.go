@@ -8,17 +8,17 @@ import "github.com/mark3labs/mcp-go/mcp"
 func QueryTool() mcp.Tool {
 	return mcp.Tool{
 		Name:        "prometheus_query",
-		Description: "Execute a Prometheus instant query to retrieve metric values at a specific point in time",
+		Description: "Execute a Prometheus instant query. Use this for the current value of a metric or expression; prefer `prometheus_query_range` only when you need a time series.",
 		InputSchema: mcp.ToolInputSchema{
 			Type: "object",
 			Properties: map[string]interface{}{
 				"query": map[string]interface{}{
 					"type":        "string",
-					"description": "PromQL query string to execute",
+					"description": "PromQL expression, for example `up`, `rate(http_requests_total[5m])`, or `sum by (pod) (container_memory_usage_bytes)`.",
 				},
 				"time": map[string]interface{}{
 					"type":        "string",
-					"description": "Optional timestamp in RFC3339 format. If not specified, uses current time",
+					"description": "Optional RFC3339 timestamp. If omitted, the current server time is used.",
 					"format":      "date-time",
 				},
 			},
@@ -31,27 +31,27 @@ func QueryTool() mcp.Tool {
 func QueryRangeTool() mcp.Tool {
 	return mcp.Tool{
 		Name:        "prometheus_query_range",
-		Description: "⚠️ Returns extensive time series data which may be very large. Use smaller time ranges and specific queries",
+		Description: "Execute a Prometheus range query and return a time series. Keep the time window narrow and the query specific to avoid very large responses.",
 		InputSchema: mcp.ToolInputSchema{
 			Type: "object",
 			Properties: map[string]interface{}{
 				"query": map[string]interface{}{
 					"type":        "string",
-					"description": "PromQL query string to execute",
+					"description": "PromQL expression to evaluate across a time range.",
 				},
 				"start": map[string]interface{}{
 					"type":        "string",
-					"description": "Start timestamp in RFC3339 format",
+					"description": "Required RFC3339 start timestamp.",
 					"format":      "date-time",
 				},
 				"end": map[string]interface{}{
 					"type":        "string",
-					"description": "End timestamp in RFC3339 format",
+					"description": "Required RFC3339 end timestamp.",
 					"format":      "date-time",
 				},
 				"step": map[string]interface{}{
 					"type":        "string",
-					"description": "Query resolution step width in duration format (e.g., '30s', '1m', '5m'). Defaults to '15s'",
+					"description": "Step duration such as `30s`, `1m`, or `5m`. Defaults to `15s`.",
 					"default":     "15s",
 				},
 			},
@@ -64,13 +64,13 @@ func QueryRangeTool() mcp.Tool {
 func GetTargetsTool() mcp.Tool {
 	return mcp.Tool{
 		Name:        "prometheus_get_targets",
-		Description: "Retrieve the current state of Prometheus service discovery targets",
+		Description: "List Prometheus scrape targets. Use `state` to narrow results when you only need `active` or `dropped` targets.",
 		InputSchema: mcp.ToolInputSchema{
 			Type: "object",
 			Properties: map[string]interface{}{
 				"state": map[string]interface{}{
 					"type":        "string",
-					"description": "Filter targets by state. Options: 'active', 'dropped', 'any'. Defaults to 'any'",
+					"description": "Optional state filter: `active`, `dropped`, or `any`.",
 					"enum":        []string{"active", "dropped", "any"},
 					"default":     "any",
 				},
@@ -95,13 +95,13 @@ func GetAlertsTool() mcp.Tool {
 func GetRulesTool() mcp.Tool {
 	return mcp.Tool{
 		Name:        "prometheus_get_rules",
-		Description: "Retrieve recording and alerting rules from Prometheus",
+		Description: "List Prometheus recording and alerting rules. Use `type` to narrow results when you only want one rule class.",
 		InputSchema: mcp.ToolInputSchema{
 			Type: "object",
 			Properties: map[string]interface{}{
 				"type": map[string]interface{}{
 					"type":        "string",
-					"description": "Filter rules by type. Options: 'alert', 'record'. If not specified, returns all rules",
+					"description": "Optional rule type filter: `alert` or `record`.",
 					"enum":        []string{"alert", "record"},
 				},
 			},
@@ -184,13 +184,13 @@ func GetRulesSummaryTool() mcp.Tool {
 func GetLabelValuesTool() mcp.Tool {
 	return mcp.Tool{
 		Name:        "prometheus_get_label_values",
-		Description: "Retrieve all available values for a specific label name from Prometheus",
+		Description: "List all values for a specific Prometheus label. Use this after `prometheus_get_label_names` when you need valid values for a selector.",
 		InputSchema: mcp.ToolInputSchema{
 			Type: "object",
 			Properties: map[string]interface{}{
 				"label": map[string]interface{}{
 					"type":        "string",
-					"description": "The label name to get values for",
+					"description": "Required label name such as `job`, `instance`, or `namespace`.",
 				},
 				"start": map[string]interface{}{
 					"type":        "string",
@@ -212,13 +212,13 @@ func GetLabelValuesTool() mcp.Tool {
 func GetSeriesTool() mcp.Tool {
 	return mcp.Tool{
 		Name:        "prometheus_get_series",
-		Description: "⚠️ May return large number of series. Consider specific label selectors to limit results",
+		Description: "List Prometheus series for one or more match selectors. This can be large, so prefer specific selectors such as `up{job=\"api\"}` instead of broad queries.",
 		InputSchema: mcp.ToolInputSchema{
 			Type: "object",
 			Properties: map[string]interface{}{
 				"match": map[string]interface{}{
 					"type":        "array",
-					"description": "Label selector(s) to match series. Can be a single string or array of strings",
+					"description": "One selector string or an array of selector strings. The server also accepts a JSON array string for compatibility.",
 					"items": map[string]interface{}{
 						"type": "string",
 					},
