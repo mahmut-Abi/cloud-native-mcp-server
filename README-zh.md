@@ -6,7 +6,7 @@
 
 [🇨🇳 中文文档](README-zh.md) | [🇬🇧 English](README.md)
 
-一个高性能的模型上下文协议（MCP）服务器，用于 Kubernetes 和云原生基础设施管理，集成了多个服务和工具。
+一个高性能的模型上下文协议（MCP）服务器，用于 Kubernetes 和云原生基础设施管理，集成了 10 个服务和 250+ 工具。
 
 ## LLM 调用工具建议
 
@@ -113,7 +113,7 @@ API_KEY=your-key make sse-smoke BASE_URL=http://127.0.0.1:8080
 
 ## 文档
 
-- [完整工具参考](docs/TOOLS.md) - 所有 210+ 工具的详细文档
+- [完整工具参考](docs/TOOLS.md) - 与当前服务清单对齐的工具指南
 - [配置指南](docs/CONFIGURATION.md) - 配置选项和示例
 - [部署指南](docs/DEPLOYMENT.md) - 部署策略和最佳实践
 - [安全指南](docs/SECURITY.md) - 身份验证、密钥管理和安全最佳实践

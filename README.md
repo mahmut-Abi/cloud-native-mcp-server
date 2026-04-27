@@ -6,7 +6,7 @@
 
 [🇨🇳 中文文档](README-zh.md) | [🇬🇧 English](README.md)
 
-A high-performance Model Context Protocol (MCP) server for Kubernetes and cloud-native infrastructure management with 9 integrated services and 210+ tools.
+A high-performance Model Context Protocol (MCP) server for Kubernetes and cloud-native infrastructure management with 10 integrated services and 250+ tools.
 
 ---
 
@@ -38,17 +38,17 @@ A high-performance Model Context Protocol (MCP) server for Kubernetes and cloud-
 | Service | Tools | Description |
 |---------|-------|-------------|
 | **kubernetes** | 32 | Core container orchestration and resource management |
-| **helm** | 30 | Application package management and deployment |
-| **grafana** | 36 | Visualization, monitoring dashboards, and alerting |
+| **helm** | 34 | Application package management and deployment |
+| **grafana** | 43 | Visualization, monitoring dashboards, and alerting |
 | **prometheus** | 20 | Metrics collection, querying, and monitoring |
-| **kibana** | 52 | Log analysis, visualization, and data exploration |
-| **elasticsearch** | 14 | Log storage, search, and data indexing |
-| **alertmanager** | 15 | Alert rules management and notifications |
+| **kibana** | 73 | Log analysis, visualization, and data exploration |
+| **elasticsearch** | 12 | Log storage, search, and data indexing |
+| **alertmanager** | 16 | Alert rules management and notifications |
 | **jaeger** | 8 | Distributed tracing and performance analysis |
 | **opentelemetry** | 9 | Metrics, traces, and logs collection and analysis |
 | **utilities** | 6 | General-purpose utility tools |
 
-**Total: 210+ tools**
+**Total: 250+ tools**
 
 ---
 
@@ -126,7 +126,7 @@ API_KEY=your-key make sse-smoke BASE_URL=http://127.0.0.1:8080
 
 ## Documentation
 
-- [Complete Tools Reference](docs/TOOLS.md) - Detailed documentation for all 210+ tools
+- [Complete Tools Reference](docs/TOOLS.md) - Tool guide aligned with the current server inventory
 - [Configuration Guide](docs/CONFIGURATION.md) - Configuration options and examples
 - [Deployment Guide](docs/DEPLOYMENT.md) - Deployment strategies and best practices
 - [Security Guide](docs/SECURITY.md) - Authentication, secrets management, and security best practices
