@@ -68,10 +68,26 @@ func requireStringParam(request mcp.CallToolRequest, param string) (string, erro
 	return sanitize.SanitizeFilterValue(value), nil
 }
 
+// requireRawStringParam returns the original string value without sanitization.
+// Use this for JSON payloads where quotes, braces, and whitespace are significant.
+func requireRawStringParam(request mcp.CallToolRequest, param string) (string, error) {
+	value, ok := request.GetArguments()[param].(string)
+	if !ok || strings.TrimSpace(value) == "" {
+		return "", fmt.Errorf("%w: %s", ErrMissingRequiredParam, param)
+	}
+	return value, nil
+}
+
 // Helper function to get optional string parameter
 func getOptionalStringParam(request mcp.CallToolRequest, param string) string {
 	value, _ := request.GetArguments()[param].(string)
 	return sanitize.SanitizeFilterValue(value)
+}
+
+// getOptionalRawStringParam returns the original optional string value without sanitization.
+func getOptionalRawStringParam(request mcp.CallToolRequest, param string) string {
+	value, _ := request.GetArguments()[param].(string)
+	return value
 }
 
 // Helper function to marshal JSON response using pooled encoder
@@ -491,11 +507,11 @@ func HandleCreateResource(client *client.Client) func(ctx context.Context, reque
 		if err != nil {
 			return nil, err
 		}
-		metadata, err := requireStringParam(request, "metadata")
+		metadata, err := requireRawStringParam(request, "metadata")
 		if err != nil {
 			return nil, err
 		}
-		spec := getOptionalStringParam(request, "spec")
+		spec := getOptionalRawStringParam(request, "spec")
 		logrus.WithFields(logrus.Fields{"tool": "create_resource", "kind": kind, "apiVersion": apiVersion}).Debug("Handler invoked")
 
 		result, err := client.CreateResource(ctx, kind, apiVersion, metadata, spec)
@@ -543,7 +559,7 @@ func HandlePatchResource(client *client.Client) func(ctx context.Context, reques
 			return nil, err
 		}
 		namespace := getOptionalStringParam(request, "namespace")
-		patchJSON, err := requireStringParam(request, "patch")
+		patchJSON, err := requireRawStringParam(request, "patch")
 		if err != nil {
 			return nil, err
 		}
