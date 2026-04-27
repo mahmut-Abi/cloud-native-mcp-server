@@ -154,6 +154,12 @@ test-coverage:
 	echo "Minimum threshold: $$THRESHOLD%"; \
 	awk -v cov="$$COVERAGE" -v thresh="$$THRESHOLD" 'BEGIN { if (cov+0 < thresh+0) { print "Error: Coverage " cov " is below minimum threshold of " thresh "%"; exit 1 } else { print "Coverage " cov " meets minimum threshold of " thresh "%" } }'
 
+## tools-docs: Regenerate docs/TOOLS.md generated inventory block
+.PHONY: tools-docs
+tools-docs:
+	@echo "Regenerating docs/TOOLS.md generated inventory block..."
+	go run ./cmd/toolsdocgen
+
 ## benchmark: Run benchmarks
 .PHONY: benchmark
 benchmark:

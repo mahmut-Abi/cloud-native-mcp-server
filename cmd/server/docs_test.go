@@ -5,8 +5,9 @@ import (
 	"path/filepath"
 	"regexp"
 	"strconv"
-	"strings"
 	"testing"
+
+	"github.com/mahmut-Abi/cloud-native-mcp-server/internal/util/tooldoc"
 )
 
 func TestToolsReferenceServiceCountsMatchInventory(t *testing.T) {
@@ -16,18 +17,21 @@ func TestToolsReferenceServiceCountsMatchInventory(t *testing.T) {
 		t.Fatalf("failed to read %s: %v", docPath, err)
 	}
 
-	counts := collectToolCounts(t)
+	counts, err := tooldoc.CollectInventory(filepath.Join("..", ".."))
+	if err != nil {
+		t.Fatalf("failed to collect inventory: %v", err)
+	}
 	expected := map[string]int{
-		"Kubernetes":    counts["kubernetes"],
-		"Helm":          counts["helm"],
-		"Grafana":       counts["grafana"],
-		"Prometheus":    counts["prometheus"],
-		"Kibana":        counts["kibana"],
-		"Elasticsearch": counts["elasticsearch"],
-		"Alertmanager":  counts["alertmanager"],
-		"Jaeger":        counts["jaeger"],
-		"OpenTelemetry": counts["opentelemetry"],
-		"Utilities":     counts["utilities"],
+		"Kubernetes":    len(counts["kubernetes"]),
+		"Helm":          len(counts["helm"]),
+		"Grafana":       len(counts["grafana"]),
+		"Prometheus":    len(counts["prometheus"]),
+		"Kibana":        len(counts["kibana"]),
+		"Elasticsearch": len(counts["elasticsearch"]),
+		"Alertmanager":  len(counts["alertmanager"]),
+		"Jaeger":        len(counts["jaeger"]),
+		"OpenTelemetry": len(counts["opentelemetry"]),
+		"Utilities":     len(counts["utilities"]),
 	}
 
 	docCounts := parseDocServiceCounts(t, string(docContent))
@@ -40,48 +44,6 @@ func TestToolsReferenceServiceCountsMatchInventory(t *testing.T) {
 			t.Fatalf("section %q count mismatch: docs=%d code=%d", section, got, want)
 		}
 	}
-}
-
-func collectToolCounts(t *testing.T) map[string]int {
-	t.Helper()
-
-	files, err := filepath.Glob(filepath.Join("..", "..", "internal", "services", "*", "tools", "*.go"))
-	if err != nil {
-		t.Fatalf("failed to glob tool files: %v", err)
-	}
-
-	namePattern := regexp.MustCompile(`NewTool\("([a-z0-9_]+)"|Name:\s*"([a-z0-9_]+)"`)
-	seen := make(map[string]map[string]bool)
-
-	for _, file := range files {
-		content, err := os.ReadFile(file)
-		if err != nil {
-			t.Fatalf("failed to read %s: %v", file, err)
-		}
-
-		matches := namePattern.FindAllStringSubmatch(string(content), -1)
-		for _, match := range matches {
-			name := match[1]
-			if name == "" {
-				name = match[2]
-			}
-			if name == "" || name == "test" {
-				continue
-			}
-
-			service := strings.SplitN(name, "_", 2)[0]
-			if seen[service] == nil {
-				seen[service] = make(map[string]bool)
-			}
-			seen[service][name] = true
-		}
-	}
-
-	counts := make(map[string]int, len(seen))
-	for service, names := range seen {
-		counts[service] = len(names)
-	}
-	return counts
 }
 
 func parseDocServiceCounts(t *testing.T, content string) map[string]int {
@@ -98,4 +60,25 @@ func parseDocServiceCounts(t *testing.T, content string) map[string]int {
 		counts[match[1]] = value
 	}
 	return counts
+}
+
+func TestGeneratedInventoryBlockMatchesGenerator(t *testing.T) {
+	repoRoot := filepath.Join("..", "..")
+	docPath := filepath.Join(repoRoot, "docs", "TOOLS.md")
+
+	docContent, err := os.ReadFile(docPath)
+	if err != nil {
+		t.Fatalf("failed to read %s: %v", docPath, err)
+	}
+
+	inventory, err := tooldoc.CollectInventory(repoRoot)
+	if err != nil {
+		t.Fatalf("failed to collect inventory: %v", err)
+	}
+
+	generated := tooldoc.RenderGeneratedInventory(inventory)
+	updated := tooldoc.ReplaceGeneratedInventory(string(docContent), generated)
+	if updated != string(docContent) {
+		t.Fatalf("generated inventory block is out of date; run `go run ./cmd/toolsdocgen`")
+	}
 }
