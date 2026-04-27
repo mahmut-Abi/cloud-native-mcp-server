@@ -318,6 +318,20 @@ func getBoolParam(request mcp.CallToolRequest, param string, defaultValue bool) 
 	return defaultValue
 }
 
+func getInt64Param(request mcp.CallToolRequest, param string, defaultValue int64) int64 {
+	if value, ok := getRequestArguments(request)[param]; ok {
+		switch typed := value.(type) {
+		case float64:
+			return int64(typed)
+		case int:
+			return int64(typed)
+		case int64:
+			return typed
+		}
+	}
+	return defaultValue
+}
+
 // getNestedString extracts nested string from map safely
 func getNestedString(obj map[string]any, path string) string {
 	if obj == nil || path == "" {
@@ -1983,18 +1997,11 @@ func analyzeHealthConditions(conditions interface{}) string {
 // HandleGetUnhealthyResources handles finding unhealthy resources
 func HandleGetUnhealthyResources(k8sClient *client.Client) func(ctx context.Context, request mcp.CallToolRequest) (*mcp.CallToolResult, error) {
 	return func(ctx context.Context, request mcp.CallToolRequest) (*mcp.CallToolResult, error) {
-		namespace := ""
-		if v, ok := request.GetArguments()["namespace"].(string); ok {
-			namespace = v
-		}
+		namespace := getOptionalStringParam(request, "namespace")
 
-		resourceTypes := []string{}
-		if v, ok := request.GetArguments()["resourceTypes"].([]interface{}); ok {
-			for _, rt := range v {
-				if s, ok := rt.(string); ok {
-					resourceTypes = append(resourceTypes, s)
-				}
-			}
+		resourceTypes, err := getOptionalStringArrayParam(request, "resourceTypes")
+		if err != nil {
+			return createErrorResponse(err.Error()), nil
 		}
 
 		logrus.WithField("namespace", namespace).Debug("Executing get_unhealthy_resources handler")
@@ -2060,10 +2067,7 @@ func HandleAnalyzeIssue(k8sClient *client.Client) func(ctx context.Context, requ
 			return nil, err
 		}
 
-		namespace := ""
-		if v, ok := request.GetArguments()["namespace"].(string); ok {
-			namespace = v
-		}
+		namespace := getOptionalStringParam(request, "namespace")
 
 		logrus.WithFields(logrus.Fields{
 			"issueType":    issueType,
@@ -2109,12 +2113,9 @@ func HandleSearchResources(k8sClient *client.Client) func(ctx context.Context, r
 
 		caseSensitive := getBoolParam(request, "caseSensitive", false)
 
-		limit := int64(50)
-		if v, ok := request.GetArguments()["limit"].(float64); ok {
-			limit = int64(v)
-			if limit <= 0 || limit > 200 {
-				limit = 50
-			}
+		limit := getInt64Param(request, "limit", 50)
+		if limit <= 0 || limit > 200 {
+			limit = 50
 		}
 
 		labelSelector := getOptionalStringParam(request, "labelSelector")

@@ -13,7 +13,7 @@ A high-performance Model Context Protocol (MCP) server for Kubernetes and cloud-
 ## Features
 
 - **10 Integrated Services**: Kubernetes, Grafana, Prometheus, Kibana, Elasticsearch, Helm, Alertmanager, Jaeger, OpenTelemetry, Utilities
-- **210+ MCP Tools**: Comprehensive toolset for infrastructure operations
+- **250+ MCP Tools**: Comprehensive toolset for infrastructure operations
 - **Multi-Protocol Support**: SSE and streamable-http modes
 - **Smart Caching**: LRU cache with TTL support for optimal performance
 - **Performance Optimized**: JSON encoding pool, response size control, intelligent limits
