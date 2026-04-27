@@ -332,6 +332,22 @@ func getInt64Param(request mcp.CallToolRequest, param string, defaultValue int64
 	return defaultValue
 }
 
+func getInt32Param(request mcp.CallToolRequest, param string, defaultValue int32) int32 {
+	if value, ok := getRequestArguments(request)[param]; ok {
+		switch typed := value.(type) {
+		case float64:
+			return int32(typed)
+		case int:
+			return int32(typed)
+		case int32:
+			return typed
+		case int64:
+			return int32(typed)
+		}
+	}
+	return defaultValue
+}
+
 // getNestedString extracts nested string from map safely
 func getNestedString(obj map[string]any, path string) string {
 	if obj == nil || path == "" {
@@ -409,14 +425,9 @@ func HandleGetRecentEvents(client *client.Client) func(ctx context.Context, requ
 		debug := getOptionalStringParam(request, "debug")
 
 		// More conservative default limit for recent events
-		limit := int64(20)
-		if v, ok := request.GetArguments()["limit"]; ok {
-			if f, ok := v.(float64); ok {
-				limit = int64(f)
-				if limit <= 0 || limit > 100 {
-					limit = 20
-				}
-			}
+		limit := getInt64Param(request, "limit", 20)
+		if limit <= 0 || limit > 100 {
+			limit = 20
 		}
 
 		logrus.WithFields(logrus.Fields{"tool": "get_recent_events", "ns": namespace, "fieldSelector": fieldSelector, "limit": limit, "debug": debug}).Debug("Handler invoked")
@@ -478,22 +489,17 @@ func HandleGetEvents(client *client.Client) func(ctx context.Context, request mc
 		fieldSelector := getOptionalStringParam(request, "fieldSelector")
 		debug := getOptionalStringParam(request, "debug")
 
-		limit := int64(constants.DefaultLimit)
-		if v, ok := request.GetArguments()["limit"]; ok {
-			if f, ok := v.(float64); ok {
-				limit = int64(f)
-				if limit <= 0 || limit > constants.MaxLimit {
-					if limit > constants.MaxLimit {
-						logrus.WithField("requested", limit).WithField("max", constants.MaxLimit).Warn("Event limit too high, resetting to safe maximum")
-						limit = constants.MaxLimit
-					} else {
-						limit = constants.DefaultLimit
-					}
-				}
-				if limit > constants.WarningLimit {
-					logrus.WithField("limit", limit).Warn("Large event limit may cause context overflow, consider using get_recent_events for critical events only")
-				}
+		limit := getInt64Param(request, "limit", constants.DefaultLimit)
+		if limit <= 0 || limit > constants.MaxLimit {
+			if limit > constants.MaxLimit {
+				logrus.WithField("requested", limit).WithField("max", constants.MaxLimit).Warn("Event limit too high, resetting to safe maximum")
+				limit = constants.MaxLimit
+			} else {
+				limit = constants.DefaultLimit
 			}
+		}
+		if limit > constants.WarningLimit {
+			logrus.WithField("limit", limit).Warn("Large event limit may cause context overflow, consider using get_recent_events for critical events only")
 		}
 
 		logrus.WithFields(logrus.Fields{"tool": "get_events", "ns": namespace, "fieldSelector": fieldSelector, "limit": limit, "debug": debug}).Debug("Handler invoked")
@@ -563,18 +569,13 @@ func HandleContainerLogs(client *client.Client) func(ctx context.Context, reques
 		container := getOptionalStringParam(request, "container")
 		logrus.WithFields(logrus.Fields{"tool": "get_pod_logs", "pod": name, "ns": namespace, "container": container}).Debug("Handler invoked")
 
-		tailLines := int64(constants.DefaultTailLines)
-		if v, ok := request.GetArguments()["tailLines"]; ok {
-			if f, ok := v.(float64); ok {
-				tailLines = int64(f)
-				if tailLines < 0 || tailLines > 200 { // Maximum limit to prevent excessive output
-					if tailLines > 200 {
-						logrus.WithField("requested", tailLines).Warn("Log tail lines too high, resetting to safe maximum")
-						tailLines = 200
-					} else {
-						tailLines = constants.DefaultTailLines
-					}
-				}
+		tailLines := getInt64Param(request, "tailLines", constants.DefaultTailLines)
+		if tailLines < 0 || tailLines > 200 {
+			if tailLines > 200 {
+				logrus.WithField("requested", tailLines).Warn("Log tail lines too high, resetting to safe maximum")
+				tailLines = 200
+			} else {
+				tailLines = constants.DefaultTailLines
 			}
 		}
 
@@ -663,25 +664,13 @@ func HandlePortForward(client *client.Client) func(ctx context.Context, request 
 			return nil, err
 		}
 
-		localPort := int32(0)
-		if v, ok := request.GetArguments()["localPort"]; ok {
-			if f, ok := v.(float64); ok {
-				localPort = int32(f)
-			} else {
-				return nil, fmt.Errorf("localPort must be a number")
-			}
-		} else {
+		localPort := getInt32Param(request, "localPort", 0)
+		if localPort == 0 {
 			return nil, fmt.Errorf("missing required parameter: localPort")
 		}
 
-		podPort := int32(0)
-		if v, ok := request.GetArguments()["podPort"]; ok {
-			if f, ok := v.(float64); ok {
-				podPort = int32(f)
-			} else {
-				return nil, fmt.Errorf("podPort must be a number")
-			}
-		} else {
+		podPort := getInt32Param(request, "podPort", 0)
+		if podPort == 0 {
 			return nil, fmt.Errorf("missing required parameter: podPort")
 		}
 
@@ -949,22 +938,17 @@ func HandleListResources(client *client.Client) func(ctx context.Context, reques
 		}
 
 		// Parse limit parameter with conservative default to prevent context overflow
-		limit := int64(constants.DefaultLimit)
-		if v, ok := request.GetArguments()["limit"]; ok {
-			if f, ok := v.(float64); ok {
-				limit = int64(f)
-				if limit <= 0 || limit > constants.MaxLimit {
-					if limit > constants.MaxLimit {
-						logrus.WithField("requested", limit).WithField("max", constants.MaxLimit).Warn("Limit too high, resetting to safe maximum")
-						limit = constants.MaxLimit
-					} else {
-						limit = constants.DefaultLimit // Reset to default if out of bounds
-					}
-				}
-				if limit > constants.WarningLimit {
-					logrus.WithField("limit", limit).Warn("Large limit may cause context overflow, consider using summary tools or pagination")
-				}
+		limit := getInt64Param(request, "limit", constants.DefaultLimit)
+		if limit <= 0 || limit > constants.MaxLimit {
+			if limit > constants.MaxLimit {
+				logrus.WithField("requested", limit).WithField("max", constants.MaxLimit).Warn("Limit too high, resetting to safe maximum")
+				limit = constants.MaxLimit
+			} else {
+				limit = constants.DefaultLimit
 			}
+		}
+		if limit > constants.WarningLimit {
+			logrus.WithField("limit", limit).Warn("Large limit may cause context overflow, consider using summary tools or pagination")
 		}
 
 		logrus.WithFields(logrus.Fields{
@@ -1258,18 +1242,9 @@ func HandleScaleResource(client *client.Client) func(ctx context.Context, reques
 		if err != nil {
 			return nil, err
 		}
-		replicasVal, ok := request.GetArguments()["replicas"]
-		if !ok {
+		replicas := getInt32Param(request, "replicas", -1)
+		if replicas < 0 {
 			return nil, fmt.Errorf("missing required parameter: replicas")
-		}
-		var replicas int32
-		switch v := replicasVal.(type) {
-		case float64:
-			replicas = int32(v)
-		case int:
-			replicas = int32(v)
-		default:
-			return nil, fmt.Errorf("replicas must be a number")
 		}
 		logrus.WithFields(logrus.Fields{"tool": "scale_resource", "kind": kind, "name": name, "ns": namespace, "replicas": replicas}).Debug("Handler invoked")
 
@@ -1304,15 +1279,7 @@ func HandleGetRolloutStatus(client *client.Client) func(ctx context.Context, req
 			return nil, err
 		}
 
-		timeoutSeconds := 120
-		if v, ok := request.GetArguments()["timeoutSeconds"]; ok {
-			switch typed := v.(type) {
-			case float64:
-				timeoutSeconds = int(typed)
-			case int:
-				timeoutSeconds = typed
-			}
-		}
+		timeoutSeconds := int(getInt64Param(request, "timeoutSeconds", 120))
 
 		result, err := client.GetRolloutStatus(ctx, kind, name, namespace, timeoutSeconds)
 		if err != nil {
@@ -1373,25 +1340,8 @@ func HandleDrainNode(client *client.Client) func(ctx context.Context, request mc
 
 		deleteEmptyDir := getBoolParam(request, "deleteEmptyDir", false)
 		ignoreDaemonsets := getBoolParam(request, "ignoreDaemonsets", true)
-		gracePeriodSeconds := int32(30)
-		timeoutSeconds := int32(120)
-
-		if v, ok := request.GetArguments()["gracePeriodSeconds"]; ok {
-			switch typed := v.(type) {
-			case float64:
-				gracePeriodSeconds = int32(typed)
-			case int:
-				gracePeriodSeconds = int32(typed)
-			}
-		}
-		if v, ok := request.GetArguments()["timeoutSeconds"]; ok {
-			switch typed := v.(type) {
-			case float64:
-				timeoutSeconds = int32(typed)
-			case int:
-				timeoutSeconds = int32(typed)
-			}
-		}
+		gracePeriodSeconds := getInt32Param(request, "gracePeriodSeconds", 30)
+		timeoutSeconds := getInt32Param(request, "timeoutSeconds", 120)
 
 		if err := client.DrainNode(ctx, nodeName, deleteEmptyDir, ignoreDaemonsets, gracePeriodSeconds, timeoutSeconds); err != nil {
 			return nil, err
@@ -1427,24 +1377,8 @@ func HandleWaitForResource(client *client.Client) func(ctx context.Context, requ
 			condition = "ready"
 		}
 
-		timeoutSeconds := 120
-		pollIntervalSeconds := 5
-		if v, ok := request.GetArguments()["timeoutSeconds"]; ok {
-			switch typed := v.(type) {
-			case float64:
-				timeoutSeconds = int(typed)
-			case int:
-				timeoutSeconds = typed
-			}
-		}
-		if v, ok := request.GetArguments()["pollIntervalSeconds"]; ok {
-			switch typed := v.(type) {
-			case float64:
-				pollIntervalSeconds = int(typed)
-			case int:
-				pollIntervalSeconds = typed
-			}
-		}
+		timeoutSeconds := int(getInt64Param(request, "timeoutSeconds", 120))
+		pollIntervalSeconds := int(getInt64Param(request, "pollIntervalSeconds", 5))
 
 		result, err := client.WaitForResource(ctx, kind, name, namespace, condition, timeoutSeconds, pollIntervalSeconds)
 		if err != nil {
@@ -1465,21 +1399,13 @@ func HandleRestartWorkload(client *client.Client) func(ctx context.Context, requ
 		if err != nil {
 			return nil, err
 		}
-		namespace, err := request.RequireString("namespace")
+		namespace, err := requireStringParam(request, "namespace")
 		if err != nil {
 			return nil, err
 		}
 
 		waitForReady := getBoolParam(request, "waitForReady", false)
-		timeoutSeconds := 120
-		if v, ok := request.GetArguments()["timeoutSeconds"]; ok {
-			switch typed := v.(type) {
-			case float64:
-				timeoutSeconds = int(typed)
-			case int:
-				timeoutSeconds = typed
-			}
-		}
+		timeoutSeconds := int(getInt64Param(request, "timeoutSeconds", 120))
 
 		resource, restartedAt, err := client.RestartWorkload(ctx, kind, name, namespace)
 		if err != nil {
@@ -1534,8 +1460,8 @@ func HandleGetAPIResources(client *client.Client) func(ctx context.Context, requ
 		debug := getOptionalStringParam(request, "debug")
 
 		var namespaced *bool
-		if v, ok := request.GetArguments()["namespaced"]; ok {
-			if b, ok := v.(bool); ok {
+		if value, ok := getRequestArguments(request)["namespaced"]; ok {
+			if b, ok := value.(bool); ok {
 				namespaced = &b
 			}
 		}
@@ -1620,22 +1546,17 @@ func HandleGetEventsDetail(client *client.Client) func(ctx context.Context, requ
 		debug := getOptionalStringParam(request, "debug")
 
 		// More conservative default for detailed events
-		limit := int64(50)
-		if v, ok := request.GetArguments()["limit"]; ok {
-			if f, ok := v.(float64); ok {
-				limit = int64(f)
-				if limit <= 0 || limit > 200 {
-					if limit > 200 {
-						logrus.WithField("requested", limit).Warn("Event detail limit too high, resetting to maximum")
-						limit = 200
-					} else {
-						limit = 50
-					}
-				}
-				if limit > 100 {
-					logrus.WithField("limit", limit).Warn("Large event detail limit may cause context overflow")
-				}
+		limit := getInt64Param(request, "limit", 50)
+		if limit <= 0 || limit > 200 {
+			if limit > 200 {
+				logrus.WithField("requested", limit).Warn("Event detail limit too high, resetting to maximum")
+				limit = 200
+			} else {
+				limit = 50
 			}
+		}
+		if limit > 100 {
+			logrus.WithField("limit", limit).Warn("Large event detail limit may cause context overflow")
 		}
 
 		continueToken := getOptionalStringParam(request, "continueToken")
@@ -1712,22 +1633,17 @@ func HandleListResourcesFull(client *client.Client) func(ctx context.Context, re
 		continueToken := getOptionalStringParam(request, "continueToken")
 
 		// Very conservative default for full resources
-		limit := int64(10)
-		if v, ok := request.GetArguments()["limit"]; ok {
-			if f, ok := v.(float64); ok {
-				limit = int64(f)
-				if limit <= 0 || limit > 50 {
-					if limit > 50 {
-						logrus.WithField("requested", limit).Warn("Full resource limit too high, resetting to safe maximum")
-						limit = 50
-					} else {
-						limit = 10
-					}
-				}
-				if limit > 20 {
-					logrus.WithField("limit", limit).Warn("Large full resource limit may cause significant context overflow")
-				}
+		limit := getInt64Param(request, "limit", 10)
+		if limit <= 0 || limit > 50 {
+			if limit > 50 {
+				logrus.WithField("requested", limit).Warn("Full resource limit too high, resetting to safe maximum")
+				limit = 50
+			} else {
+				limit = 10
 			}
+		}
+		if limit > 20 {
+			logrus.WithField("limit", limit).Warn("Large full resource limit may cause significant context overflow")
 		}
 
 		logrus.WithFields(logrus.Fields{
