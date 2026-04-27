@@ -3,10 +3,12 @@
 package kibana
 
 import (
+	"context"
 	"time"
 
 	"github.com/mark3labs/mcp-go/mcp"
 	server "github.com/mark3labs/mcp-go/server"
+	"github.com/sirupsen/logrus"
 
 	"github.com/mahmut-Abi/cloud-native-mcp-server/internal/config"
 	"github.com/mahmut-Abi/cloud-native-mcp-server/internal/services/cache"
@@ -302,13 +304,24 @@ func (s *Service) GetHandlers() map[string]server.ToolHandlerFunc {
 	// Combine all handlers
 	allHandlers := make(map[string]server.ToolHandlerFunc)
 	for k, v := range optimizedHandlers {
-		allHandlers[k] = v
+		allHandlers[k] = s.wrapToolErrors(k, v)
 	}
 	for k, v := range legacyHandlers {
-		allHandlers[k] = v
+		allHandlers[k] = s.wrapToolErrors(k, v)
 	}
 
 	return allHandlers
+}
+
+func (s *Service) wrapToolErrors(toolName string, handler server.ToolHandlerFunc) server.ToolHandlerFunc {
+	return func(ctx context.Context, request mcp.CallToolRequest) (*mcp.CallToolResult, error) {
+		result, err := handler(ctx, request)
+		if err != nil {
+			logrus.WithError(err).WithField("tool", toolName).Warn("Tool execution failed")
+			return mcp.NewToolResultError(err.Error()), nil
+		}
+		return result, nil
+	}
 }
 
 // IsEnabled returns whether the service is enabled and ready for use.

@@ -9,6 +9,7 @@ import (
 	"github.com/mark3labs/mcp-go/mcp"
 	"github.com/sirupsen/logrus"
 
+	svccommon "github.com/mahmut-Abi/cloud-native-mcp-server/internal/services/common"
 	"github.com/mahmut-Abi/cloud-native-mcp-server/internal/services/prometheus/client"
 )
 
@@ -18,14 +19,7 @@ func HandleGetRules(c *client.Client) func(ctx context.Context, req mcp.CallTool
 		logrus.Debug("Executing Prometheus get rules handler")
 
 		// Extract optional rule type filter
-		var ruleType string
-		if req.GetArguments() != nil {
-			if t, exists := req.GetArguments()["type"]; exists {
-				if typeStr, ok := t.(string); ok {
-					ruleType = typeStr
-				}
-			}
-		}
+		ruleType, _ := svccommon.GetStringArg(req.GetArguments(), "type")
 
 		// Get rules
 		rules, err := c.GetRules(ctx, ruleType)
@@ -60,10 +54,7 @@ func HandleGetRules(c *client.Client) func(ctx context.Context, req mcp.CallTool
 // HandleGetRulesSummary handles Prometheus rules summary requests (optimized version).
 func HandleGetRulesSummary(c *client.Client) func(ctx context.Context, req mcp.CallToolRequest) (*mcp.CallToolResult, error) {
 	return func(ctx context.Context, req mcp.CallToolRequest) (*mcp.CallToolResult, error) {
-		ruleType := ""
-		if t, ok := req.GetArguments()["type"].(string); ok {
-			ruleType = t
-		}
+		ruleType, _ := svccommon.GetStringArg(req.GetArguments(), "type")
 
 		logrus.WithField("type", ruleType).Debug("Executing Prometheus rules summary handler")
 

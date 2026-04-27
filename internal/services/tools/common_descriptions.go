@@ -9,7 +9,7 @@ var CommonDescriptions = map[string]string{
 	"k8s_name":      "Exact name of the specific resource instance. Must match metadata.name exactly. Names are case-sensitive and follow Kubernetes naming conventions.",
 	"k8s_namespace": "Kubernetes namespace where the resource is located. Required for namespaced resources (Pod, Service, Deployment, ConfigMap, Secret, etc.). Not applicable for cluster-scoped resources (Node, ClusterRole, PersistentVolume).",
 	"k8s_debug":     "Enable verbose debug output for troubleshooting API calls. Set to 'true' for detailed information, 'false' or omit for normal output.",
-	"k8s_jsonpath":  "JSONPath expression to extract specific fields from the resource. Examples: '{.status.phase}' for Pod phase, '{.spec.containers[*].name}' for container names, '{.metadata.labels}' for labels.",
+	"k8s_jsonpath":  "JSONPath expression to extract specific fields. Full expressions like `{.status.phase}` and bare paths like `status.phase` are both accepted.",
 	"k8s_dryrun":    "Validate without applying changes. Set to 'true' to test the operation without modifying the cluster, 'false' or omit to apply normally.",
 	"k8s_overwrite": "Overwrite existing values when updating. Set to 'true' to replace existing values, 'false' or omit to keep existing values.",
 

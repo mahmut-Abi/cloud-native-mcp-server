@@ -65,8 +65,8 @@ func HandleGetDashboard(c *client.Client) func(ctx context.Context, req mcp.Call
 		}
 
 		// Get dashboard ID parameter
-		dashboardID, ok := req.GetArguments()["dashboard_id"].(string)
-		if !ok || dashboardID == "" {
+		dashboardID, err := requireStringParam(req, "dashboard_id")
+		if err != nil {
 			return &mcp.CallToolResult{
 				IsError: true,
 				Content: []mcp.Content{
@@ -110,20 +110,20 @@ func HandleCreateDashboard(c *client.Client) func(ctx context.Context, req mcp.C
 	return func(ctx context.Context, req mcp.CallToolRequest) (*mcp.CallToolResult, error) {
 		logrus.Debug("Executing Kibana create dashboard handler")
 
-		title, _ := req.GetArguments()["title"].(string)
-		description, _ := req.GetArguments()["description"].(string)
+		title := getOptionalStringParam(req, "title")
+		description := getOptionalStringParam(req, "description")
 
 		timeRestore := true
-		if tr, ok := req.GetArguments()["timeRestore"].(bool); ok {
-			timeRestore = tr
+		if tr := getOptionalBoolParam(req, "timeRestore"); tr != nil {
+			timeRestore = *tr
 		}
 
-		timeFrom, _ := req.GetArguments()["timeFrom"].(string)
-		timeTo, _ := req.GetArguments()["timeTo"].(string)
+		timeFrom := getOptionalStringParam(req, "timeFrom")
+		timeTo := getOptionalStringParam(req, "timeTo")
 
-		var refreshInterval map[string]interface{}
-		if ri, ok := req.GetArguments()["refreshInterval"].(map[string]interface{}); ok {
-			refreshInterval = ri
+		refreshInterval, err := getOptionalObjectParam(req, "refreshInterval")
+		if err != nil {
+			return mcp.NewToolResultError(err.Error()), nil
 		}
 
 		if title == "" {
@@ -168,17 +168,17 @@ func HandleUpdateDashboard(c *client.Client) func(ctx context.Context, req mcp.C
 	return func(ctx context.Context, req mcp.CallToolRequest) (*mcp.CallToolResult, error) {
 		logrus.Debug("Executing Kibana update dashboard handler")
 
-		dashboardID, _ := req.GetArguments()["dashboard_id"].(string)
-		title, _ := req.GetArguments()["title"].(string)
-		description, _ := req.GetArguments()["description"].(string)
-		panelsJSON, _ := req.GetArguments()["panelsJSON"].(string)
-		timeFrom, _ := req.GetArguments()["timeFrom"].(string)
-		timeTo, _ := req.GetArguments()["timeTo"].(string)
-
-		version := 0
-		if v, ok := req.GetArguments()["version"].(float64); ok {
-			version = int(v)
+		dashboardID := getOptionalStringParam(req, "dashboard_id")
+		title := getOptionalStringParam(req, "title")
+		description := getOptionalStringParam(req, "description")
+		panelsJSON, err := getOptionalJSONStringParam(req, "panelsJSON")
+		if err != nil {
+			return mcp.NewToolResultError(err.Error()), nil
 		}
+		timeFrom := getOptionalStringParam(req, "timeFrom")
+		timeTo := getOptionalStringParam(req, "timeTo")
+
+		version := getOptionalIntParam(req, "version", 0)
 
 		if dashboardID == "" {
 			return &mcp.CallToolResult{
@@ -222,7 +222,7 @@ func HandleDeleteDashboard(c *client.Client) func(ctx context.Context, req mcp.C
 	return func(ctx context.Context, req mcp.CallToolRequest) (*mcp.CallToolResult, error) {
 		logrus.Debug("Executing Kibana delete dashboard handler")
 
-		dashboardID, _ := req.GetArguments()["dashboard_id"].(string)
+		dashboardID := getOptionalStringParam(req, "dashboard_id")
 
 		if dashboardID == "" {
 			return &mcp.CallToolResult{
@@ -256,8 +256,8 @@ func HandleCloneDashboard(c *client.Client) func(ctx context.Context, req mcp.Ca
 	return func(ctx context.Context, req mcp.CallToolRequest) (*mcp.CallToolResult, error) {
 		logrus.Debug("Executing Kibana clone dashboard handler")
 
-		dashboardID, _ := req.GetArguments()["dashboard_id"].(string)
-		newTitle, _ := req.GetArguments()["new_title"].(string)
+		dashboardID := getOptionalStringParam(req, "dashboard_id")
+		newTitle := getOptionalStringParam(req, "new_title")
 
 		if dashboardID == "" {
 			return &mcp.CallToolResult{

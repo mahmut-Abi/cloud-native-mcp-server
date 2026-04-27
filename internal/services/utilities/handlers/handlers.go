@@ -149,6 +149,18 @@ func HandleGetDate(ctx context.Context, request mcp.CallToolRequest) (*mcp.CallT
 	return mcp.NewToolResultText(string(data)), nil
 }
 
+func sleepWithContext(ctx context.Context, d time.Duration) error {
+	timer := time.NewTimer(d)
+	defer timer.Stop()
+
+	select {
+	case <-ctx.Done():
+		return ctx.Err()
+	case <-timer.C:
+		return nil
+	}
+}
+
 // HandlePause pauses execution for a specified duration.
 func HandlePause(ctx context.Context, request mcp.CallToolRequest) (*mcp.CallToolResult, error) {
 	duration := 5 // seconds
@@ -170,7 +182,9 @@ func HandlePause(ctx context.Context, request mcp.CallToolRequest) (*mcp.CallToo
 	}).Debug("Handler invoked")
 
 	// Pause for specified duration
-	time.Sleep(time.Duration(duration) * time.Second)
+	if err := sleepWithContext(ctx, time.Duration(duration)*time.Second); err != nil {
+		return nil, err
+	}
 
 	response := map[string]interface{}{
 		"paused":   true,
@@ -225,7 +239,9 @@ func HandleSleep(ctx context.Context, request mcp.CallToolRequest) (*mcp.CallToo
 		sleepDuration = 5 * time.Minute
 	}
 
-	time.Sleep(sleepDuration)
+	if err := sleepWithContext(ctx, sleepDuration); err != nil {
+		return nil, err
+	}
 
 	response := map[string]interface{}{
 		"slept":    true,

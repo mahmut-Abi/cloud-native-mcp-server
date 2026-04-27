@@ -44,7 +44,8 @@ func GetDateTool() mcp.Tool {
 func PauseTool() mcp.Tool {
 	logrus.Debug("Creating PauseTool")
 	return mcp.NewTool("utilities_pause",
-		mcp.WithDescription("Pause execution for a specified number of seconds. Useful for waiting for external processes, rate limiting, or giving time for background tasks to complete. Maximum pause: 300 seconds (5 minutes). Default: 5 seconds."),
+		mcp.WithDescription("Pause execution for a specified number of seconds. Supports task augmentation, so clients may run it asynchronously and cancel it if needed."),
+		mcp.WithTaskSupport(mcp.TaskSupportOptional),
 		mcp.WithNumber("seconds",
 			mcp.Description("Number of seconds to pause. Range: 1-300. Default: 5.")),
 	)
@@ -54,7 +55,8 @@ func PauseTool() mcp.Tool {
 func SleepTool() mcp.Tool {
 	logrus.Debug("Creating SleepTool")
 	return mcp.NewTool("utilities_sleep",
-		mcp.WithDescription("Pause execution for a specified duration. Similar to pause but supports different time units. Useful for flexible waiting periods. Maximum sleep: 5 minutes. Default: 5 seconds."),
+		mcp.WithDescription("Pause execution for a specified duration. Supports task augmentation, so clients may run it asynchronously and cancel it if needed."),
+		mcp.WithTaskSupport(mcp.TaskSupportOptional),
 		mcp.WithNumber("duration",
 			mcp.Description("Duration value. Default: 5.")),
 		mcp.WithString("unit",

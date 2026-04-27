@@ -1,4 +1,4 @@
-# Kubernetes MCP Server
+# Cloud Native MCP Server
 
 [![Go Report Card](https://goreportcard.com/badge/github.com/mahmut-Abi/cloud-native-mcp-server)](https://goreportcard.com/report/github.com/mahmut-Abi/cloud-native-mcp-server)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
@@ -13,7 +13,7 @@ A high-performance Model Context Protocol (MCP) server for Kubernetes and cloud-
 ## Features
 
 - **10 Integrated Services**: Kubernetes, Grafana, Prometheus, Kibana, Elasticsearch, Helm, Alertmanager, Jaeger, OpenTelemetry, Utilities
-- **220+ MCP Tools**: Comprehensive toolset for infrastructure operations
+- **210+ MCP Tools**: Comprehensive toolset for infrastructure operations
 - **Multi-Protocol Support**: SSE and streamable-http modes
 - **Smart Caching**: LRU cache with TTL support for optimal performance
 - **Performance Optimized**: JSON encoding pool, response size control, intelligent limits
@@ -22,6 +22,14 @@ A high-performance Model Context Protocol (MCP) server for Kubernetes and cloud-
 - **Input Sanitization**: Protection against injection attacks
 - **Audit Logging**: Track all tool calls and operations
 - **LLM-Optimized**: Summary tools and pagination to prevent context overflow
+
+## LLM Tool Calling Tips
+
+- Prefer summary and paginated tools first, then switch to full-detail tools only when needed.
+- Send structured JSON objects and arrays when a parameter represents an object or list; many handlers still accept legacy JSON strings for compatibility.
+- Use RFC3339 timestamps for Prometheus and tracing time fields.
+- For Kubernetes, omit `namespace` for cluster-scoped resources and include it for namespaced resources.
+- For Kibana, some handlers accept both `camelCase` and `snake_case` parameter aliases, but the schema name is still the preferred form.
 
 ---
 

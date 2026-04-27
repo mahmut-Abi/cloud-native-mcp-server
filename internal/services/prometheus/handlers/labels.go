@@ -5,11 +5,11 @@ package handlers
 import (
 	"context"
 	"fmt"
-	"time"
 
 	"github.com/mark3labs/mcp-go/mcp"
 	"github.com/sirupsen/logrus"
 
+	svccommon "github.com/mahmut-Abi/cloud-native-mcp-server/internal/services/common"
 	"github.com/mahmut-Abi/cloud-native-mcp-server/internal/services/prometheus/client"
 )
 
@@ -19,22 +19,13 @@ func HandleGetLabelNames(c *client.Client) func(ctx context.Context, req mcp.Cal
 		logrus.Debug("Executing Prometheus get label names handler")
 
 		// Parse optional time range
-		var start, end *time.Time
-		if req.GetArguments() != nil {
-			if s, exists := req.GetArguments()["start"]; exists {
-				if startStr, ok := s.(string); ok && startStr != "" {
-					if parsed, err := time.Parse(time.RFC3339, startStr); err == nil {
-						start = &parsed
-					}
-				}
-			}
-			if e, exists := req.GetArguments()["end"]; exists {
-				if endStr, ok := e.(string); ok && endStr != "" {
-					if parsed, err := time.Parse(time.RFC3339, endStr); err == nil {
-						end = &parsed
-					}
-				}
-			}
+		start, err := svccommon.GetRFC3339TimeArg(req.GetArguments(), "start")
+		if err != nil {
+			return mcp.NewToolResultError(err.Error()), nil
+		}
+		end, err := svccommon.GetRFC3339TimeArg(req.GetArguments(), "end")
+		if err != nil {
+			return mcp.NewToolResultError(err.Error()), nil
 		}
 
 		// Get label names
@@ -84,7 +75,7 @@ func HandleGetLabelValues(c *client.Client) func(ctx context.Context, req mcp.Ca
 		}
 
 		// Get label name parameter
-		labelName, ok := req.GetArguments()["label"].(string)
+		labelName, ok := svccommon.GetStringArg(req.GetArguments(), "label")
 		if !ok || labelName == "" {
 			return &mcp.CallToolResult{
 				IsError: true,
@@ -95,20 +86,13 @@ func HandleGetLabelValues(c *client.Client) func(ctx context.Context, req mcp.Ca
 		}
 
 		// Parse optional time range
-		var start, end *time.Time
-		if s, exists := req.GetArguments()["start"]; exists {
-			if startStr, ok := s.(string); ok && startStr != "" {
-				if parsed, err := time.Parse(time.RFC3339, startStr); err == nil {
-					start = &parsed
-				}
-			}
+		start, err := svccommon.GetRFC3339TimeArg(req.GetArguments(), "start")
+		if err != nil {
+			return mcp.NewToolResultError(err.Error()), nil
 		}
-		if e, exists := req.GetArguments()["end"]; exists {
-			if endStr, ok := e.(string); ok && endStr != "" {
-				if parsed, err := time.Parse(time.RFC3339, endStr); err == nil {
-					end = &parsed
-				}
-			}
+		end, err := svccommon.GetRFC3339TimeArg(req.GetArguments(), "end")
+		if err != nil {
+			return mcp.NewToolResultError(err.Error()), nil
 		}
 
 		// Get label values

@@ -96,8 +96,25 @@ func HandleCreateDataView(c *client.Client) func(ctx context.Context, req mcp.Ca
 		name := getOptionalStringParam(req, "name")
 		timeField := getOptionalStringParam(req, "timeField")
 		allowNoIndex := false
-		if ani, ok := req.GetArguments()["allowNoIndex"].(bool); ok {
-			allowNoIndex = ani
+		if ani := getOptionalBoolParam(req, "allowNoIndex"); ani != nil {
+			allowNoIndex = *ani
+		}
+
+		sourceFilterObjects, err := getOptionalObjectArrayParam(req, "sourceFilters")
+		if err != nil {
+			return mcp.NewToolResultError(err.Error()), nil
+		}
+		sourceFilters := make([]client.SourceFilter, 0, len(sourceFilterObjects))
+		for _, item := range sourceFilterObjects {
+			value := getStringFieldFromMap(item, "value")
+			if value != "" {
+				sourceFilters = append(sourceFilters, client.SourceFilter{Value: value})
+			}
+		}
+
+		fieldFormats, err := getOptionalObjectParam(req, "fieldFormats")
+		if err != nil {
+			return mcp.NewToolResultError(err.Error()), nil
 		}
 
 		if title == "" {
@@ -111,7 +128,7 @@ func HandleCreateDataView(c *client.Client) func(ctx context.Context, req mcp.Ca
 
 		logrus.WithField("title", title).Debug("Executing Kibana create data view handler")
 
-		dataView, err := c.CreateDataView(ctx, title, name, timeField, nil, nil, allowNoIndex)
+		dataView, err := c.CreateDataView(ctx, title, name, timeField, sourceFilters, fieldFormats, allowNoIndex)
 		if err != nil {
 			return &mcp.CallToolResult{
 				IsError: true,

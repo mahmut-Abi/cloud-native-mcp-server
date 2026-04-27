@@ -65,8 +65,8 @@ func HandleGetIndexPattern(c *client.Client) func(ctx context.Context, req mcp.C
 		}
 
 		// Get index pattern ID parameter
-		indexPatternID, ok := req.GetArguments()["index_pattern_id"].(string)
-		if !ok || indexPatternID == "" {
+		indexPatternID, err := requireStringParam(req, "index_pattern_id")
+		if err != nil {
 			return &mcp.CallToolResult{
 				IsError: true,
 				Content: []mcp.Content{
@@ -110,8 +110,16 @@ func HandleCreateIndexPattern(c *client.Client) func(ctx context.Context, req mc
 	return func(ctx context.Context, req mcp.CallToolRequest) (*mcp.CallToolResult, error) {
 		logrus.Debug("Executing Kibana create index pattern handler")
 
-		title, _ := req.GetArguments()["title"].(string)
-		timeField, _ := req.GetArguments()["timeField"].(string)
+		title := getOptionalStringParam(req, "title")
+		timeField := getOptionalStringParam(req, "timeField")
+		customSource, err := getOptionalObjectParam(req, "customSource")
+		if err != nil {
+			return mcp.NewToolResultError(err.Error()), nil
+		}
+		fieldFormatMap, err := getOptionalObjectParam(req, "fieldFormatMap")
+		if err != nil {
+			return mcp.NewToolResultError(err.Error()), nil
+		}
 
 		if title == "" {
 			return &mcp.CallToolResult{
@@ -122,7 +130,7 @@ func HandleCreateIndexPattern(c *client.Client) func(ctx context.Context, req mc
 			}, nil
 		}
 
-		pattern, err := c.CreateIndexPattern(ctx, title, timeField)
+		pattern, err := c.CreateIndexPattern(ctx, title, timeField, customSource, fieldFormatMap)
 		if err != nil {
 			return &mcp.CallToolResult{
 				IsError: true,
@@ -155,9 +163,13 @@ func HandleUpdateIndexPattern(c *client.Client) func(ctx context.Context, req mc
 	return func(ctx context.Context, req mcp.CallToolRequest) (*mcp.CallToolResult, error) {
 		logrus.Debug("Executing Kibana update index pattern handler")
 
-		patternID, _ := req.GetArguments()["index_pattern_id"].(string)
-		title, _ := req.GetArguments()["title"].(string)
-		timeField, _ := req.GetArguments()["timeField"].(string)
+		patternID := getOptionalStringParam(req, "index_pattern_id")
+		title := getOptionalStringParam(req, "title")
+		timeField := getOptionalStringParam(req, "timeField")
+		fieldFormatMap, err := getOptionalObjectParam(req, "fieldFormatMap")
+		if err != nil {
+			return mcp.NewToolResultError(err.Error()), nil
+		}
 
 		if patternID == "" {
 			return &mcp.CallToolResult{
@@ -168,7 +180,7 @@ func HandleUpdateIndexPattern(c *client.Client) func(ctx context.Context, req mc
 			}, nil
 		}
 
-		pattern, err := c.UpdateIndexPattern(ctx, patternID, title, timeField)
+		pattern, err := c.UpdateIndexPattern(ctx, patternID, title, timeField, fieldFormatMap)
 		if err != nil {
 			return &mcp.CallToolResult{
 				IsError: true,
@@ -201,7 +213,7 @@ func HandleDeleteIndexPattern(c *client.Client) func(ctx context.Context, req mc
 	return func(ctx context.Context, req mcp.CallToolRequest) (*mcp.CallToolResult, error) {
 		logrus.Debug("Executing Kibana delete index pattern handler")
 
-		patternID, _ := req.GetArguments()["index_pattern_id"].(string)
+		patternID := getOptionalStringParam(req, "index_pattern_id")
 
 		if patternID == "" {
 			return &mcp.CallToolResult{
@@ -235,7 +247,7 @@ func HandleSetDefaultIndexPattern(c *client.Client) func(ctx context.Context, re
 	return func(ctx context.Context, req mcp.CallToolRequest) (*mcp.CallToolResult, error) {
 		logrus.Debug("Executing Kibana set default index pattern handler")
 
-		patternID, _ := req.GetArguments()["index_pattern_id"].(string)
+		patternID := getOptionalStringParam(req, "index_pattern_id")
 
 		if patternID == "" {
 			return &mcp.CallToolResult{
@@ -269,7 +281,7 @@ func HandleRefreshIndexPatternFields(c *client.Client) func(ctx context.Context,
 	return func(ctx context.Context, req mcp.CallToolRequest) (*mcp.CallToolResult, error) {
 		logrus.Debug("Executing Kibana refresh index pattern fields handler")
 
-		patternID, _ := req.GetArguments()["index_pattern_id"].(string)
+		patternID := getOptionalStringParam(req, "index_pattern_id")
 
 		if patternID == "" {
 			return &mcp.CallToolResult{
@@ -301,12 +313,7 @@ func HandleRefreshIndexPatternFields(c *client.Client) func(ctx context.Context,
 // HandleGetIndexPatternFields handles index pattern fields retrieval requests.
 func HandleGetIndexPatternFields(c *client.Client) func(ctx context.Context, req mcp.CallToolRequest) (*mcp.CallToolResult, error) {
 	return func(ctx context.Context, req mcp.CallToolRequest) (*mcp.CallToolResult, error) {
-		patternID := ""
-		if v, ok := req.GetArguments()["patternID"]; ok {
-			if s, ok := v.(string); ok {
-				patternID = s
-			}
-		}
+		patternID := getOptionalStringParam(req, "patternID")
 
 		if patternID == "" {
 			return &mcp.CallToolResult{

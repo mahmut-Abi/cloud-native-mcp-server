@@ -2,6 +2,14 @@
 
 This document provides a comprehensive reference for all 210+ tools available in the cloud-native MCP server.
 
+## LLM Calling Rules
+
+- Prefer summary and paginated tools before calling full-detail tools.
+- When a parameter represents an object or array, send structured JSON if your MCP client supports it.
+- Many handlers still accept legacy JSON strings for compatibility, but structured JSON is preferred.
+- Prometheus and tracing timestamps should use RFC3339.
+- Kibana tools may accept both `camelCase` and `snake_case` forms for some parameters, but the schema field name remains the canonical form.
+
 ## Table of Contents
 
 - [Kubernetes (28 tools)](#kubernetes-28-tools)

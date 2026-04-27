@@ -65,8 +65,8 @@ func HandleGetVisualization(c *client.Client) func(ctx context.Context, req mcp.
 		}
 
 		// Get visualization ID parameter
-		visualizationID, ok := req.GetArguments()["visualization_id"].(string)
-		if !ok || visualizationID == "" {
+		visualizationID, err := requireStringParam(req, "visualization_id")
+		if err != nil {
 			return &mcp.CallToolResult{
 				IsError: true,
 				Content: []mcp.Content{
@@ -110,13 +110,13 @@ func HandleCreateVisualization(c *client.Client) func(ctx context.Context, req m
 	return func(ctx context.Context, req mcp.CallToolRequest) (*mcp.CallToolResult, error) {
 		logrus.Debug("Executing Kibana create visualization handler")
 
-		title, _ := req.GetArguments()["title"].(string)
-		description, _ := req.GetArguments()["description"].(string)
-		savedSearchRefName, _ := req.GetArguments()["savedSearchRefName"].(string)
+		title := getOptionalStringParam(req, "title")
+		description := getOptionalStringParam(req, "description")
+		savedSearchRefName := getOptionalStringParam(req, "savedSearchRefName")
 
-		var visState map[string]interface{}
-		if vs, ok := req.GetArguments()["visState"].(map[string]interface{}); ok {
-			visState = vs
+		visState, err := getOptionalObjectParam(req, "visState")
+		if err != nil {
+			return mcp.NewToolResultError(err.Error()), nil
 		}
 
 		if title == "" {
@@ -161,19 +161,16 @@ func HandleUpdateVisualization(c *client.Client) func(ctx context.Context, req m
 	return func(ctx context.Context, req mcp.CallToolRequest) (*mcp.CallToolResult, error) {
 		logrus.Debug("Executing Kibana update visualization handler")
 
-		visualizationID, _ := req.GetArguments()["visualization_id"].(string)
-		title, _ := req.GetArguments()["title"].(string)
-		description, _ := req.GetArguments()["description"].(string)
+		visualizationID := getOptionalStringParam(req, "visualization_id")
+		title := getOptionalStringParam(req, "title")
+		description := getOptionalStringParam(req, "description")
 
-		var visState map[string]interface{}
-		if vs, ok := req.GetArguments()["visState"].(map[string]interface{}); ok {
-			visState = vs
+		visState, err := getOptionalObjectParam(req, "visState")
+		if err != nil {
+			return mcp.NewToolResultError(err.Error()), nil
 		}
 
-		version := 0
-		if v, ok := req.GetArguments()["version"].(float64); ok {
-			version = int(v)
-		}
+		version := getOptionalIntParam(req, "version", 0)
 
 		if visualizationID == "" {
 			return &mcp.CallToolResult{
@@ -217,7 +214,7 @@ func HandleDeleteVisualization(c *client.Client) func(ctx context.Context, req m
 	return func(ctx context.Context, req mcp.CallToolRequest) (*mcp.CallToolResult, error) {
 		logrus.Debug("Executing Kibana delete visualization handler")
 
-		visualizationID, _ := req.GetArguments()["visualization_id"].(string)
+		visualizationID := getOptionalStringParam(req, "visualization_id")
 
 		if visualizationID == "" {
 			return &mcp.CallToolResult{
@@ -251,8 +248,8 @@ func HandleCloneVisualization(c *client.Client) func(ctx context.Context, req mc
 	return func(ctx context.Context, req mcp.CallToolRequest) (*mcp.CallToolResult, error) {
 		logrus.Debug("Executing Kibana clone visualization handler")
 
-		visualizationID, _ := req.GetArguments()["visualization_id"].(string)
-		newTitle, _ := req.GetArguments()["new_title"].(string)
+		visualizationID := getOptionalStringParam(req, "visualization_id")
+		newTitle := getOptionalStringParam(req, "new_title")
 
 		if visualizationID == "" {
 			return &mcp.CallToolResult{

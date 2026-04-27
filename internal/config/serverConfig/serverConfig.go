@@ -67,19 +67,52 @@ func (s *ServerConfig) InitMCPServer(hooks *server.Hooks) *server.MCPServer {
 	mcpServer := server.NewMCPServer(
 		serverName,
 		serverVersion,
+		server.WithTitle("Cloud Native MCP Server"),
+		server.WithDescription("MCP server for Kubernetes and cloud-native operations, with LLM-optimized tools, prompts, and resource endpoints."),
+		server.WithWebsiteURL("https://github.com/mahmut-Abi/cloud-native-mcp-server"),
 		server.WithToolCapabilities(true),
 		server.WithPromptCapabilities(true),
 		server.WithResourceCapabilities(true, false),
+		server.WithTaskCapabilities(true, true, true),
+		server.WithMaxConcurrentTasks(16),
+		server.WithTaskHooks(hook.NewTaskHooks()),
 		server.WithHooks(hooks),
 		server.WithLogging(),
 		server.WithRecovery(),
+		server.WithPromptHandlerMiddleware(hook.PromptLoggingMiddleware()),
+		server.WithPromptHandlerMiddleware(hook.PromptAvailabilityMiddleware(func() bool {
+			return s.serviceManager != nil && s.serviceManager.GetKubernetesService() != nil && s.serviceManager.GetKubernetesService().IsEnabled()
+		})),
+		server.WithPromptFilter(s.promptFilter()),
 	)
+	mcpServer.Use(hook.NormalizeToolErrorMiddleware())
+	if existingHooks := mcpServer.GetHooks(); existingHooks != nil {
+		existingHooks.AddOnRequestInitialization(hook.InitializationHookFunc())
+	}
 	logrus.WithFields(logrus.Fields{
 		"component": "server",
 		"operation": "init_mcp_server",
 		"status":    "success",
 	}).Debug("MCP server initialized successfully")
 	return mcpServer
+}
+
+func (s *ServerConfig) promptFilter() server.PromptFilterFunc {
+	return func(ctx context.Context, promptList []mcp.Prompt) []mcp.Prompt {
+		kubernetesEnabled := s.serviceManager != nil &&
+			s.serviceManager.GetKubernetesService() != nil &&
+			s.serviceManager.GetKubernetesService().IsEnabled()
+
+		filtered := make([]mcp.Prompt, 0, len(promptList))
+		for _, prompt := range promptList {
+			if prompt.Name == prompts.K8sOpsPromptName && !kubernetesEnabled {
+				continue
+			}
+			filtered = append(filtered, prompt)
+		}
+
+		return filtered
+	}
 }
 
 func (s *ServerConfig) InitializeServices(appConfig *config.AppConfig) error {

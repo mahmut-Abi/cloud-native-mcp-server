@@ -1,4 +1,4 @@
-# Kubernetes MCP Server
+# Cloud Native MCP Server
 
 [![Go Report Card](https://goreportcard.com/badge/github.com/mahmut-Abi/cloud-native-mcp-server)](https://goreportcard.com/report/github.com/mahmut-Abi/cloud-native-mcp-server)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
@@ -7,6 +7,14 @@
 [🇨🇳 中文文档](README-zh.md) | [🇬🇧 English](README.md)
 
 一个高性能的模型上下文协议（MCP）服务器，用于 Kubernetes 和云原生基础设施管理，集成了多个服务和工具。
+
+## LLM 调用工具建议
+
+- 优先使用摘要类和分页类工具，只有在确实需要更多字段时再切到全量详情工具。
+- 当参数语义是对象或数组时，优先传结构化 JSON；很多 handler 仍兼容旧的 JSON 字符串写法。
+- Prometheus 和 tracing 相关时间字段使用 RFC3339 格式。
+- Kubernetes 的 cluster-scoped 资源不要传 `namespace`，namespaced 资源要传。
+- Kibana 的部分 handler 兼容 `camelCase` 和 `snake_case` 两种参数别名，但仍建议优先使用 schema 中展示的字段名。
 
 ## 功能特性
 
@@ -105,7 +113,7 @@ API_KEY=your-key make sse-smoke BASE_URL=http://127.0.0.1:8080
 
 ## 文档
 
-- [完整工具参考](docs/TOOLS.md) - 所有 220+ 工具的详细文档
+- [完整工具参考](docs/TOOLS.md) - 所有 210+ 工具的详细文档
 - [配置指南](docs/CONFIGURATION.md) - 配置选项和示例
 - [部署指南](docs/DEPLOYMENT.md) - 部署策略和最佳实践
 - [安全指南](docs/SECURITY.md) - 身份验证、密钥管理和安全最佳实践

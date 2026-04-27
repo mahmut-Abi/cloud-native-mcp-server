@@ -9,6 +9,7 @@ import (
 
 	"github.com/mark3labs/mcp-go/mcp"
 	server "github.com/mark3labs/mcp-go/server"
+	"github.com/sirupsen/logrus"
 
 	"github.com/mahmut-Abi/cloud-native-mcp-server/internal/config"
 	"github.com/mahmut-Abi/cloud-native-mcp-server/internal/services/cache"
@@ -126,7 +127,7 @@ func (s *Service) GetHandlers() map[string]server.ToolHandlerFunc {
 		return nil
 	}
 
-	return map[string]server.ToolHandlerFunc{
+	handlersMap := map[string]server.ToolHandlerFunc{
 		// Query operations
 		"prometheus_query":       handlers.HandleQuery(s.client),
 		"prometheus_query_range": handlers.HandleQueryRange(s.client),
@@ -146,6 +147,12 @@ func (s *Service) GetHandlers() map[string]server.ToolHandlerFunc {
 		// Connection and health
 		"prometheus_test_connection": handlers.HandleTestConnection(s.client),
 	}
+
+	for name, handler := range handlersMap {
+		handlersMap[name] = s.wrapToolErrors(name, handler)
+	}
+
+	return handlersMap
 }
 
 // IsEnabled returns whether the service is enabled and ready for use.
@@ -158,6 +165,17 @@ func (s *Service) IsEnabled() bool {
 // This method is primarily used for testing and internal service communication.
 func (s *Service) GetClient() *client.Client {
 	return s.client
+}
+
+func (s *Service) wrapToolErrors(toolName string, handler server.ToolHandlerFunc) server.ToolHandlerFunc {
+	return func(ctx context.Context, request mcp.CallToolRequest) (*mcp.CallToolResult, error) {
+		result, err := handler(ctx, request)
+		if err != nil {
+			logrus.WithError(err).WithField("tool", toolName).Warn("Tool execution failed")
+			return mcp.NewToolResultError(err.Error()), nil
+		}
+		return result, nil
+	}
 }
 
 // GetResources returns all available Prometheus MCP resources.

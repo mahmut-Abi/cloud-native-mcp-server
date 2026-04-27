@@ -51,12 +51,7 @@ func HandleGetAlertRules(c *client.Client) func(ctx context.Context, req mcp.Cal
 		page := getOptionalIntParam(req, "page", 1)
 		perPage := getOptionalIntParam(req, "per_page", 20)
 		filter := getOptionalStringParam(req, "filter")
-		var enabled *bool
-		if e, exists := req.GetArguments()["enabled"]; exists {
-			if eBool, ok := e.(bool); ok {
-				enabled = &eBool
-			}
-		}
+		enabled := getOptionalBoolParam(req, "enabled")
 
 		logrus.WithFields(logrus.Fields{
 			"page":    page,
@@ -135,31 +130,21 @@ func HandleCreateAlertRule(c *client.Client) func(ctx context.Context, req mcp.C
 	return func(ctx context.Context, req mcp.CallToolRequest) (*mcp.CallToolResult, error) {
 		name := getOptionalStringParam(req, "name")
 		alertTypeID := getOptionalStringParam(req, "alertTypeId")
-
-		var schedule, params map[string]interface{}
-		if s, ok := req.GetArguments()["schedule"].(map[string]interface{}); ok {
-			schedule = s
+		schedule, err := getOptionalObjectParam(req, "schedule")
+		if err != nil {
+			return mcp.NewToolResultError(err.Error()), nil
 		}
-		if p, ok := req.GetArguments()["params"].(map[string]interface{}); ok {
-			params = p
+		params, err := getOptionalObjectParam(req, "params")
+		if err != nil {
+			return mcp.NewToolResultError(err.Error()), nil
 		}
-
-		var actions []map[string]interface{}
-		if a, ok := req.GetArguments()["actions"].([]interface{}); ok {
-			for _, item := range a {
-				if actionMap, ok := item.(map[string]interface{}); ok {
-					actions = append(actions, actionMap)
-				}
-			}
+		actions, err := getOptionalObjectArrayParam(req, "actions")
+		if err != nil {
+			return mcp.NewToolResultError(err.Error()), nil
 		}
-
-		var tags []string
-		if t, ok := req.GetArguments()["tags"].([]interface{}); ok {
-			for _, tag := range t {
-				if tagStr, ok := tag.(string); ok {
-					tags = append(tags, tagStr)
-				}
-			}
+		tags, err := getOptionalStringArrayParam(req, "tags")
+		if err != nil {
+			return mcp.NewToolResultError(err.Error()), nil
 		}
 
 		if name == "" || alertTypeID == "" || schedule == nil {
@@ -210,23 +195,21 @@ func HandleUpdateAlertRule(c *client.Client) func(ctx context.Context, req mcp.C
 		}
 
 		name := getOptionalStringParam(req, "name")
-		schedule := getOptionalStringParam(req, "schedule")
-
-		var params, actions map[string]interface{}
-		if p, ok := req.GetArguments()["params"].(map[string]interface{}); ok {
-			params = p
+		schedule, err := getOptionalObjectParam(req, "schedule")
+		if err != nil {
+			return mcp.NewToolResultError(err.Error()), nil
 		}
-		if a, ok := req.GetArguments()["actions"].(map[string]interface{}); ok {
-			actions = a
+		params, err := getOptionalObjectParam(req, "params")
+		if err != nil {
+			return mcp.NewToolResultError(err.Error()), nil
 		}
-
-		var tags []string
-		if t, ok := req.GetArguments()["tags"].([]interface{}); ok {
-			for _, tag := range t {
-				if tagStr, ok := tag.(string); ok {
-					tags = append(tags, tagStr)
-				}
-			}
+		actions, err := getOptionalObjectArrayParam(req, "actions")
+		if err != nil {
+			return mcp.NewToolResultError(err.Error()), nil
+		}
+		tags, err := getOptionalStringArrayParam(req, "tags")
+		if err != nil {
+			return mcp.NewToolResultError(err.Error()), nil
 		}
 
 		logrus.WithField("rule_id", ruleID).Debug("Executing Kibana update alert rule handler")

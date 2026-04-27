@@ -9,7 +9,7 @@ import (
 func GetResourceSummaryTool() mcp.Tool {
 	logrus.Debug("Creating GetResourceSummaryTool")
 	return mcp.NewTool("kubernetes_get_resource_summary",
-		mcp.WithDescription("⚠️ PRIORITY: Optimized for LLM efficiency: Returns only essential fields (name, namespace, kind, status, age, labels). 90-95% smaller than full resource. ⚡ Best for: single resource status check, quick confirmation, resource identification. 📋 Use cases: pod_troubleshooting, health_check, log_analysis. 🔄 Workflow: list_resources_summary to discover problematic resources → use this tool to get detailed snapshot → combine with get_events and get_pod_logs for deep analysis when needed."),
+		mcp.WithDescription("Priority summary tool for a single Kubernetes resource. Returns only essential fields and is the best first step before using full-detail read tools."),
 		mcp.WithString("kind", mcp.Required(),
 			mcp.Description("Resource kind/type - must be the same as in standard kubectl (Pod, Service, Deployment, ConfigMap, Secret, Namespace, Node, etc.). Use exact case-sensitive names as they appear in Kubernetes API.")),
 		mcp.WithString("name", mcp.Required(),
@@ -27,7 +27,7 @@ func GetResourceSummaryTool() mcp.Tool {
 func GetResourceTool() mcp.Tool {
 	logrus.Debug("Creating GetResourceTool")
 	return mcp.NewTool("kubernetes_get_resource",
-		mcp.WithDescription("Retrieve detailed metadata and status of a Kubernetes resource. This tool returns the complete YAML/JSON representation of the resource, similar to 'kubectl get <resource> <name> -o yaml'. Use this when you need to inspect the current state, configuration, or status of a specific Kubernetes object. For troubleshooting, pay attention to the status fields which contain runtime information about the resource."),
+		mcp.WithDescription("Read one Kubernetes resource in detail. Use this when you need the full object or when you want to extract one field with `jsonpath`."),
 		mcp.WithString("kind", mcp.Required(),
 			mcp.Description("Resource kind - the type of Kubernetes object to retrieve. Common examples: Pod (for containers), Service (for networking), Deployment (for application workloads), ConfigMap (for configuration), Secret (for sensitive data), Ingress (for HTTP routing), PersistentVolume/PersistentVolumeClaim (for storage), Namespace (for resource grouping). Use exact case-sensitive names as they appear in Kubernetes API.")),
 		mcp.WithString("name", mcp.Required(),
@@ -61,7 +61,7 @@ func DescribeResourceTool() mcp.Tool {
 func GetRecentEventsTool() mcp.Tool {
 	logrus.Debug("Creating GetRecentEventsTool")
 	return mcp.NewTool("kubernetes_get_recent_events",
-		mcp.WithDescription("⚠️ PRIORITY: Optimized for LLM efficiency: Returns only recent critical events (warnings, errors, failed pods) with essential information. 80-90% smaller than full events. 🎯 Best for: problem diagnosis, cluster health monitoring, quick troubleshooting. 📋 Use cases: pod_troubleshooting, health_check, event_analysis, resource_monitoring. 🔄 Workflow: use this tool first to identify critical events → combine with list_resources_summary to view related resources → use get_events_detail for deep analysis."),
+		mcp.WithDescription("Priority event tool for troubleshooting. Returns recent warning and failure events with much smaller output than the full events listing."),
 		mcp.WithString("namespace",
 			mcp.Description("Kubernetes namespace to filter events from. If not specified, shows critical events from all namespaces (requires cluster-wide permissions). For focused troubleshooting, specify the namespace where the problematic resources are located.")),
 		mcp.WithString("fieldSelector",
@@ -147,7 +147,7 @@ func CreateResourceTool() mcp.Tool {
 func ListResourcesTool() mcp.Tool {
 	logrus.Debug("Creating ListResourcesTool")
 	return mcp.NewTool("kubernetes_list_resources",
-		mcp.WithDescription("📊 STANDARD TOOL: List with filtering and pagination - use when need more detail than summary. 🔍 Standard scenarios: need more information than summary but not full configuration. ⚠️ Recommendation: prioritize list_resources_summary, use this tool when more fields are needed, use list_resources_full for complete configuration. 📋 Use cases: inventory, log_analysis. 🔧 Features: supports labelSelector/fieldSelector filtering, JSONPath field extraction, pagination continuation."),
+		mcp.WithDescription("List Kubernetes resources with filtering and pagination. Prefer `kubernetes_list_resources_summary` first; use this tool when you need more fields or JSONPath extraction."),
 		mcp.WithString("kind", mcp.Required(),
 			mcp.Description("Kubernetes resource kind/type to list - the category of resources you want to discover. Common resource types include: 'Pod' (running containers and applications), 'Service' (network services and load balancing), 'Deployment' (application deployments and replica management), 'ConfigMap' (configuration data), 'Secret' (sensitive information like passwords and certificates), 'Ingress' (HTTP/HTTPS routing rules), 'PersistentVolume' and 'PersistentVolumeClaim' (storage resources), 'Namespace' (resource organization and isolation), 'Node' (cluster infrastructure), 'DaemonSet' (node-wide services), 'StatefulSet' (stateful applications), 'Job' and 'CronJob' (batch workloads), 'ServiceAccount' (identity and permissions), 'Role' and 'ClusterRole' (RBAC permissions), 'CustomResource' (custom resource definitions). Use exact case-sensitive names as they appear in Kubernetes API (e.g., 'Pod' not 'pod'). If unsure about available resource types, try common ones first.")),
 		mcp.WithString("namespace",
@@ -173,7 +173,7 @@ func ListResourcesTool() mcp.Tool {
 func ListResourcesSummaryTool() mcp.Tool {
 	logrus.Debug("Creating ListResourcesSummaryTool")
 	return mcp.NewTool("kubernetes_list_resources_summary",
-		mcp.WithDescription("⚠️ PRIORITY: Optimized for LLM efficiency: Returns only essential fields (name, namespace, status, age). 80-90% smaller than detailed version. 🚀 Best for: quick browsing, resource discovery, health checks, initial diagnosis. 📋 Use cases: pod_troubleshooting, health_check, inventory, resource_monitoring. 🔄 Workflow: use this tool first to discover resources → use get_resource_summary to view details → combine with get_recent_events to analyze problems when needed."),
+		mcp.WithDescription("Priority discovery tool for Kubernetes resources. Use this first for browsing, health checks, and finding exact names before calling detailed tools."),
 		mcp.WithString("kind", mcp.Required(),
 			mcp.Description("Resource kind to list (Pod, Deployment, Service, ConfigMap, etc.). Use exact case-sensitive names as they appear in Kubernetes API. Common types: Pod, Service, Deployment, ConfigMap, Secret, Namespace, Node, Ingress, StatefulSet, DaemonSet, Job, CronJob.")),
 		mcp.WithString("namespace",
@@ -231,7 +231,7 @@ func DeleteResourceTool() mcp.Tool {
 func ContainerLogsTool() mcp.Tool {
 	logrus.Debug("Creating ContainerLogsTool")
 	return mcp.NewTool("kubernetes_get_pod_logs",
-		mcp.WithDescription("Retrieve and display container logs from a Kubernetes Pod, similar to 'kubectl logs'. This tool is essential for debugging applications, monitoring application behavior, troubleshooting startup issues, and investigating runtime errors. Container logs contain stdout and stderr output from the application processes running inside containers. Use this tool when you need to: diagnose why a pod is failing or crashing, monitor application output and error messages, investigate performance issues or unexpected behavior, check application startup sequences, or analyze error patterns. The tool can retrieve logs from current running containers or previous container instances (if the container has restarted). For multi-container pods, you must specify the container name. Logs are returned in chronological order and can be limited to recent entries for better performance."),
+		mcp.WithDescription("Read logs from a Pod container. Use this after you identify the target pod, and specify `container` when the pod has more than one container."),
 		mcp.WithString("name", mcp.Required(),
 			mcp.Description("Exact name of the Pod from which to retrieve container logs. The pod name must match exactly as it appears in Kubernetes and is case-sensitive. Pod names typically follow patterns like 'deployment-name-random-suffix' for pods created by Deployments, or custom names for manually created pods. Use 'list_resources' tool with kind='Pod' first if you're unsure of the exact pod name. The pod can be in any state (Running, Pending, Failed, Succeeded) but must exist in the cluster. For pods created by controllers like Deployments, the name includes generated suffixes (e.g., 'nginx-deployment-abc123-xyz789').")),
 		mcp.WithString("namespace", mcp.Required(),
