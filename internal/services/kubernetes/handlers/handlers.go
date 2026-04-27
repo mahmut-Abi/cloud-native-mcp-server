@@ -253,6 +253,34 @@ func normalizeJSONPathExpression(expr string) string {
 	return "{." + expr + "}"
 }
 
+func getOptionalSearchKinds(request mcp.CallToolRequest) ([]string, error) {
+	kind := getOptionalStringParam(request, "kind")
+	if kind != "" {
+		return []string{kind}, nil
+	}
+
+	resourceTypes, err := getOptionalStringArrayParam(request, "resourceTypes")
+	if err != nil {
+		return nil, err
+	}
+	if len(resourceTypes) > 0 {
+		return resourceTypes, nil
+	}
+
+	return []string{
+		"Pod",
+		"Deployment",
+		"StatefulSet",
+		"DaemonSet",
+		"Service",
+		"Job",
+		"CronJob",
+		"ConfigMap",
+		"Secret",
+		"Ingress",
+	}, nil
+}
+
 // Helper function to marshal JSON response using pooled encoder
 func marshalJSONResponse(data any) (*mcp.CallToolResult, error) {
 	jsonResponse, err := optimize.GlobalJSONPool.MarshalToBytes(data)
@@ -2063,14 +2091,14 @@ func HandleAnalyzeIssue(k8sClient *client.Client) func(ctx context.Context, requ
 // HandleSearchResources handles fuzzy search for resources by name
 func HandleSearchResources(k8sClient *client.Client) func(ctx context.Context, request mcp.CallToolRequest) (*mcp.CallToolResult, error) {
 	return func(ctx context.Context, request mcp.CallToolRequest) (*mcp.CallToolResult, error) {
-		kind, err := requireStringParam(request, "kind")
+		kinds, err := getOptionalSearchKinds(request)
 		if err != nil {
 			return nil, err
 		}
 
-		query, err := requireStringParam(request, "query")
-		if err != nil {
-			return nil, err
+		query := getOptionalStringParam(request, "query")
+		if query == "" {
+			query = getOptionalStringParam(request, "name")
 		}
 
 		namespace := getOptionalStringParam(request, "namespace")
@@ -2079,10 +2107,7 @@ func HandleSearchResources(k8sClient *client.Client) func(ctx context.Context, r
 			searchMode = "contains"
 		}
 
-		caseSensitive := false
-		if v, ok := request.GetArguments()["caseSensitive"].(bool); ok {
-			caseSensitive = v
-		}
+		caseSensitive := getBoolParam(request, "caseSensitive", false)
 
 		limit := int64(50)
 		if v, ok := request.GetArguments()["limit"].(float64); ok {
@@ -2097,7 +2122,7 @@ func HandleSearchResources(k8sClient *client.Client) func(ctx context.Context, r
 
 		logrus.WithFields(logrus.Fields{
 			"tool":          "search_resources",
-			"kind":          kind,
+			"kinds":         kinds,
 			"query":         query,
 			"namespace":     namespace,
 			"searchMode":    searchMode,
@@ -2107,66 +2132,68 @@ func HandleSearchResources(k8sClient *client.Client) func(ctx context.Context, r
 			"debug":         debug,
 		}).Debug("Handler invoked")
 
-		// First, list all resources of the specified kind with filters
-		resources, err := k8sClient.ListResources(ctx, kind, namespace, labelSelector, "")
-		if err != nil {
-			return nil, fmt.Errorf("failed to list resources: %w", err)
-		}
-
-		// Filter resources based on search query and mode
 		var matchedResources []map[string]any
 		queryStr := query
 		if !caseSensitive {
 			queryStr = strings.ToLower(query)
 		}
 
-		for _, resource := range resources {
-			// resource is already map[string]any from ListResources
-			resourceMap := resource
-
-			metadata, ok := resourceMap["metadata"].(map[string]any)
-			if !ok {
-				continue
+		for _, kind := range kinds {
+			resources, err := k8sClient.ListResources(ctx, kind, namespace, labelSelector, "")
+			if err != nil {
+				return nil, fmt.Errorf("failed to list resources for kind %s: %w", kind, err)
 			}
 
-			name, ok := metadata["name"].(string)
-			if !ok {
-				continue
-			}
-
-			// Apply search mode
-			var matched bool
-			searchName := name
-			if !caseSensitive {
-				searchName = strings.ToLower(name)
-			}
-
-			switch searchMode {
-			case "contains":
-				matched = strings.Contains(searchName, queryStr)
-			case "startsWith":
-				matched = strings.HasPrefix(searchName, queryStr)
-			case "endsWith":
-				matched = strings.HasSuffix(searchName, queryStr)
-			case "exact":
-				matched = searchName == queryStr
-			case "regex":
-				// Basic regex matching
-				matched, err = regexMatch(searchName, queryStr)
-				if err != nil {
-					logrus.WithError(err).Warn("Regex match failed, skipping")
+			for _, resource := range resources {
+				resourceMap := resource
+				metadata, ok := resourceMap["metadata"].(map[string]any)
+				if !ok {
 					continue
 				}
-			default:
-				// Default to contains mode
-				matched = strings.Contains(searchName, queryStr)
+
+				name, ok := metadata["name"].(string)
+				if !ok {
+					continue
+				}
+
+				var matched bool
+				searchName := name
+				if !caseSensitive {
+					searchName = strings.ToLower(name)
+				}
+
+				if queryStr == "" {
+					matched = true
+				} else {
+					switch searchMode {
+					case "contains":
+						matched = strings.Contains(searchName, queryStr)
+					case "startsWith":
+						matched = strings.HasPrefix(searchName, queryStr)
+					case "endsWith":
+						matched = strings.HasSuffix(searchName, queryStr)
+					case "exact":
+						matched = searchName == queryStr
+					case "regex":
+						matched, err = regexMatch(searchName, queryStr)
+						if err != nil {
+							logrus.WithError(err).Warn("Regex match failed, skipping")
+							continue
+						}
+					default:
+						matched = strings.Contains(searchName, queryStr)
+					}
+				}
+
+				if matched {
+					matchedResources = append(matchedResources, resourceMap)
+				}
+
+				if len(matchedResources) >= int(limit) {
+					break
+				}
 			}
 
-			if matched {
-				matchedResources = append(matchedResources, resourceMap)
-			}
-
-			// Stop if we've reached the limit
 			if len(matchedResources) >= int(limit) {
 				break
 			}
@@ -2174,12 +2201,16 @@ func HandleSearchResources(k8sClient *client.Client) func(ctx context.Context, r
 
 		response := map[string]interface{}{
 			"query":         query,
-			"kind":          kind,
+			"kinds":         kinds,
 			"namespace":     namespace,
 			"searchMode":    searchMode,
 			"caseSensitive": caseSensitive,
 			"matched":       len(matchedResources),
 			"resources":     matchedResources,
+		}
+
+		if len(kinds) == 1 {
+			response["kind"] = kinds[0]
 		}
 
 		data, err := optimize.GlobalJSONPool.MarshalToBytes(response)
