@@ -34,11 +34,11 @@ func (g *Generator) Generate() (*OpenAPISpec, error) {
 	g.spec = &OpenAPISpec{
 		OpenAPI: "3.0.0",
 		Info: Info{
-			Title:       "Kubernetes MCP Server API",
-			Description: "Model Context Protocol Server for Kubernetes cluster management with integrated observability tools. Supports SSE and streamable-http communication modes.",
+			Title:       "Cloud Native MCP Server API",
+			Description: "Model Context Protocol server for Kubernetes and cloud-native operations with integrated observability tools. Supports SSE and streamable-http communication modes.",
 			Version:     "1.0.0",
 			Contact: &map[string]interface{}{
-				"name": "Kubernetes MCP Team",
+				"name": "Cloud Native MCP Server Team",
 				"url":  "https://github.com/mahmut-Abi/cloud-native-mcp-server",
 			},
 			License: &map[string]interface{}{
