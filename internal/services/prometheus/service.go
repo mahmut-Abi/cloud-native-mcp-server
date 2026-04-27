@@ -103,10 +103,13 @@ func (s *Service) GetTools() []mcp.Tool {
 			tools.QueryRangeTool(),
 
 			// Target and service discovery
+			tools.GetTargetsSummaryTool(),
 			tools.GetTargetsTool(),
 
 			// Alert and rule management
+			tools.GetAlertsSummaryTool(),
 			tools.GetAlertsTool(),
+			tools.GetRulesSummaryTool(),
 			tools.GetRulesTool(),
 
 			// Label and series operations
@@ -114,8 +117,18 @@ func (s *Service) GetTools() []mcp.Tool {
 			tools.GetLabelValuesTool(),
 			tools.GetSeriesTool(),
 
+			// Metadata and diagnostics
+			tools.GetMetricsMetadataTool(),
+			tools.GetTargetMetadataTool(),
+			tools.GetTSDBStatsTool(),
+			tools.GetTSDBStatusTool(),
+			tools.CreateSnapshotTool(),
+			tools.GetWALReplayStatusTool(),
+
 			// Connection and health
 			tools.TestConnectionTool(),
+			tools.GetServerInfoTool(),
+			tools.GetRuntimeInfoTool(),
 		}
 	})
 }
@@ -133,19 +146,32 @@ func (s *Service) GetHandlers() map[string]server.ToolHandlerFunc {
 		"prometheus_query_range": handlers.HandleQueryRange(s.client),
 
 		// Target and service discovery
-		"prometheus_get_targets": handlers.HandleGetTargets(s.client),
+		"prometheus_targets_summary": handlers.HandleGetTargetsSummary(s.client),
+		"prometheus_get_targets":     handlers.HandleGetTargets(s.client),
 
 		// Alert and rule management
-		"prometheus_get_alerts": handlers.HandleGetAlerts(s.client),
-		"prometheus_get_rules":  handlers.HandleGetRules(s.client),
+		"prometheus_alerts_summary": handlers.HandleGetAlertsSummary(s.client),
+		"prometheus_get_alerts":     handlers.HandleGetAlerts(s.client),
+		"prometheus_rules_summary":  handlers.HandleGetRulesSummary(s.client),
+		"prometheus_get_rules":      handlers.HandleGetRules(s.client),
 
 		// Label and series operations
 		"prometheus_get_label_names":  handlers.HandleGetLabelNames(s.client),
 		"prometheus_get_label_values": handlers.HandleGetLabelValues(s.client),
 		"prometheus_get_series":       handlers.HandleGetSeries(s.client),
 
+		// Metadata and diagnostics
+		"prometheus_get_metrics_metadata":  handlers.HandleGetMetricsMetadata(s.client),
+		"prometheus_get_target_metadata":   handlers.HandleGetTargetMetadata(s.client),
+		"prometheus_get_tsdb_stats":        handlers.HandleGetTSDBStats(s.client),
+		"prometheus_get_tsdb_status":       handlers.HandleGetTSDBStatus(s.client),
+		"prometheus_create_snapshot":       handlers.HandleCreateSnapshot(s.client),
+		"prometheus_get_wal_replay_status": handlers.HandleGetWALReplayStatus(s.client),
+
 		// Connection and health
-		"prometheus_test_connection": handlers.HandleTestConnection(s.client),
+		"prometheus_test_connection":  handlers.HandleTestConnection(s.client),
+		"prometheus_get_server_info":  handlers.HandleGetServerInfo(s.client),
+		"prometheus_get_runtime_info": handlers.HandleGetRuntimeInfo(s.client),
 	}
 
 	for name, handler := range handlersMap {

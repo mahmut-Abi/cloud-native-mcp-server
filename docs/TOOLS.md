@@ -1,6 +1,7 @@
 # Cloud Native MCP Server - Complete Tools Reference
 
-This document provides a comprehensive reference for all 210+ tools available in the cloud-native MCP server.
+This document provides a curated reference for major tools available in the cloud-native MCP server.
+For the exact current inventory, prefer the runtime output of `--list tools`.
 
 ## LLM Calling Rules
 
@@ -79,14 +80,6 @@ This document provides a comprehensive reference for all 210+ tools available in
 |------|-------------|----------|
 | `kubernetes_search_resources` | Search resources by labels, annotations, or fields. | - |
 
-### Advanced Operations
-
-| Tool | Description | Priority |
-|------|-------------|----------|
-| `kubernetes_apply_manifest` | Apply Kubernetes manifest. | - |
-| `kubernetes_get_config` | Get Kubernetes configuration. | - |
-| `kubernetes_cluster_info` | Get cluster information. | - |
-
 ---
 
 ## Helm (30 tools)
@@ -148,10 +141,10 @@ This document provides a comprehensive reference for all 210+ tools available in
 
 | Tool | Description | Priority |
 |------|-------------|----------|
-| `helm_add_repo` | Add Helm repository. | - |
+| `helm_add_repository` | Add Helm repository. | - |
 | `helm_list_repos` | List Helm repositories. | - |
-| `helm_remove_repo` | Remove Helm repository. | - |
-| `helm_update_repo` | Update Helm repository. | - |
+| `helm_remove_repository` | Remove Helm repository. | - |
+| `helm_update_repositories` | Update Helm repositories. | - |
 
 ---
 
@@ -381,10 +374,10 @@ This document provides a comprehensive reference for all 210+ tools available in
 
 | Tool | Description | Priority |
 |------|-------------|----------|
-| `kibana_export_objects` | Export saved objects. | - |
-| `kibana_import_objects` | Import saved objects. | - |
-| `kibana_get_cluster_info` | Get cluster information. | - |
-| `kibana_health` | Get Kibana health status. | - |
+| `kibana_export_saved_objects` | Export saved objects. | - |
+| `kibana_import_saved_objects` | Import saved objects. | - |
+| `kibana_get_status` | Get Kibana server status. | - |
+| `kibana_health_summary` | Get a compact Kibana health summary. | ⚠️ PRIORITY |
 
 ---
 

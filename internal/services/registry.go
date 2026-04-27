@@ -89,8 +89,8 @@ func (r *Registry) GetAllTools() []mcp.Tool {
 	return tools
 }
 
-// GetAllToolsIncludingDisabled returns all tools from all registered services
-// This includes tools from disabled services (e.g., for discovery/listing purposes)
+// GetAllToolsIncludingDisabled returns tools from all currently registered services.
+// Services filtered out before registration cannot contribute tool definitions here.
 func (r *Registry) GetAllToolsIncludingDisabled() []mcp.Tool {
 	r.mu.RLock()
 	defer r.mu.RUnlock()
