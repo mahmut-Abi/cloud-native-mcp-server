@@ -629,4 +629,298 @@ Practical guidance:
 
 ---
 
+<!-- BEGIN GENERATED TOOL INVENTORY -->
+## Generated Inventory
+
+This section is generated from `internal/services/**/tools/*.go`.
+Do not edit this block by hand.
+
+### Kubernetes (34 tools)
+
+- `kubernetes_analyze_issue`
+- `kubernetes_check_permissions`
+- `kubernetes_cordon_node`
+- `kubernetes_create_resource`
+- `kubernetes_delete_resource`
+- `kubernetes_describe_resource`
+- `kubernetes_drain_node`
+- `kubernetes_get_api_resources`
+- `kubernetes_get_api_versions`
+- `kubernetes_get_events`
+- `kubernetes_get_events_detail`
+- `kubernetes_get_node_conditions`
+- `kubernetes_get_pod_logs`
+- `kubernetes_get_recent_events`
+- `kubernetes_get_resource`
+- `kubernetes_get_resource_detail_advanced`
+- `kubernetes_get_resource_details`
+- `kubernetes_get_resource_summary`
+- `kubernetes_get_resource_usage`
+- `kubernetes_get_resources_detail`
+- `kubernetes_get_rollout_status`
+- `kubernetes_get_unhealthy_resources`
+- `kubernetes_list_resources`
+- `kubernetes_list_resources_full`
+- `kubernetes_list_resources_summary`
+- `kubernetes_patch_resource`
+- `kubernetes_pod_exec`
+- `kubernetes_port_forward`
+- `kubernetes_restart_workload`
+- `kubernetes_scale_resource`
+- `kubernetes_search_resources`
+- `kubernetes_test_tool`
+- `kubernetes_uncordon_node`
+- `kubernetes_wait_for_resource`
+
+### Helm (34 tools)
+
+- `helm_add_repository`
+- `helm_cache_stats`
+- `helm_clear_cache`
+- `helm_cluster_overview`
+- `helm_compare_revisions`
+- `helm_find_broken_releases`
+- `helm_find_releases_by_chart`
+- `helm_find_releases_by_labels`
+- `helm_get_chart_info`
+- `helm_get_recent_failures`
+- `helm_get_release`
+- `helm_get_release_history`
+- `helm_get_release_history_paginated`
+- `helm_get_release_manifest`
+- `helm_get_release_status`
+- `helm_get_release_summary`
+- `helm_get_release_values`
+- `helm_get_resources_of_release`
+- `helm_health_check`
+- `helm_install_release`
+- `helm_list_releases`
+- `helm_list_releases_in_namespace`
+- `helm_list_releases_paginated`
+- `helm_list_releases_summary`
+- `helm_list_repos`
+- `helm_quick_info`
+- `helm_remove_repository`
+- `helm_rollback_release`
+- `helm_search_charts`
+- `helm_template_chart`
+- `helm_uninstall_release`
+- `helm_update_repositories`
+- `helm_upgrade_release`
+- `helm_validate_release`
+
+### Grafana (43 tools)
+
+- `grafana_alerts`
+- `grafana_check_datasource_health`
+- `grafana_create_alert_rule`
+- `grafana_create_annotation`
+- `grafana_create_datasource`
+- `grafana_create_graphite_annotation`
+- `grafana_current_user`
+- `grafana_dashboard`
+- `grafana_dashboards`
+- `grafana_dashboards_summary`
+- `grafana_datasource_detail`
+- `grafana_datasources`
+- `grafana_datasources_summary`
+- `grafana_delete_alert_rule`
+- `grafana_delete_datasource`
+- `grafana_folder_detail`
+- `grafana_folders`
+- `grafana_generate_deeplink`
+- `grafana_get_alert_rule_by_uid`
+- `grafana_get_annotation_tags`
+- `grafana_get_annotations`
+- `grafana_get_dashboard_panel_queries`
+- `grafana_get_dashboard_property`
+- `grafana_get_datasource_by_name`
+- `grafana_get_resource_description`
+- `grafana_get_resource_permissions`
+- `grafana_get_role_assignments`
+- `grafana_get_role_details`
+- `grafana_list_all_roles`
+- `grafana_list_contact_points`
+- `grafana_list_team_roles`
+- `grafana_list_teams`
+- `grafana_list_user_roles`
+- `grafana_organization`
+- `grafana_patch_annotation`
+- `grafana_render_panel_image`
+- `grafana_search_dashboards`
+- `grafana_test_connection`
+- `grafana_update_alert_rule`
+- `grafana_update_annotation`
+- `grafana_update_dashboard`
+- `grafana_update_datasource`
+- `grafana_users`
+
+### Prometheus (20 tools)
+
+- `prometheus_alerts_summary`
+- `prometheus_create_snapshot`
+- `prometheus_get_alerts`
+- `prometheus_get_label_names`
+- `prometheus_get_label_values`
+- `prometheus_get_metrics_metadata`
+- `prometheus_get_rules`
+- `prometheus_get_runtime_info`
+- `prometheus_get_series`
+- `prometheus_get_server_info`
+- `prometheus_get_target_metadata`
+- `prometheus_get_targets`
+- `prometheus_get_tsdb_stats`
+- `prometheus_get_tsdb_status`
+- `prometheus_get_wal_replay_status`
+- `prometheus_query`
+- `prometheus_query_range`
+- `prometheus_rules_summary`
+- `prometheus_targets_summary`
+- `prometheus_test_connection`
+
+### Kibana (73 tools)
+
+- `kibana_bulk_delete_saved_objects`
+- `kibana_clone_dashboard`
+- `kibana_clone_visualization`
+- `kibana_create_alert_rule`
+- `kibana_create_connector`
+- `kibana_create_dashboard`
+- `kibana_create_data_view`
+- `kibana_create_index_pattern`
+- `kibana_create_saved_object`
+- `kibana_create_space`
+- `kibana_create_visualization`
+- `kibana_dashboards_paginated`
+- `kibana_dashboards_summary`
+- `kibana_delete_alert_rule`
+- `kibana_delete_connector`
+- `kibana_delete_dashboard`
+- `kibana_delete_data_view`
+- `kibana_delete_index_pattern`
+- `kibana_delete_saved_object`
+- `kibana_delete_space`
+- `kibana_delete_visualization`
+- `kibana_disable_alert_rule`
+- `kibana_enable_alert_rule`
+- `kibana_export_saved_objects`
+- `kibana_get_alert_rule`
+- `kibana_get_alert_rule_history`
+- `kibana_get_alert_rule_types`
+- `kibana_get_alert_rules`
+- `kibana_get_alerts`
+- `kibana_get_canvas_workpads`
+- `kibana_get_connector`
+- `kibana_get_connector_types`
+- `kibana_get_connectors`
+- `kibana_get_dashboard`
+- `kibana_get_dashboard_detail_advanced`
+- `kibana_get_dashboards`
+- `kibana_get_data_view`
+- `kibana_get_data_views`
+- `kibana_get_index_pattern`
+- `kibana_get_index_pattern_fields`
+- `kibana_get_index_patterns`
+- `kibana_get_lens_objects`
+- `kibana_get_maps`
+- `kibana_get_saved_search`
+- `kibana_get_saved_searches`
+- `kibana_get_space`
+- `kibana_get_spaces`
+- `kibana_get_status`
+- `kibana_get_visualization`
+- `kibana_get_visualizations`
+- `kibana_health_summary`
+- `kibana_import_saved_objects`
+- `kibana_index_patterns_summary`
+- `kibana_mute_alert_rule`
+- `kibana_query_logs`
+- `kibana_refresh_index_pattern_fields`
+- `kibana_search_saved_objects`
+- `kibana_search_saved_objects_advanced`
+- `kibana_set_default_index_pattern`
+- `kibana_spaces_summary`
+- `kibana_test_connection`
+- `kibana_test_connector`
+- `kibana_unmute_alert_rule`
+- `kibana_update_alert_rule`
+- `kibana_update_connector`
+- `kibana_update_dashboard`
+- `kibana_update_data_view`
+- `kibana_update_index_pattern`
+- `kibana_update_saved_object`
+- `kibana_update_space`
+- `kibana_update_visualization`
+- `kibana_visualizations_paginated`
+- `kibana_visualizations_summary`
+
+### Elasticsearch (12 tools)
+
+- `elasticsearch_cluster_health_summary`
+- `elasticsearch_get_cluster_detail_advanced`
+- `elasticsearch_get_index_detail_advanced`
+- `elasticsearch_health`
+- `elasticsearch_index_stats`
+- `elasticsearch_indices_summary`
+- `elasticsearch_info`
+- `elasticsearch_list_indices`
+- `elasticsearch_list_indices_paginated`
+- `elasticsearch_nodes`
+- `elasticsearch_nodes_summary`
+- `elasticsearch_search_indices`
+
+### Alertmanager (16 tools)
+
+- `alertmanager_alert_groups_paginated`
+- `alertmanager_alerts_summary`
+- `alertmanager_create_silence`
+- `alertmanager_delete_silence`
+- `alertmanager_get_alert_groups`
+- `alertmanager_get_alerts`
+- `alertmanager_get_receivers`
+- `alertmanager_get_silences`
+- `alertmanager_get_status`
+- `alertmanager_health_summary`
+- `alertmanager_query_alerts`
+- `alertmanager_query_alerts_advanced`
+- `alertmanager_receivers_summary`
+- `alertmanager_silences_paginated`
+- `alertmanager_silences_summary`
+- `alertmanager_test_receiver`
+
+### Jaeger (8 tools)
+
+- `jaeger_get_dependencies`
+- `jaeger_get_service_ops`
+- `jaeger_get_services`
+- `jaeger_get_services_summary`
+- `jaeger_get_trace`
+- `jaeger_get_traces`
+- `jaeger_get_traces_summary`
+- `jaeger_search_traces`
+
+### OpenTelemetry (9 tools)
+
+- `opentelemetry_get_config`
+- `opentelemetry_get_health`
+- `opentelemetry_get_logs`
+- `opentelemetry_get_metrics`
+- `opentelemetry_get_status`
+- `opentelemetry_get_traces`
+- `opentelemetry_query_logs`
+- `opentelemetry_query_metrics`
+- `opentelemetry_query_traces`
+
+### Utilities (6 tools)
+
+- `utilities_get_date`
+- `utilities_get_time`
+- `utilities_get_timestamp`
+- `utilities_pause`
+- `utilities_sleep`
+- `utilities_web_fetch`
+
+<!-- END GENERATED TOOL INVENTORY -->
+---
+
 For more information, see the main [README](../README.md).
