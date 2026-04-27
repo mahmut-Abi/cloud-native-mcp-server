@@ -34,6 +34,8 @@ func TestRolloutAndNodeOperationTools_Definition(t *testing.T) {
 		{"cordon", CordonNodeTool().Name},
 		{"uncordon", UncordonNodeTool().Name},
 		{"drain", DrainNodeTool().Name},
+		{"wait", WaitForResourceTool().Name},
+		{"restart", RestartWorkloadTool().Name},
 	}
 
 	expected := map[string]string{
@@ -41,6 +43,8 @@ func TestRolloutAndNodeOperationTools_Definition(t *testing.T) {
 		"cordon":   "kubernetes_cordon_node",
 		"uncordon": "kubernetes_uncordon_node",
 		"drain":    "kubernetes_drain_node",
+		"wait":     "kubernetes_wait_for_resource",
+		"restart":  "kubernetes_restart_workload",
 	}
 
 	for _, tt := range tests {

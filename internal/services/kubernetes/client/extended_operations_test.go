@@ -88,3 +88,89 @@ func TestWatchResourcesValidation(t *testing.T) {
 		}
 	})
 }
+
+func TestEvaluateResourceCondition(t *testing.T) {
+	tests := []struct {
+		name      string
+		kind      string
+		condition string
+		resource  map[string]any
+		wantMatch bool
+	}{
+		{
+			name:      "pod ready",
+			kind:      "Pod",
+			condition: "ready",
+			resource: map[string]any{
+				"status": map[string]any{
+					"phase": "Running",
+					"conditions": []any{
+						map[string]any{"type": "Ready", "status": "True"},
+					},
+				},
+			},
+			wantMatch: true,
+		},
+		{
+			name:      "deployment available",
+			kind:      "Deployment",
+			condition: "available",
+			resource: map[string]any{
+				"metadata": map[string]any{"generation": int64(3)},
+				"spec":     map[string]any{"replicas": int64(2)},
+				"status": map[string]any{
+					"availableReplicas":  int64(2),
+					"updatedReplicas":    int64(2),
+					"observedGeneration": int64(3),
+				},
+			},
+			wantMatch: true,
+		},
+		{
+			name:      "job complete",
+			kind:      "Job",
+			condition: "complete",
+			resource: map[string]any{
+				"status": map[string]any{
+					"conditions": []any{
+						map[string]any{"type": "Complete", "status": "True"},
+					},
+				},
+			},
+			wantMatch: true,
+		},
+		{
+			name:      "statefulset not ready",
+			kind:      "StatefulSet",
+			condition: "ready",
+			resource: map[string]any{
+				"metadata": map[string]any{"generation": int64(4)},
+				"spec":     map[string]any{"replicas": int64(3)},
+				"status": map[string]any{
+					"readyReplicas":      int64(1),
+					"observedGeneration": int64(4),
+				},
+			},
+			wantMatch: false,
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			matched, _, err := evaluateResourceCondition(tt.resource, tt.kind, tt.condition)
+			if err != nil {
+				t.Fatalf("evaluateResourceCondition returned error: %v", err)
+			}
+			if matched != tt.wantMatch {
+				t.Fatalf("evaluateResourceCondition matched = %v, want %v", matched, tt.wantMatch)
+			}
+		})
+	}
+}
+
+func TestEvaluateResourceConditionUnsupported(t *testing.T) {
+	_, _, err := evaluateResourceCondition(map[string]any{}, "Pod", "nonsense")
+	if err == nil {
+		t.Fatal("expected unsupported condition error")
+	}
+}

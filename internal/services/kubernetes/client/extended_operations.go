@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"context"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"io"
 	"strings"
@@ -11,6 +12,7 @@ import (
 
 	"github.com/sirupsen/logrus"
 	corev1 "k8s.io/api/core/v1"
+	apierrors "k8s.io/apimachinery/pkg/api/errors"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/apis/meta/v1/unstructured"
 	"k8s.io/apimachinery/pkg/types"
@@ -173,6 +175,130 @@ func (c *Client) GetRolloutStatus(ctx context.Context, kind, name, namespace str
 	return status, nil
 }
 
+// WaitForResource polls until a resource reaches the desired condition.
+func (c *Client) WaitForResource(ctx context.Context, kind, name, namespace, condition string, timeoutSeconds, pollIntervalSeconds int) (map[string]any, error) {
+	logrus.WithFields(logrus.Fields{
+		"kind":      kind,
+		"name":      name,
+		"namespace": namespace,
+		"condition": condition,
+	}).Debug("WaitForResource called")
+
+	if timeoutSeconds <= 0 {
+		timeoutSeconds = 120
+	}
+	if pollIntervalSeconds <= 0 {
+		pollIntervalSeconds = 5
+	}
+	if condition == "" {
+		condition = "ready"
+	}
+
+	waitCtx, cancel := context.WithTimeout(ctx, time.Duration(timeoutSeconds)*time.Second)
+	defer cancel()
+
+	condition = strings.ToLower(strings.TrimSpace(condition))
+	start := time.Now()
+	attempts := 0
+	lastMessage := ""
+
+	for {
+		attempts++
+		resource, err := c.GetResource(waitCtx, kind, name, namespace)
+		if condition == "deleted" {
+			if err == nil {
+				lastMessage = "resource still exists"
+			} else if apierrors.IsNotFound(err) {
+				return map[string]any{
+					"kind":         normalizeKind(kind),
+					"name":         name,
+					"namespace":    namespace,
+					"condition":    condition,
+					"message":      "resource deleted",
+					"attempts":     attempts,
+					"elapsedMs":    time.Since(start).Milliseconds(),
+					"deleted":      true,
+					"lastObserved": nil,
+				}, nil
+			} else {
+				return nil, err
+			}
+		} else {
+			if err != nil {
+				return nil, err
+			}
+
+			matched, message, evalErr := evaluateResourceCondition(resource, kind, condition)
+			if evalErr != nil {
+				return nil, evalErr
+			}
+			lastMessage = message
+			if matched {
+				return map[string]any{
+					"kind":      normalizeKind(kind),
+					"name":      name,
+					"namespace": namespace,
+					"condition": condition,
+					"message":   message,
+					"attempts":  attempts,
+					"elapsedMs": time.Since(start).Milliseconds(),
+					"resource":  resource,
+				}, nil
+			}
+		}
+
+		select {
+		case <-waitCtx.Done():
+			if errors.Is(waitCtx.Err(), context.DeadlineExceeded) {
+				return nil, fmt.Errorf("timeout waiting for %s %q to satisfy %q: %s", normalizeKind(kind), name, condition, lastMessage)
+			}
+			return nil, waitCtx.Err()
+		case <-time.After(time.Duration(pollIntervalSeconds) * time.Second):
+		}
+	}
+}
+
+// RestartWorkload triggers a rollout restart by patching the pod template annotations.
+func (c *Client) RestartWorkload(ctx context.Context, kind, name, namespace string) (map[string]any, string, error) {
+	logrus.WithFields(logrus.Fields{
+		"kind":      kind,
+		"name":      name,
+		"namespace": namespace,
+	}).Debug("RestartWorkload called")
+
+	switch normalizeKind(kind) {
+	case "Deployment", "StatefulSet", "DaemonSet":
+	default:
+		return nil, "", fmt.Errorf("restart is only supported for Deployment, StatefulSet, and DaemonSet")
+	}
+
+	restartedAt := time.Now().UTC().Format(time.RFC3339)
+	patch := map[string]any{
+		"spec": map[string]any{
+			"template": map[string]any{
+				"metadata": map[string]any{
+					"annotations": map[string]any{
+						"kubectl.kubernetes.io/restartedAt": restartedAt,
+					},
+				},
+			},
+		},
+	}
+
+	patchBytes, err := json.Marshal(patch)
+	if err != nil {
+		return nil, "", fmt.Errorf("failed to marshal restart patch: %w", err)
+	}
+
+	resource, err := c.PatchResource(ctx, kind, name, namespace, patchBytes, "merge")
+	if err != nil {
+		return nil, "", err
+	}
+
+	logrus.Debug("RestartWorkload succeeded")
+	return resource, restartedAt, nil
+}
+
 // GetRolloutHistory gets rollout history
 func (c *Client) GetRolloutHistory(ctx context.Context, kind, name, namespace string, revision int) (map[string]any, error) {
 	logrus.WithFields(logrus.Fields{
@@ -204,6 +330,141 @@ func (c *Client) GetRolloutHistory(ctx context.Context, kind, name, namespace st
 
 	logrus.Debug("GetRolloutHistory succeeded")
 	return history, nil
+}
+
+func evaluateResourceCondition(resource map[string]any, kind, condition string) (bool, string, error) {
+	kind = normalizeKind(kind)
+	condition = strings.ToLower(strings.TrimSpace(condition))
+
+	switch condition {
+	case "", "exists":
+		return true, "resource exists", nil
+	case "ready":
+		switch kind {
+		case "Pod":
+			return isPodReady(resource)
+		case "Deployment", "DaemonSet":
+			return isWorkloadAvailable(resource, kind)
+		case "StatefulSet":
+			return isStatefulSetReady(resource)
+		case "Job":
+			return isJobComplete(resource)
+		default:
+			return hasTrueStatusCondition(resource, "Ready")
+		}
+	case "available":
+		switch kind {
+		case "Deployment", "DaemonSet":
+			return isWorkloadAvailable(resource, kind)
+		case "StatefulSet":
+			return isStatefulSetReady(resource)
+		default:
+			return hasTrueStatusCondition(resource, "Available")
+		}
+	case "complete":
+		return isJobComplete(resource)
+	default:
+		return false, "", fmt.Errorf("unsupported wait condition %q", condition)
+	}
+}
+
+func isPodReady(resource map[string]any) (bool, string, error) {
+	phase, _, _ := unstructured.NestedString(resource, "status", "phase")
+	conditions, _, _ := unstructured.NestedSlice(resource, "status", "conditions")
+	for _, item := range conditions {
+		condition, ok := item.(map[string]any)
+		if !ok {
+			continue
+		}
+		if condition["type"] == "Ready" {
+			if condition["status"] == "True" {
+				return phase == "Running", "pod is Ready", nil
+			}
+			if reason, ok := condition["reason"].(string); ok && reason != "" {
+				return false, fmt.Sprintf("pod Ready condition is %v (%s)", condition["status"], reason), nil
+			}
+			return false, fmt.Sprintf("pod Ready condition is %v", condition["status"]), nil
+		}
+	}
+	return false, fmt.Sprintf("pod phase is %q and Ready condition is not true", phase), nil
+}
+
+func isWorkloadAvailable(resource map[string]any, kind string) (bool, string, error) {
+	desired := nestedInt64(resource, "spec", "replicas")
+	if desired == 0 {
+		desired = 1
+	}
+	available := nestedInt64(resource, "status", "availableReplicas")
+	updated := nestedInt64(resource, "status", "updatedReplicas")
+	observedGeneration := nestedInt64(resource, "status", "observedGeneration")
+	generation := nestedInt64(resource, "metadata", "generation")
+
+	if available >= desired && (updated == 0 || updated >= desired) && observedGeneration >= generation {
+		return true, fmt.Sprintf("%s has %d/%d available replicas", kind, available, desired), nil
+	}
+	return false, fmt.Sprintf("%s availability %d/%d, updated=%d, observedGeneration=%d, generation=%d", kind, available, desired, updated, observedGeneration, generation), nil
+}
+
+func isStatefulSetReady(resource map[string]any) (bool, string, error) {
+	desired := nestedInt64(resource, "spec", "replicas")
+	if desired == 0 {
+		desired = 1
+	}
+	ready := nestedInt64(resource, "status", "readyReplicas")
+	observedGeneration := nestedInt64(resource, "status", "observedGeneration")
+	generation := nestedInt64(resource, "metadata", "generation")
+	if ready >= desired && observedGeneration >= generation {
+		return true, fmt.Sprintf("StatefulSet has %d/%d ready replicas", ready, desired), nil
+	}
+	return false, fmt.Sprintf("StatefulSet readiness %d/%d, observedGeneration=%d, generation=%d", ready, desired, observedGeneration, generation), nil
+}
+
+func isJobComplete(resource map[string]any) (bool, string, error) {
+	conditions, _, _ := unstructured.NestedSlice(resource, "status", "conditions")
+	for _, item := range conditions {
+		condition, ok := item.(map[string]any)
+		if !ok {
+			continue
+		}
+		if condition["type"] == "Complete" && condition["status"] == "True" {
+			return true, "Job completed successfully", nil
+		}
+		if condition["type"] == "Failed" && condition["status"] == "True" {
+			return false, "Job has failed", nil
+		}
+	}
+	succeeded := nestedInt64(resource, "status", "succeeded")
+	if succeeded > 0 {
+		return true, fmt.Sprintf("Job has succeeded %d time(s)", succeeded), nil
+	}
+	return false, "Job is not complete yet", nil
+}
+
+func hasTrueStatusCondition(resource map[string]any, expectedType string) (bool, string, error) {
+	conditions, _, _ := unstructured.NestedSlice(resource, "status", "conditions")
+	for _, item := range conditions {
+		condition, ok := item.(map[string]any)
+		if !ok {
+			continue
+		}
+		if condition["type"] == expectedType {
+			if condition["status"] == "True" {
+				return true, fmt.Sprintf("%s condition is True", expectedType), nil
+			}
+			return false, fmt.Sprintf("%s condition is %v", expectedType, condition["status"]), nil
+		}
+	}
+	return false, fmt.Sprintf("%s condition not found", expectedType), nil
+}
+
+func nestedInt64(resource map[string]any, fields ...string) int64 {
+	if value, found, _ := unstructured.NestedInt64(resource, fields...); found {
+		return value
+	}
+	if value, found, _ := unstructured.NestedFloat64(resource, fields...); found {
+		return int64(value)
+	}
+	return 0
 }
 
 // RolloutUndo rolls back to previous revision

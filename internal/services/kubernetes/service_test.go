@@ -179,6 +179,8 @@ func TestServiceGetHandlersIncludesRolloutAndNodeOperations(t *testing.T) {
 		"kubernetes_cordon_node",
 		"kubernetes_uncordon_node",
 		"kubernetes_drain_node",
+		"kubernetes_wait_for_resource",
+		"kubernetes_restart_workload",
 	} {
 		if _, ok := handlers[name]; !ok {
 			t.Fatalf("expected handler %q to be registered", name)

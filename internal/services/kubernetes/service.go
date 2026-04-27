@@ -125,6 +125,8 @@ func (s *Service) GetTools() []mcp.Tool {
 			tools.CordonNodeTool(),
 			tools.UncordonNodeTool(),
 			tools.DrainNodeTool(),
+			tools.WaitForResourceTool(),
+			tools.RestartWorkloadTool(),
 			tools.PortForwardTool(),
 
 			// Container and pod operations
@@ -190,6 +192,8 @@ func (s *Service) GetHandlers() map[string]server.ToolHandlerFunc {
 		"kubernetes_cordon_node":        handlers.HandleCordonNode(s.client),
 		"kubernetes_uncordon_node":      handlers.HandleUncordonNode(s.client),
 		"kubernetes_drain_node":         handlers.HandleDrainNode(s.client),
+		"kubernetes_wait_for_resource":  handlers.HandleWaitForResource(s.client),
+		"kubernetes_restart_workload":   handlers.HandleRestartWorkload(s.client),
 		"kubernetes_port_forward":       handlers.HandlePortForward(s.client),
 
 		// Container and pod operations

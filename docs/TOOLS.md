@@ -13,7 +13,7 @@ For the exact runtime inventory, prefer `--list tools`.
 
 ## Table of Contents
 
-- [Kubernetes (32 tools)](#kubernetes-32-tools)
+- [Kubernetes (34 tools)](#kubernetes-34-tools)
 - [Helm (34 tools)](#helm-34-tools)
 - [Grafana (43 tools)](#grafana-43-tools)
 - [Prometheus (20 tools)](#prometheus-20-tools)
@@ -26,7 +26,7 @@ For the exact runtime inventory, prefer `--list tools`.
 
 ---
 
-## Kubernetes (32 tools)
+## Kubernetes (34 tools)
 
 ### Resource Management
 
@@ -49,6 +49,7 @@ For the exact runtime inventory, prefer `--list tools`.
 | `kubernetes_pod_exec` | Execute command in pod container. | - |
 | `kubernetes_scale_resource` | Scale deployment/replicaset. | - |
 | `kubernetes_get_rollout_status` | Get rollout status for a workload after patch or scale operations. | - |
+| `kubernetes_restart_workload` | Trigger a rollout restart for a supported workload. | - |
 | `kubernetes_port_forward` | Port forward to pod. | - |
 
 ### Events and Troubleshooting
@@ -69,6 +70,7 @@ For the exact runtime inventory, prefer `--list tools`.
 | `kubernetes_cordon_node` | Mark a node unschedulable. | - |
 | `kubernetes_uncordon_node` | Mark a node schedulable again. | - |
 | `kubernetes_drain_node` | Cordon and drain a node for maintenance. | - |
+| `kubernetes_wait_for_resource` | Wait until a resource reaches a desired condition. | - |
 
 ### API and Permissions
 
