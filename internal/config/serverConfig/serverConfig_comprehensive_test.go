@@ -5,6 +5,9 @@ import (
 	"net/http"
 	"net/http/httptest"
 	"testing"
+
+	"github.com/mahmut-Abi/cloud-native-mcp-server/internal/config"
+	"github.com/mahmut-Abi/cloud-native-mcp-server/internal/services/manager"
 )
 
 // TestInitMCPServer tests MCP server initialization
@@ -88,6 +91,43 @@ func TestContextManagement(t *testing.T) {
 
 	if ctx.Err() == nil {
 		t.Error("Context should have error after cancel")
+	}
+}
+
+func TestApplyServiceFiltersSyncsDisabledToolsToManager(t *testing.T) {
+	sc := &ServerConfig{
+		serviceManager: manager.NewManager(),
+	}
+
+	if err := sc.ApplyServiceFilters("", "", "tool_a,tool_b"); err != nil {
+		t.Fatalf("ApplyServiceFilters returned error: %v", err)
+	}
+
+	disabled := sc.serviceManager.GetDisabledTools()
+	if !disabled["tool_a"] || !disabled["tool_b"] {
+		t.Fatalf("expected disabled tools to be synced into manager, got %#v", disabled)
+	}
+}
+
+func TestCreateServiceMCPServerSkipsDisabledTools(t *testing.T) {
+	sc := &ServerConfig{}
+	cfg := &config.AppConfig{}
+	cfg.EnableDisable.EnabledServices = []string{"utilities"}
+	cfg.EnableDisable.DisabledTools = []string{"utilities_sleep"}
+
+	if err := sc.InitializeServices(cfg); err != nil {
+		t.Fatalf("InitializeServices returned error: %v", err)
+	}
+
+	srv := sc.createServiceMCPServer("utilities")
+	if srv == nil {
+		t.Fatal("createServiceMCPServer returned nil")
+	}
+	if srv.GetTool("utilities_sleep") != nil {
+		t.Fatal("disabled tool utilities_sleep should not be registered")
+	}
+	if srv.GetTool("utilities_pause") == nil {
+		t.Fatal("expected utilities_pause to remain registered")
 	}
 }
 

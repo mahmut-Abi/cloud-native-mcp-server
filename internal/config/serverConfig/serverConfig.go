@@ -59,13 +59,19 @@ func (s *ServerConfig) InitHooks() *server.Hooks {
 	return hooks
 }
 
-func (s *ServerConfig) InitMCPServer(hooks *server.Hooks) *server.MCPServer {
-	logrus.WithFields(logrus.Fields{
-		"component": "server",
-		"operation": "init_mcp_server",
-	}).Debug("Initializing MCP server with tool, prompt, and resource capabilities")
+func (s *ServerConfig) initServerHooks(hooks *server.Hooks) *server.Hooks {
+	if hooks == nil {
+		hooks = s.InitHooks()
+	}
+	hooks.AddOnRequestInitialization(hook.InitializationHookFunc())
+	return hooks
+}
+
+func (s *ServerConfig) createConfiguredMCPServer(name string, hooks *server.Hooks) *server.MCPServer {
+	hooks = s.initServerHooks(hooks)
+
 	mcpServer := server.NewMCPServer(
-		serverName,
+		name,
 		serverVersion,
 		server.WithTitle("Cloud Native MCP Server"),
 		server.WithDescription("MCP server for Kubernetes and cloud-native operations, with LLM-optimized tools, prompts, and resource endpoints."),
@@ -86,9 +92,53 @@ func (s *ServerConfig) InitMCPServer(hooks *server.Hooks) *server.MCPServer {
 		server.WithPromptFilter(s.promptFilter()),
 	)
 	mcpServer.Use(hook.NormalizeToolErrorMiddleware())
-	if existingHooks := mcpServer.GetHooks(); existingHooks != nil {
-		existingHooks.AddOnRequestInitialization(hook.InitializationHookFunc())
+
+	return mcpServer
+}
+
+func (s *ServerConfig) currentDisabledTools() map[string]bool {
+	disabled := make(map[string]bool)
+	for name, isDisabled := range s.disabledTools {
+		if isDisabled {
+			disabled[name] = true
+		}
 	}
+	if s.serviceManager != nil {
+		for name, isDisabled := range s.serviceManager.GetDisabledTools() {
+			if isDisabled {
+				disabled[name] = true
+			}
+		}
+	}
+	return disabled
+}
+
+func (s *ServerConfig) registerTools(target *server.MCPServer, tools []mcp.Tool, handlers map[string]server.ToolHandlerFunc) {
+	disabledTools := s.currentDisabledTools()
+	for _, tool := range tools {
+		if disabledTools[tool.Name] {
+			continue
+		}
+		if handler, exists := handlers[tool.Name]; exists {
+			target.AddTool(tool, handler)
+		}
+	}
+}
+
+func (s *ServerConfig) registerResources(target *server.MCPServer, resources []mcp.Resource, handlers map[string]server.ResourceHandlerFunc) {
+	for _, resource := range resources {
+		if handler, exists := handlers[resource.URI]; exists {
+			target.AddResource(resource, handler)
+		}
+	}
+}
+
+func (s *ServerConfig) InitMCPServer(hooks *server.Hooks) *server.MCPServer {
+	logrus.WithFields(logrus.Fields{
+		"component": "server",
+		"operation": "init_mcp_server",
+	}).Debug("Initializing MCP server with tool, prompt, and resource capabilities")
+	mcpServer := s.createConfiguredMCPServer(serverName, hooks)
 	logrus.WithFields(logrus.Fields{
 		"component": "server",
 		"operation": "init_mcp_server",
@@ -233,18 +283,18 @@ func (s *ServerConfig) InitSSEServers(mcpServer *server.MCPServer, addr string, 
 	}
 
 	// Create service-specific MCP servers
-	kubernetesServer := s.createServiceMCPServer("kubernetes", mcpServer)
-	grafanaServer := s.createServiceMCPServer("grafana", mcpServer)
-	prometheusServer := s.createServiceMCPServer("prometheus", mcpServer)
-	kibanaServer := s.createServiceMCPServer("kibana", mcpServer)
-	helmServer := s.createServiceMCPServer("helm", mcpServer)
-	elasticsearchServer := s.createServiceMCPServer("elasticsearch", mcpServer)
-	alertmanagerServer := s.createServiceMCPServer("alertmanager", mcpServer)
-	jaegerServer := s.createServiceMCPServer("jaeger", mcpServer)
-	opentelemetryServer := s.createServiceMCPServer("opentelemetry", mcpServer)
+	kubernetesServer := s.createServiceMCPServer("kubernetes")
+	grafanaServer := s.createServiceMCPServer("grafana")
+	prometheusServer := s.createServiceMCPServer("prometheus")
+	kibanaServer := s.createServiceMCPServer("kibana")
+	helmServer := s.createServiceMCPServer("helm")
+	elasticsearchServer := s.createServiceMCPServer("elasticsearch")
+	alertmanagerServer := s.createServiceMCPServer("alertmanager")
+	jaegerServer := s.createServiceMCPServer("jaeger")
+	opentelemetryServer := s.createServiceMCPServer("opentelemetry")
 
 	// Create aggregated MCP server with all services
-	aggregateServer := s.createAggregateMCPServer(mcpServer, kubernetesServer, grafanaServer, prometheusServer, kibanaServer, helmServer, elasticsearchServer, alertmanagerServer, jaegerServer, opentelemetryServer)
+	aggregateServer := s.createAggregateMCPServer()
 
 	// Create SSE servers for each service
 	sseServers["kubernetes"] = server.NewSSEServer(kubernetesServer,
@@ -356,7 +406,7 @@ func (s *ServerConfig) InitSSEServers(mcpServer *server.MCPServer, addr string, 
 	)
 
 	// Create utilities server and SSE server
-	utilitiesServer := s.createServiceMCPServer("utilities", mcpServer)
+	utilitiesServer := s.createServiceMCPServer("utilities")
 	sseServers["utilities"] = server.NewSSEServer(utilitiesServer,
 		server.WithStaticBasePath(""),
 		server.WithSSEEndpoint(utilitiesPath),
@@ -435,21 +485,21 @@ func (s *ServerConfig) InitStreamableHTTPServers(mcpServer *server.MCPServer, ad
 	}
 
 	// Create service-specific MCP servers
-	kubernetesServer := s.createServiceMCPServer("kubernetes", mcpServer)
-	grafanaServer := s.createServiceMCPServer("grafana", mcpServer)
-	prometheusServer := s.createServiceMCPServer("prometheus", mcpServer)
-	kibanaServer := s.createServiceMCPServer("kibana", mcpServer)
-	helmServer := s.createServiceMCPServer("helm", mcpServer)
-	elasticsearchServer := s.createServiceMCPServer("elasticsearch", mcpServer)
-	alertmanagerServer := s.createServiceMCPServer("alertmanager", mcpServer)
-	jaegerServer := s.createServiceMCPServer("jaeger", mcpServer)
-	opentelemetryServer := s.createServiceMCPServer("opentelemetry", mcpServer)
+	kubernetesServer := s.createServiceMCPServer("kubernetes")
+	grafanaServer := s.createServiceMCPServer("grafana")
+	prometheusServer := s.createServiceMCPServer("prometheus")
+	kibanaServer := s.createServiceMCPServer("kibana")
+	helmServer := s.createServiceMCPServer("helm")
+	elasticsearchServer := s.createServiceMCPServer("elasticsearch")
+	alertmanagerServer := s.createServiceMCPServer("alertmanager")
+	jaegerServer := s.createServiceMCPServer("jaeger")
+	opentelemetryServer := s.createServiceMCPServer("opentelemetry")
 
 	// Create aggregated MCP server with all services
-	aggregateServer := s.createAggregateMCPServer(mcpServer, kubernetesServer, grafanaServer, prometheusServer, kibanaServer, helmServer, elasticsearchServer, alertmanagerServer, jaegerServer, opentelemetryServer)
+	aggregateServer := s.createAggregateMCPServer()
 
 	// Create utilities server
-	utilitiesServer := s.createServiceMCPServer("utilities", mcpServer)
+	utilitiesServer := s.createServiceMCPServer("utilities")
 
 	// Create StreamableHTTPServer for each service
 	streamableHTTPServers["kubernetes"] = server.NewStreamableHTTPServer(kubernetesServer,
@@ -540,18 +590,12 @@ func (s *ServerConfig) InitStreamableHTTPServers(mcpServer *server.MCPServer, ad
 	return streamableHTTPServers
 }
 
-func (s *ServerConfig) createServiceMCPServer(serviceName string, baseMcpServer *server.MCPServer) *server.MCPServer {
+func (s *ServerConfig) createServiceMCPServer(serviceName string) *server.MCPServer {
 	logrus.Debugf("Creating service-specific MCP server for: %s", serviceName)
 
-	// Create a new MCP server for the specific service
-	serviceServer := server.NewMCPServer(
-		fmt.Sprintf("kubernetes-mcp-server-%s", serviceName),
-		serverVersion,
-		server.WithToolCapabilities(true),
-		server.WithPromptCapabilities(true),
-		server.WithResourceCapabilities(true, false),
-		server.WithLogging(),
-		server.WithRecovery(),
+	serviceServer := s.createConfiguredMCPServer(
+		fmt.Sprintf("cloud-native-mcp-server-%s", serviceName),
+		nil,
 	)
 
 	// Add service-specific tools and handlers
@@ -559,131 +603,51 @@ func (s *ServerConfig) createServiceMCPServer(serviceName string, baseMcpServer 
 		switch serviceName {
 		case "kubernetes":
 			if kubernetesService := s.serviceManager.GetKubernetesService(); kubernetesService != nil && kubernetesService.IsEnabled() {
-				tools := kubernetesService.GetTools()
-				handlers := kubernetesService.GetHandlers()
-				for _, tool := range tools {
-					if handler, exists := handlers[tool.Name]; exists {
-						serviceServer.AddTool(tool, handler)
-					}
-				}
+				s.registerTools(serviceServer, kubernetesService.GetTools(), kubernetesService.GetHandlers())
 				// Add prompts for Kubernetes service
 				serviceServer.AddPrompt(prompts.TestPodPrompt(), prompts.HandleTestPrompt)
 				serviceServer.AddPrompt(prompts.K8sOpsPrompt(), prompts.HandleK8sOpsPrompt)
 			}
 		case "grafana":
 			if grafanaService := s.serviceManager.GetGrafanaService(); grafanaService != nil && grafanaService.IsEnabled() {
-				tools := grafanaService.GetTools()
-				handlers := grafanaService.GetHandlers()
-				for _, tool := range tools {
-					if handler, exists := handlers[tool.Name]; exists {
-						serviceServer.AddTool(tool, handler)
-					}
-				}
+				s.registerTools(serviceServer, grafanaService.GetTools(), grafanaService.GetHandlers())
 			}
 		case "prometheus":
 			if prometheusService := s.serviceManager.GetPrometheusService(); prometheusService != nil && prometheusService.IsEnabled() {
-				tools := prometheusService.GetTools()
-				handlers := prometheusService.GetHandlers()
-				for _, tool := range tools {
-					if handler, exists := handlers[tool.Name]; exists {
-						serviceServer.AddTool(tool, handler)
-					}
-				}
-				// Add resources for Prometheus service
-				resources := prometheusService.GetResources()
-				resourceHandlers := prometheusService.GetResourceHandlers()
-				for _, resource := range resources {
-					if handler, exists := resourceHandlers[resource.URI]; exists {
-						serviceServer.AddResource(resource, handler)
-					}
-				}
+				s.registerTools(serviceServer, prometheusService.GetTools(), prometheusService.GetHandlers())
+				s.registerResources(serviceServer, prometheusService.GetResources(), prometheusService.GetResourceHandlers())
 			}
 		case "kibana":
 			if kibanaService := s.serviceManager.GetKibanaService(); kibanaService != nil && kibanaService.IsEnabled() {
-				tools := kibanaService.GetTools()
-				handlers := kibanaService.GetHandlers()
-				for _, tool := range tools {
-					if handler, exists := handlers[tool.Name]; exists {
-						serviceServer.AddTool(tool, handler)
-					}
-				}
+				s.registerTools(serviceServer, kibanaService.GetTools(), kibanaService.GetHandlers())
 			}
 		case "helm":
 			if helmService := s.serviceManager.GetHelmService(); helmService != nil && helmService.IsEnabled() {
-				tools := helmService.GetTools()
-				handlers := helmService.GetHandlers()
-				for _, tool := range tools {
-					if handler, exists := handlers[tool.Name]; exists {
-						serviceServer.AddTool(tool, handler)
-					}
-				}
+				s.registerTools(serviceServer, helmService.GetTools(), helmService.GetHandlers())
 
 				// Add additional tools for Helm service
-				additionalTools := helmService.GetAdditionalTools()
-				additionalHandlers := helmService.GetAdditionalHandlers()
-				for _, tool := range additionalTools {
-					if handler, exists := additionalHandlers[tool.Name]; exists {
-						serviceServer.AddTool(tool, handler)
-					}
-				}
+				s.registerTools(serviceServer, helmService.GetAdditionalTools(), helmService.GetAdditionalHandlers())
 			}
 		case "elasticsearch":
 			if elasticsearchService := s.serviceManager.GetElasticsearchService(); elasticsearchService != nil && elasticsearchService.IsEnabled() {
-				tools := elasticsearchService.GetTools()
-				handlers := elasticsearchService.GetHandlers()
-				for _, tool := range tools {
-					if handler, exists := handlers[tool.Name]; exists {
-						serviceServer.AddTool(tool, handler)
-					}
-				}
+				s.registerTools(serviceServer, elasticsearchService.GetTools(), elasticsearchService.GetHandlers())
 			}
 		case "alertmanager":
 			if alertmanagerService := s.serviceManager.GetAlertmanagerService(); alertmanagerService != nil && alertmanagerService.IsEnabled() {
-				tools := alertmanagerService.GetTools()
-				handlers := alertmanagerService.GetHandlers()
-				for _, tool := range tools {
-					if handler, exists := handlers[tool.Name]; exists {
-						serviceServer.AddTool(tool, handler)
-					}
-				}
+				s.registerTools(serviceServer, alertmanagerService.GetTools(), alertmanagerService.GetHandlers())
 			}
 		case "jaeger":
 			if jaegerService := s.serviceManager.GetJaegerService(); jaegerService != nil && jaegerService.IsEnabled() {
-				tools := jaegerService.GetTools()
-				handlers := jaegerService.GetHandlers()
-				for _, tool := range tools {
-					if handler, exists := handlers[tool.Name]; exists {
-						serviceServer.AddTool(tool, handler)
-					}
-				}
+				s.registerTools(serviceServer, jaegerService.GetTools(), jaegerService.GetHandlers())
 			}
 		case "opentelemetry":
 			if opentelemetryService := s.serviceManager.GetOpenTelemetryService(); opentelemetryService != nil && opentelemetryService.IsEnabled() {
-				tools := opentelemetryService.GetTools()
-				handlers := opentelemetryService.GetHandlers()
-				for _, tool := range tools {
-					if handler, exists := handlers[tool.Name]; exists {
-						serviceServer.AddTool(tool, handler)
-					}
-				}
-
-				resources := opentelemetryService.GetResources()
-				resourceHandlers := opentelemetryService.GetResourceHandlers()
-				for _, resource := range resources {
-					if handler, exists := resourceHandlers[resource.URI]; exists {
-						serviceServer.AddResource(resource, handler)
-					}
-				}
+				s.registerTools(serviceServer, opentelemetryService.GetTools(), opentelemetryService.GetHandlers())
+				s.registerResources(serviceServer, opentelemetryService.GetResources(), opentelemetryService.GetResourceHandlers())
 			}
 		case "utilities":
 			if utilitiesService := s.serviceManager.GetUtilitiesService(); utilitiesService != nil && utilitiesService.IsEnabled() {
-				tools := utilitiesService.GetTools()
-				handlers := utilitiesService.GetHandlers()
-				for _, tool := range tools {
-					if handler, exists := handlers[tool.Name]; exists {
-						serviceServer.AddTool(tool, handler)
-					}
-				}
+				s.registerTools(serviceServer, utilitiesService.GetTools(), utilitiesService.GetHandlers())
 			}
 		}
 	}
@@ -692,31 +656,19 @@ func (s *ServerConfig) createServiceMCPServer(serviceName string, baseMcpServer 
 }
 
 // createAggregateMCPServer creates an MCP server that aggregates all service capabilities
-func (s *ServerConfig) createAggregateMCPServer(baseMcpServer *server.MCPServer, kubernetesServer, grafanaServer, prometheusServer, kibanaServer, helmServer, elasticsearchServer, alertmanagerServer, jaegerServer, opentelemetryServer *server.MCPServer) *server.MCPServer {
+func (s *ServerConfig) createAggregateMCPServer() *server.MCPServer {
 	logrus.Debug("Creating aggregated MCP server with all services")
 
-	// Create a new MCP server for aggregated services
-	aggregateServer := server.NewMCPServer(
-		"kubernetes-mcp-server-aggregate",
-		serverVersion,
-		server.WithToolCapabilities(true),
-		server.WithPromptCapabilities(true),
-		server.WithResourceCapabilities(true, false),
-		server.WithLogging(),
-		server.WithRecovery(),
+	aggregateServer := s.createConfiguredMCPServer(
+		"cloud-native-mcp-server-aggregate",
+		nil,
 	)
 
 	// Add all tools, prompts, and resources from all services
 	if s.serviceManager != nil {
 		// Add Kubernetes service capabilities
 		if kubernetesService := s.serviceManager.GetKubernetesService(); kubernetesService != nil && kubernetesService.IsEnabled() {
-			tools := kubernetesService.GetTools()
-			handlers := kubernetesService.GetHandlers()
-			for _, tool := range tools {
-				if handler, exists := handlers[tool.Name]; exists {
-					aggregateServer.AddTool(tool, handler)
-				}
-			}
+			s.registerTools(aggregateServer, kubernetesService.GetTools(), kubernetesService.GetHandlers())
 			// Add prompts for Kubernetes service
 			aggregateServer.AddPrompt(prompts.TestPodPrompt(), prompts.HandleTestPrompt)
 			aggregateServer.AddPrompt(prompts.K8sOpsPrompt(), prompts.HandleK8sOpsPrompt)
@@ -724,125 +676,50 @@ func (s *ServerConfig) createAggregateMCPServer(baseMcpServer *server.MCPServer,
 
 		// Add Grafana service capabilities
 		if grafanaService := s.serviceManager.GetGrafanaService(); grafanaService != nil && grafanaService.IsEnabled() {
-			tools := grafanaService.GetTools()
-			handlers := grafanaService.GetHandlers()
-			for _, tool := range tools {
-				if handler, exists := handlers[tool.Name]; exists {
-					aggregateServer.AddTool(tool, handler)
-				}
-			}
+			s.registerTools(aggregateServer, grafanaService.GetTools(), grafanaService.GetHandlers())
 		}
 
 		// Add Prometheus service capabilities
 		if prometheusService := s.serviceManager.GetPrometheusService(); prometheusService != nil && prometheusService.IsEnabled() {
-			tools := prometheusService.GetTools()
-			handlers := prometheusService.GetHandlers()
-			for _, tool := range tools {
-				if handler, exists := handlers[tool.Name]; exists {
-					aggregateServer.AddTool(tool, handler)
-				}
-			}
-			// Add resources for Prometheus service
-			resources := prometheusService.GetResources()
-			resourceHandlers := prometheusService.GetResourceHandlers()
-			for _, resource := range resources {
-				if handler, exists := resourceHandlers[resource.URI]; exists {
-					aggregateServer.AddResource(resource, handler)
-				}
-			}
+			s.registerTools(aggregateServer, prometheusService.GetTools(), prometheusService.GetHandlers())
+			s.registerResources(aggregateServer, prometheusService.GetResources(), prometheusService.GetResourceHandlers())
 		}
 
 		// Add Kibana service capabilities
 		if kibanaService := s.serviceManager.GetKibanaService(); kibanaService != nil && kibanaService.IsEnabled() {
-			tools := kibanaService.GetTools()
-			handlers := kibanaService.GetHandlers()
-			for _, tool := range tools {
-				if handler, exists := handlers[tool.Name]; exists {
-					aggregateServer.AddTool(tool, handler)
-				}
-			}
+			s.registerTools(aggregateServer, kibanaService.GetTools(), kibanaService.GetHandlers())
 		}
 
 		// Add Helm service capabilities
 		if helmService := s.serviceManager.GetHelmService(); helmService != nil && helmService.IsEnabled() {
-			tools := helmService.GetTools()
-			handlers := helmService.GetHandlers()
-			for _, tool := range tools {
-				if handler, exists := handlers[tool.Name]; exists {
-					aggregateServer.AddTool(tool, handler)
-				}
-			}
-			// Add additional tools for Helm service
-			additionalTools := helmService.GetAdditionalTools()
-			additionalHandlers := helmService.GetAdditionalHandlers()
-			for _, tool := range additionalTools {
-				if handler, exists := additionalHandlers[tool.Name]; exists {
-					aggregateServer.AddTool(tool, handler)
-				}
-			}
+			s.registerTools(aggregateServer, helmService.GetTools(), helmService.GetHandlers())
+			s.registerTools(aggregateServer, helmService.GetAdditionalTools(), helmService.GetAdditionalHandlers())
 		}
 
 		// Add Utilities service capabilities
 		if utilitiesService := s.serviceManager.GetUtilitiesService(); utilitiesService != nil && utilitiesService.IsEnabled() {
-			tools := utilitiesService.GetTools()
-			handlers := utilitiesService.GetHandlers()
-			for _, tool := range tools {
-				if handler, exists := handlers[tool.Name]; exists {
-					aggregateServer.AddTool(tool, handler)
-				}
-			}
+			s.registerTools(aggregateServer, utilitiesService.GetTools(), utilitiesService.GetHandlers())
 		}
 
 		// Add Elasticsearch service capabilities
 		if elasticsearchService := s.serviceManager.GetElasticsearchService(); elasticsearchService != nil && elasticsearchService.IsEnabled() {
-			tools := elasticsearchService.GetTools()
-			handlers := elasticsearchService.GetHandlers()
-			for _, tool := range tools {
-				if handler, exists := handlers[tool.Name]; exists {
-					aggregateServer.AddTool(tool, handler)
-				}
-			}
+			s.registerTools(aggregateServer, elasticsearchService.GetTools(), elasticsearchService.GetHandlers())
 		}
 
 		// Add Alertmanager service capabilities
 		if alertmanagerService := s.serviceManager.GetAlertmanagerService(); alertmanagerService != nil && alertmanagerService.IsEnabled() {
-			tools := alertmanagerService.GetTools()
-			handlers := alertmanagerService.GetHandlers()
-			for _, tool := range tools {
-				if handler, exists := handlers[tool.Name]; exists {
-					aggregateServer.AddTool(tool, handler)
-				}
-			}
+			s.registerTools(aggregateServer, alertmanagerService.GetTools(), alertmanagerService.GetHandlers())
 		}
 
 		// Add Jaeger service capabilities
 		if jaegerService := s.serviceManager.GetJaegerService(); jaegerService != nil && jaegerService.IsEnabled() {
-			tools := jaegerService.GetTools()
-			handlers := jaegerService.GetHandlers()
-			for _, tool := range tools {
-				if handler, exists := handlers[tool.Name]; exists {
-					aggregateServer.AddTool(tool, handler)
-				}
-			}
+			s.registerTools(aggregateServer, jaegerService.GetTools(), jaegerService.GetHandlers())
 		}
 
 		// Add OpenTelemetry service capabilities
 		if opentelemetryService := s.serviceManager.GetOpenTelemetryService(); opentelemetryService != nil && opentelemetryService.IsEnabled() {
-			tools := opentelemetryService.GetTools()
-			handlers := opentelemetryService.GetHandlers()
-			for _, tool := range tools {
-				if handler, exists := handlers[tool.Name]; exists {
-					aggregateServer.AddTool(tool, handler)
-				}
-			}
-
-			resources := opentelemetryService.GetResources()
-			resourceHandlers := opentelemetryService.GetResourceHandlers()
-			for _, resource := range resources {
-				if handler, exists := resourceHandlers[resource.URI]; exists {
-					aggregateServer.AddResource(resource, handler)
-				}
-			}
+			s.registerTools(aggregateServer, opentelemetryService.GetTools(), opentelemetryService.GetHandlers())
+			s.registerResources(aggregateServer, opentelemetryService.GetResources(), opentelemetryService.GetResourceHandlers())
 		}
 	}
 
@@ -1266,7 +1143,12 @@ func (s *ServerConfig) ApplyServiceFilters(disabledServices, enabledServices, di
 	s.serviceManager.ApplyServiceFilters(disabledSvcList, enabledSvcList)
 
 	// Apply tool disablement
-	s.disabledTools = disabledToolList
+	for toolName, disabled := range disabledToolList {
+		if disabled {
+			s.serviceManager.DisableTool(toolName)
+		}
+	}
+	s.disabledTools = s.serviceManager.GetDisabledTools()
 
 	return nil
 }
@@ -1300,7 +1182,8 @@ func (s *ServerConfig) GetAllTools() []mcp.Tool {
 	return s.serviceManager.GetAllTools()
 }
 
-// GetAllToolsIncludingDisabled returns all tools including from disabled services
+// GetAllToolsIncludingDisabled returns all tools from currently registered services.
+// Note: services disabled before registration cannot contribute tool definitions here.
 func (s *ServerConfig) GetAllToolsIncludingDisabled() []mcp.Tool {
 	if s.serviceManager == nil {
 		return nil

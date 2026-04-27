@@ -353,9 +353,8 @@ func TestHealthCheckRoute_AlwaysRegistered(t *testing.T) {
 // Test createServiceMCPServer
 func TestCreateServiceMCPServer(t *testing.T) {
 	sc := &ServerConfig{}
-	mcpServer := server.NewMCPServer("test", "1.0.0")
 
-	serviceServer := sc.createServiceMCPServer("kubernetes", mcpServer)
+	serviceServer := sc.createServiceMCPServer("kubernetes")
 
 	assert.NotNil(t, serviceServer)
 }
@@ -401,19 +400,8 @@ func TestSetupMultipleRoutes_RateLimitAppliedToSSEMessageEndpoint(t *testing.T) 
 // Test createAggregateMCPServer
 func TestCreateAggregateMCPServer(t *testing.T) {
 	sc := &ServerConfig{}
-	mcpServer := server.NewMCPServer("test", "1.0.0")
 
-	k8sServer := sc.createServiceMCPServer("kubernetes", mcpServer)
-	grafanaServer := sc.createServiceMCPServer("grafana", mcpServer)
-	promServer := sc.createServiceMCPServer("prometheus", mcpServer)
-	kibanaServer := sc.createServiceMCPServer("kibana", mcpServer)
-	helmServer := sc.createServiceMCPServer("helm", mcpServer)
-	elasticsearchServer := sc.createServiceMCPServer("elasticsearch", mcpServer)
-	alertmanagerServer := sc.createServiceMCPServer("alertmanager", mcpServer)
-	jaegerServer := sc.createServiceMCPServer("jaeger", mcpServer)
-	opentelemetryServer := sc.createServiceMCPServer("opentelemetry", mcpServer)
-
-	aggregateServer := sc.createAggregateMCPServer(mcpServer, k8sServer, grafanaServer, promServer, kibanaServer, helmServer, elasticsearchServer, alertmanagerServer, jaegerServer, opentelemetryServer)
+	aggregateServer := sc.createAggregateMCPServer()
 
 	assert.NotNil(t, aggregateServer)
 }
