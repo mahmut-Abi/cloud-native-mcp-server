@@ -29,6 +29,32 @@ For the exact runtime inventory, prefer `--list tools`.
 
 ## Kubernetes (34 tools)
 
+### Common Response Shapes
+
+When calling Kubernetes tools from scripts, do not assume the return value is always a JSON string.
+Some MCP client wrappers already parse the tool result into an object for you.
+Inspect the raw return value first before calling `JSON.parse(...)`.
+
+Common Kubernetes response shapes:
+
+| Tool | Typical shape |
+|------|---------------|
+| `kubernetes_get_api_versions` | `["v1","apps/v1",...]` |
+| `kubernetes_get_api_resources` | `[{"name":"pods","kind":"Pod",...}, ...]` |
+| `kubernetes_list_resources_summary` | `{"items":[...], "count": N, "pagination": {...}}` |
+| `kubernetes_list_resources` | `{"data":{"items":[...]}, "count": N, "pagination": {...}}` |
+| `kubernetes_list_resources` with `jsonpath` | `{"data":[...], "count": N, "pagination": {...}}` |
+| `kubernetes_list_resources` with `jsonpaths` | `{"data":{"expressions":[...], "data":[...]}, "count": N, "pagination": {...}}` |
+| `kubernetes_search_resources` | `{"query":"...", "kinds":[...], "matched": N, "resources":[...]}` |
+| `kubernetes_wait_for_resource` | `{"kind":"...", "name":"...", "condition":"...", "message":"...", "attempts": N, ...}` |
+| `kubernetes_restart_workload` | `{"status":"ok", "message":"workload restart triggered", "resource": {...}, "wait": {...}?}` |
+
+Practical guidance:
+
+- If your client returns an MCP envelope, the JSON payload is usually in `content[0].text`.
+- If your client already returns an object or array, do not run `JSON.parse` on it again.
+- For `kubernetes_search_resources`, you may provide `kind` or `resourceTypes`, and `query` or `name`.
+
 ### Resource Management
 
 | Tool | Description | Priority |

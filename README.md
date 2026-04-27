@@ -29,6 +29,7 @@ A high-performance Model Context Protocol (MCP) server for Kubernetes and cloud-
 - Send structured JSON objects and arrays when a parameter represents an object or list; many handlers still accept legacy JSON strings for compatibility.
 - Use RFC3339 timestamps for Prometheus and tracing time fields.
 - For Kubernetes, omit `namespace` for cluster-scoped resources and include it for namespaced resources.
+- Some MCP client wrappers already unwrap tool results into objects. Inspect the raw return value before calling `JSON.parse(...)`.
 - For Kibana, some handlers accept both `camelCase` and `snake_case` parameter aliases, but the schema name is still the preferred form.
 
 ---
