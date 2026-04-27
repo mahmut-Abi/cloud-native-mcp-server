@@ -1,9 +1,12 @@
 package kubernetes
 
 import (
+	"context"
+	"errors"
 	"testing"
 
 	"github.com/mahmut-Abi/cloud-native-mcp-server/internal/config"
+	"github.com/mark3labs/mcp-go/mcp"
 )
 
 func TestNewService(t *testing.T) {
@@ -145,5 +148,21 @@ func TestServiceGetClient(t *testing.T) {
 
 	if client != nil {
 		t.Error("GetClient() should return nil when client is not initialized")
+	}
+}
+
+func TestWrapWithToolErrorsConvertsErrorToToolResult(t *testing.T) {
+	service := NewService()
+
+	handler := service.wrapWithToolErrors("test_tool", func(ctx context.Context, request mcp.CallToolRequest) (*mcp.CallToolResult, error) {
+		return nil, errors.New("boom")
+	})
+
+	result, err := handler(context.Background(), mcp.CallToolRequest{})
+	if err != nil {
+		t.Fatalf("wrapWithToolErrors returned error: %v", err)
+	}
+	if result == nil || !result.IsError {
+		t.Fatalf("wrapWithToolErrors should return an MCP tool error result")
 	}
 }

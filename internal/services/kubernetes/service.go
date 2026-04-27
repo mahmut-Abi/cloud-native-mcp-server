@@ -10,6 +10,7 @@ import (
 
 	"github.com/mark3labs/mcp-go/mcp"
 	server "github.com/mark3labs/mcp-go/server"
+	"github.com/sirupsen/logrus"
 
 	"github.com/mahmut-Abi/cloud-native-mcp-server/internal/config"
 	"github.com/mahmut-Abi/cloud-native-mcp-server/internal/services/cache"
@@ -156,7 +157,7 @@ func (s *Service) GetHandlers() map[string]server.ToolHandlerFunc {
 		return nil
 	}
 
-	return map[string]server.ToolHandlerFunc{
+	handlersMap := map[string]server.ToolHandlerFunc{
 		// Core resource operations (optimized for LLM efficiency)
 		"kubernetes_get_resource_summary":   s.wrapWithCache("kubernetes_get_resource_summary", handlers.HandleGetResourceSummary(s.client)),
 		"kubernetes_get_resource":           handlers.HandleGetResource(s.client),
@@ -207,6 +208,12 @@ func (s *Service) GetHandlers() map[string]server.ToolHandlerFunc {
 		// Testing and validation
 		"kubernetes_test_tool": handlers.HandleTest(s.client),
 	}
+
+	for name, handler := range handlersMap {
+		handlersMap[name] = s.wrapWithToolErrors(name, handler)
+	}
+
+	return handlersMap
 }
 
 // wrapWithCache wraps a handler with caching if the tool is cacheable
@@ -245,6 +252,17 @@ func (s *Service) wrapWithCache(toolName string, handler server.ToolHandlerFunc)
 
 		// Fallback for other result types
 		return mcp.NewToolResultText(fmt.Sprintf("%v", result)), nil
+	}
+}
+
+func (s *Service) wrapWithToolErrors(toolName string, handler server.ToolHandlerFunc) server.ToolHandlerFunc {
+	return func(ctx context.Context, request mcp.CallToolRequest) (*mcp.CallToolResult, error) {
+		result, err := handler(ctx, request)
+		if err != nil {
+			logrus.WithError(err).WithField("tool", toolName).Warn("Tool execution failed")
+			return mcp.NewToolResultError(err.Error()), nil
+		}
+		return result, nil
 	}
 }
 

@@ -28,8 +28,8 @@ import (
 )
 
 const (
-	serverName      = "kubernetes-mcp-server"
-	serverVersion   = "0.0.1"
+	serverName      = "cloud-native-mcp-server"
+	serverVersion   = "0.1.0"
 	shutdownTimeout = 3 * time.Second
 )
 
