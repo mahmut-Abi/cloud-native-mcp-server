@@ -26,7 +26,7 @@ For the exact current inventory, prefer the runtime output of `--list tools`.
 
 ---
 
-## Kubernetes (28 tools)
+## Kubernetes (32 tools)
 
 ### Resource Management
 
@@ -48,6 +48,7 @@ For the exact current inventory, prefer the runtime output of `--list tools`.
 | `kubernetes_get_pod_logs` | Get pod logs with tailLines support. | - |
 | `kubernetes_pod_exec` | Execute command in pod container. | - |
 | `kubernetes_scale_resource` | Scale deployment/replicaset. | - |
+| `kubernetes_get_rollout_status` | Get rollout status for a workload after patch or scale operations. | - |
 | `kubernetes_port_forward` | Port forward to pod. | - |
 
 ### Events and Troubleshooting
@@ -65,6 +66,9 @@ For the exact current inventory, prefer the runtime output of `--list tools`.
 |------|-------------|----------|
 | `kubernetes_get_resource_usage` | Get resource usage (CPU/Memory) for nodes or pods. | - |
 | `kubernetes_get_node_conditions` | Get node conditions and status. | - |
+| `kubernetes_cordon_node` | Mark a node unschedulable. | - |
+| `kubernetes_uncordon_node` | Mark a node schedulable again. | - |
+| `kubernetes_drain_node` | Cordon and drain a node for maintenance. | - |
 
 ### API and Permissions
 

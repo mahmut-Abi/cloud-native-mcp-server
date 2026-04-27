@@ -25,6 +25,31 @@ func TestScaleResourceTool_Definition(t *testing.T) {
 	}
 }
 
+func TestRolloutAndNodeOperationTools_Definition(t *testing.T) {
+	tests := []struct {
+		name string
+		tool string
+	}{
+		{"rollout", GetRolloutStatusTool().Name},
+		{"cordon", CordonNodeTool().Name},
+		{"uncordon", UncordonNodeTool().Name},
+		{"drain", DrainNodeTool().Name},
+	}
+
+	expected := map[string]string{
+		"rollout":  "kubernetes_get_rollout_status",
+		"cordon":   "kubernetes_cordon_node",
+		"uncordon": "kubernetes_uncordon_node",
+		"drain":    "kubernetes_drain_node",
+	}
+
+	for _, tt := range tests {
+		if tt.tool != expected[tt.name] {
+			t.Fatalf("%s tool unexpected name: %s", tt.name, tt.tool)
+		}
+	}
+}
+
 func TestPatchResourceTool_Definition(t *testing.T) {
 	tool := PatchResourceTool()
 	if tool.Name != "kubernetes_patch_resource" {

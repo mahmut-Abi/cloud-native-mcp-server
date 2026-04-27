@@ -224,7 +224,7 @@ func normalizeJSONPathExpression(expr string) string {
 		return expr
 	}
 	if strings.HasPrefix(expr, ".") {
-		return "{"+expr+"}"
+		return "{" + expr + "}"
 	}
 	return "{." + expr + "}"
 }
@@ -615,13 +615,13 @@ func HandlePortForward(client *client.Client) func(ctx context.Context, request 
 			return nil, err
 		}
 		return marshalJSONResponse(map[string]any{
-			"status":     "ok",
-			"message":    "port forwarding established",
-			"address":    address,
-			"localPort":  localPort,
-			"namespace":  namespace,
-			"podName":    podName,
-			"podPort":    podPort,
+			"status":    "ok",
+			"message":   "port forwarding established",
+			"address":   address,
+			"localPort": localPort,
+			"namespace": namespace,
+			"podName":   podName,
+			"podPort":   podPort,
 		})
 	}
 }
@@ -723,7 +723,6 @@ func HandlePatchResource(client *client.Client) func(ctx context.Context, reques
 		return marshalJSONResponse(result)
 	}
 }
-
 
 // HandleContainerExec handles command execution requests in containers.
 func HandleContainerExec(client *client.Client) func(ctx context.Context, request mcp.CallToolRequest) (*mcp.CallToolResult, error) {
@@ -1132,14 +1131,14 @@ func HandleCheckPermissions(client *client.Client) func(ctx context.Context, req
 		}
 		logrus.WithField("allowed", result).Debug("check_permissions succeeded")
 		return marshalJSONResponse(map[string]any{
-			"allowed":         result,
-			"message":         message,
-			"verb":            verb,
-			"resourceName":    resourceName,
-			"resourceGroup":   resourceGroup,
-			"resource":        resourceResource,
-			"subresource":     subresource,
-			"namespace":       namespace,
+			"allowed":       result,
+			"message":       message,
+			"verb":          verb,
+			"resourceName":  resourceName,
+			"resourceGroup": resourceGroup,
+			"resource":      resourceResource,
+			"subresource":   subresource,
+			"namespace":     namespace,
 		})
 	}
 }
@@ -1204,6 +1203,127 @@ func HandleScaleResource(client *client.Client) func(ctx context.Context, reques
 			"name":      name,
 			"namespace": namespace,
 			"replicas":  replicas,
+		})
+	}
+}
+
+// HandleGetRolloutStatus returns rollout status for a workload resource.
+func HandleGetRolloutStatus(client *client.Client) func(ctx context.Context, request mcp.CallToolRequest) (*mcp.CallToolResult, error) {
+	return func(ctx context.Context, request mcp.CallToolRequest) (*mcp.CallToolResult, error) {
+		kind, err := requireStringParam(request, "kind")
+		if err != nil {
+			return nil, err
+		}
+		name, err := requireStringParam(request, "name")
+		if err != nil {
+			return nil, err
+		}
+		namespace, err := request.RequireString("namespace")
+		if err != nil {
+			return nil, err
+		}
+
+		timeoutSeconds := 120
+		if v, ok := request.GetArguments()["timeoutSeconds"]; ok {
+			switch typed := v.(type) {
+			case float64:
+				timeoutSeconds = int(typed)
+			case int:
+				timeoutSeconds = typed
+			}
+		}
+
+		result, err := client.GetRolloutStatus(ctx, kind, name, namespace, timeoutSeconds)
+		if err != nil {
+			return nil, err
+		}
+		result["timeoutSeconds"] = timeoutSeconds
+		return marshalJSONResponse(result)
+	}
+}
+
+// HandleCordonNode marks a node unschedulable.
+func HandleCordonNode(client *client.Client) func(ctx context.Context, request mcp.CallToolRequest) (*mcp.CallToolResult, error) {
+	return func(ctx context.Context, request mcp.CallToolRequest) (*mcp.CallToolResult, error) {
+		nodeName, err := requireStringParam(request, "name")
+		if err != nil {
+			return nil, err
+		}
+
+		if err := client.CordonNode(ctx, nodeName); err != nil {
+			return nil, err
+		}
+
+		return marshalJSONResponse(map[string]any{
+			"status":  "ok",
+			"message": "node cordoned successfully",
+			"name":    nodeName,
+		})
+	}
+}
+
+// HandleUncordonNode marks a node schedulable.
+func HandleUncordonNode(client *client.Client) func(ctx context.Context, request mcp.CallToolRequest) (*mcp.CallToolResult, error) {
+	return func(ctx context.Context, request mcp.CallToolRequest) (*mcp.CallToolResult, error) {
+		nodeName, err := requireStringParam(request, "name")
+		if err != nil {
+			return nil, err
+		}
+
+		if err := client.UncordonNode(ctx, nodeName); err != nil {
+			return nil, err
+		}
+
+		return marshalJSONResponse(map[string]any{
+			"status":  "ok",
+			"message": "node uncordoned successfully",
+			"name":    nodeName,
+		})
+	}
+}
+
+// HandleDrainNode cordons and drains a node.
+func HandleDrainNode(client *client.Client) func(ctx context.Context, request mcp.CallToolRequest) (*mcp.CallToolResult, error) {
+	return func(ctx context.Context, request mcp.CallToolRequest) (*mcp.CallToolResult, error) {
+		nodeName, err := requireStringParam(request, "name")
+		if err != nil {
+			return nil, err
+		}
+
+		deleteEmptyDir := request.GetBool("deleteEmptyDir", false)
+		ignoreDaemonsets := request.GetBool("ignoreDaemonsets", true)
+		gracePeriodSeconds := int32(30)
+		timeoutSeconds := int32(120)
+
+		if v, ok := request.GetArguments()["gracePeriodSeconds"]; ok {
+			switch typed := v.(type) {
+			case float64:
+				gracePeriodSeconds = int32(typed)
+			case int:
+				gracePeriodSeconds = int32(typed)
+			}
+		}
+		if v, ok := request.GetArguments()["timeoutSeconds"]; ok {
+			switch typed := v.(type) {
+			case float64:
+				timeoutSeconds = int32(typed)
+			case int:
+				timeoutSeconds = int32(typed)
+			}
+		}
+
+		if err := client.DrainNode(ctx, nodeName, deleteEmptyDir, ignoreDaemonsets, gracePeriodSeconds, timeoutSeconds); err != nil {
+			return nil, err
+		}
+
+		return marshalJSONResponse(map[string]any{
+			"status":             "ok",
+			"message":            "node drained successfully",
+			"name":               nodeName,
+			"deleteEmptyDir":     deleteEmptyDir,
+			"ignoreDaemonsets":   ignoreDaemonsets,
+			"gracePeriodSeconds": gracePeriodSeconds,
+			"timeoutSeconds":     timeoutSeconds,
 		})
 	}
 }

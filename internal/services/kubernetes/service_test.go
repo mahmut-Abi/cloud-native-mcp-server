@@ -6,6 +6,7 @@ import (
 	"testing"
 
 	"github.com/mahmut-Abi/cloud-native-mcp-server/internal/config"
+	"github.com/mahmut-Abi/cloud-native-mcp-server/internal/services/kubernetes/client"
 	"github.com/mark3labs/mcp-go/mcp"
 )
 
@@ -164,5 +165,23 @@ func TestWrapWithToolErrorsConvertsErrorToToolResult(t *testing.T) {
 	}
 	if result == nil || !result.IsError {
 		t.Fatalf("wrapWithToolErrors should return an MCP tool error result")
+	}
+}
+
+func TestServiceGetHandlersIncludesRolloutAndNodeOperations(t *testing.T) {
+	service := NewService()
+	service.enabled = true
+	service.client = &client.Client{}
+
+	handlers := service.GetHandlers()
+	for _, name := range []string{
+		"kubernetes_get_rollout_status",
+		"kubernetes_cordon_node",
+		"kubernetes_uncordon_node",
+		"kubernetes_drain_node",
+	} {
+		if _, ok := handlers[name]; !ok {
+			t.Fatalf("expected handler %q to be registered", name)
+		}
 	}
 }
