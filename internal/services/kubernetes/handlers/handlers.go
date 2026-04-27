@@ -61,9 +61,33 @@ func applyJSONPath(input any, expr string) (any, error) {
 	return final, nil
 }
 
+func getRequestArguments(request mcp.CallToolRequest) map[string]any {
+	args := request.GetArguments()
+	if args == nil {
+		return nil
+	}
+
+	nested, ok := args["params"].(map[string]any)
+	if !ok || len(nested) == 0 {
+		return args
+	}
+
+	merged := make(map[string]any, len(nested)+len(args))
+	for k, v := range nested {
+		merged[k] = v
+	}
+	for k, v := range args {
+		if k == "params" {
+			continue
+		}
+		merged[k] = v
+	}
+	return merged
+}
+
 // Helper function to validate required string parameter
 func requireStringParam(request mcp.CallToolRequest, param string) (string, error) {
-	value, ok := request.GetArguments()[param].(string)
+	value, ok := getRequestArguments(request)[param].(string)
 	if !ok || value == "" {
 		return "", fmt.Errorf("%w: %s", ErrMissingRequiredParam, param)
 	}
@@ -71,7 +95,7 @@ func requireStringParam(request mcp.CallToolRequest, param string) (string, erro
 }
 
 func requireArgument(request mcp.CallToolRequest, param string) (any, error) {
-	value, ok := request.GetArguments()[param]
+	value, ok := getRequestArguments(request)[param]
 	if !ok || value == nil {
 		return nil, fmt.Errorf("%w: %s", ErrMissingRequiredParam, param)
 	}
@@ -81,7 +105,7 @@ func requireArgument(request mcp.CallToolRequest, param string) (any, error) {
 // requireRawStringParam returns the original string value without sanitization.
 // Use this for JSON payloads where quotes, braces, and whitespace are significant.
 func requireRawStringParam(request mcp.CallToolRequest, param string) (string, error) {
-	value, ok := request.GetArguments()[param].(string)
+	value, ok := getRequestArguments(request)[param].(string)
 	if !ok || strings.TrimSpace(value) == "" {
 		return "", fmt.Errorf("%w: %s", ErrMissingRequiredParam, param)
 	}
@@ -90,13 +114,13 @@ func requireRawStringParam(request mcp.CallToolRequest, param string) (string, e
 
 // Helper function to get optional string parameter
 func getOptionalStringParam(request mcp.CallToolRequest, param string) string {
-	value, _ := request.GetArguments()[param].(string)
+	value, _ := getRequestArguments(request)[param].(string)
 	return sanitize.SanitizeFilterValue(value)
 }
 
 // getOptionalRawStringParam returns the original optional string value without sanitization.
 func getOptionalRawStringParam(request mcp.CallToolRequest, param string) string {
-	value, _ := request.GetArguments()[param].(string)
+	value, _ := getRequestArguments(request)[param].(string)
 	return value
 }
 
@@ -124,7 +148,7 @@ func requireJSONObjectParam(request mcp.CallToolRequest, param string) (map[stri
 }
 
 func getOptionalJSONObjectParam(request mcp.CallToolRequest, param string) (map[string]any, bool, error) {
-	value, ok := request.GetArguments()[param]
+	value, ok := getRequestArguments(request)[param]
 	if !ok || value == nil {
 		return nil, false, nil
 	}
@@ -170,7 +194,7 @@ func requireRawJSONParam(request mcp.CallToolRequest, param string) ([]byte, err
 }
 
 func getOptionalStringArrayParam(request mcp.CallToolRequest, param string) ([]string, error) {
-	value, ok := request.GetArguments()[param]
+	value, ok := getRequestArguments(request)[param]
 	if !ok || value == nil {
 		return nil, nil
 	}
@@ -247,6 +271,23 @@ func marshalOptimizedResponse(data any, toolName string) (*mcp.CallToolResult, e
 // Helper function to create error response
 func createErrorResponse(message string) *mcp.CallToolResult {
 	return mcp.NewToolResultError(message)
+}
+
+func getBoolParam(request mcp.CallToolRequest, param string, defaultValue bool) bool {
+	if value, ok := getRequestArguments(request)[param]; ok {
+		switch typed := value.(type) {
+		case bool:
+			return typed
+		case string:
+			switch strings.ToLower(strings.TrimSpace(typed)) {
+			case "true", "1", "yes", "y", "on":
+				return true
+			case "false", "0", "no", "n", "off":
+				return false
+			}
+		}
+	}
+	return defaultValue
 }
 
 // getNestedString extracts nested string from map safely
@@ -678,7 +719,7 @@ func HandleUpdateResource(client *client.Client) func(ctx context.Context, reque
 		}
 		namespace := getOptionalStringParam(request, "namespace")
 		name := getOptionalStringParam(request, "name")
-		manifest, err := request.RequireString("manifest")
+		manifest, err := requireRawStringParam(request, "manifest")
 		if err != nil {
 			return nil, fmt.Errorf("%w: %v", ErrInvalidManifest, err)
 		}
@@ -727,19 +768,19 @@ func HandlePatchResource(client *client.Client) func(ctx context.Context, reques
 // HandleContainerExec handles command execution requests in containers.
 func HandleContainerExec(client *client.Client) func(ctx context.Context, request mcp.CallToolRequest) (*mcp.CallToolResult, error) {
 	return func(ctx context.Context, request mcp.CallToolRequest) (*mcp.CallToolResult, error) {
-		namespace, err := request.RequireString("namespace")
+		namespace, err := requireStringParam(request, "namespace")
 		if err != nil {
 			return nil, err
 		}
-		name, err := request.RequireString("podName")
+		name, err := requireStringParam(request, "podName")
 		if err != nil {
 			return nil, err
 		}
-		container, err := request.RequireString("containerName")
+		container, err := requireStringParam(request, "containerName")
 		if err != nil {
 			return nil, err
 		}
-		commandEncoded, err := request.RequireString("command")
+		commandEncoded, err := requireRawStringParam(request, "command")
 		if err != nil {
 			return nil, err
 		}
@@ -1145,7 +1186,7 @@ func HandleCheckPermissions(client *client.Client) func(ctx context.Context, req
 func HandleTest(client *client.Client) func(ctx context.Context, request mcp.CallToolRequest) (*mcp.CallToolResult, error) {
 	return func(ctx context.Context, request mcp.CallToolRequest) (*mcp.CallToolResult, error) {
 		logrus.WithField("tool", "test_tool").Debug("Handler invoked")
-		confirmed := request.GetBool("confirmed", false)
+		confirmed := getBoolParam(request, "confirmed", false)
 		if !confirmed {
 			logrus.Info("test handler: confirmed is false")
 			return createErrorResponse("this operation requires confirmation; set confirmed=true to continue"), nil
@@ -1171,7 +1212,7 @@ func HandleScaleResource(client *client.Client) func(ctx context.Context, reques
 		if err != nil {
 			return nil, err
 		}
-		namespace, err := request.RequireString("namespace")
+		namespace, err := requireStringParam(request, "namespace")
 		if err != nil {
 			return nil, err
 		}
@@ -1216,7 +1257,7 @@ func HandleGetRolloutStatus(client *client.Client) func(ctx context.Context, req
 		if err != nil {
 			return nil, err
 		}
-		namespace, err := request.RequireString("namespace")
+		namespace, err := requireStringParam(request, "namespace")
 		if err != nil {
 			return nil, err
 		}
@@ -1288,8 +1329,8 @@ func HandleDrainNode(client *client.Client) func(ctx context.Context, request mc
 			return nil, err
 		}
 
-		deleteEmptyDir := request.GetBool("deleteEmptyDir", false)
-		ignoreDaemonsets := request.GetBool("ignoreDaemonsets", true)
+		deleteEmptyDir := getBoolParam(request, "deleteEmptyDir", false)
+		ignoreDaemonsets := getBoolParam(request, "ignoreDaemonsets", true)
 		gracePeriodSeconds := int32(30)
 		timeoutSeconds := int32(120)
 
@@ -1387,7 +1428,7 @@ func HandleRestartWorkload(client *client.Client) func(ctx context.Context, requ
 			return nil, err
 		}
 
-		waitForReady := request.GetBool("waitForReady", false)
+		waitForReady := getBoolParam(request, "waitForReady", false)
 		timeoutSeconds := 120
 		if v, ok := request.GetArguments()["timeoutSeconds"]; ok {
 			switch typed := v.(type) {
@@ -1476,8 +1517,8 @@ func HandleGetResourcesDetail(client *client.Client) func(ctx context.Context, r
 			return nil, err
 		}
 		namespace := getOptionalStringParam(request, "namespace")
-		includeEvents := request.GetBool("includeEvents", false)
-		includeStatus := request.GetBool("includeStatus", true)
+		includeEvents := getBoolParam(request, "includeEvents", false)
+		includeStatus := getBoolParam(request, "includeStatus", true)
 		debug := getOptionalStringParam(request, "debug")
 
 		names, err := getOptionalStringArrayParam(request, "names")
@@ -1533,7 +1574,7 @@ func HandleGetEventsDetail(client *client.Client) func(ctx context.Context, requ
 	return func(ctx context.Context, request mcp.CallToolRequest) (*mcp.CallToolResult, error) {
 		namespace := getOptionalStringParam(request, "namespace")
 		fieldSelector := getOptionalStringParam(request, "fieldSelector")
-		includeNormalEvents := request.GetBool("includeNormalEvents", false)
+		includeNormalEvents := getBoolParam(request, "includeNormalEvents", false)
 		debug := getOptionalStringParam(request, "debug")
 
 		// More conservative default for detailed events
@@ -1624,7 +1665,7 @@ func HandleListResourcesFull(client *client.Client) func(ctx context.Context, re
 		namespace := getOptionalStringParam(request, "namespace")
 		labelSelector := getOptionalStringParam(request, "labelSelector")
 		fieldSelector := getOptionalStringParam(request, "fieldSelector")
-		includeStatus := request.GetBool("includeStatus", true)
+		includeStatus := getBoolParam(request, "includeStatus", true)
 		debug := getOptionalStringParam(request, "debug")
 		continueToken := getOptionalStringParam(request, "continueToken")
 
@@ -1714,10 +1755,10 @@ func HandleGetResourceDetailAdvanced(client *client.Client) func(ctx context.Con
 			return nil, err
 		}
 		namespace := getOptionalStringParam(request, "namespace")
-		includeEvents := request.GetBool("includeEvents", false)
-		includeRelationships := request.GetBool("includeRelationships", false)
-		includeDiagnostics := request.GetBool("includeDiagnostics", false)
-		includeConfiguration := request.GetBool("includeConfiguration", true)
+		includeEvents := getBoolParam(request, "includeEvents", false)
+		includeRelationships := getBoolParam(request, "includeRelationships", false)
+		includeDiagnostics := getBoolParam(request, "includeDiagnostics", false)
+		includeConfiguration := getBoolParam(request, "includeConfiguration", true)
 		outputFormat := getOptionalStringParam(request, "outputFormat")
 		debug := getOptionalStringParam(request, "debug")
 
