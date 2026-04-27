@@ -1123,11 +1123,9 @@ func HandleCheckPermissions(client *client.Client) func(ctx context.Context, req
 		if err != nil {
 			return nil, err
 		}
-		message := "no, you can't."
+		message := "denied"
 		if result {
 			message = "allowed"
-		} else {
-			message = "denied"
 		}
 		logrus.WithField("allowed", result).Debug("check_permissions succeeded")
 		return marshalJSONResponse(map[string]any{
