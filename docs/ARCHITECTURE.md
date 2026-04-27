@@ -260,13 +260,21 @@ kubernetes:list_resources:namespace=default:resource=pods
 
 ### Error Response Format
 
+Tool handlers now return MCP-native error results via `mcp.NewToolResultError(...)` instead of a custom JSON envelope. In practice this means:
+
 ```json
 {
-  "code": 1,
-  "data": null,
-  "message": "Error description"
+  "isError": true,
+  "content": [
+    {
+      "type": "text",
+      "text": "Error description"
+    }
+  ]
 }
 ```
+
+Successful handlers still return structured JSON text when appropriate, but failures should be surfaced as MCP error results so clients can reliably detect them.
 
 ## Metrics
 

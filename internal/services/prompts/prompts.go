@@ -58,10 +58,10 @@ func HandleTestPrompt(ctx context.Context, request mcp.GetPromptRequest) (*mcp.G
 // K8sOpsPrompt provides step-by-step guidance for common Kubernetes operations and tool usage.
 func K8sOpsPrompt() mcp.Prompt {
 	return mcp.NewPrompt(K8sOpsPromptName,
-		mcp.WithPromptDescription("Guide the model to correctly operate Kubernetes using available tools: get logs, update resources, scale workloads, create/delete, events, and reason about resource relationships."),
+		mcp.WithPromptDescription("Guide the model to correctly operate Kubernetes using available tools: get logs, patch resources, scale workloads, create/delete, events, and reason about resource relationships."),
 		mcp.WithArgument("scenario",
 			mcp.RequiredArgument(),
-			mcp.ArgumentDescription("Operation scenario: get_pod_logs | update_resource | scale_resource | create_resource | delete_resource | view_topology | get_events | diagnose"),
+			mcp.ArgumentDescription("Operation scenario: get_pod_logs | patch_resource | scale_resource | create_resource | delete_resource | view_topology | get_events | diagnose"),
 		),
 		mcp.WithArgument("kind",
 			mcp.ArgumentDescription("Kubernetes resource kind, e.g., Pod/Deployment/StatefulSet"),
@@ -95,16 +95,16 @@ func HandleK8sOpsPrompt(ctx context.Context, request mcp.GetPromptRequest) (*mcp
 		text := guideHeader + `\n\nWorkflow: \n1) Validate inputs (namespace, pod name, optional container).\n2) If container unknown, fetch Pod via get_resource to list containers.\n3) Call get_pod_logs with appropriate container and tailLines (e.g., 100).\n4) Summarize key errors/warnings; suggest next steps.\n\nTool calls:\n- get_resource {kind: "Pod", namespace: "` + ns + `", name: "` + name + `"}\n- get_pod_logs {name: "` + name + `", namespace: "` + ns + `", container: "<container>", tailLines: 100}`
 		return &mcp.GetPromptResult{Description: "Kubernetes: Get Pod Logs", Messages: []mcp.PromptMessage{{Role: mcp.RoleUser, Content: mcp.TextContent{Type: "text", Text: text}}}}, nil
 
-	case "update_resource":
-		text := guideHeader + `\n\nWorkflow:\n1) Read current resource via get_resource to capture apiVersion/kind/metadata/spec.\n2) Prepare a minimal and safe manifest delta; avoid changing immutable fields.\n3) Ask for confirmation; then call update_resource with a full, valid manifest (apiVersion/kind/metadata/spec).\n4) Re-read resource to verify.\n\nTool calls:\n- get_resource {kind: "` + kind + `", namespace: "` + ns + `", name: "` + name + `"}\n- update_resource {kind: "` + kind + `", name: "` + name + `", namespace: "` + ns + `", manifest: <full JSON>}`
-		return &mcp.GetPromptResult{Description: "Kubernetes: Update Resource", Messages: []mcp.PromptMessage{{Role: mcp.RoleUser, Content: mcp.TextContent{Type: "text", Text: text}}}}, nil
+	case "patch_resource":
+		text := guideHeader + `\n\nWorkflow:\n1) Read current resource via get_resource to confirm the exact field path and current values.\n2) Prepare the smallest safe patch payload.\n3) Ask for confirmation; then call patch_resource with ` + "`merge`" + ` for object patches or ` + "`json`" + ` for RFC 6902 operations.\n4) Re-read the resource to verify.\n\nTool calls:\n- get_resource {kind: "` + kind + `", namespace: "` + ns + `", name: "` + name + `"}\n- patch_resource {kind: "` + kind + `", name: "` + name + `", namespace: "` + ns + `", patchType: "merge", patch: <object>}`
+		return &mcp.GetPromptResult{Description: "Kubernetes: Patch Resource", Messages: []mcp.PromptMessage{{Role: mcp.RoleUser, Content: mcp.TextContent{Type: "text", Text: text}}}}, nil
 
 	case "scale_resource":
 		text := guideHeader + `\n\nWorkflow:\n1) Confirm resource is scalable (Deployment/StatefulSet/ReplicaSet).\n2) Check current replicas via get_resource.\n3) Ask for confirmation; then call scale_resource with target replicas.\n4) Verify status and readiness via get_resource.\n\nTool calls:\n- get_resource {kind: "` + kind + `", namespace: "` + ns + `", name: "` + name + `"}\n- scale_resource {kind: "` + kind + `", name: "` + name + `", namespace: "` + ns + `", replicas: <N>}`
 		return &mcp.GetPromptResult{Description: "Kubernetes: Scale Resource", Messages: []mcp.PromptMessage{{Role: mcp.RoleUser, Content: mcp.TextContent{Type: "text", Text: text}}}}, nil
 
 	case "create_resource":
-		text := guideHeader + `\n\nWorkflow:\n1) Confirm target kind and namespace; gather required fields.\n2) Draft metadata (name/labels/annotations) and spec; ensure apiVersion/kind are valid.\n3) Ask for explicit confirmation; then call create_resource with metadata/spec JSON strings.\n4) Verify creation via get_resource.\n\nTool calls:\n- create_resource {kind: "` + kind + `", apiVersion: "<apiVersion>", metadata: <JSON>, spec: <JSON>}\n- get_resource {kind: "` + kind + `", namespace: "` + ns + `", name: "` + name + `"}`
+		text := guideHeader + `\n\nWorkflow:\n1) Confirm target kind and namespace; gather required fields.\n2) Draft metadata and spec objects; ensure apiVersion/kind are valid.\n3) Ask for explicit confirmation; then call create_resource with structured metadata/spec objects.\n4) Verify creation via get_resource.\n\nTool calls:\n- create_resource {kind: "` + kind + `", apiVersion: "<apiVersion>", metadata: <object>, spec: <object>}\n- get_resource {kind: "` + kind + `", namespace: "` + ns + `", name: "` + name + `"}`
 		return &mcp.GetPromptResult{Description: "Kubernetes: Create Resource", Messages: []mcp.PromptMessage{{Role: mcp.RoleUser, Content: mcp.TextContent{Type: "text", Text: text}}}}, nil
 
 	case "delete_resource":
@@ -120,10 +120,10 @@ func HandleK8sOpsPrompt(ctx context.Context, request mcp.GetPromptRequest) (*mcp
 		return &mcp.GetPromptResult{Description: "Kubernetes: Get Events", Messages: []mcp.PromptMessage{{Role: mcp.RoleUser, Content: mcp.TextContent{Type: "text", Text: text}}}}, nil
 
 	case "diagnose":
-		text := guideHeader + `\n\nWorkflow (generic diagnose for Pod/Workload):\n1) get_resource to understand status/conditions.\n2) get_events to surface recent failures.\n3) get_pod_logs (for Pods) focusing on first failing container.\n4) If configuration issue, propose minimal safe update_resource patch; otherwise suggest infra checks.\n\nTool calls:\n- get_resource {kind: "` + kind + `", namespace: "` + ns + `", name: "` + name + `"}\n- list_resources {kind: "Event", namespace: "` + ns + `", fieldSelector: "involvedObject.name=` + name + `"}\n- get_pod_logs {name: "<pod>", namespace: "` + ns + `", container: "<container>", tailLines: 200}`
+		text := guideHeader + `\n\nWorkflow (generic diagnose for Pod/Workload):\n1) get_resource to understand status and conditions.\n2) get_events to surface recent failures.\n3) get_pod_logs (for Pods) focusing on the first failing container.\n4) If configuration issue, propose a minimal safe patch_resource call; otherwise suggest infra checks.\n\nTool calls:\n- get_resource {kind: "` + kind + `", namespace: "` + ns + `", name: "` + name + `"}\n- list_resources {kind: "Event", namespace: "` + ns + `", fieldSelector: "involvedObject.name=` + name + `"}\n- get_pod_logs {name: "<pod>", namespace: "` + ns + `", container: "<container>", tailLines: 200}`
 		return &mcp.GetPromptResult{Description: "Kubernetes: Diagnose", Messages: []mcp.PromptMessage{{Role: mcp.RoleUser, Content: mcp.TextContent{Type: "text", Text: text}}}}, nil
 	}
 
-	fallback := "Unknown scenario. Valid scenarios: get_pod_logs | update_resource | scale_resource | create_resource | delete_resource | view_topology | get_events | diagnose."
+	fallback := "Unknown scenario. Valid scenarios: get_pod_logs | patch_resource | scale_resource | create_resource | delete_resource | view_topology | get_events | diagnose."
 	return &mcp.GetPromptResult{Description: "Kubernetes: Unknown Scenario", Messages: []mcp.PromptMessage{{Role: mcp.RoleUser, Content: mcp.TextContent{Type: "text", Text: fallback}}}}, nil
 }

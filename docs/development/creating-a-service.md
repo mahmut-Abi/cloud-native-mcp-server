@@ -118,7 +118,7 @@ func (s *Service) GetTools() []mcp.Tool {
             tools.GetResourceTool(),
             tools.ListResourcesTool(),
             tools.CreateResourceTool(),
-            tools.UpdateResourceTool(),
+            tools.PatchResourceTool(),
             tools.DeleteResourceTool(),
         }
     })
@@ -134,7 +134,7 @@ func (s *Service) GetHandlers() map[string]server.ToolHandlerFunc {
         "yourservice_get_resource":    handlers.HandleGetResource(s.client),
         "yourservice_list_resources":  handlers.HandleListResources(s.client),
         "yourservice_create_resource": handlers.HandleCreateResource(s.client),
-        "yourservice_update_resource": handlers.HandleUpdateResource(s.client),
+        "yourservice_patch_resource":  handlers.HandlePatchResource(s.client),
         "yourservice_delete_resource": handlers.HandleDeleteResource(s.client),
     }
 }
@@ -345,16 +345,17 @@ func CreateResourceTool() mcp.Tool {
     )
 }
 
-// UpdateResourceTool returns a tool for updating a resource
-func UpdateResourceTool() mcp.Tool {
-    return mcp.NewTool("yourservice_update_resource",
-        mcp.WithDescription("Update an existing resource in YourService"),
+// PatchResourceTool returns a tool for patching a resource
+func PatchResourceTool() mcp.Tool {
+    return mcp.NewTool("yourservice_patch_resource",
+        mcp.WithDescription("Patch an existing resource in YourService"),
         mcp.WithString("id",
             mcp.Required(),
-            mcp.Description("The ID of the resource to update"),
+            mcp.Description("The ID of the resource to patch"),
         ),
-        mcp.WithString("name",
-            mcp.Description("The new name of the resource"),
+        mcp.WithAny("patch",
+            mcp.Required(),
+            mcp.Description("Partial update payload. Prefer structured objects or arrays; legacy JSON strings are also acceptable."),
         ),
     )
 }
@@ -456,8 +457,8 @@ func HandleCreateResource(svcClient *client.Client) mcp.ToolHandlerFunc {
     }
 }
 
-// HandleUpdateResource handles the update_resource tool
-func HandleUpdateResource(svcClient *client.Client) mcp.ToolHandlerFunc {
+// HandlePatchResource handles the patch_resource tool
+func HandlePatchResource(svcClient *client.Client) mcp.ToolHandlerFunc {
     return func(ctx context.Context, request mcp.CallToolRequest) (*mcp.CallToolResult, error) {
         // Get parameters
         id, err := request.Params.Arguments.String("id")
@@ -465,12 +466,15 @@ func HandleUpdateResource(svcClient *client.Client) mcp.ToolHandlerFunc {
             return mcp.NewToolResultError(fmt.Sprintf("invalid id: %v", err)), nil
         }
 
-        name, _ := request.Params.Arguments.String("name")
+        patch, ok := request.Params.Arguments["patch"]
+        if !ok {
+            return mcp.NewToolResultError("missing patch payload"), nil
+        }
 
         // Call client (implement this method)
-        resource, err := svcClient.UpdateResource(ctx, id, name)
+        resource, err := svcClient.PatchResource(ctx, id, patch)
         if err != nil {
-            return mcp.NewToolResultError(fmt.Sprintf("failed to update resource: %v", err)), nil
+            return mcp.NewToolResultError(fmt.Sprintf("failed to patch resource: %v", err)), nil
         }
 
         // Return result

@@ -25,17 +25,13 @@ func TestScaleResourceTool_Definition(t *testing.T) {
 	}
 }
 
-func TestUpdateResourceTool_Definition(t *testing.T) {
-	tool := UpdateResourceTool()
-	if tool.Name != "kubernetes_update_resource" {
-		t.Fatalf("unexpected name: %s", tool.Name)
-	}
-}
-
 func TestPatchResourceTool_Definition(t *testing.T) {
 	tool := PatchResourceTool()
 	if tool.Name != "kubernetes_patch_resource" {
 		t.Fatalf("unexpected name: %s", tool.Name)
+	}
+	if patch, ok := tool.InputSchema.Properties["patch"].(map[string]any); !ok || len(patch) == 0 {
+		t.Fatalf("patch schema should be present")
 	}
 }
 
@@ -43,5 +39,21 @@ func TestCreateResourceTool_Definition(t *testing.T) {
 	tool := CreateResourceTool()
 	if tool.Name != "kubernetes_create_resource" {
 		t.Fatalf("unexpected name: %s", tool.Name)
+	}
+	metadata, ok := tool.InputSchema.Properties["metadata"].(map[string]any)
+	if !ok || metadata["type"] != "object" {
+		t.Fatalf("metadata schema should be object, got %#v", tool.InputSchema.Properties["metadata"])
+	}
+	spec, ok := tool.InputSchema.Properties["spec"].(map[string]any)
+	if !ok || spec["type"] != "object" {
+		t.Fatalf("spec schema should be object, got %#v", tool.InputSchema.Properties["spec"])
+	}
+}
+
+func TestListResourcesTool_JSONPathsSchema(t *testing.T) {
+	tool := ListResourcesTool()
+	jsonpaths, ok := tool.InputSchema.Properties["jsonpaths"].(map[string]any)
+	if !ok || jsonpaths["type"] != "array" {
+		t.Fatalf("jsonpaths schema should be array, got %#v", tool.InputSchema.Properties["jsonpaths"])
 	}
 }

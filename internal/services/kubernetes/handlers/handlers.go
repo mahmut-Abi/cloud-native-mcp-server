@@ -3,6 +3,7 @@ package handlers
 import (
 	"bytes"
 	"context"
+	"encoding/json"
 	"errors"
 	"fmt"
 	"regexp"
@@ -35,6 +36,7 @@ func applyJSONPath(input any, expr string) (any, error) {
 	jp := jsonpath.New("mcp-jsonpath")
 	jp.AllowMissingKeys(true)
 
+	expr = normalizeJSONPathExpression(expr)
 	if err := jp.Parse(expr); err != nil {
 		return nil, fmt.Errorf("%w '%s': %v", ErrInvalidJSONPath, expr, err)
 	}
@@ -68,6 +70,14 @@ func requireStringParam(request mcp.CallToolRequest, param string) (string, erro
 	return sanitize.SanitizeFilterValue(value), nil
 }
 
+func requireArgument(request mcp.CallToolRequest, param string) (any, error) {
+	value, ok := request.GetArguments()[param]
+	if !ok || value == nil {
+		return nil, fmt.Errorf("%w: %s", ErrMissingRequiredParam, param)
+	}
+	return value, nil
+}
+
 // requireRawStringParam returns the original string value without sanitization.
 // Use this for JSON payloads where quotes, braces, and whitespace are significant.
 func requireRawStringParam(request mcp.CallToolRequest, param string) (string, error) {
@@ -90,6 +100,135 @@ func getOptionalRawStringParam(request mcp.CallToolRequest, param string) string
 	return value
 }
 
+func requireJSONObjectParam(request mcp.CallToolRequest, param string) (map[string]any, error) {
+	value, err := requireArgument(request, param)
+	if err != nil {
+		return nil, err
+	}
+
+	switch typed := value.(type) {
+	case map[string]interface{}:
+		return typed, nil
+	case string:
+		var result map[string]any
+		if strings.TrimSpace(typed) == "" {
+			return nil, fmt.Errorf("%w: %s", ErrMissingRequiredParam, param)
+		}
+		if err := json.Unmarshal([]byte(typed), &result); err != nil {
+			return nil, fmt.Errorf("failed to parse %s JSON object: %w", param, err)
+		}
+		return result, nil
+	default:
+		return nil, fmt.Errorf("%s must be a JSON object", param)
+	}
+}
+
+func getOptionalJSONObjectParam(request mcp.CallToolRequest, param string) (map[string]any, bool, error) {
+	value, ok := request.GetArguments()[param]
+	if !ok || value == nil {
+		return nil, false, nil
+	}
+
+	switch typed := value.(type) {
+	case map[string]interface{}:
+		return typed, true, nil
+	case string:
+		if strings.TrimSpace(typed) == "" {
+			return nil, false, nil
+		}
+		var result map[string]any
+		if err := json.Unmarshal([]byte(typed), &result); err != nil {
+			return nil, true, fmt.Errorf("failed to parse %s JSON object: %w", param, err)
+		}
+		return result, true, nil
+	default:
+		return nil, true, fmt.Errorf("%s must be a JSON object", param)
+	}
+}
+
+func requireRawJSONParam(request mcp.CallToolRequest, param string) ([]byte, error) {
+	value, err := requireArgument(request, param)
+	if err != nil {
+		return nil, err
+	}
+
+	switch typed := value.(type) {
+	case string:
+		if strings.TrimSpace(typed) == "" {
+			return nil, fmt.Errorf("%w: %s", ErrMissingRequiredParam, param)
+		}
+		return []byte(typed), nil
+	case map[string]interface{}, []interface{}:
+		data, err := optimize.GlobalJSONPool.MarshalToBytes(typed)
+		if err != nil {
+			return nil, fmt.Errorf("failed to serialize %s JSON payload: %w", param, err)
+		}
+		return data, nil
+	default:
+		return nil, fmt.Errorf("%s must be a JSON object, JSON array, or JSON string", param)
+	}
+}
+
+func getOptionalStringArrayParam(request mcp.CallToolRequest, param string) ([]string, error) {
+	value, ok := request.GetArguments()[param]
+	if !ok || value == nil {
+		return nil, nil
+	}
+
+	switch typed := value.(type) {
+	case []string:
+		return typed, nil
+	case []interface{}:
+		result := make([]string, 0, len(typed))
+		for _, item := range typed {
+			str, ok := item.(string)
+			if !ok {
+				return nil, fmt.Errorf("%s must contain only strings", param)
+			}
+			result = append(result, str)
+		}
+		return result, nil
+	case string:
+		if strings.TrimSpace(typed) == "" {
+			return nil, nil
+		}
+
+		var result []string
+		if strings.HasPrefix(strings.TrimSpace(typed), "[") {
+			if err := json.Unmarshal([]byte(typed), &result); err != nil {
+				return nil, fmt.Errorf("failed to parse %s JSON array: %w", param, err)
+			}
+			return result, nil
+		}
+
+		parts := strings.Split(typed, ",")
+		result = make([]string, 0, len(parts))
+		for _, part := range parts {
+			part = strings.TrimSpace(part)
+			if part != "" {
+				result = append(result, part)
+			}
+		}
+		return result, nil
+	default:
+		return nil, fmt.Errorf("%s must be an array of strings", param)
+	}
+}
+
+func normalizeJSONPathExpression(expr string) string {
+	expr = strings.TrimSpace(expr)
+	if expr == "" {
+		return expr
+	}
+	if strings.HasPrefix(expr, "{") {
+		return expr
+	}
+	if strings.HasPrefix(expr, ".") {
+		return "{"+expr+"}"
+	}
+	return "{." + expr + "}"
+}
+
 // Helper function to marshal JSON response using pooled encoder
 func marshalJSONResponse(data any) (*mcp.CallToolResult, error) {
 	jsonResponse, err := optimize.GlobalJSONPool.MarshalToBytes(data)
@@ -107,24 +246,7 @@ func marshalOptimizedResponse(data any, toolName string) (*mcp.CallToolResult, e
 
 // Helper function to create error response
 func createErrorResponse(message string) *mcp.CallToolResult {
-	return &mcp.CallToolResult{
-		Content: []mcp.Content{
-			&mcp.TextContent{
-				Type: "text",
-				Text: fmt.Sprintf(`{"code": 1, "data": null, "message": %s}`, string(mustMarshalJSON(message))),
-			},
-		},
-		IsError: true,
-	}
-}
-
-// Helper function to ensure proper JSON marshaling using pooled encoder
-func mustMarshalJSON(v any) []byte {
-	b, err := optimize.GlobalJSONPool.MarshalToBytes(v)
-	if err != nil {
-		return []byte(`"marshal error"`)
-	}
-	return b
+	return mcp.NewToolResultError(message)
 }
 
 // getNestedString extracts nested string from map safely
@@ -492,7 +614,15 @@ func HandlePortForward(client *client.Client) func(ctx context.Context, request 
 		if err != nil {
 			return nil, err
 		}
-		return mcp.NewToolResultText(fmt.Sprintf("Port forwarding established from %s:%d to %s/%s:%d", address, localPort, namespace, podName, podPort)), nil
+		return marshalJSONResponse(map[string]any{
+			"status":     "ok",
+			"message":    "port forwarding established",
+			"address":    address,
+			"localPort":  localPort,
+			"namespace":  namespace,
+			"podName":    podName,
+			"podPort":    podPort,
+		})
 	}
 }
 
@@ -507,19 +637,35 @@ func HandleCreateResource(client *client.Client) func(ctx context.Context, reque
 		if err != nil {
 			return nil, err
 		}
-		metadata, err := requireRawStringParam(request, "metadata")
+		metadata, err := requireJSONObjectParam(request, "metadata")
 		if err != nil {
 			return nil, err
 		}
-		spec := getOptionalRawStringParam(request, "spec")
+		metadataJSON, err := optimize.GlobalJSONPool.MarshalToBytes(metadata)
+		if err != nil {
+			return nil, fmt.Errorf("failed to serialize metadata JSON: %w", err)
+		}
+
+		specJSON := ""
+		spec, hasSpec, err := getOptionalJSONObjectParam(request, "spec")
+		if err != nil {
+			return nil, err
+		}
+		if hasSpec {
+			specBytes, err := optimize.GlobalJSONPool.MarshalToBytes(spec)
+			if err != nil {
+				return nil, fmt.Errorf("failed to serialize spec JSON: %w", err)
+			}
+			specJSON = string(specBytes)
+		}
 		logrus.WithFields(logrus.Fields{"tool": "create_resource", "kind": kind, "apiVersion": apiVersion}).Debug("Handler invoked")
 
-		result, err := client.CreateResource(ctx, kind, apiVersion, metadata, spec)
+		result, err := client.CreateResource(ctx, kind, apiVersion, string(metadataJSON), specJSON)
 		if err != nil {
-			return mcp.NewToolResultText("create resource failed"), err
+			return nil, err
 		}
 		logrus.Debug("create_resource succeeded")
-		return mcp.NewToolResultText(fmt.Sprintf("%v", result)), nil
+		return marshalJSONResponse(result)
 	}
 }
 
@@ -559,7 +705,7 @@ func HandlePatchResource(client *client.Client) func(ctx context.Context, reques
 			return nil, err
 		}
 		namespace := getOptionalStringParam(request, "namespace")
-		patchJSON, err := requireRawStringParam(request, "patch")
+		patchBytes, err := requireRawJSONParam(request, "patch")
 		if err != nil {
 			return nil, err
 		}
@@ -569,8 +715,6 @@ func HandlePatchResource(client *client.Client) func(ctx context.Context, reques
 		}
 		logrus.WithFields(logrus.Fields{"tool": "patch_resource", "kind": kind, "name": name, "ns": namespace, "patchType": patchType}).Debug("Handler invoked")
 
-		// Convert patch string to bytes
-		patchBytes := []byte(patchJSON)
 		result, err := client.PatchResource(ctx, kind, name, namespace, patchBytes, patchType)
 		if err != nil {
 			return nil, err
@@ -678,7 +822,7 @@ func HandleGetResource(client *client.Client) func(ctx context.Context, request 
 			return nil, err
 		}
 		namespace := getOptionalStringParam(request, "namespace")
-		jsonpath := getOptionalStringParam(request, "jsonpath")
+		jsonpath := getOptionalRawStringParam(request, "jsonpath")
 		debug := getOptionalStringParam(request, "debug")
 		logrus.WithFields(logrus.Fields{"tool": "get_resource", "kind": kind, "name": name, "ns": namespace, "jsonpath": jsonpath, "debug": debug}).Debug("Handler invoked")
 
@@ -693,10 +837,10 @@ func HandleGetResource(client *client.Client) func(ctx context.Context, request 
 		if jsonpath != "" {
 			filtered, err := applyJSONPath(resource, jsonpath)
 			if err != nil {
-				logrus.WithError(err).Warn("JSONPath filtering failed, returning full resource")
-			} else {
-				result = filtered
+				logrus.WithError(err).Warn("JSONPath filtering failed")
+				return createErrorResponse(err.Error()), nil
 			}
+			result = filtered
 		}
 
 		logrus.Debug("get_resource succeeded")
@@ -714,10 +858,13 @@ func HandleListResources(client *client.Client) func(ctx context.Context, reques
 		namespace := getOptionalStringParam(request, "namespace")
 		labelSelector := getOptionalStringParam(request, "labelSelector")
 		fieldSelector := getOptionalStringParam(request, "fieldSelector")
-		jsonpath := getOptionalStringParam(request, "jsonpath")
-		jsonpaths := getOptionalStringParam(request, "jsonpaths")
+		jsonpath := getOptionalRawStringParam(request, "jsonpath")
 		continueToken := getOptionalStringParam(request, "continueToken")
 		debug := getOptionalStringParam(request, "debug")
+		jsonpaths, err := getOptionalStringArrayParam(request, "jsonpaths")
+		if err != nil {
+			return createErrorResponse(err.Error()), nil
+		}
 
 		// Parse limit parameter with conservative default to prevent context overflow
 		limit := int64(constants.DefaultLimit)
@@ -753,15 +900,7 @@ func HandleListResources(client *client.Client) func(ctx context.Context, reques
 
 		resources, err := client.ListResourcesWithPagination(ctx, kind, namespace, labelSelector, fieldSelector, continueToken, limit)
 		if err != nil {
-			return &mcp.CallToolResult{
-				Content: []mcp.Content{
-					&mcp.TextContent{
-						Type: "text",
-						Text: fmt.Sprintf(`{"code": 1, "data": null, "message": "%s"}`, err.Error()),
-					},
-				},
-				IsError: false,
-			}, nil
+			return createErrorResponse(err.Error()), nil
 		}
 
 		// Get pagination info
@@ -784,9 +923,9 @@ func HandleListResources(client *client.Client) func(ctx context.Context, reques
 			} else {
 				result = filtered
 			}
-		} else if jsonpaths != "" {
+		} else if len(jsonpaths) > 0 {
 			// Handle multiple JSONPath expressions
-			expressions := strings.Split(jsonpaths, ",")
+			expressions := jsonpaths
 			var tableResult []map[string]any
 
 			// Process each resource - convert resources to []interface{} for processing
@@ -957,7 +1096,13 @@ func HandleDeleteResource(client *client.Client) func(ctx context.Context, reque
 			return nil, err
 		}
 		logrus.Debug("delete_resource succeeded")
-		return mcp.NewToolResultText("Resource deleted successfully."), nil
+		return marshalJSONResponse(map[string]any{
+			"status":    "ok",
+			"message":   "resource deleted successfully",
+			"kind":      kind,
+			"name":      name,
+			"namespace": namespace,
+		})
 	}
 }
 
@@ -981,10 +1126,21 @@ func HandleCheckPermissions(client *client.Client) func(ctx context.Context, req
 		}
 		message := "no, you can't."
 		if result {
-			message = "yes, you can."
+			message = "allowed"
+		} else {
+			message = "denied"
 		}
 		logrus.WithField("allowed", result).Debug("check_permissions succeeded")
-		return mcp.NewToolResultText(message), nil
+		return marshalJSONResponse(map[string]any{
+			"allowed":         result,
+			"message":         message,
+			"verb":            verb,
+			"resourceName":    resourceName,
+			"resourceGroup":   resourceGroup,
+			"resource":        resourceResource,
+			"subresource":     subresource,
+			"namespace":       namespace,
+		})
 	}
 }
 
@@ -995,27 +1151,15 @@ func HandleTest(client *client.Client) func(ctx context.Context, request mcp.Cal
 		confirmed := request.GetBool("confirmed", false)
 		if !confirmed {
 			logrus.Info("test handler: confirmed is false")
-			return &mcp.CallToolResult{
-				Content: []mcp.Content{
-					&mcp.TextContent{
-						Type: "text",
-						Text: "⚠️ This operation requires confirmation. Please add 'confirmed': 'true' to the parameters to continue execution.",
-					},
-				},
-				IsError: true,
-			}, nil
+			return createErrorResponse("this operation requires confirmation; set confirmed=true to continue"), nil
 		}
 
 		logrus.Info("test handler: confirmed is true")
-		return &mcp.CallToolResult{
-			Content: []mcp.Content{
-				&mcp.TextContent{
-					Type: "text",
-					Text: "This operation has been confirmed",
-				},
-			},
-			IsError: false,
-		}, nil
+		return marshalJSONResponse(map[string]any{
+			"status":    "ok",
+			"confirmed": true,
+			"message":   "operation confirmed",
+		})
 	}
 }
 
@@ -1053,7 +1197,14 @@ func HandleScaleResource(client *client.Client) func(ctx context.Context, reques
 			return nil, err
 		}
 		logrus.Debug("scale_resource succeeded")
-		return mcp.NewToolResultText("Scaled successfully"), nil
+		return marshalJSONResponse(map[string]any{
+			"status":    "ok",
+			"message":   "resource scaled successfully",
+			"kind":      kind,
+			"name":      name,
+			"namespace": namespace,
+			"replicas":  replicas,
+		})
 	}
 }
 
@@ -1108,16 +1259,9 @@ func HandleGetResourcesDetail(client *client.Client) func(ctx context.Context, r
 		includeStatus := request.GetBool("includeStatus", true)
 		debug := getOptionalStringParam(request, "debug")
 
-		// Get names array from request
-		var names []string
-		if v, ok := request.GetArguments()["names"]; ok {
-			if slice, ok := v.([]interface{}); ok {
-				for _, item := range slice {
-					if name, ok := item.(string); ok {
-						names = append(names, name)
-					}
-				}
-			}
+		names, err := getOptionalStringArrayParam(request, "names")
+		if err != nil {
+			return createErrorResponse(err.Error()), nil
 		}
 
 		if len(names) == 0 {

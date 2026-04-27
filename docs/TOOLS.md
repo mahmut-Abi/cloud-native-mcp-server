@@ -1,6 +1,6 @@
-# K8s MCP Server - Complete Tools Reference
+# Cloud Native MCP Server - Complete Tools Reference
 
-This document provides a comprehensive reference for all 210+ tools available in the K8s MCP Server.
+This document provides a comprehensive reference for all 210+ tools available in the cloud-native MCP server.
 
 ## Table of Contents
 
@@ -25,11 +25,11 @@ This document provides a comprehensive reference for all 210+ tools available in
 |------|-------------|----------|
 | `kubernetes_list_resources_summary` | List resources with summary (90-95% smaller than full). Returns only essential fields (name, namespace, kind, status, age, labels). | ⚠️ PRIORITY |
 | `kubernetes_get_resource_summary` | Get single resource summary with essential fields. Optimized for LLM efficiency. | ⚠️ PRIORITY |
-| `kubernetes_list_resources` | List all resources with full details. | - |
-| `kubernetes_get_resource` | Get resource details with JSONPath support. | - |
+| `kubernetes_list_resources` | List resources with filtering, pagination, single `jsonpath`, or multi-column `jsonpaths` extraction. | - |
+| `kubernetes_get_resource` | Get resource details with JSONPath support. Accepts full expressions like `{.status.phase}` and bare paths like `status.phase`. | - |
 | `kubernetes_describe_resource` | Describe resource in detail (similar to kubectl describe). | - |
-| `kubernetes_create_resource` | Create Kubernetes resource from YAML/JSON. | - |
-| `kubernetes_patch_resource` | Patch existing resource with partial updates (merge/json/apply). | - |
+| `kubernetes_create_resource` | Create a resource with structured `metadata` and optional `spec` objects. Legacy JSON string payloads are still accepted. | - |
+| `kubernetes_patch_resource` | Patch an existing resource with targeted changes. Use object payloads for `merge`/`apply` and RFC 6902 arrays for `json`. | - |
 | `kubernetes_delete_resource` | Delete resource. | - |
 
 ### Pod Operations
