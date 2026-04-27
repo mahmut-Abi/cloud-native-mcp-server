@@ -1,7 +1,7 @@
-# Cloud Native MCP Server - Complete Tools Reference
+# Cloud Native MCP Server - Tool Reference
 
-This document provides a curated reference for major tools available in the cloud-native MCP server.
-For the exact current inventory, prefer the runtime output of `--list tools`.
+This document provides a curated reference aligned with the current cloud-native MCP server inventory.
+For the exact runtime inventory, prefer `--list tools`.
 
 ## LLM Calling Rules
 
@@ -13,13 +13,13 @@ For the exact current inventory, prefer the runtime output of `--list tools`.
 
 ## Table of Contents
 
-- [Kubernetes (28 tools)](#kubernetes-28-tools)
-- [Helm (30 tools)](#helm-30-tools)
-- [Grafana (36 tools)](#grafana-36-tools)
+- [Kubernetes (32 tools)](#kubernetes-32-tools)
+- [Helm (34 tools)](#helm-34-tools)
+- [Grafana (43 tools)](#grafana-43-tools)
 - [Prometheus (20 tools)](#prometheus-20-tools)
-- [Kibana (52 tools)](#kibana-52-tools)
-- [Elasticsearch (14 tools)](#elasticsearch-14-tools)
-- [Alertmanager (15 tools)](#alertmanager-15-tools)
+- [Kibana (73 tools)](#kibana-73-tools)
+- [Elasticsearch (12 tools)](#elasticsearch-12-tools)
+- [Alertmanager (16 tools)](#alertmanager-16-tools)
 - [Jaeger (8 tools)](#jaeger-8-tools)
 - [OpenTelemetry (9 tools)](#opentelemetry-9-tools)
 - [Utilities (6 tools)](#utilities-6-tools)
@@ -86,7 +86,7 @@ For the exact current inventory, prefer the runtime output of `--list tools`.
 
 ---
 
-## Helm (30 tools)
+## Helm (34 tools)
 
 ### Release Management
 
@@ -152,7 +152,7 @@ For the exact current inventory, prefer the runtime output of `--list tools`.
 
 ---
 
-## Grafana (36 tools)
+## Grafana (43 tools)
 
 ### Dashboard Management
 
@@ -288,7 +288,7 @@ For the exact current inventory, prefer the runtime output of `--list tools`.
 
 ---
 
-## Kibana (52 tools)
+## Kibana (73 tools)
 
 ### Spaces
 
@@ -385,7 +385,7 @@ For the exact current inventory, prefer the runtime output of `--list tools`.
 
 ---
 
-## Elasticsearch (14 tools)
+## Elasticsearch (12 tools)
 
 ### Cluster Health
 
@@ -427,7 +427,7 @@ For the exact current inventory, prefer the runtime output of `--list tools`.
 
 ---
 
-## Alertmanager (15 tools)
+## Alertmanager (16 tools)
 
 ### Alerts
 
