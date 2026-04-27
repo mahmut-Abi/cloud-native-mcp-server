@@ -213,3 +213,46 @@ func TestNormalizeJSONPathExpression(t *testing.T) {
 		}
 	}
 }
+
+func TestGetRequestArgumentsSupportsNestedParams(t *testing.T) {
+	req := mcp.CallToolRequest{
+		Params: mcp.CallToolParams{
+			Arguments: map[string]interface{}{
+				"params": map[string]interface{}{
+					"kind":      "Pod",
+					"namespace": "open-telemetry",
+				},
+				"debug": "true",
+			},
+		},
+	}
+
+	args := getRequestArguments(req)
+	if args["kind"] != "Pod" {
+		t.Fatalf("expected nested params kind to be merged, got %#v", args["kind"])
+	}
+	if args["namespace"] != "open-telemetry" {
+		t.Fatalf("expected nested params namespace to be merged, got %#v", args["namespace"])
+	}
+	if args["debug"] != "true" {
+		t.Fatalf("expected top-level debug to be preserved, got %#v", args["debug"])
+	}
+}
+
+func TestGetOptionalSearchKinds(t *testing.T) {
+	req := mcp.CallToolRequest{
+		Params: mcp.CallToolParams{
+			Arguments: map[string]interface{}{
+				"resourceTypes": []interface{}{"pods", "deployments"},
+			},
+		},
+	}
+
+	kinds, err := getOptionalSearchKinds(req)
+	if err != nil {
+		t.Fatalf("getOptionalSearchKinds returned error: %v", err)
+	}
+	if len(kinds) != 2 || kinds[0] != "pods" || kinds[1] != "deployments" {
+		t.Fatalf("unexpected kinds: %#v", kinds)
+	}
+}
