@@ -388,6 +388,48 @@ func DrainNodeTool() mcp.Tool {
 	)
 }
 
+// WaitForResourceTool waits for a resource condition to become true.
+func WaitForResourceTool() mcp.Tool {
+	logrus.Debug("Creating WaitForResourceTool")
+	return mcp.NewTool("kubernetes_wait_for_resource",
+		mcp.WithDescription("Wait until a resource reaches a desired condition. Use this after create, patch, scale, or delete operations when you need the server to poll for readiness or deletion."),
+		mcp.WithString("kind", mcp.Required(),
+			mcp.Description("Resource kind, for example `Pod`, `Deployment`, `StatefulSet`, `DaemonSet`, `Job`, or `Node`.")),
+		mcp.WithString("name", mcp.Required(),
+			mcp.Description("Exact resource name.")),
+		mcp.WithString("namespace",
+			mcp.Description("Namespace for namespaced resources. Omit for cluster-scoped resources such as `Node`.")),
+		mcp.WithString("condition",
+			mcp.Description("Desired condition: `ready` (default), `available`, `complete`, `exists`, or `deleted`.")),
+		mcp.WithNumber("timeoutSeconds",
+			mcp.Description("Maximum time to wait in seconds. Default: 120.")),
+		mcp.WithNumber("pollIntervalSeconds",
+			mcp.Description("Polling interval in seconds. Default: 5.")),
+		mcp.WithString("debug",
+			mcp.Description("Enable debug output for troubleshooting the wait operation.")),
+	)
+}
+
+// RestartWorkloadTool triggers a rollout restart for supported workloads.
+func RestartWorkloadTool() mcp.Tool {
+	logrus.Debug("Creating RestartWorkloadTool")
+	return mcp.NewTool("kubernetes_restart_workload",
+		mcp.WithDescription("Trigger a rollout restart for a supported workload by updating the pod template restart annotation. Best for `Deployment`, `StatefulSet`, and `DaemonSet`."),
+		mcp.WithString("kind", mcp.Required(),
+			mcp.Description("Workload kind: `Deployment`, `StatefulSet`, or `DaemonSet`.")),
+		mcp.WithString("name", mcp.Required(),
+			mcp.Description("Exact workload name.")),
+		mcp.WithString("namespace", mcp.Required(),
+			mcp.Description("Namespace of the workload resource.")),
+		mcp.WithBoolean("waitForReady",
+			mcp.Description("If true, wait for the restarted workload to become ready or available before returning. Default: false.")),
+		mcp.WithNumber("timeoutSeconds",
+			mcp.Description("Maximum wait time in seconds when `waitForReady=true`. Default: 120.")),
+		mcp.WithString("debug",
+			mcp.Description("Enable debug output for troubleshooting the restart operation.")),
+	)
+}
+
 // GetAPIVersionsTool retrieves available Kubernetes API versions
 func GetAPIVersionsTool() mcp.Tool {
 	logrus.Debug("Creating GetAPIVersionsTool")

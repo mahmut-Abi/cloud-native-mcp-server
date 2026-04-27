@@ -1328,6 +1328,109 @@ func HandleDrainNode(client *client.Client) func(ctx context.Context, request mc
 	}
 }
 
+// HandleWaitForResource waits until a resource reaches a condition.
+func HandleWaitForResource(client *client.Client) func(ctx context.Context, request mcp.CallToolRequest) (*mcp.CallToolResult, error) {
+	return func(ctx context.Context, request mcp.CallToolRequest) (*mcp.CallToolResult, error) {
+		kind, err := requireStringParam(request, "kind")
+		if err != nil {
+			return nil, err
+		}
+		name, err := requireStringParam(request, "name")
+		if err != nil {
+			return nil, err
+		}
+
+		namespace := getOptionalStringParam(request, "namespace")
+		condition := getOptionalStringParam(request, "condition")
+		if condition == "" {
+			condition = "ready"
+		}
+
+		timeoutSeconds := 120
+		pollIntervalSeconds := 5
+		if v, ok := request.GetArguments()["timeoutSeconds"]; ok {
+			switch typed := v.(type) {
+			case float64:
+				timeoutSeconds = int(typed)
+			case int:
+				timeoutSeconds = typed
+			}
+		}
+		if v, ok := request.GetArguments()["pollIntervalSeconds"]; ok {
+			switch typed := v.(type) {
+			case float64:
+				pollIntervalSeconds = int(typed)
+			case int:
+				pollIntervalSeconds = typed
+			}
+		}
+
+		result, err := client.WaitForResource(ctx, kind, name, namespace, condition, timeoutSeconds, pollIntervalSeconds)
+		if err != nil {
+			return nil, err
+		}
+		return marshalJSONResponse(result)
+	}
+}
+
+// HandleRestartWorkload triggers a rollout restart for supported workload kinds.
+func HandleRestartWorkload(client *client.Client) func(ctx context.Context, request mcp.CallToolRequest) (*mcp.CallToolResult, error) {
+	return func(ctx context.Context, request mcp.CallToolRequest) (*mcp.CallToolResult, error) {
+		kind, err := requireStringParam(request, "kind")
+		if err != nil {
+			return nil, err
+		}
+		name, err := requireStringParam(request, "name")
+		if err != nil {
+			return nil, err
+		}
+		namespace, err := request.RequireString("namespace")
+		if err != nil {
+			return nil, err
+		}
+
+		waitForReady := request.GetBool("waitForReady", false)
+		timeoutSeconds := 120
+		if v, ok := request.GetArguments()["timeoutSeconds"]; ok {
+			switch typed := v.(type) {
+			case float64:
+				timeoutSeconds = int(typed)
+			case int:
+				timeoutSeconds = typed
+			}
+		}
+
+		resource, restartedAt, err := client.RestartWorkload(ctx, kind, name, namespace)
+		if err != nil {
+			return nil, err
+		}
+
+		response := map[string]any{
+			"status":      "ok",
+			"message":     "workload restart triggered",
+			"kind":        kind,
+			"name":        name,
+			"namespace":   namespace,
+			"restartedAt": restartedAt,
+			"resource":    resource,
+		}
+
+		if waitForReady {
+			waitCondition := "available"
+			if strings.EqualFold(kind, "StatefulSet") {
+				waitCondition = "ready"
+			}
+			waitResult, err := client.WaitForResource(ctx, kind, name, namespace, waitCondition, timeoutSeconds, 5)
+			if err != nil {
+				return nil, err
+			}
+			response["wait"] = waitResult
+		}
+
+		return marshalJSONResponse(response)
+	}
+}
+
 // HandleGetAPIVersions handles API versions retrieval requests.
 func HandleGetAPIVersions(client *client.Client) func(ctx context.Context, request mcp.CallToolRequest) (*mcp.CallToolResult, error) {
 	return func(ctx context.Context, request mcp.CallToolRequest) (*mcp.CallToolResult, error) {
