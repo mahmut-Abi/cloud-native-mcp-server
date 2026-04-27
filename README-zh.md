@@ -14,6 +14,7 @@
 - 当参数语义是对象或数组时，优先传结构化 JSON；很多 handler 仍兼容旧的 JSON 字符串写法。
 - Prometheus 和 tracing 相关时间字段使用 RFC3339 格式。
 - Kubernetes 的 cluster-scoped 资源不要传 `namespace`，namespaced 资源要传。
+- 有些 MCP client wrapper 会直接把工具结果解包成对象，调用前先看原始返回值，不要默认再执行 `JSON.parse(...)`。
 - 优先直接传扁平参数，不要额外包一层 `params`；Kubernetes handler 虽然已兼容 `params`，但这仍不是首选用法。
 - Kibana 的部分 handler 兼容 `camelCase` 和 `snake_case` 两种参数别名，但仍建议优先使用 schema 中展示的字段名。
 
