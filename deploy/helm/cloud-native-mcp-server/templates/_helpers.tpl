@@ -114,7 +114,38 @@ server:
     kibana: {{ .Values.config.server.ssePaths.kibana | quote }}
     helm: {{ .Values.config.server.ssePaths.helm | quote }}
     elasticsearch: {{ .Values.config.server.ssePaths.elasticsearch | quote }}
+    alertmanager: {{ .Values.config.server.ssePaths.alertmanager | quote }}
+    jaeger: {{ .Values.config.server.ssePaths.jaeger | quote }}
+    opentelemetry: {{ .Values.config.server.ssePaths.opentelemetry | quote }}
+    utilities: {{ .Values.config.server.ssePaths.utilities | quote }}
     aggregate: {{ .Values.config.server.ssePaths.aggregate | quote }}
+  streamableHttpPaths:
+    kubernetes: {{ .Values.config.server.streamableHttpPaths.kubernetes | quote }}
+    grafana: {{ .Values.config.server.streamableHttpPaths.grafana | quote }}
+    prometheus: {{ .Values.config.server.streamableHttpPaths.prometheus | quote }}
+    loki: {{ .Values.config.server.streamableHttpPaths.loki | quote }}
+    kibana: {{ .Values.config.server.streamableHttpPaths.kibana | quote }}
+    helm: {{ .Values.config.server.streamableHttpPaths.helm | quote }}
+    elasticsearch: {{ .Values.config.server.streamableHttpPaths.elasticsearch | quote }}
+    alertmanager: {{ .Values.config.server.streamableHttpPaths.alertmanager | quote }}
+    jaeger: {{ .Values.config.server.streamableHttpPaths.jaeger | quote }}
+    opentelemetry: {{ .Values.config.server.streamableHttpPaths.opentelemetry | quote }}
+    utilities: {{ .Values.config.server.streamableHttpPaths.utilities | quote }}
+    aggregate: {{ .Values.config.server.streamableHttpPaths.aggregate | quote }}
+  cors:
+    allowedOrigins:
+      {{- range .Values.config.server.cors.allowedOrigins }}
+      - {{ . | quote }}
+      {{- end }}
+    allowedMethods:
+      {{- range .Values.config.server.cors.allowedMethods }}
+      - {{ . | quote }}
+      {{- end }}
+    allowedHeaders:
+      {{- range .Values.config.server.cors.allowedHeaders }}
+      - {{ . | quote }}
+      {{- end }}
+    maxAge: {{ .Values.config.server.cors.maxAge }}
 
 logging:
   level: {{ .Values.config.logging.level | quote }}
@@ -169,13 +200,7 @@ helm:
   debug: {{ .Values.config.helm.debug }}
   timeoutSec: {{ .Values.config.helm.timeoutSec }}
   maxRetries: {{ .Values.config.helm.maxRetries }}
-  useMirrors: {{ .Values.config.helm.useMirrors }}
   httpProxy: {{ .Values.config.helm.httpProxy | quote }}
-  httpsProxy: {{ .Values.config.helm.httpsProxy | quote }}
-  mirrors:
-    {{- range $key, $value := .Values.config.helm.mirrors }}
-    {{ $key | quote }}: {{ $value | quote }}
-    {{- end }}
 
 elasticsearch:
   enabled: {{ .Values.config.elasticsearch.enabled }}
@@ -193,6 +218,35 @@ elasticsearch:
   tlsCertFile: {{ .Values.config.elasticsearch.tlsCertFile | quote }}
   tlsKeyFile: {{ .Values.config.elasticsearch.tlsKeyFile | quote }}
   tlsCAFile: {{ .Values.config.elasticsearch.tlsCAFile | quote }}
+
+alertmanager:
+  enabled: {{ .Values.config.alertmanager.enabled }}
+  address: {{ .Values.config.alertmanager.address | quote }}
+  bearerToken: {{ .Values.config.alertmanager.bearerToken | quote }}
+  tlsSkipVerify: {{ .Values.config.alertmanager.tlsSkipVerify }}
+  timeoutSec: {{ .Values.config.alertmanager.timeoutSec }}
+  username: {{ .Values.config.alertmanager.username | quote }}
+  password: {{ .Values.config.alertmanager.password | quote }}
+  tlsCertFile: {{ .Values.config.alertmanager.tlsCertFile | quote }}
+  tlsKeyFile: {{ .Values.config.alertmanager.tlsKeyFile | quote }}
+  tlsCAFile: {{ .Values.config.alertmanager.tlsCAFile | quote }}
+
+jaeger:
+  enabled: {{ .Values.config.jaeger.enabled }}
+  address: {{ .Values.config.jaeger.address | quote }}
+  timeoutSec: {{ .Values.config.jaeger.timeoutSec }}
+
+opentelemetry:
+  enabled: {{ .Values.config.opentelemetry.enabled }}
+  address: {{ .Values.config.opentelemetry.address | quote }}
+  bearerToken: {{ .Values.config.opentelemetry.bearerToken | quote }}
+  tlsSkipVerify: {{ .Values.config.opentelemetry.tlsSkipVerify }}
+  timeoutSec: {{ .Values.config.opentelemetry.timeoutSec }}
+  username: {{ .Values.config.opentelemetry.username | quote }}
+  password: {{ .Values.config.opentelemetry.password | quote }}
+  tlsCertFile: {{ .Values.config.opentelemetry.tlsCertFile | quote }}
+  tlsKeyFile: {{ .Values.config.opentelemetry.tlsKeyFile | quote }}
+  tlsCAFile: {{ .Values.config.opentelemetry.tlsCAFile | quote }}
 
 auth:
   enabled: {{ .Values.config.auth.enabled }}
