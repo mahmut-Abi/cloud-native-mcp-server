@@ -170,6 +170,7 @@ config:
       kubernetes: "/api/kubernetes/sse"
       grafana: "/api/grafana/sse"
       prometheus: "/api/prometheus/sse"
+      loki: "/api/loki/sse"
       kibana: "/api/kibana/sse"
       helm: "/api/helm/sse"
       elasticsearch: "/api/elasticsearch/sse"
@@ -191,6 +192,19 @@ config:
   prometheus:
     enabled: false
     address: "http://localhost:9090"
+    bearerToken: ""
+    tlsSkipVerify: true
+    timeoutSec: 30
+    username: ""
+    password: ""
+    tlsCertFile: ""
+    tlsKeyFile: ""
+    tlsCAFile: ""
+
+  # Loki configuration
+  loki:
+    enabled: false
+    address: "http://localhost:3100"
     bearerToken: ""
     tlsSkipVerify: true
     timeoutSec: 30

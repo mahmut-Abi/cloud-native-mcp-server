@@ -110,6 +110,7 @@ server:
     kubernetes: {{ .Values.config.server.ssePaths.kubernetes | quote }}
     grafana: {{ .Values.config.server.ssePaths.grafana | quote }}
     prometheus: {{ .Values.config.server.ssePaths.prometheus | quote }}
+    loki: {{ .Values.config.server.ssePaths.loki | quote }}
     kibana: {{ .Values.config.server.ssePaths.kibana | quote }}
     helm: {{ .Values.config.server.ssePaths.helm | quote }}
     elasticsearch: {{ .Values.config.server.ssePaths.elasticsearch | quote }}
@@ -130,6 +131,18 @@ prometheus:
   tlsCertFile: {{ .Values.config.prometheus.tlsCertFile | quote }}
   tlsKeyFile: {{ .Values.config.prometheus.tlsKeyFile | quote }}
   tlsCAFile: {{ .Values.config.prometheus.tlsCAFile | quote }}
+
+loki:
+  enabled: {{ .Values.config.loki.enabled }}
+  address: {{ .Values.config.loki.address | quote }}
+  bearerToken: {{ .Values.config.loki.bearerToken | quote }}
+  tlsSkipVerify: {{ .Values.config.loki.tlsSkipVerify }}
+  timeoutSec: {{ .Values.config.loki.timeoutSec }}
+  username: {{ .Values.config.loki.username | quote }}
+  password: {{ .Values.config.loki.password | quote }}
+  tlsCertFile: {{ .Values.config.loki.tlsCertFile | quote }}
+  tlsKeyFile: {{ .Values.config.loki.tlsKeyFile | quote }}
+  tlsCAFile: {{ .Values.config.loki.tlsCAFile | quote }}
 
 grafana:
   enabled: {{ .Values.config.grafana.enabled }}

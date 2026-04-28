@@ -6,13 +6,13 @@
 
 [🇨🇳 中文文档](README-zh.md) | [🇬🇧 English](README.md)
 
-A high-performance Model Context Protocol (MCP) server for Kubernetes and cloud-native infrastructure management with 10 integrated services and 250+ tools.
+A high-performance Model Context Protocol (MCP) server for Kubernetes and cloud-native infrastructure management with 11 integrated services and 250+ tools.
 
 ---
 
 ## Features
 
-- **10 Integrated Services**: Kubernetes, Grafana, Prometheus, Kibana, Elasticsearch, Helm, Alertmanager, Jaeger, OpenTelemetry, Utilities
+- **11 Integrated Services**: Kubernetes, Grafana, Prometheus, Loki, Kibana, Elasticsearch, Helm, Alertmanager, Jaeger, OpenTelemetry, Utilities
 - **250+ MCP Tools**: Comprehensive toolset for infrastructure operations
 - **Multi-Protocol Support**: SSE and streamable-http modes
 - **Smart Caching**: LRU cache with TTL support for optimal performance
@@ -42,6 +42,7 @@ A high-performance Model Context Protocol (MCP) server for Kubernetes and cloud-
 | **helm** | 34 | Application package management and deployment |
 | **grafana** | 43 | Visualization, monitoring dashboards, and alerting |
 | **prometheus** | 20 | Metrics collection, querying, and monitoring |
+| **loki** | 7 | LogQL queries, label discovery, and stream inspection |
 | **kibana** | 73 | Log analysis, visualization, and data exploration |
 | **elasticsearch** | 12 | Log storage, search, and data indexing |
 | **alertmanager** | 16 | Alert rules management and notifications |
@@ -99,6 +100,7 @@ make build
 | `/api/helm/sse` | Helm service |
 | `/api/grafana/sse` | Grafana service |
 | `/api/prometheus/sse` | Prometheus service |
+| `/api/loki/sse` | Loki service |
 | `/api/kibana/sse` | Kibana service |
 | `/api/elasticsearch/sse` | Elasticsearch service |
 | `/api/alertmanager/sse` | Alertmanager service |

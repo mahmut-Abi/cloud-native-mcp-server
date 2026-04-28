@@ -97,6 +97,11 @@ func (l *ConfigLoader) setDefaults(cfg *AppConfig) {
 		cfg.Prometheus.TimeoutSec = 30
 	}
 
+	// Loki defaults
+	if cfg.Loki.TimeoutSec == 0 {
+		cfg.Loki.TimeoutSec = 30
+	}
+
 	// Grafana defaults
 	if cfg.Grafana.TimeoutSec == 0 {
 		cfg.Grafana.TimeoutSec = 30

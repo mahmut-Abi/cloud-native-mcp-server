@@ -80,6 +80,10 @@ config:
     enabled: true
     address: "http://prometheus:9090"
 
+  loki:
+    enabled: true
+    address: "http://loki:3100"
+
   grafana:
     enabled: true
     url: "http://grafana:3000"

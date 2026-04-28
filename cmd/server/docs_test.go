@@ -26,6 +26,7 @@ func TestToolsReferenceServiceCountsMatchInventory(t *testing.T) {
 		"Helm":          len(counts["helm"]),
 		"Grafana":       len(counts["grafana"]),
 		"Prometheus":    len(counts["prometheus"]),
+		"Loki":          len(counts["loki"]),
 		"Kibana":        len(counts["kibana"]),
 		"Elasticsearch": len(counts["elasticsearch"]),
 		"Alertmanager":  len(counts["alertmanager"]),

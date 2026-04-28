@@ -146,6 +146,31 @@ func TestPrometheusConfig(t *testing.T) {
 	}
 }
 
+func TestLokiConfigFromEnv(t *testing.T) {
+	t.Setenv("MCP_LOKI_ENABLED", "true")
+	t.Setenv("MCP_LOKI_ADDRESS", "http://loki:3100")
+	t.Setenv("MCP_LOKI_TIMEOUT", "45")
+	t.Setenv("MCP_LOKI_TLS_SKIP_VERIFY", "true")
+
+	cfg, err := Load("")
+	if err != nil {
+		t.Fatalf("Load() error = %v", err)
+	}
+
+	if !cfg.Loki.Enabled {
+		t.Fatal("Expected Loki service to be enabled")
+	}
+	if cfg.Loki.Address != "http://loki:3100" {
+		t.Errorf("Expected Loki address override, got %q", cfg.Loki.Address)
+	}
+	if cfg.Loki.TimeoutSec != 45 {
+		t.Errorf("Expected Loki timeout 45, got %d", cfg.Loki.TimeoutSec)
+	}
+	if !cfg.Loki.TLSSkipVerify {
+		t.Fatal("Expected Loki tlsSkipVerify to be true")
+	}
+}
+
 func TestGrafanaConfig(t *testing.T) {
 	originalURL := os.Getenv("MCP_GRAFANA_URL")
 	originalEnabled := os.Getenv("MCP_GRAFANA_ENABLED")
@@ -275,9 +300,11 @@ func TestOpenTelemetryServiceConfigFromEnv(t *testing.T) {
 func TestServerPathOverridesFromEnv(t *testing.T) {
 	t.Setenv("MCP_SSE_PATH_ELASTICSEARCH", "/custom/elasticsearch/sse")
 	t.Setenv("MCP_SSE_PATH_JAEGER", "/custom/jaeger/sse")
+	t.Setenv("MCP_SSE_PATH_LOKI", "/custom/loki/sse")
 	t.Setenv("MCP_SSE_PATH_OPENTELEMETRY", "/custom/opentelemetry/sse")
 	t.Setenv("MCP_STREAMABLE_HTTP_PATH_ELASTICSEARCH", "/custom/elasticsearch/stream")
 	t.Setenv("MCP_STREAMABLE_HTTP_PATH_JAEGER", "/custom/jaeger/stream")
+	t.Setenv("MCP_STREAMABLE_HTTP_PATH_LOKI", "/custom/loki/stream")
 	t.Setenv("MCP_STREAMABLE_HTTP_PATH_OPENTELEMETRY", "/custom/opentelemetry/stream")
 
 	cfg, err := Load("")
@@ -291,6 +318,9 @@ func TestServerPathOverridesFromEnv(t *testing.T) {
 	if cfg.Server.SSEPaths.Jaeger != "/custom/jaeger/sse" {
 		t.Errorf("Expected jaeger SSE path override, got %q", cfg.Server.SSEPaths.Jaeger)
 	}
+	if cfg.Server.SSEPaths.Loki != "/custom/loki/sse" {
+		t.Errorf("Expected loki SSE path override, got %q", cfg.Server.SSEPaths.Loki)
+	}
 	if cfg.Server.SSEPaths.OpenTelemetry != "/custom/opentelemetry/sse" {
 		t.Errorf("Expected opentelemetry SSE path override, got %q", cfg.Server.SSEPaths.OpenTelemetry)
 	}
@@ -299,6 +329,9 @@ func TestServerPathOverridesFromEnv(t *testing.T) {
 	}
 	if cfg.Server.StreamableHTTPPaths.Jaeger != "/custom/jaeger/stream" {
 		t.Errorf("Expected jaeger streamable-http path override, got %q", cfg.Server.StreamableHTTPPaths.Jaeger)
+	}
+	if cfg.Server.StreamableHTTPPaths.Loki != "/custom/loki/stream" {
+		t.Errorf("Expected loki streamable-http path override, got %q", cfg.Server.StreamableHTTPPaths.Loki)
 	}
 	if cfg.Server.StreamableHTTPPaths.OpenTelemetry != "/custom/opentelemetry/stream" {
 		t.Errorf("Expected opentelemetry streamable-http path override, got %q", cfg.Server.StreamableHTTPPaths.OpenTelemetry)

@@ -142,6 +142,7 @@ func TestApplyAppConfigWithValidConfig(t *testing.T) {
 				Kubernetes    string `yaml:"kubernetes"`
 				Grafana       string `yaml:"grafana"`
 				Prometheus    string `yaml:"prometheus"`
+				Loki          string `yaml:"loki"`
 				Kibana        string `yaml:"kibana"`
 				Helm          string `yaml:"helm"`
 				Elasticsearch string `yaml:"elasticsearch"`
@@ -155,6 +156,7 @@ func TestApplyAppConfigWithValidConfig(t *testing.T) {
 				Kubernetes    string `yaml:"kubernetes"`
 				Grafana       string `yaml:"grafana"`
 				Prometheus    string `yaml:"prometheus"`
+				Loki          string `yaml:"loki"`
 				Kibana        string `yaml:"kibana"`
 				Helm          string `yaml:"helm"`
 				Elasticsearch string `yaml:"elasticsearch"`
@@ -239,6 +241,7 @@ func TestApplyAppConfigCLITakesPrecedence(t *testing.T) {
 				Kubernetes    string `yaml:"kubernetes"`
 				Grafana       string `yaml:"grafana"`
 				Prometheus    string `yaml:"prometheus"`
+				Loki          string `yaml:"loki"`
 				Kibana        string `yaml:"kibana"`
 				Helm          string `yaml:"helm"`
 				Elasticsearch string `yaml:"elasticsearch"`
@@ -252,6 +255,7 @@ func TestApplyAppConfigCLITakesPrecedence(t *testing.T) {
 				Kubernetes    string `yaml:"kubernetes"`
 				Grafana       string `yaml:"grafana"`
 				Prometheus    string `yaml:"prometheus"`
+				Loki          string `yaml:"loki"`
 				Kibana        string `yaml:"kibana"`
 				Helm          string `yaml:"helm"`
 				Elasticsearch string `yaml:"elasticsearch"`

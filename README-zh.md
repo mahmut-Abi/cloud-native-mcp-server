@@ -6,7 +6,7 @@
 
 [🇨🇳 中文文档](README-zh.md) | [🇬🇧 English](README.md)
 
-一个高性能的模型上下文协议（MCP）服务器，用于 Kubernetes 和云原生基础设施管理，集成了 10 个服务和 250+ 工具。
+一个高性能的模型上下文协议（MCP）服务器，用于 Kubernetes 和云原生基础设施管理，集成了 11 个服务和 250+ 工具。
 
 ## LLM 调用工具建议
 
@@ -20,7 +20,7 @@
 
 ## 功能特性
 
-- **多服务集成**: Kubernetes、Grafana、Prometheus、Kibana、Elasticsearch、Helm、Alertmanager、Jaeger、OpenTelemetry、Utilities
+- **多服务集成**: Kubernetes、Grafana、Prometheus、Loki、Kibana、Elasticsearch、Helm、Alertmanager、Jaeger、OpenTelemetry、Utilities
 - **多协议支持**: SSE 和 streamable-http 模式
 - **智能缓存**: 支持 TTL 的 LRU 缓存以优化性能
 - **性能优化**: JSON 编码池、响应大小控制、智能限制
@@ -38,6 +38,7 @@
 | **helm** | 应用包管理和部署 |
 | **grafana** | 可视化、监控仪表板和告警 |
 | **prometheus** | 指标收集、查询和监控 |
+| **loki** | LogQL 日志查询、标签发现和日志流检查 |
 | **kibana** | 日志分析、可视化和数据探索 |
 | **elasticsearch** | 日志存储、搜索和数据索引 |
 | **alertmanager** | 告警规则管理和通知 |
@@ -89,6 +90,7 @@ make build
 | `/api/helm/sse` | Helm 服务 |
 | `/api/grafana/sse` | Grafana 服务 |
 | `/api/prometheus/sse` | Prometheus 服务 |
+| `/api/loki/sse` | Loki 服务 |
 | `/api/kibana/sse` | Kibana 服务 |
 | `/api/elasticsearch/sse` | Elasticsearch 服务 |
 | `/api/alertmanager/sse` | Alertmanager 服务 |
