@@ -174,7 +174,29 @@ config:
       kibana: "/api/kibana/sse"
       helm: "/api/helm/sse"
       elasticsearch: "/api/elasticsearch/sse"
+      alertmanager: "/api/alertmanager/sse"
+      jaeger: "/api/jaeger/sse"
+      opentelemetry: "/api/opentelemetry/sse"
+      utilities: "/api/utilities/sse"
       aggregate: "/api/aggregate/sse"
+    streamableHttpPaths:
+      kubernetes: "/api/kubernetes/streamable-http"
+      grafana: "/api/grafana/streamable-http"
+      prometheus: "/api/prometheus/streamable-http"
+      loki: "/api/loki/streamable-http"
+      kibana: "/api/kibana/streamable-http"
+      helm: "/api/helm/streamable-http"
+      elasticsearch: "/api/elasticsearch/streamable-http"
+      alertmanager: "/api/alertmanager/streamable-http"
+      jaeger: "/api/jaeger/streamable-http"
+      opentelemetry: "/api/opentelemetry/streamable-http"
+      utilities: "/api/utilities/streamable-http"
+      aggregate: "/api/aggregate/streamable-http"
+    cors:
+      allowedOrigins: []
+      allowedMethods: ["GET", "POST", "OPTIONS"]
+      allowedHeaders: ["Content-Type", "Authorization", "X-API-Key"]
+      maxAge: 86400
 
   # Logging configuration
   logging:
@@ -242,10 +264,7 @@ config:
     debug: true
     timeoutSec: 300
     maxRetries: 3
-    useMirrors: false
     httpProxy: ""
-    httpsProxy: ""
-    mirrors: {}
 
   # Elasticsearch configuration
   elasticsearch:
@@ -259,6 +278,38 @@ config:
     apiKey: ""
     timeoutSec: 30
     tlsSkipVerify: true
+    tlsCertFile: ""
+    tlsKeyFile: ""
+    tlsCAFile: ""
+
+  # Alertmanager configuration
+  alertmanager:
+    enabled: false
+    address: "http://localhost:9093"
+    bearerToken: ""
+    tlsSkipVerify: true
+    timeoutSec: 30
+    username: ""
+    password: ""
+    tlsCertFile: ""
+    tlsKeyFile: ""
+    tlsCAFile: ""
+
+  # Jaeger configuration
+  jaeger:
+    enabled: false
+    address: "http://localhost:16686"
+    timeoutSec: 30
+
+  # OpenTelemetry configuration
+  opentelemetry:
+    enabled: false
+    address: "http://localhost:4318"
+    bearerToken: ""
+    tlsSkipVerify: true
+    timeoutSec: 30
+    username: ""
+    password: ""
     tlsCertFile: ""
     tlsKeyFile: ""
     tlsCAFile: ""

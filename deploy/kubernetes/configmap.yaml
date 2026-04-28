@@ -1,107 +1,185 @@
 apiVersion: v1
 data:
   config.yaml: |
+    server:
+      mode: "sse"
+      addr: "0.0.0.0:8080"
+      readTimeoutSec: 30
+      writeTimeoutSec: 0
+      idleTimeoutSec: 60
+      ssePaths:
+        kubernetes: "/api/kubernetes/sse"
+        grafana: "/api/grafana/sse"
+        prometheus: "/api/prometheus/sse"
+        loki: "/api/loki/sse"
+        kibana: "/api/kibana/sse"
+        helm: "/api/helm/sse"
+        elasticsearch: "/api/elasticsearch/sse"
+        alertmanager: "/api/alertmanager/sse"
+        jaeger: "/api/jaeger/sse"
+        opentelemetry: "/api/opentelemetry/sse"
+        utilities: "/api/utilities/sse"
+        aggregate: "/api/aggregate/sse"
+      streamableHttpPaths:
+        kubernetes: "/api/kubernetes/streamable-http"
+        grafana: "/api/grafana/streamable-http"
+        prometheus: "/api/prometheus/streamable-http"
+        loki: "/api/loki/streamable-http"
+        kibana: "/api/kibana/streamable-http"
+        helm: "/api/helm/streamable-http"
+        elasticsearch: "/api/elasticsearch/streamable-http"
+        alertmanager: "/api/alertmanager/streamable-http"
+        jaeger: "/api/jaeger/streamable-http"
+        opentelemetry: "/api/opentelemetry/streamable-http"
+        utilities: "/api/utilities/streamable-http"
+        aggregate: "/api/aggregate/streamable-http"
+
+    logging:
+      level: "info"
+      json: false
 
     kubernetes:
       kubeconfig: ""
-
-    server:
-        mode: "sse"
-        addr: "0.0.0.0:8080"
-        ssePaths:
-            aggregate: "/api/aggregate/sse"
-    logging:
-        level: "debug"
-        json: false
+      timeoutSec: 30
+      qps: 100.0
+      burst: 200
 
     prometheus:
-        enabled: false
-        address: "http://localhost:9090"
-        bearerToken: ""
-        tlsSkipVerify: true
+      enabled: false
+      address: "http://localhost:9090"
+      timeoutSec: 30
+      username: ""
+      password: ""
+      bearerToken: ""
+      tlsSkipVerify: true
+      tlsCertFile: ""
+      tlsKeyFile: ""
+      tlsCAFile: ""
 
     loki:
-        enabled: false
-        address: "http://localhost:3100"
-        bearerToken: ""
-        tlsSkipVerify: true
+      enabled: false
+      address: "http://localhost:3100"
+      timeoutSec: 30
+      username: ""
+      password: ""
+      bearerToken: ""
+      tlsSkipVerify: true
+      tlsCertFile: ""
+      tlsKeyFile: ""
+      tlsCAFile: ""
 
     grafana:
-        enabled: false
-        url: "http://localhost:3000"
-        apiKey: ""
-        username: ""
-        password: ""
+      enabled: false
+      url: "http://localhost:3000"
+      apiKey: ""
+      username: ""
+      password: ""
+      timeoutSec: 30
 
     kibana:
-        enabled: false
-        url: "https://localhost:5601"
-        apiKey: ""
-        username: ""
-        password: ""
-        skipVerify: true
-        space: "default"
+      enabled: false
+      url: "https://localhost:5601"
+      apiKey: ""
+      username: ""
+      password: ""
+      skipVerify: true
+      space: "default"
+      timeoutSec: 30
 
     helm:
-        enabled: true
-        kubeconfigPath: ""
-        namespace: "default"
-        debug: true
-        timeoutSec: 300
-        maxRetries: 3
-        useMirrors: false
-        httpProxy: ""
-        httpsProxy: ""
-
-        mirrors: {}
+      enabled: true
+      kubeconfigPath: ""
+      namespace: "default"
+      debug: true
+      timeoutSec: 300
+      maxRetries: 3
+      httpProxy: ""
 
     elasticsearch:
-        enabled: false
-        addresses:
-            - "http://localhost:9200"
-        username: ""
-        password: ""
-        bearerToken: ""
-        apiKey: ""
-        tlsSkipVerify: true
+      enabled: false
+      addresses:
+        - "http://localhost:9200"
+      address: ""
+      username: ""
+      password: ""
+      bearerToken: ""
+      apiKey: ""
+      timeoutSec: 30
+      tlsSkipVerify: true
+      tlsCertFile: ""
+      tlsKeyFile: ""
+      tlsCAFile: ""
+
+    alertmanager:
+      enabled: false
+      address: "http://localhost:9093"
+      timeoutSec: 30
+      username: ""
+      password: ""
+      bearerToken: ""
+      tlsSkipVerify: true
+      tlsCertFile: ""
+      tlsKeyFile: ""
+      tlsCAFile: ""
+
+    jaeger:
+      enabled: false
+      address: "http://localhost:16686"
+      timeoutSec: 30
+
+    opentelemetry:
+      enabled: false
+      address: "http://localhost:4318"
+      timeoutSec: 30
+      username: ""
+      password: ""
+      bearerToken: ""
+      tlsSkipVerify: true
+      tlsCertFile: ""
+      tlsKeyFile: ""
+      tlsCAFile: ""
 
     auth:
-        enabled: true
-        mode: "apikey"
-        apiKey: "12345678"
+      enabled: true
+      mode: "apikey"
+      apiKey: "12345678"
+      bearerToken: ""
+      username: ""
+      password: ""
+      jwtSecret: ""
+      jwtAlgorithm: "HS256"
 
     audit:
+      enabled: true
+      level: "info"
+      storage: "file"
+      format: "json"
+      maxResults: 1000
+      timeRange: 90
+      file:
+        path: "/var/log/cloud-native-mcp-server/audit.log"
+        maxSizeMB: 100
+        maxBackups: 10
+        maxAgeDays: 30
+        compress: true
+        maxLogs: 10000
+      query:
         enabled: true
-        level: "info"
-        storage: "file"
-        format: "json"
-        file:
-            path: "/var/log/cloud-native-mcp-server/audit.log"
-            maxSizeMB: 100
-            maxBackups: 10
-            maxAgeDays: 30
-            compress: true
-        fields:
-            timestamp: true
-            clientIP: true
-            user: true
-            toolName: true
-            serviceName: true
-            arguments: true
-            result: false
-            duration: true
-            status: true
-            error: true
-
-        masking:
-            enabled: false
-        sampling:
-            enabled: false
-
-        query:
-            enabled: true
-            maxResults: 1000
-            timeRangeDays: 90
+        maxResults: 1000
+        timeRange: 90
+      alerts:
+        enabled: false
+        failureThreshold: 5
+        checkIntervalSec: 60
+        method: "none"
+        webhookURL: ""
+      masking:
+        enabled: false
+        fields: ["password", "token", "apiKey", "authorization"]
+        maskValue: "***REDACTED***"
+      sampling:
+        enabled: false
+        rate: 1.0
 kind: ConfigMap
 metadata:
   name: mcp-server-config
