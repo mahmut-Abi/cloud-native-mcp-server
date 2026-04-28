@@ -17,6 +17,7 @@ type AppConfig struct {
 			Kubernetes    string `yaml:"kubernetes"`    // SSE path for Kubernetes service
 			Grafana       string `yaml:"grafana"`       // SSE path for Grafana service
 			Prometheus    string `yaml:"prometheus"`    // SSE path for Prometheus service
+			Loki          string `yaml:"loki"`          // SSE path for Loki service
 			Kibana        string `yaml:"kibana"`        // SSE path for Kibana service
 			Helm          string `yaml:"helm"`          // SSE path for Helm service
 			Elasticsearch string `yaml:"elasticsearch"` // SSE path for Elasticsearch service
@@ -30,6 +31,7 @@ type AppConfig struct {
 			Kubernetes    string `yaml:"kubernetes"`    // Streamable-HTTP path for Kubernetes service
 			Grafana       string `yaml:"grafana"`       // Streamable-HTTP path for Grafana service
 			Prometheus    string `yaml:"prometheus"`    // Streamable-HTTP path for Prometheus service
+			Loki          string `yaml:"loki"`          // Streamable-HTTP path for Loki service
 			Kibana        string `yaml:"kibana"`        // Streamable-HTTP path for Kibana service
 			Helm          string `yaml:"helm"`          // Streamable-HTTP path for Helm service
 			Elasticsearch string `yaml:"elasticsearch"` // Streamable-HTTP path for Elasticsearch service
@@ -77,6 +79,19 @@ type AppConfig struct {
 		TLSKeyFile    string `yaml:"tlsKeyFile"`    // TLS key file
 		TLSCAFile     string `yaml:"tlsCAFile"`     // TLS CA file
 	} `yaml:"prometheus"`
+
+	Loki struct {
+		Enabled       bool   `yaml:"enabled"`       // Enable Loki service
+		Address       string `yaml:"address"`       // Loki server address
+		TimeoutSec    int    `yaml:"timeoutSec"`    // Query timeout in seconds
+		Username      string `yaml:"username"`      // Basic auth username
+		Password      string `yaml:"password"`      // Basic auth password
+		BearerToken   string `yaml:"bearerToken"`   // Bearer token for auth
+		TLSSkipVerify bool   `yaml:"tlsSkipVerify"` // Skip TLS verification
+		TLSCertFile   string `yaml:"tlsCertFile"`   // TLS certificate file
+		TLSKeyFile    string `yaml:"tlsKeyFile"`    // TLS key file
+		TLSCAFile     string `yaml:"tlsCAFile"`     // TLS CA file
+	} `yaml:"loki"`
 
 	Grafana struct {
 		Enabled    bool   `yaml:"enabled"`    // Enable Grafana service
@@ -273,6 +288,9 @@ type AppConfig struct {
 //	MCP_PROM_ENABLED, MCP_PROM_ADDRESS, MCP_PROM_TIMEOUT, MCP_PROM_USERNAME, MCP_PROM_PASSWORD,
 //	MCP_PROM_BEARER_TOKEN, MCP_PROM_TLS_SKIP_VERIFY, MCP_PROM_TLS_CERT_FILE,
 //	MCP_PROM_TLS_KEY_FILE, MCP_PROM_TLS_CA_FILE,
+//	MCP_LOKI_ENABLED, MCP_LOKI_ADDRESS, MCP_LOKI_TIMEOUT, MCP_LOKI_USERNAME, MCP_LOKI_PASSWORD,
+//	MCP_LOKI_BEARER_TOKEN, MCP_LOKI_TLS_SKIP_VERIFY, MCP_LOKI_TLS_CERT_FILE,
+//	MCP_LOKI_TLS_KEY_FILE, MCP_LOKI_TLS_CA_FILE,
 //	MCP_GRAFANA_ENABLED, MCP_GRAFANA_URL, MCP_GRAFANA_API_KEY,
 //	MCP_GRAFANA_USERNAME, MCP_GRAFANA_PASSWORD, MCP_GRAFANA_TIMEOUT,
 //	MCP_KIBANA_ENABLED, MCP_KIBANA_URL, MCP_KIBANA_API_KEY,
@@ -377,6 +395,9 @@ func (c *AppConfig) Validate() error {
 	// Validate service configurations
 	if c.Prometheus.Enabled && c.Prometheus.Address == "" {
 		return fmt.Errorf("prometheus address is required when service is enabled")
+	}
+	if c.Loki.Enabled && c.Loki.Address == "" {
+		return fmt.Errorf("loki address is required when service is enabled")
 	}
 	if c.Grafana.Enabled && c.Grafana.URL == "" {
 		return fmt.Errorf("grafana URL is required when service is enabled")

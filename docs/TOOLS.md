@@ -18,6 +18,7 @@ For the exact runtime inventory, prefer `--list tools`.
 - [Helm (34 tools)](#helm-34-tools)
 - [Grafana (43 tools)](#grafana-43-tools)
 - [Prometheus (20 tools)](#prometheus-20-tools)
+- [Loki (7 tools)](#loki-7-tools)
 - [Kibana (73 tools)](#kibana-73-tools)
 - [Elasticsearch (12 tools)](#elasticsearch-12-tools)
 - [Alertmanager (16 tools)](#alertmanager-16-tools)
@@ -517,6 +518,37 @@ Practical guidance:
 | Tool | Description | Priority |
 |------|-------------|----------|
 | `jaeger_get_dependencies` | Get service dependency graph. | - |
+
+---
+
+## Loki (7 tools)
+
+### Common Response Shapes
+
+| Tool | Typical shape |
+|------|---------------|
+| `loki_get_label_names` | `{"count": N, "labels": ["namespace","pod",...]}` |
+| `loki_get_label_values` | `{"label":"namespace", "count": N, "values": ["prod","dev",...]}` |
+| `loki_get_series` | `{"count": N, "filters": ["{app=\"api\"}"], "series": [{...}, ...]}` |
+| `loki_query_logs_summary` | `{"query":"...", "result_type":"streams", "stream_count": N, "total_lines": N, "streams":[...]}` |
+| `loki_query` / `loki_query_range` | `{"status":"success", "data": {...}, "stats": {...}?}` |
+
+### Discovery
+
+| Tool | Description | Priority |
+|------|-------------|----------|
+| `loki_query_logs_summary` | Recommended first step for LogQL exploration. Returns per-stream labels, line counts, timestamps, and a few sample lines. | ⚠️ PRIORITY |
+| `loki_get_label_names` | List available Loki label names. | - |
+| `loki_get_label_values` | List values for a specific Loki label. | - |
+| `loki_get_series` | List indexed series for one or more stream selectors. | - |
+
+### Queries
+
+| Tool | Description | Priority |
+|------|-------------|----------|
+| `loki_query` | Execute a Loki instant query. | - |
+| `loki_query_range` | Execute a Loki range query across a time window. | - |
+| `loki_test_connection` | Verify that the configured Loki endpoint is reachable and authentication works. | - |
 
 ---
 

@@ -238,6 +238,7 @@ func (s *ServerConfig) InitSSEServers(mcpServer *server.MCPServer, addr string, 
 	kubernetesPath := "/api/kubernetes/sse"
 	grafanaPath := "/api/grafana/sse"
 	prometheusPath := "/api/prometheus/sse"
+	lokiPath := "/api/loki/sse"
 	kibanaPath := "/api/kibana/sse"
 	helmPath := "/api/helm/sse"
 	elasticsearchPath := "/api/elasticsearch/sse"
@@ -256,6 +257,9 @@ func (s *ServerConfig) InitSSEServers(mcpServer *server.MCPServer, addr string, 
 		}
 		if appConfig.Server.SSEPaths.Prometheus != "" {
 			prometheusPath = appConfig.Server.SSEPaths.Prometheus
+		}
+		if appConfig.Server.SSEPaths.Loki != "" {
+			lokiPath = appConfig.Server.SSEPaths.Loki
 		}
 		if appConfig.Server.SSEPaths.Kibana != "" {
 			kibanaPath = appConfig.Server.SSEPaths.Kibana
@@ -286,6 +290,7 @@ func (s *ServerConfig) InitSSEServers(mcpServer *server.MCPServer, addr string, 
 	kubernetesServer := s.createServiceMCPServer("kubernetes")
 	grafanaServer := s.createServiceMCPServer("grafana")
 	prometheusServer := s.createServiceMCPServer("prometheus")
+	lokiServer := s.createServiceMCPServer("loki")
 	kibanaServer := s.createServiceMCPServer("kibana")
 	helmServer := s.createServiceMCPServer("helm")
 	elasticsearchServer := s.createServiceMCPServer("elasticsearch")
@@ -321,6 +326,16 @@ func (s *ServerConfig) InitSSEServers(mcpServer *server.MCPServer, addr string, 
 		server.WithStaticBasePath(""),
 		server.WithSSEEndpoint(prometheusPath),
 		server.WithMessageEndpoint(prometheusPath+"/message"),
+		server.WithKeepAlive(true),
+		server.WithKeepAliveInterval(30*time.Second),
+		server.WithAppendQueryToMessageEndpoint(),
+		server.WithUseFullURLForMessageEndpoint(true),
+	)
+
+	sseServers["loki"] = server.NewSSEServer(lokiServer,
+		server.WithStaticBasePath(""),
+		server.WithSSEEndpoint(lokiPath),
+		server.WithMessageEndpoint(lokiPath+"/message"),
 		server.WithKeepAlive(true),
 		server.WithKeepAliveInterval(30*time.Second),
 		server.WithAppendQueryToMessageEndpoint(),
@@ -421,6 +436,7 @@ func (s *ServerConfig) InitSSEServers(mcpServer *server.MCPServer, addr string, 
 		"kubernetes_path":    kubernetesPath,
 		"grafana_path":       grafanaPath,
 		"prometheus_path":    prometheusPath,
+		"loki_path":          lokiPath,
 		"kibana_path":        kibanaPath,
 		"helm_path":          helmPath,
 		"elasticsearch_path": elasticsearchPath,
@@ -442,6 +458,7 @@ func (s *ServerConfig) InitStreamableHTTPServers(mcpServer *server.MCPServer, ad
 	kubernetesPath := "/api/kubernetes/streamable-http"
 	grafanaPath := "/api/grafana/streamable-http"
 	prometheusPath := "/api/prometheus/streamable-http"
+	lokiPath := "/api/loki/streamable-http"
 	kibanaPath := "/api/kibana/streamable-http"
 	helmPath := "/api/helm/streamable-http"
 	elasticsearchPath := "/api/elasticsearch/streamable-http"
@@ -460,6 +477,9 @@ func (s *ServerConfig) InitStreamableHTTPServers(mcpServer *server.MCPServer, ad
 		}
 		if appConfig.Server.StreamableHTTPPaths.Prometheus != "" {
 			prometheusPath = appConfig.Server.StreamableHTTPPaths.Prometheus
+		}
+		if appConfig.Server.StreamableHTTPPaths.Loki != "" {
+			lokiPath = appConfig.Server.StreamableHTTPPaths.Loki
 		}
 		if appConfig.Server.StreamableHTTPPaths.Kibana != "" {
 			kibanaPath = appConfig.Server.StreamableHTTPPaths.Kibana
@@ -488,6 +508,7 @@ func (s *ServerConfig) InitStreamableHTTPServers(mcpServer *server.MCPServer, ad
 	kubernetesServer := s.createServiceMCPServer("kubernetes")
 	grafanaServer := s.createServiceMCPServer("grafana")
 	prometheusServer := s.createServiceMCPServer("prometheus")
+	lokiServer := s.createServiceMCPServer("loki")
 	kibanaServer := s.createServiceMCPServer("kibana")
 	helmServer := s.createServiceMCPServer("helm")
 	elasticsearchServer := s.createServiceMCPServer("elasticsearch")
@@ -516,6 +537,12 @@ func (s *ServerConfig) InitStreamableHTTPServers(mcpServer *server.MCPServer, ad
 
 	streamableHTTPServers["prometheus"] = server.NewStreamableHTTPServer(prometheusServer,
 		server.WithEndpointPath(prometheusPath),
+		server.WithHeartbeatInterval(60*time.Second),
+		server.WithStateLess(true),
+	)
+
+	streamableHTTPServers["loki"] = server.NewStreamableHTTPServer(lokiServer,
+		server.WithEndpointPath(lokiPath),
 		server.WithHeartbeatInterval(60*time.Second),
 		server.WithStateLess(true),
 	)
@@ -577,6 +604,7 @@ func (s *ServerConfig) InitStreamableHTTPServers(mcpServer *server.MCPServer, ad
 		"kubernetes_path":    kubernetesPath,
 		"grafana_path":       grafanaPath,
 		"prometheus_path":    prometheusPath,
+		"loki_path":          lokiPath,
 		"kibana_path":        kibanaPath,
 		"helm_path":          helmPath,
 		"elasticsearch_path": elasticsearchPath,
@@ -616,6 +644,10 @@ func (s *ServerConfig) createServiceMCPServer(serviceName string) *server.MCPSer
 			if prometheusService := s.serviceManager.GetPrometheusService(); prometheusService != nil && prometheusService.IsEnabled() {
 				s.registerTools(serviceServer, prometheusService.GetTools(), prometheusService.GetHandlers())
 				s.registerResources(serviceServer, prometheusService.GetResources(), prometheusService.GetResourceHandlers())
+			}
+		case "loki":
+			if lokiService := s.serviceManager.GetLokiService(); lokiService != nil && lokiService.IsEnabled() {
+				s.registerTools(serviceServer, lokiService.GetTools(), lokiService.GetHandlers())
 			}
 		case "kibana":
 			if kibanaService := s.serviceManager.GetKibanaService(); kibanaService != nil && kibanaService.IsEnabled() {
@@ -683,6 +715,11 @@ func (s *ServerConfig) createAggregateMCPServer() *server.MCPServer {
 		if prometheusService := s.serviceManager.GetPrometheusService(); prometheusService != nil && prometheusService.IsEnabled() {
 			s.registerTools(aggregateServer, prometheusService.GetTools(), prometheusService.GetHandlers())
 			s.registerResources(aggregateServer, prometheusService.GetResources(), prometheusService.GetResourceHandlers())
+		}
+
+		// Add Loki service capabilities
+		if lokiService := s.serviceManager.GetLokiService(); lokiService != nil && lokiService.IsEnabled() {
+			s.registerTools(aggregateServer, lokiService.GetTools(), lokiService.GetHandlers())
 		}
 
 		// Add Kibana service capabilities
@@ -1121,7 +1158,7 @@ func (s *ServerConfig) ApplyServiceFilters(disabledServices, enabledServices, di
 	disabledToolList := parseList(disabledTools)
 
 	// If specific services are enabled, disable all others
-	allServices := []string{"kubernetes", "grafana", "prometheus", "kibana", "helm", "elasticsearch", "alertmanager", "jaeger", "opentelemetry", "utilities"}
+	allServices := []string{"kubernetes", "grafana", "prometheus", "loki", "kibana", "helm", "elasticsearch", "alertmanager", "jaeger", "opentelemetry", "utilities"}
 	if len(enabledSvcs) > 0 {
 		for _, svc := range allServices {
 			if !enabledSvcs[svc] {
@@ -1258,6 +1295,7 @@ func (s *ServerConfig) SetupMultipleRoutes(mux *http.ServeMux, sseServers map[st
 	kubernetesPath := "/api/kubernetes/sse"
 	grafanaPath := "/api/grafana/sse"
 	prometheusPath := "/api/prometheus/sse"
+	lokiPath := "/api/loki/sse"
 	kibanaPath := "/api/kibana/sse"
 	helmPath := "/api/helm/sse"
 	elasticsearchPath := "/api/elasticsearch/sse"
@@ -1277,6 +1315,9 @@ func (s *ServerConfig) SetupMultipleRoutes(mux *http.ServeMux, sseServers map[st
 		}
 		if appConfig.Server.SSEPaths.Prometheus != "" {
 			prometheusPath = appConfig.Server.SSEPaths.Prometheus
+		}
+		if appConfig.Server.SSEPaths.Loki != "" {
+			lokiPath = appConfig.Server.SSEPaths.Loki
 		}
 		if appConfig.Server.SSEPaths.Kibana != "" {
 			kibanaPath = appConfig.Server.SSEPaths.Kibana
@@ -1327,6 +1368,8 @@ func (s *ServerConfig) SetupMultipleRoutes(mux *http.ServeMux, sseServers map[st
 				sseEndpoint = grafanaPath
 			case "prometheus":
 				sseEndpoint = prometheusPath
+			case "loki":
+				sseEndpoint = lokiPath
 			case "kibana":
 				sseEndpoint = kibanaPath
 			case "helm":
@@ -1453,6 +1496,7 @@ func (s *ServerConfig) SetupMultipleRoutes(mux *http.ServeMux, sseServers map[st
 		kubernetesPath := "/api/kubernetes/streamable-http"
 		grafanaPath := "/api/grafana/streamable-http"
 		prometheusPath := "/api/prometheus/streamable-http"
+		lokiPath := "/api/loki/streamable-http"
 		kibanaPath := "/api/kibana/streamable-http"
 		helmPath := "/api/helm/streamable-http"
 		aggregatePath := "/api/aggregate/streamable-http"
@@ -1468,6 +1512,9 @@ func (s *ServerConfig) SetupMultipleRoutes(mux *http.ServeMux, sseServers map[st
 			}
 			if appConfig.Server.StreamableHTTPPaths.Prometheus != "" {
 				prometheusPath = appConfig.Server.StreamableHTTPPaths.Prometheus
+			}
+			if appConfig.Server.StreamableHTTPPaths.Loki != "" {
+				lokiPath = appConfig.Server.StreamableHTTPPaths.Loki
 			}
 			if appConfig.Server.StreamableHTTPPaths.Kibana != "" {
 				kibanaPath = appConfig.Server.StreamableHTTPPaths.Kibana
@@ -1494,6 +1541,8 @@ func (s *ServerConfig) SetupMultipleRoutes(mux *http.ServeMux, sseServers map[st
 				httpPath = grafanaPath
 			case "prometheus":
 				httpPath = prometheusPath
+			case "loki":
+				httpPath = lokiPath
 			case "kibana":
 				httpPath = kibanaPath
 			case "helm":

@@ -17,6 +17,7 @@ import (
 	"github.com/mahmut-Abi/cloud-native-mcp-server/internal/services/jaeger"
 	"github.com/mahmut-Abi/cloud-native-mcp-server/internal/services/kibana"
 	"github.com/mahmut-Abi/cloud-native-mcp-server/internal/services/kubernetes"
+	"github.com/mahmut-Abi/cloud-native-mcp-server/internal/services/loki"
 	"github.com/mahmut-Abi/cloud-native-mcp-server/internal/services/opentelemetry"
 	"github.com/mahmut-Abi/cloud-native-mcp-server/internal/services/prometheus"
 	"github.com/mahmut-Abi/cloud-native-mcp-server/internal/services/utilities"
@@ -30,6 +31,7 @@ type Manager struct {
 	kubernetesService    *kubernetes.Service
 	grafanaService       *grafana.Service
 	prometheusService    *prometheus.Service
+	lokiService          *loki.Service
 	kibanaService        *kibana.Service
 	helmService          *helm.Service
 	alertmanagerService  *alertmanager.Service
@@ -72,6 +74,7 @@ func (m *Manager) Initialize(appConfig *config.AppConfig) error {
 	m.kubernetesService = kubernetes.NewService()
 	m.grafanaService = grafana.NewService()
 	m.prometheusService = prometheus.NewService()
+	m.lokiService = loki.NewService()
 	m.kibanaService = kibana.NewService()
 	m.helmService = helm.NewService()
 	m.alertmanagerService = alertmanager.NewService()
@@ -95,6 +98,9 @@ func (m *Manager) Initialize(appConfig *config.AppConfig) error {
 	}
 	if m.prometheusService != nil {
 		m.registry.Register(m.prometheusService)
+	}
+	if m.lokiService != nil {
+		m.registry.Register(m.lokiService)
 	}
 	if m.kibanaService != nil {
 		m.registry.Register(m.kibanaService)
@@ -142,6 +148,7 @@ func (m *Manager) Initialize(appConfig *config.AppConfig) error {
 		{"kubernetes", m.kubernetesService != nil},
 		{"grafana", m.grafanaService != nil},
 		{"prometheus", m.prometheusService != nil},
+		{"loki", m.lokiService != nil},
 		{"kibana", m.kibanaService != nil},
 		{"helm", m.helmService != nil},
 		{"alertmanager", m.alertmanagerService != nil},
@@ -183,6 +190,12 @@ func (m *Manager) Initialize(appConfig *config.AppConfig) error {
 			name     string
 			initFunc func() error
 		}{"prometheus", func() error { return m.prometheusService.Initialize(cfg) }})
+	}
+	if m.lokiService != nil {
+		optionalServices = append(optionalServices, struct {
+			name     string
+			initFunc func() error
+		}{"loki", func() error { return m.lokiService.Initialize(cfg) }})
 	}
 	if m.kibanaService != nil {
 		optionalServices = append(optionalServices, struct {
@@ -380,6 +393,11 @@ func (m *Manager) GetPrometheusService() *prometheus.Service {
 	return m.prometheusService
 }
 
+// GetLokiService returns the Loki service
+func (m *Manager) GetLokiService() *loki.Service {
+	return m.lokiService
+}
+
 // GetKibanaService returns the Kibana service
 func (m *Manager) GetKibanaService() *kibana.Service {
 	return m.kibanaService
@@ -551,7 +569,7 @@ func (m *Manager) ApplyServiceFilters(disabled, enabled []string) {
 		enabledMap[svc] = true
 	}
 
-	allServices := []string{"kubernetes", "grafana", "prometheus", "kibana", "helm", "elasticsearch", "alertmanager", "jaeger", "opentelemetry", "utilities"}
+	allServices := []string{"kubernetes", "grafana", "prometheus", "loki", "kibana", "helm", "elasticsearch", "alertmanager", "jaeger", "opentelemetry", "utilities"}
 
 	// If specific services are enabled, disable all others
 	if len(enabled) > 0 {
@@ -571,6 +589,9 @@ func (m *Manager) ApplyServiceFilters(disabled, enabled []string) {
 	}
 	if disabledMap["prometheus"] && m.prometheusService != nil {
 		m.prometheusService = nil
+	}
+	if disabledMap["loki"] && m.lokiService != nil {
+		m.lokiService = nil
 	}
 	if disabledMap["kibana"] && m.kibanaService != nil {
 		m.kibanaService = nil
@@ -684,6 +705,7 @@ func (m *Manager) Shutdown() error {
 		{"kubernetes", m.kubernetesService},
 		{"grafana", m.grafanaService},
 		{"prometheus", m.prometheusService},
+		{"loki", m.lokiService},
 		{"kibana", m.kibanaService},
 		{"helm", m.helmService},
 		{"alertmanager", m.alertmanagerService},

@@ -48,6 +48,7 @@ cloud-native-mcp-server/
 │   │   ├── helm/            # Helm service
 │   │   ├── grafana/         # Grafana service
 │   │   ├── prometheus/      # Prometheus service
+│   │   ├── loki/            # Loki service
 │   │   ├── kibana/          # Kibana service
 │   │   ├── elasticsearch/   # Elasticsearch service
 │   │   ├── alertmanager/    # Alertmanager service

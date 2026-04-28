@@ -33,6 +33,10 @@ func (v *ConfigValidator) Validate(cfg *AppConfig) error {
 		return fmt.Errorf("prometheus config validation failed: %w", err)
 	}
 
+	if err := v.validateLokiConfig(cfg); err != nil {
+		return fmt.Errorf("loki config validation failed: %w", err)
+	}
+
 	if err := v.validateGrafanaConfig(cfg); err != nil {
 		return fmt.Errorf("grafana config validation failed: %w", err)
 	}
@@ -176,6 +180,26 @@ func (v *ConfigValidator) validatePrometheusConfig(cfg *AppConfig) error {
 	// Validate TLS configuration
 	if cfg.Prometheus.TLSSkipVerify && (cfg.Prometheus.TLSCertFile != "" || cfg.Prometheus.TLSKeyFile != "" || cfg.Prometheus.TLSCAFile != "") {
 		return fmt.Errorf("prometheus TLS skip verify cannot be enabled with certificate files")
+	}
+
+	return nil
+}
+
+func (v *ConfigValidator) validateLokiConfig(cfg *AppConfig) error {
+	if !cfg.Loki.Enabled {
+		return nil
+	}
+
+	if cfg.Loki.Address == "" {
+		return fmt.Errorf("loki address is required when enabled")
+	}
+
+	if cfg.Loki.TimeoutSec <= 0 {
+		cfg.Loki.TimeoutSec = 30
+	}
+
+	if cfg.Loki.TLSSkipVerify && (cfg.Loki.TLSCertFile != "" || cfg.Loki.TLSKeyFile != "" || cfg.Loki.TLSCAFile != "") {
+		return fmt.Errorf("loki TLS skip verify cannot be enabled with certificate files")
 	}
 
 	return nil

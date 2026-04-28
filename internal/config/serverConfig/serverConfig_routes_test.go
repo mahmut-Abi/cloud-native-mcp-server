@@ -68,10 +68,11 @@ func TestInitSSEServers(t *testing.T) {
 	sseServers := sc.InitSSEServers(mcpServer, "127.0.0.1:8080", appConfig)
 
 	assert.NotNil(t, sseServers)
-	assert.Len(t, sseServers, 11) // kubernetes, grafana, prometheus, kibana, helm, elasticsearch, alertmanager, jaeger, opentelemetry, aggregate, utilities
+	assert.Len(t, sseServers, 12) // kubernetes, grafana, prometheus, loki, kibana, helm, elasticsearch, alertmanager, jaeger, opentelemetry, aggregate, utilities
 	assert.Contains(t, sseServers, "kubernetes")
 	assert.Contains(t, sseServers, "grafana")
 	assert.Contains(t, sseServers, "prometheus")
+	assert.Contains(t, sseServers, "loki")
 	assert.Contains(t, sseServers, "kibana")
 	assert.Contains(t, sseServers, "helm")
 	assert.Contains(t, sseServers, "elasticsearch")
@@ -97,6 +98,7 @@ func TestInitSSEServersWithCustomPaths(t *testing.T) {
 				Kubernetes    string `yaml:"kubernetes"`
 				Grafana       string `yaml:"grafana"`
 				Prometheus    string `yaml:"prometheus"`
+				Loki          string `yaml:"loki"`
 				Kibana        string `yaml:"kibana"`
 				Helm          string `yaml:"helm"`
 				Elasticsearch string `yaml:"elasticsearch"`
@@ -110,6 +112,7 @@ func TestInitSSEServersWithCustomPaths(t *testing.T) {
 				Kubernetes    string `yaml:"kubernetes"`
 				Grafana       string `yaml:"grafana"`
 				Prometheus    string `yaml:"prometheus"`
+				Loki          string `yaml:"loki"`
 				Kibana        string `yaml:"kibana"`
 				Helm          string `yaml:"helm"`
 				Elasticsearch string `yaml:"elasticsearch"`
@@ -130,6 +133,7 @@ func TestInitSSEServersWithCustomPaths(t *testing.T) {
 				Kubernetes    string `yaml:"kubernetes"`
 				Grafana       string `yaml:"grafana"`
 				Prometheus    string `yaml:"prometheus"`
+				Loki          string `yaml:"loki"`
 				Kibana        string `yaml:"kibana"`
 				Helm          string `yaml:"helm"`
 				Elasticsearch string `yaml:"elasticsearch"`
@@ -149,7 +153,7 @@ func TestInitSSEServersWithCustomPaths(t *testing.T) {
 	sseServers := sc.InitSSEServers(mcpServer, "127.0.0.1:8080", appConfig)
 
 	assert.NotNil(t, sseServers)
-	assert.Len(t, sseServers, 11)
+	assert.Len(t, sseServers, 12)
 }
 
 // Test InitStreamableHTTPServers
@@ -161,10 +165,11 @@ func TestInitStreamableHTTPServers(t *testing.T) {
 	httpServers := sc.InitStreamableHTTPServers(mcpServer, "127.0.0.1:8080", appConfig)
 
 	assert.NotNil(t, httpServers)
-	assert.Len(t, httpServers, 11) // Same services as SSE
+	assert.Len(t, httpServers, 12) // Same services as SSE
 	assert.Contains(t, httpServers, "kubernetes")
 	assert.Contains(t, httpServers, "grafana")
 	assert.Contains(t, httpServers, "prometheus")
+	assert.Contains(t, httpServers, "loki")
 	assert.Contains(t, httpServers, "kibana")
 	assert.Contains(t, httpServers, "helm")
 	assert.Contains(t, httpServers, "elasticsearch")
@@ -190,6 +195,7 @@ func TestInitStreamableHTTPServersWithCustomPaths(t *testing.T) {
 				Kubernetes    string `yaml:"kubernetes"`
 				Grafana       string `yaml:"grafana"`
 				Prometheus    string `yaml:"prometheus"`
+				Loki          string `yaml:"loki"`
 				Kibana        string `yaml:"kibana"`
 				Helm          string `yaml:"helm"`
 				Elasticsearch string `yaml:"elasticsearch"`
@@ -203,6 +209,7 @@ func TestInitStreamableHTTPServersWithCustomPaths(t *testing.T) {
 				Kubernetes    string `yaml:"kubernetes"`
 				Grafana       string `yaml:"grafana"`
 				Prometheus    string `yaml:"prometheus"`
+				Loki          string `yaml:"loki"`
 				Kibana        string `yaml:"kibana"`
 				Helm          string `yaml:"helm"`
 				Elasticsearch string `yaml:"elasticsearch"`
@@ -223,6 +230,7 @@ func TestInitStreamableHTTPServersWithCustomPaths(t *testing.T) {
 				Kubernetes    string `yaml:"kubernetes"`
 				Grafana       string `yaml:"grafana"`
 				Prometheus    string `yaml:"prometheus"`
+				Loki          string `yaml:"loki"`
 				Kibana        string `yaml:"kibana"`
 				Helm          string `yaml:"helm"`
 				Elasticsearch string `yaml:"elasticsearch"`
@@ -242,7 +250,7 @@ func TestInitStreamableHTTPServersWithCustomPaths(t *testing.T) {
 	httpServers := sc.InitStreamableHTTPServers(mcpServer, "127.0.0.1:8080", appConfig)
 
 	assert.NotNil(t, httpServers)
-	assert.Len(t, httpServers, 11)
+	assert.Len(t, httpServers, 12)
 }
 
 // Test SetupMultipleRoutes with SSE mode - only test mux creation, not actual HTTP handling
@@ -412,6 +420,7 @@ func TestAllServiceNames(t *testing.T) {
 		"kubernetes",
 		"grafana",
 		"prometheus",
+		"loki",
 		"kibana",
 		"helm",
 		"aggregate",

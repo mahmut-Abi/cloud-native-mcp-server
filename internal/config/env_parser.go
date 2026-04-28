@@ -27,6 +27,7 @@ func (p *EnvParser) Parse(cfg *AppConfig) *AppConfig {
 	p.parseLoggingConfig(cfg, over)
 	p.parseKubernetesConfig(cfg, over)
 	p.parsePrometheusConfig(cfg, over)
+	p.parseLokiConfig(cfg, over)
 	p.parseGrafanaConfig(cfg, over)
 	p.parseKibanaConfig(cfg, over)
 	p.parseHelmConfig(cfg, over)
@@ -70,6 +71,9 @@ func (p *EnvParser) parseServerConfig(cfg *AppConfig, over func(string) (string,
 	if v, ok := over("MCP_SSE_PATH_PROMETHEUS"); ok {
 		cfg.Server.SSEPaths.Prometheus = v
 	}
+	if v, ok := over("MCP_SSE_PATH_LOKI"); ok {
+		cfg.Server.SSEPaths.Loki = v
+	}
 	if v, ok := over("MCP_SSE_PATH_KIBANA"); ok {
 		cfg.Server.SSEPaths.Kibana = v
 	}
@@ -104,6 +108,9 @@ func (p *EnvParser) parseServerConfig(cfg *AppConfig, over func(string) (string,
 	}
 	if v, ok := over("MCP_STREAMABLE_HTTP_PATH_PROMETHEUS"); ok {
 		cfg.Server.StreamableHTTPPaths.Prometheus = v
+	}
+	if v, ok := over("MCP_STREAMABLE_HTTP_PATH_LOKI"); ok {
+		cfg.Server.StreamableHTTPPaths.Loki = v
 	}
 	if v, ok := over("MCP_STREAMABLE_HTTP_PATH_KIBANA"); ok {
 		cfg.Server.StreamableHTTPPaths.Kibana = v
@@ -185,6 +192,39 @@ func (p *EnvParser) parsePrometheusConfig(cfg *AppConfig, over func(string) (str
 	}
 	if v, ok := over("MCP_PROM_TLS_CA_FILE"); ok {
 		cfg.Prometheus.TLSCAFile = v
+	}
+}
+
+func (p *EnvParser) parseLokiConfig(cfg *AppConfig, over func(string) (string, bool)) {
+	if v, ok := over("MCP_LOKI_ENABLED"); ok {
+		cfg.Loki.Enabled = isTrue(v)
+	}
+	if v, ok := over("MCP_LOKI_ADDRESS"); ok {
+		cfg.Loki.Address = v
+	}
+	if v, ok := over("MCP_LOKI_TIMEOUT"); ok {
+		cfg.Loki.TimeoutSec = atoiDefault(v, cfg.Loki.TimeoutSec)
+	}
+	if v, ok := over("MCP_LOKI_USERNAME"); ok {
+		cfg.Loki.Username = v
+	}
+	if v, ok := over("MCP_LOKI_PASSWORD"); ok {
+		cfg.Loki.Password = v
+	}
+	if v, ok := over("MCP_LOKI_BEARER_TOKEN"); ok {
+		cfg.Loki.BearerToken = v
+	}
+	if v, ok := over("MCP_LOKI_TLS_SKIP_VERIFY"); ok {
+		cfg.Loki.TLSSkipVerify = isTrue(v)
+	}
+	if v, ok := over("MCP_LOKI_TLS_CERT_FILE"); ok {
+		cfg.Loki.TLSCertFile = v
+	}
+	if v, ok := over("MCP_LOKI_TLS_KEY_FILE"); ok {
+		cfg.Loki.TLSKeyFile = v
+	}
+	if v, ok := over("MCP_LOKI_TLS_CA_FILE"); ok {
+		cfg.Loki.TLSCAFile = v
 	}
 }
 

@@ -44,6 +44,7 @@ server:
     kubernetes: "/api/kubernetes/sse"
     grafana: "/api/grafana/sse"
     prometheus: "/api/prometheus/sse"
+    loki: "/api/loki/sse"
     kibana: "/api/kibana/sse"
     helm: "/api/helm/sse"
     elasticsearch: "/api/elasticsearch/sse"
@@ -57,6 +58,7 @@ server:
     kubernetes: "/api/kubernetes/streamable-http"
     grafana: "/api/grafana/streamable-http"
     prometheus: "/api/prometheus/streamable-http"
+    loki: "/api/loki/streamable-http"
     kibana: "/api/kibana/streamable-http"
     helm: "/api/helm/streamable-http"
     elasticsearch: "/api/elasticsearch/streamable-http"
@@ -164,6 +166,18 @@ kubernetes:
 prometheus:
   enabled: false
   address: "http://prometheus:9090"
+  timeoutSec: 30
+  username: ""
+  password: ""
+  bearerToken: ""
+  tlsSkipVerify: false
+  tlsCertFile: ""
+  tlsKeyFile: ""
+  tlsCAFile: ""
+
+loki:
+  enabled: false
+  address: "http://loki:3100"
   timeoutSec: 30
   username: ""
   password: ""
