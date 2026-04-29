@@ -4,13 +4,13 @@ title: "Services"
 
 # Integrated Services
 
-Cloud Native MCP Server integrates 10 powerful cloud-native services, providing 220+ tools that fully cover Kubernetes management and application deployment, monitoring, log analysis, and more.
+Cloud Native MCP Server integrates 11 powerful cloud-native services, providing 250+ tools that fully cover Kubernetes management, deployment, monitoring, logging, tracing, and more.
 
 <div class="service-grid">
 
 <div class="service-card">
   <h3>☸️ Kubernetes</h3>
-  <p><span class="tool-count">28 tools</span></p>
+  <p><span class="tool-count">34 tools</span></p>
   <p>Core container orchestration and resource management, including complete lifecycle management for Pods, Deployments, Services, ConfigMaps, Secrets, and more.</p>
   <p><strong>Key Features:</strong></p>
   <ul>
@@ -24,7 +24,7 @@ Cloud Native MCP Server integrates 10 powerful cloud-native services, providing 
 
 <div class="service-card">
   <h3>⚓ Helm</h3>
-  <p><span class="tool-count">31 tools</span></p>
+  <p><span class="tool-count">34 tools</span></p>
   <p>Kubernetes application package manager, simplifying application deployment, upgrades, and management.</p>
   <p><strong>Key Features:</strong></p>
   <ul>
@@ -38,7 +38,7 @@ Cloud Native MCP Server integrates 10 powerful cloud-native services, providing 
 
 <div class="service-card">
   <h3>📊 Grafana</h3>
-  <p><span class="tool-count">36 tools</span></p>
+  <p><span class="tool-count">43 tools</span></p>
   <p>Open-source analytics and visualization platform for monitoring and metrics visualization.</p>
   <p><strong>Key Features:</strong></p>
   <ul>
@@ -65,8 +65,22 @@ Cloud Native MCP Server integrates 10 powerful cloud-native services, providing 
 </div>
 
 <div class="service-card">
+  <h3>🪵 Loki</h3>
+  <p><span class="tool-count">7 tools</span></p>
+  <p>Log aggregation and LogQL querying service for label discovery, stream inspection, and log-first troubleshooting.</p>
+  <p><strong>Key Features:</strong></p>
+  <ul>
+    <li>Instant and range LogQL queries</li>
+    <li>Compact log summaries for LLM workflows</li>
+    <li>Label discovery and value lookup</li>
+    <li>Series inspection before large queries</li>
+    <li>Connection validation</li>
+  </ul>
+</div>
+
+<div class="service-card">
   <h3>🔍 Kibana</h3>
-  <p><span class="tool-count">52 tools</span></p>
+  <p><span class="tool-count">73 tools</span></p>
   <p>Elastic Stack data visualization and management interface for log analysis and data exploration.</p>
   <p><strong>Key Features:</strong></p>
   <ul>
@@ -80,7 +94,7 @@ Cloud Native MCP Server integrates 10 powerful cloud-native services, providing 
 
 <div class="service-card">
   <h3>🔎 Elasticsearch</h3>
-  <p><span class="tool-count">14 tools</span></p>
+  <p><span class="tool-count">12 tools</span></p>
   <p>Distributed search and analytics engine for log storage and full-text search.</p>
   <p><strong>Key Features:</strong></p>
   <ul>
@@ -94,7 +108,7 @@ Cloud Native MCP Server integrates 10 powerful cloud-native services, providing 
 
 <div class="service-card">
   <h3>🚨 Alertmanager</h3>
-  <p><span class="tool-count">15 tools</span></p>
+  <p><span class="tool-count">16 tools</span></p>
   <p>Prometheus alert handling and routing system for managing alert notifications.</p>
   <p><strong>Key Features:</strong></p>
   <ul>
@@ -168,6 +182,12 @@ kubernetes:
 prometheus:
   enabled: true
   address: "http://localhost:9090"
+  timeoutSec: 30
+
+# Loki
+loki:
+  enabled: true
+  address: "http://localhost:3100"
   timeoutSec: 30
 
 # Grafana

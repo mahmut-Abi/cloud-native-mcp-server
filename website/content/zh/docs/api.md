@@ -28,7 +28,7 @@ Cloud Native MCP Server 支持两种运行模式：
 - SSE：`/api/<service>/sse`
 - Streamable-HTTP：`/api/<service>/streamable-http`
 
-常见 service 名称包括 `kubernetes`、`helm`、`grafana`、`prometheus`、`kibana`、`elasticsearch`、`alertmanager`、`jaeger`、`opentelemetry`、`utilities`、`aggregate`。
+常见 service 名称包括 `kubernetes`、`helm`、`grafana`、`prometheus`、`loki`、`kibana`、`elasticsearch`、`alertmanager`、`jaeger`、`opentelemetry`、`utilities`、`aggregate`。
 
 > 说明：当前服务不提供旧版 `/v1/mcp/*` 风格接口。
 

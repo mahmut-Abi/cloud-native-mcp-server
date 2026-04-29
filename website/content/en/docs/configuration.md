@@ -85,6 +85,9 @@ server:
     # Prometheus SSE endpoint
     prometheus: "/api/prometheus/sse"
 
+    # Loki SSE endpoint
+    loki: "/api/loki/sse"
+
     # Kibana SSE endpoint
     kibana: "/api/kibana/sse"
 
@@ -120,6 +123,9 @@ server:
 
     # Prometheus Streamable-HTTP endpoint
     prometheus: "/api/prometheus/streamable-http"
+
+    # Loki Streamable-HTTP endpoint
+    loki: "/api/loki/streamable-http"
 
     # Kibana Streamable-HTTP endpoint
     kibana: "/api/kibana/streamable-http"
@@ -210,6 +216,42 @@ prometheus:
   tlsSkipVerify: false
 
   # TLS client certificate file path (for mTLS authentication)
+  tlsCertFile: ""
+
+  # TLS client key file path
+  tlsKeyFile: ""
+
+  # TLS CA certificate file path
+  tlsCAFile: ""
+```
+
+### Loki
+
+```yaml
+loki:
+  # Enable/disable Loki service
+  enabled: false
+
+  # Loki server address
+  # Format: http://host:port or https://host:port
+  address: "http://localhost:3100"
+
+  # Request timeout (seconds)
+  timeoutSec: 30
+
+  # Basic auth username (optional)
+  username: ""
+
+  # Basic auth password (optional)
+  password: ""
+
+  # Bearer token authentication (optional)
+  bearerToken: ""
+
+  # Skip TLS certificate verification
+  tlsSkipVerify: false
+
+  # TLS client certificate file path
   tlsCertFile: ""
 
   # TLS client key file path

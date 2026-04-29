@@ -83,6 +83,9 @@ server:
     # Prometheus SSE 端点
     prometheus: "/api/prometheus/sse"
 
+    # Loki SSE 端点
+    loki: "/api/loki/sse"
+
     # Kibana SSE 端点
     kibana: "/api/kibana/sse"
 
@@ -118,6 +121,9 @@ server:
 
     # Prometheus Streamable-HTTP 端点
     prometheus: "/api/prometheus/streamable-http"
+
+    # Loki Streamable-HTTP 端点
+    loki: "/api/loki/streamable-http"
 
     # Kibana Streamable-HTTP 端点
     kibana: "/api/kibana/streamable-http"
@@ -207,6 +213,42 @@ prometheus:
   tlsSkipVerify: false
 
   # TLS 客户端证书文件路径（用于 mTLS 认证）
+  tlsCertFile: ""
+
+  # TLS 客户端密钥文件路径
+  tlsKeyFile: ""
+
+  # TLS CA 证书文件路径
+  tlsCAFile: ""
+```
+
+### Loki
+
+```yaml
+loki:
+  # 启用/禁用 Loki 服务
+  enabled: false
+
+  # Loki 服务地址
+  # 格式: http://host:port 或 https://host:port
+  address: "http://localhost:3100"
+
+  # 请求超时（秒）
+  timeoutSec: 30
+
+  # Basic auth 用户名（可选）
+  username: ""
+
+  # Basic auth 密码（可选）
+  password: ""
+
+  # Bearer token 认证（可选）
+  bearerToken: ""
+
+  # 跳过 TLS 证书验证
+  tlsSkipVerify: false
+
+  # TLS 客户端证书文件路径
   tlsCertFile: ""
 
   # TLS 客户端密钥文件路径

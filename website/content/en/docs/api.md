@@ -28,7 +28,7 @@ Service-specific endpoint pattern:
 - SSE: `/api/<service>/sse`
 - Streamable HTTP: `/api/<service>/streamable-http`
 
-Common service names include `kubernetes`, `helm`, `grafana`, `prometheus`, `kibana`, `elasticsearch`, `alertmanager`, `jaeger`, `opentelemetry`, `utilities`, and `aggregate`.
+Common service names include `kubernetes`, `helm`, `grafana`, `prometheus`, `loki`, `kibana`, `elasticsearch`, `alertmanager`, `jaeger`, `opentelemetry`, `utilities`, and `aggregate`.
 
 > Note: This server does **not** expose legacy `/v1/mcp/*` REST-style endpoints.
 
