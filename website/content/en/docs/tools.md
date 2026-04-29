@@ -1,24 +1,24 @@
 ---
 title: "Tools Reference"
 weight: 70
-description: "Capability catalog for all integrated services and 220+ MCP tools."
+description: "Capability catalog for all integrated services and 250+ MCP tools."
 ---
 
 # Tools Reference
 
-Cloud Native MCP Server provides 220+ powerful tools covering Kubernetes management, application deployment, monitoring, log analysis, and more.
+Cloud Native MCP Server provides 250+ powerful tools covering Kubernetes management, deployment, monitoring, logging, tracing, and more.
 
 {{< columns >}}
-### 🚀 Kubernetes (28 tools)
+### 🚀 Kubernetes (34 tools)
 Core container orchestration and resource management
 <--->
 
-### 📦 Helm (31 tools)
+### 📦 Helm (34 tools)
 Application package management and deployment
 {{< /columns >}}
 
 {{< columns >}}
-### 📊 Grafana (36 tools)
+### 📊 Grafana (43 tools)
 Visualization, monitoring dashboards, and alerting
 <--->
 
@@ -27,16 +27,21 @@ Metrics collection, querying, and monitoring
 {{< /columns >}}
 
 {{< columns >}}
-### 🔍 Kibana (52 tools)
+### 🪵 Loki (7 tools)
+LogQL queries, label discovery, and stream inspection
+{{< /columns >}}
+
+{{< columns >}}
+### 🔍 Kibana (73 tools)
 Log analysis, visualization, and data exploration
 <--->
 
-### ⚡ Elasticsearch (14 tools)
+### ⚡ Elasticsearch (12 tools)
 Log storage, search, and data indexing
 {{< /columns >}}
 
 {{< columns >}}
-### ⚠️ Alertmanager (15 tools)
+### ⚠️ Alertmanager (16 tools)
 Alert rules management and notifications
 <--->
 
@@ -55,7 +60,7 @@ General-purpose utility tools
 
 ---
 
-## Kubernetes Tools (28)
+## Kubernetes Tools (34)
 
 The Kubernetes service provides comprehensive cluster management capabilities:
 
@@ -106,7 +111,7 @@ The Kubernetes service provides comprehensive cluster management capabilities:
 
 ---
 
-## Helm Tools (31)
+## Helm Tools (34)
 
 The Helm service enables package management and deployment:
 
@@ -159,7 +164,7 @@ The Helm service enables package management and deployment:
 
 ---
 
-## Grafana Tools (36)
+## Grafana Tools (43)
 
 The Grafana service provides visualization and monitoring capabilities:
 
@@ -260,7 +265,26 @@ The Prometheus service enables metrics collection and querying:
 
 ---
 
-## Kibana Tools (52)
+## Loki Tools (7)
+
+The Loki service enables label-aware log discovery and LogQL querying:
+
+### Summary and Query Tools
+- `loki_query_logs_summary` - Get compact per-stream log summaries
+- `loki_query` - Execute instant LogQL query
+- `loki_query_range` - Execute range LogQL query
+
+### Label and Series Discovery
+- `loki_get_label_names` - List label names
+- `loki_get_label_values` - List values for a label
+- `loki_get_series` - List indexed series for selectors
+
+### Connectivity
+- `loki_test_connection` - Verify Loki endpoint and auth
+
+---
+
+## Kibana Tools (73)
 
 The Kibana service provides log analysis and visualization:
 

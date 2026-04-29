@@ -195,7 +195,22 @@ Cloud Native MCP Server provides 220+ powerful tools covering Kubernetes managem
 ### Storage Operations
 - `block_info` - Get block information
 
-## Kibana Tools (52)
+## Loki Tools (7)
+
+### Summary and Query Tools
+- `loki_query_logs_summary` - Get compact per-stream log summaries
+- `loki_query` - Execute instant LogQL query
+- `loki_query_range` - Execute range LogQL query
+
+### Label and Series Discovery
+- `loki_get_label_names` - List label names
+- `loki_get_label_values` - List values for a label
+- `loki_get_series` - List indexed series for selectors
+
+### Connectivity
+- `loki_test_connection` - Verify Loki endpoint and auth
+
+## Kibana Tools (73)
 
 ### Index Management
 - `list_indices` - List indices

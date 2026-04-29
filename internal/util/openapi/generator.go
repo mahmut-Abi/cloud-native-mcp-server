@@ -258,7 +258,7 @@ func (g *Generator) addToolsEndpoints() {
 				{
 					Name:        "service",
 					In:          "query",
-					Description: "Filter tools by service name (kubernetes, prometheus, grafana, kibana, helm, elasticsearch)",
+					Description: "Filter tools by service name (kubernetes, grafana, prometheus, loki, kibana, helm, elasticsearch, alertmanager, jaeger, opentelemetry, utilities)",
 					Required:    false,
 					Schema: map[string]interface{}{
 						"type": "string",
@@ -271,7 +271,7 @@ func (g *Generator) addToolsEndpoints() {
 					Required:    false,
 					Schema: map[string]interface{}{
 						"type": "string",
-						"enum": []string{"kubernetes", "prometheus", "grafana", "kibana", "helm", "elasticsearch"},
+						"enum": []string{"kubernetes", "grafana", "prometheus", "loki", "kibana", "helm", "elasticsearch", "alertmanager", "jaeger", "opentelemetry", "utilities"},
 					},
 				},
 			},
@@ -721,7 +721,7 @@ func (g *Generator) addSchemas() {
 			"category": map[string]interface{}{
 				"type":        "string",
 				"description": "Category of the tool",
-				"enum":        []string{"kubernetes", "prometheus", "grafana", "kibana", "helm", "elasticsearch"},
+				"enum":        []string{"kubernetes", "grafana", "prometheus", "loki", "kibana", "helm", "elasticsearch", "alertmanager", "jaeger", "opentelemetry", "utilities"},
 			},
 			"inputSchema": map[string]interface{}{
 				"type":        "object",

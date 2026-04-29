@@ -6,7 +6,7 @@ description: High-performance Model Context Protocol server for Kubernetes and c
 
 <div class="hero">
   <h1>Cloud Native MCP Server</h1>
-  <p>A production-grade MCP server for Kubernetes and cloud-native infrastructure management, exposing 10 services and 220+ tools across SSE and Streamable HTTP modes.</p>
+  <p>A production-grade MCP server for Kubernetes and cloud-native infrastructure management, exposing 11 services and 250+ tools across SSE and Streamable HTTP modes.</p>
   <div class="hero-buttons">
     <a href="https://github.com/mahmut-Abi/cloud-native-mcp-server" class="cta-button"><span>GitHub Repository</span></a>
     <a href="#quick-start" class="cta-button transparent"><span>Quick Start</span></a>
@@ -49,7 +49,7 @@ description: High-performance Model Context Protocol server for Kubernetes and c
   </article>
   <article class="usecase-card">
     <h3>Cross-Observability Analysis</h3>
-    <p>Bridge Prometheus, Grafana, Jaeger, and OpenTelemetry signals for end-to-end diagnostics.</p>
+    <p>Bridge Prometheus, Grafana, Loki, Jaeger, and OpenTelemetry signals for end-to-end diagnostics.</p>
   </article>
 </div>
 
@@ -59,11 +59,11 @@ description: High-performance Model Context Protocol server for Kubernetes and c
 
 <div class="stats-grid">
   <div class="stat-item">
-    <div class="stat-number">10</div>
+    <div class="stat-number">11</div>
     <div class="stat-label">Integrated Services</div>
   </div>
   <div class="stat-item">
-    <div class="stat-number">220+</div>
+    <div class="stat-number">250+</div>
     <div class="stat-label">MCP Tools</div>
   </div>
   <div class="stat-item">
@@ -82,15 +82,15 @@ description: High-performance Model Context Protocol server for Kubernetes and c
 
 <div class="service-grid">
   <div class="service-card">
-    <h3>Kubernetes <span class="tool-count">28 tools</span></h3>
+    <h3>Kubernetes <span class="tool-count">34 tools</span></h3>
     <p>Core orchestration and resource management workflows.</p>
   </div>
   <div class="service-card">
-    <h3>Helm <span class="tool-count">31 tools</span></h3>
+    <h3>Helm <span class="tool-count">34 tools</span></h3>
     <p>Package lifecycle and release operations for Kubernetes apps.</p>
   </div>
   <div class="service-card">
-    <h3>Grafana <span class="tool-count">36 tools</span></h3>
+    <h3>Grafana <span class="tool-count">43 tools</span></h3>
     <p>Dashboards, alerting, and visualization management.</p>
   </div>
   <div class="service-card">
@@ -98,15 +98,19 @@ description: High-performance Model Context Protocol server for Kubernetes and c
     <p>Metrics querying, rules inspection, and monitoring workflows.</p>
   </div>
   <div class="service-card">
-    <h3>Kibana <span class="tool-count">52 tools</span></h3>
+    <h3>Loki <span class="tool-count">7 tools</span></h3>
+    <p>LogQL queries, label discovery, and stream inspection for log-first troubleshooting.</p>
+  </div>
+  <div class="service-card">
+    <h3>Kibana <span class="tool-count">73 tools</span></h3>
     <p>Log exploration and analytics for Elastic-based observability.</p>
   </div>
   <div class="service-card">
-    <h3>Elasticsearch <span class="tool-count">14 tools</span></h3>
+    <h3>Elasticsearch <span class="tool-count">12 tools</span></h3>
     <p>Index inspection, search, and cluster operation support.</p>
   </div>
   <div class="service-card">
-    <h3>Alertmanager <span class="tool-count">15 tools</span></h3>
+    <h3>Alertmanager <span class="tool-count">16 tools</span></h3>
     <p>Alert routing, silence management, and incident visibility.</p>
   </div>
   <div class="service-card">
