@@ -163,7 +163,8 @@ func ListResourcesTool() mcp.Tool {
 		mcp.WithString("jsonpath",
 			mcp.Description("Single JSONPath expression to extract fields from each resource. Full expressions like `{.metadata.name}` and bare paths like `metadata.name` are accepted. For formatted output you can still use range expressions such as `{range .items[*]}{.metadata.name}{\"\\n\"}{end}`.")),
 		mcp.WithArray("jsonpaths",
-			mcp.Description("Array of JSONPath expressions. You may pass either full expressions like `{.metadata.name}` or bare paths like `metadata.name`, which will be normalized automatically. Legacy clients may still send a JSON string array or comma-separated string.")),
+			mcp.Description("Array of JSONPath expressions. You may pass either full expressions like `{.metadata.name}` or bare paths like `metadata.name`, which will be normalized automatically. Legacy clients may still send a JSON string array or comma-separated string."),
+			mcp.WithStringItems()),
 		mcp.WithString("debug",
 			mcp.Description("Enable verbose debug output for troubleshooting the tool execution and API interactions. Set to 'true' to see detailed information about the Kubernetes API calls, authentication process, request/response details, pagination tokens, and any filtering operations being applied. Set to 'false' or omit for normal output showing only the resource information. Debug mode is helpful when: the tool is not returning expected results, you're getting authentication or permission errors, pagination is not working as expected, or you're troubleshooting connectivity issues. Normal users should leave this unset or set to 'false' for cleaner output.")),
 	)
@@ -462,7 +463,8 @@ func GetResourcesDetailTool() mcp.Tool {
 		mcp.WithString("kind", mcp.Required(),
 			mcp.Description("Resource kind/type - must be the same for all resources in this request (e.g., 'Pod', 'Deployment', 'Service'). Use exact case-sensitive names as they appear in Kubernetes API. This constraint ensures efficient API batching while preventing resource type mixing that could cause context overflow.")),
 		mcp.WithArray("names", mcp.Required(),
-			mcp.Description("Array of exact resource names to retrieve detailed information for. All resources must be of the same kind specified in the 'kind' parameter. Names are case-sensitive and must match the metadata.name field exactly. Use this to get detailed info for multiple resources efficiently in one API call. Recommended to limit to 10-20 resources per request to avoid context overflow while still being more efficient than individual resource calls.")),
+			mcp.Description("Array of exact resource names to retrieve detailed information for. All resources must be of the same kind specified in the 'kind' parameter. Names are case-sensitive and must match the metadata.name field exactly. Use this to get detailed info for multiple resources efficiently in one API call. Recommended to limit to 10-20 resources per request to avoid context overflow while still being more efficient than individual resource calls."),
+			mcp.WithStringItems()),
 		mcp.WithString("namespace",
 			mcp.Description("Required namespace for namespaced resources (Pod, Service, Deployment, ConfigMap, Secret, etc.). All resources must be in the same namespace. Omit only for cluster-scoped resources (Node, PersistentVolume, ClusterRole, etc.). This constraint enables efficient namespace-scoped API operations.")),
 		mcp.WithBoolean("includeEvents",
@@ -554,7 +556,8 @@ func GetUnhealthyResourcesTool() mcp.Tool {
 		mcp.WithString("namespace",
 			mcp.Description("Namespace to scan. Empty = all namespaces")),
 		mcp.WithArray("resourceTypes",
-			mcp.Description("Resource types to check (Pod, Job, Deployment, StatefulSet, DaemonSet). Default: all")),
+			mcp.Description("Resource types to check (Pod, Job, Deployment, StatefulSet, DaemonSet). Default: all"),
+			mcp.WithStringItems()),
 	)
 }
 
@@ -594,7 +597,8 @@ func SearchResourcesTool() mcp.Tool {
 		mcp.WithString("kind",
 			mcp.Description("Optional resource kind/type to search, for example `Pod`, `Deployment`, or `Service`. If omitted, the server will use `resourceTypes` or a default set of common kinds.")),
 		mcp.WithArray("resourceTypes",
-			mcp.Description("Optional array of resource types such as `[\"pods\"]` or `[\"Pod\",\"Deployment\"]`. Useful when the caller forgot `kind`; the server will use these values directly.")),
+			mcp.Description("Optional array of resource types such as `[\"pods\"]` or `[\"Pod\",\"Deployment\"]`. Useful when the caller forgot `kind`; the server will use these values directly."),
+			mcp.WithStringItems()),
 		mcp.WithString("query",
 			mcp.Description("Optional search string to match against resource names. `name` is accepted as an alias by the server for compatibility with generic callers.")),
 		mcp.WithString("name",

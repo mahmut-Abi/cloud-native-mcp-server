@@ -85,4 +85,53 @@ func TestListResourcesTool_JSONPathsSchema(t *testing.T) {
 	if !ok || jsonpaths["type"] != "array" {
 		t.Fatalf("jsonpaths schema should be array, got %#v", tool.InputSchema.Properties["jsonpaths"])
 	}
+	items, ok := jsonpaths["items"].(map[string]any)
+	if !ok || items["type"] != "string" {
+		t.Fatalf("jsonpaths items schema should be string, got %#v", jsonpaths["items"])
+	}
+}
+
+func TestGetResourcesDetailTool_NamesSchema(t *testing.T) {
+	tool := GetResourcesDetailTool()
+	names, ok := tool.InputSchema.Properties["names"].(map[string]any)
+	if !ok || names["type"] != "array" {
+		t.Fatalf("names schema should be array, got %#v", tool.InputSchema.Properties["names"])
+	}
+	items, ok := names["items"].(map[string]any)
+	if !ok || items["type"] != "string" {
+		t.Fatalf("names items schema should be string, got %#v", names["items"])
+	}
+}
+
+func TestResourceTypesSchemas(t *testing.T) {
+	tests := []struct {
+		name string
+		tool func() map[string]any
+	}{
+		{
+			name: "unhealthy_resources",
+			tool: func() map[string]any {
+				props := GetUnhealthyResourcesTool().InputSchema.Properties
+				return props["resourceTypes"].(map[string]any)
+			},
+		},
+		{
+			name: "search_resources",
+			tool: func() map[string]any {
+				props := SearchResourcesTool().InputSchema.Properties
+				return props["resourceTypes"].(map[string]any)
+			},
+		},
+	}
+
+	for _, tt := range tests {
+		schema := tt.tool()
+		if schema["type"] != "array" {
+			t.Fatalf("%s resourceTypes schema should be array, got %#v", tt.name, schema)
+		}
+		items, ok := schema["items"].(map[string]any)
+		if !ok || items["type"] != "string" {
+			t.Fatalf("%s resourceTypes items schema should be string, got %#v", tt.name, schema["items"])
+		}
+	}
 }
