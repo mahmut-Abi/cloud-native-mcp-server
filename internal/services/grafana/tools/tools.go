@@ -412,7 +412,8 @@ func CreateAnnotationTool() mcp.Tool {
 		mcp.WithNumber("panelID",
 			mcp.Description("Panel ID to annotate.")),
 		mcp.WithArray("tags",
-			mcp.Description("Tags for the annotation.")),
+			mcp.Description("Tags for the annotation."),
+			mcp.WithStringItems()),
 	)
 }
 

@@ -42,7 +42,29 @@ func CreateSilenceTool() mcp.Tool {
 	return mcp.NewTool("alertmanager_create_silence",
 		mcp.WithDescription("Create a new silence in Alertmanager to suppress matching alerts"),
 		mcp.WithArray("matchers", mcp.Required(),
-			mcp.Description("List of matchers to identify which alerts to silence")),
+			mcp.Description("List of matcher objects to identify which alerts to silence. Each item should be an object such as {\"name\":\"alertname\",\"value\":\"HighCPU\",\"isRegex\":false}."),
+			mcp.Items(map[string]any{
+				"type": "object",
+				"properties": map[string]any{
+					"name": map[string]any{
+						"type":        "string",
+						"description": "Label name to match, for example `alertname` or `namespace`.",
+					},
+					"value": map[string]any{
+						"type":        "string",
+						"description": "Label value to match.",
+					},
+					"isRegex": map[string]any{
+						"type":        "boolean",
+						"description": "Whether `value` should be treated as a regular expression.",
+					},
+					"isEqual": map[string]any{
+						"type":        "boolean",
+						"description": "Whether the matcher is equality-based. Omit for the normal equality behavior.",
+					},
+				},
+				"required": []string{"name", "value"},
+			})),
 		mcp.WithString("startsAt",
 			mcp.Description("Start time of the silence (RFC3339 format)")),
 		mcp.WithString("endsAt", mcp.Required(),
@@ -77,7 +99,11 @@ func TestReceiverTool() mcp.Tool {
 		mcp.WithObject("receiver", mcp.Required(),
 			mcp.Description("Receiver configuration to test")),
 		mcp.WithArray("alerts",
-			mcp.Description("Test alerts to send to the receiver")),
+			mcp.Description("Optional test alert objects to send to the receiver."),
+			mcp.Items(map[string]any{
+				"type":                 "object",
+				"additionalProperties": true,
+			})),
 	)
 }
 

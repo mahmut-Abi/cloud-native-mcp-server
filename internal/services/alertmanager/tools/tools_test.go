@@ -75,6 +75,13 @@ func TestCreateSilenceTool(t *testing.T) {
 			if propMap["type"] != "array" {
 				t.Errorf("Expected matchers type to be 'array', got %v", propMap["type"])
 			}
+			items, ok := propMap["items"].(map[string]interface{})
+			if !ok {
+				t.Fatal("Expected matchers items schema to be present")
+			}
+			if items["type"] != "object" {
+				t.Errorf("Expected matchers items type to be 'object', got %v", items["type"])
+			}
 		} else {
 			t.Error("matchers property should be a map")
 		}
@@ -166,6 +173,18 @@ func TestAllToolsHaveValidStructure(t *testing.T) {
 		// Properties should be a map
 		if tool.InputSchema.Properties == nil {
 			t.Errorf("Tool '%s' should have properties in input schema", tool.Name)
+		}
+
+		for propName, propValue := range tool.InputSchema.Properties {
+			propMap, ok := propValue.(map[string]interface{})
+			if !ok {
+				continue
+			}
+			if propMap["type"] == "array" {
+				if _, ok := propMap["items"]; !ok {
+					t.Errorf("Tool '%s' array property '%s' is missing items schema", tool.Name, propName)
+				}
+			}
 		}
 	}
 }
