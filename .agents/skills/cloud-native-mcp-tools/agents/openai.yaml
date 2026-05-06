@@ -1,0 +1,6 @@
+interface:
+  display_name: "Cloud Native MCP Tools"
+  short_description: "Guide for this repo's MCP tool workflows"
+  default_prompt: "Use $cloud-native-mcp-tools to investigate or operate systems through this repository's MCP tools."
+policy:
+  allow_implicit_invocation: true

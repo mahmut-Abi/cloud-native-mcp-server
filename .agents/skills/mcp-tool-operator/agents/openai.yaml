@@ -1,0 +1,6 @@
+interface:
+  display_name: "MCP Tool Operator"
+  short_description: "Agent-neutral guide for MCP tool usage"
+  default_prompt: "Use $mcp-tool-operator to work through MCP tools safely and with the correct argument and result handling."
+policy:
+  allow_implicit_invocation: true
