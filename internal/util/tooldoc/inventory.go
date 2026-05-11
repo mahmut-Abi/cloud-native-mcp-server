@@ -25,6 +25,7 @@ var serviceDisplayNames = map[string]string{
 	"grafana":       "Grafana",
 	"helm":          "Helm",
 	"jaeger":        "Jaeger",
+	"langfuse":      "Langfuse",
 	"kibana":        "Kibana",
 	"kubernetes":    "Kubernetes",
 	"opentelemetry": "OpenTelemetry",
@@ -41,6 +42,7 @@ var serviceOrder = []string{
 	"elasticsearch",
 	"alertmanager",
 	"jaeger",
+	"langfuse",
 	"opentelemetry",
 	"utilities",
 }

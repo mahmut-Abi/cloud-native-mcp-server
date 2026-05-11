@@ -133,6 +133,11 @@ func (l *ConfigLoader) setDefaults(cfg *AppConfig) {
 		cfg.Jaeger.TimeoutSec = 30
 	}
 
+	// Langfuse defaults
+	if cfg.Langfuse.TimeoutSec == 0 {
+		cfg.Langfuse.TimeoutSec = 30
+	}
+
 	// Elasticsearch defaults
 	if cfg.Elasticsearch.TimeoutSec == 0 {
 		cfg.Elasticsearch.TimeoutSec = 30

@@ -61,6 +61,10 @@ func (v *ConfigValidator) Validate(cfg *AppConfig) error {
 		return fmt.Errorf("jaeger config validation failed: %w", err)
 	}
 
+	if err := v.validateLangfuseConfig(cfg); err != nil {
+		return fmt.Errorf("langfuse config validation failed: %w", err)
+	}
+
 	if err := v.validateAuditConfig(cfg); err != nil {
 		return fmt.Errorf("audit config validation failed: %w", err)
 	}
@@ -334,6 +338,34 @@ func (v *ConfigValidator) validateJaegerConfig(cfg *AppConfig) error {
 
 	if cfg.Jaeger.TimeoutSec <= 0 {
 		return fmt.Errorf("jaeger timeout must be positive")
+	}
+
+	return nil
+}
+
+func (v *ConfigValidator) validateLangfuseConfig(cfg *AppConfig) error {
+	if !cfg.Langfuse.Enabled {
+		return nil
+	}
+
+	if cfg.Langfuse.URL == "" {
+		return fmt.Errorf("langfuse URL is required when enabled")
+	}
+
+	if !isValidURL(cfg.Langfuse.URL) {
+		return fmt.Errorf("invalid langfuse URL format: %s", cfg.Langfuse.URL)
+	}
+
+	if cfg.Langfuse.PublicKey == "" {
+		return fmt.Errorf("langfuse public key is required when enabled")
+	}
+
+	if cfg.Langfuse.SecretKey == "" {
+		return fmt.Errorf("langfuse secret key is required when enabled")
+	}
+
+	if cfg.Langfuse.TimeoutSec <= 0 {
+		cfg.Langfuse.TimeoutSec = 30
 	}
 
 	return nil

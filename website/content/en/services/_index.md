@@ -4,7 +4,7 @@ title: "Services"
 
 # Integrated Services
 
-Cloud Native MCP Server integrates 11 powerful cloud-native services, providing 250+ tools that fully cover Kubernetes management, deployment, monitoring, logging, tracing, and more.
+Cloud Native MCP Server integrates 12 powerful cloud-native services, providing 275 tools that fully cover Kubernetes management, deployment, monitoring, logging, tracing, and more.
 
 <div class="service-grid">
 
@@ -135,6 +135,20 @@ Cloud Native MCP Server integrates 11 powerful cloud-native services, providing 
 </div>
 
 <div class="service-card">
+  <h3>🧠 Langfuse</h3>
+  <p><span class="tool-count">13 tools</span></p>
+  <p>LLM observability platform for tracing prompt and response flows, session analysis, score inspection, and metrics exploration.</p>
+  <p><strong>Key Features:</strong></p>
+  <ul>
+    <li>Trace and session inspection</li>
+    <li>Observation and generation analysis</li>
+    <li>Prompt version discovery</li>
+    <li>Score and evaluation lookups</li>
+    <li>Metrics API queries</li>
+  </ul>
+</div>
+
+<div class="service-card">
   <h3>📡 OpenTelemetry</h3>
   <p><span class="tool-count">9 tools</span></p>
   <p>Unified observability framework for collecting metrics, traces, and logs.</p>
@@ -225,6 +239,14 @@ alertmanager:
 jaeger:
   enabled: true
   address: "http://localhost:16686"
+  timeoutSec: 30
+
+# Langfuse
+langfuse:
+  enabled: true
+  url: "https://cloud.langfuse.com"
+  publicKey: "pk-lf-..."
+  secretKey: "sk-lf-..."
   timeoutSec: 30
 
 # OpenTelemetry

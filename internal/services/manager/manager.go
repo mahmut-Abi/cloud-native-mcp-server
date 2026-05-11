@@ -17,6 +17,7 @@ import (
 	"github.com/mahmut-Abi/cloud-native-mcp-server/internal/services/jaeger"
 	"github.com/mahmut-Abi/cloud-native-mcp-server/internal/services/kibana"
 	"github.com/mahmut-Abi/cloud-native-mcp-server/internal/services/kubernetes"
+	"github.com/mahmut-Abi/cloud-native-mcp-server/internal/services/langfuse"
 	"github.com/mahmut-Abi/cloud-native-mcp-server/internal/services/loki"
 	"github.com/mahmut-Abi/cloud-native-mcp-server/internal/services/opentelemetry"
 	"github.com/mahmut-Abi/cloud-native-mcp-server/internal/services/prometheus"
@@ -37,6 +38,7 @@ type Manager struct {
 	alertmanagerService  *alertmanager.Service
 	elasticsearchService *elasticsearch.Service
 	jaegerService        *jaeger.Service
+	langfuseService      *langfuse.Service
 	opentelemetryService *opentelemetry.Service
 	utilitiesService     *utilities.Service
 	disabledTools        map[string]bool
@@ -80,6 +82,7 @@ func (m *Manager) Initialize(appConfig *config.AppConfig) error {
 	m.alertmanagerService = alertmanager.NewService()
 	m.elasticsearchService = elasticsearch.NewService()
 	m.jaegerService = jaeger.NewService()
+	m.langfuseService = langfuse.NewService()
 	m.opentelemetryService = opentelemetry.NewService()
 	m.utilitiesService = utilities.NewService()
 
@@ -116,6 +119,9 @@ func (m *Manager) Initialize(appConfig *config.AppConfig) error {
 	}
 	if m.jaegerService != nil {
 		m.registry.Register(m.jaegerService)
+	}
+	if m.langfuseService != nil {
+		m.registry.Register(m.langfuseService)
 	}
 	if m.opentelemetryService != nil {
 		m.registry.Register(m.opentelemetryService)
@@ -154,6 +160,7 @@ func (m *Manager) Initialize(appConfig *config.AppConfig) error {
 		{"alertmanager", m.alertmanagerService != nil},
 		{"elasticsearch", m.elasticsearchService != nil},
 		{"jaeger", m.jaegerService != nil},
+		{"langfuse", m.langfuseService != nil},
 		{"opentelemetry", m.opentelemetryService != nil},
 		{"utilities", m.utilitiesService != nil},
 	} {
@@ -178,7 +185,7 @@ func (m *Manager) Initialize(appConfig *config.AppConfig) error {
 	optionalServices := make([]struct {
 		name     string
 		initFunc func() error
-	}, 0, 9)
+	}, 0, 11)
 	if m.grafanaService != nil {
 		optionalServices = append(optionalServices, struct {
 			name     string
@@ -226,6 +233,12 @@ func (m *Manager) Initialize(appConfig *config.AppConfig) error {
 			name     string
 			initFunc func() error
 		}{"jaeger", func() error { return m.jaegerService.Initialize(cfg) }})
+	}
+	if m.langfuseService != nil {
+		optionalServices = append(optionalServices, struct {
+			name     string
+			initFunc func() error
+		}{"langfuse", func() error { return m.langfuseService.Initialize(cfg) }})
 	}
 	if m.opentelemetryService != nil {
 		optionalServices = append(optionalServices, struct {
@@ -428,6 +441,11 @@ func (m *Manager) GetOpenTelemetryService() *opentelemetry.Service {
 	return m.opentelemetryService
 }
 
+// GetLangfuseService returns the Langfuse service
+func (m *Manager) GetLangfuseService() *langfuse.Service {
+	return m.langfuseService
+}
+
 // GetUtilitiesService returns the Utilities service
 func (m *Manager) GetUtilitiesService() *utilities.Service {
 	return m.utilitiesService
@@ -569,7 +587,7 @@ func (m *Manager) ApplyServiceFilters(disabled, enabled []string) {
 		enabledMap[svc] = true
 	}
 
-	allServices := []string{"kubernetes", "grafana", "prometheus", "loki", "kibana", "helm", "elasticsearch", "alertmanager", "jaeger", "opentelemetry", "utilities"}
+	allServices := []string{"kubernetes", "grafana", "prometheus", "loki", "kibana", "helm", "elasticsearch", "alertmanager", "jaeger", "langfuse", "opentelemetry", "utilities"}
 
 	// If specific services are enabled, disable all others
 	if len(enabled) > 0 {
@@ -607,6 +625,9 @@ func (m *Manager) ApplyServiceFilters(disabled, enabled []string) {
 	}
 	if disabledMap["jaeger"] && m.jaegerService != nil {
 		m.jaegerService = nil
+	}
+	if disabledMap["langfuse"] && m.langfuseService != nil {
+		m.langfuseService = nil
 	}
 	if disabledMap["opentelemetry"] && m.opentelemetryService != nil {
 		m.opentelemetryService = nil
@@ -711,6 +732,7 @@ func (m *Manager) Shutdown() error {
 		{"alertmanager", m.alertmanagerService},
 		{"elasticsearch", m.elasticsearchService},
 		{"jaeger", m.jaegerService},
+		{"langfuse", m.langfuseService},
 		{"opentelemetry", m.opentelemetryService},
 		{"utilities", m.utilitiesService},
 	}

@@ -149,6 +149,7 @@ func TestApplyAppConfigWithValidConfig(t *testing.T) {
 				Alertmanager  string `yaml:"alertmanager"`
 				Jaeger        string `yaml:"jaeger"`
 				OpenTelemetry string `yaml:"opentelemetry"`
+				Langfuse      string `yaml:"langfuse"`
 				Aggregate     string `yaml:"aggregate"`
 				Utilities     string `yaml:"utilities"`
 			} `yaml:"ssePaths"`
@@ -163,6 +164,7 @@ func TestApplyAppConfigWithValidConfig(t *testing.T) {
 				Alertmanager  string `yaml:"alertmanager"`
 				Jaeger        string `yaml:"jaeger"`
 				OpenTelemetry string `yaml:"opentelemetry"`
+				Langfuse      string `yaml:"langfuse"`
 				Aggregate     string `yaml:"aggregate"`
 				Utilities     string `yaml:"utilities"`
 			} `yaml:"streamableHttpPaths"`
@@ -248,6 +250,7 @@ func TestApplyAppConfigCLITakesPrecedence(t *testing.T) {
 				Alertmanager  string `yaml:"alertmanager"`
 				Jaeger        string `yaml:"jaeger"`
 				OpenTelemetry string `yaml:"opentelemetry"`
+				Langfuse      string `yaml:"langfuse"`
 				Aggregate     string `yaml:"aggregate"`
 				Utilities     string `yaml:"utilities"`
 			} `yaml:"ssePaths"`
@@ -262,6 +265,7 @@ func TestApplyAppConfigCLITakesPrecedence(t *testing.T) {
 				Alertmanager  string `yaml:"alertmanager"`
 				Jaeger        string `yaml:"jaeger"`
 				OpenTelemetry string `yaml:"opentelemetry"`
+				Langfuse      string `yaml:"langfuse"`
 				Aggregate     string `yaml:"aggregate"`
 				Utilities     string `yaml:"utilities"`
 			} `yaml:"streamableHttpPaths"`

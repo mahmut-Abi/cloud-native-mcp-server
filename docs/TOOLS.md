@@ -23,6 +23,7 @@ For the exact runtime inventory, prefer `--list tools`.
 - [Elasticsearch (12 tools)](#elasticsearch-12-tools)
 - [Alertmanager (16 tools)](#alertmanager-16-tools)
 - [Jaeger (8 tools)](#jaeger-8-tools)
+- [Langfuse (13 tools)](#langfuse-13-tools)
 - [OpenTelemetry (9 tools)](#opentelemetry-9-tools)
 - [Utilities (6 tools)](#utilities-6-tools)
 
@@ -590,6 +591,58 @@ Practical guidance:
 
 ---
 
+## Langfuse (13 tools)
+
+### Health
+
+| Tool | Description | Priority |
+|------|-------------|----------|
+| `langfuse_check_health` | Check Langfuse API and database health before debugging deeper API failures. | ⚠️ PRIORITY |
+
+### Traces
+
+| Tool | Description | Priority |
+|------|-------------|----------|
+| `langfuse_list_traces_summary` | Recommended first step for trace discovery. Returns a compact trace view for faster browsing. | ⚠️ PRIORITY |
+| `langfuse_list_traces` | List traces with optional filters for user, session, tags, environment, and time range. | - |
+| `langfuse_get_trace` | Get a specific trace by ID with optional field-group filtering. | - |
+
+### Sessions
+
+| Tool | Description | Priority |
+|------|-------------|----------|
+| `langfuse_list_sessions` | List sessions with time range and environment filters. | - |
+| `langfuse_get_session` | Get a specific session and its related trace context. | - |
+
+### Observations
+
+| Tool | Description | Priority |
+|------|-------------|----------|
+| `langfuse_list_observations` | List observations such as spans, generations, and events with filtering support. | - |
+| `langfuse_get_observation` | Get a specific observation by ID. | - |
+
+### Prompts
+
+| Tool | Description | Priority |
+|------|-------------|----------|
+| `langfuse_list_prompts` | List prompt versions with name, label, tag, and update-time filters. | - |
+| `langfuse_get_prompt` | Get a prompt by name and optional label or version. | - |
+
+### Scores
+
+| Tool | Description | Priority |
+|------|-------------|----------|
+| `langfuse_list_scores` | List scores with optional trace, session, observation, environment, and time filters. | - |
+| `langfuse_get_score` | Get a specific score by ID. | - |
+
+### Metrics
+
+| Tool | Description | Priority |
+|------|-------------|----------|
+| `langfuse_get_metrics` | Execute a Langfuse metrics query using the Public API query object. | - |
+
+---
+
 ## Utilities (6 tools)
 
 ### Time
@@ -930,6 +983,22 @@ Do not edit this block by hand.
 - `jaeger_get_traces`
 - `jaeger_get_traces_summary`
 - `jaeger_search_traces`
+
+### Langfuse (13 tools)
+
+- `langfuse_check_health`
+- `langfuse_get_metrics`
+- `langfuse_get_observation`
+- `langfuse_get_prompt`
+- `langfuse_get_score`
+- `langfuse_get_session`
+- `langfuse_get_trace`
+- `langfuse_list_observations`
+- `langfuse_list_prompts`
+- `langfuse_list_scores`
+- `langfuse_list_sessions`
+- `langfuse_list_traces`
+- `langfuse_list_traces_summary`
 
 ### OpenTelemetry (9 tools)
 

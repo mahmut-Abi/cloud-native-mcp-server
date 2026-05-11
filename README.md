@@ -6,14 +6,14 @@
 
 [🇨🇳 中文文档](README-zh.md) | [🇬🇧 English](README.md)
 
-A high-performance Model Context Protocol (MCP) server for Kubernetes and cloud-native infrastructure management with 11 integrated services and 250+ tools.
+A high-performance Model Context Protocol (MCP) server for Kubernetes and cloud-native infrastructure management with 12 integrated services and 275 tools.
 
 ---
 
 ## Features
 
-- **11 Integrated Services**: Kubernetes, Grafana, Prometheus, Loki, Kibana, Elasticsearch, Helm, Alertmanager, Jaeger, OpenTelemetry, Utilities
-- **250+ MCP Tools**: Comprehensive toolset for infrastructure operations
+- **12 Integrated Services**: Kubernetes, Grafana, Prometheus, Loki, Kibana, Elasticsearch, Helm, Alertmanager, Jaeger, Langfuse, OpenTelemetry, Utilities
+- **275 MCP Tools**: Comprehensive toolset for infrastructure operations
 - **Multi-Protocol Support**: SSE and streamable-http modes
 - **Smart Caching**: LRU cache with TTL support for optimal performance
 - **Performance Optimized**: JSON encoding pool, response size control, intelligent limits
@@ -47,10 +47,11 @@ A high-performance Model Context Protocol (MCP) server for Kubernetes and cloud-
 | **elasticsearch** | 12 | Log storage, search, and data indexing |
 | **alertmanager** | 16 | Alert rules management and notifications |
 | **jaeger** | 8 | Distributed tracing and performance analysis |
+| **langfuse** | 13 | LLM observability, prompts, traces, scores, and metrics |
 | **opentelemetry** | 9 | Metrics, traces, and logs collection and analysis |
 | **utilities** | 6 | General-purpose utility tools |
 
-**Total: 250+ tools**
+**Total: 275 tools**
 
 ---
 
@@ -105,6 +106,7 @@ make build
 | `/api/elasticsearch/sse` | Elasticsearch service |
 | `/api/alertmanager/sse` | Alertmanager service |
 | `/api/jaeger/sse` | Jaeger service |
+| `/api/langfuse/sse` | Langfuse service |
 | `/api/opentelemetry/sse` | OpenTelemetry service |
 | `/api/utilities/sse` | Utilities service |
 

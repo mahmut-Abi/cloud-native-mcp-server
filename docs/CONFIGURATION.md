@@ -51,6 +51,7 @@ server:
     alertmanager: "/api/alertmanager/sse"
     jaeger: "/api/jaeger/sse"
     opentelemetry: "/api/opentelemetry/sse"
+    langfuse: "/api/langfuse/sse"
     utilities: "/api/utilities/sse"
     aggregate: "/api/aggregate/sse"
 
@@ -65,6 +66,7 @@ server:
     alertmanager: "/api/alertmanager/streamable-http"
     jaeger: "/api/jaeger/streamable-http"
     opentelemetry: "/api/opentelemetry/streamable-http"
+    langfuse: "/api/langfuse/streamable-http"
     utilities: "/api/utilities/streamable-http"
     aggregate: "/api/aggregate/streamable-http"
 
@@ -243,6 +245,13 @@ alertmanager:
 jaeger:
   enabled: false
   address: "http://jaeger:16686"
+  timeoutSec: 30
+
+langfuse:
+  enabled: false
+  url: "https://cloud.langfuse.com"
+  publicKey: ""
+  secretKey: ""
   timeoutSec: 30
 
 opentelemetry:

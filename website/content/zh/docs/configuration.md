@@ -95,6 +95,12 @@ server:
     # Alertmanager SSE 端点
     alertmanager: "/api/alertmanager/sse"
 
+    # Jaeger SSE 端点
+    jaeger: "/api/jaeger/sse"
+
+    # Langfuse SSE 端点
+    langfuse: "/api/langfuse/sse"
+
     # Elasticsearch SSE 端点
     elasticsearch: "/api/elasticsearch/sse"
 
@@ -133,6 +139,12 @@ server:
 
     # Alertmanager Streamable-HTTP 端点
     alertmanager: "/api/alertmanager/streamable-http"
+
+    # Jaeger Streamable-HTTP 端点
+    jaeger: "/api/jaeger/streamable-http"
+
+    # Langfuse Streamable-HTTP 端点
+    langfuse: "/api/langfuse/streamable-http"
 
     # Elasticsearch Streamable-HTTP 端点
     elasticsearch: "/api/elasticsearch/streamable-http"
@@ -471,6 +483,27 @@ opentelemetry:
 
   # TLS CA 证书文件路径
   tlsCAFile: ""
+```
+
+### Langfuse
+
+```yaml
+langfuse:
+  # 启用/禁用 Langfuse 服务
+  enabled: false
+
+  # Langfuse 基础地址
+  # 格式: https://cloud.langfuse.com 或自建 Langfuse 地址
+  url: "https://cloud.langfuse.com"
+
+  # Langfuse public key
+  publicKey: ""
+
+  # Langfuse secret key
+  secretKey: ""
+
+  # 请求超时（秒）
+  timeoutSec: 30
 ```
 
 ### Utilities
