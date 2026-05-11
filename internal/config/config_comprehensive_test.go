@@ -297,13 +297,44 @@ func TestOpenTelemetryServiceConfigFromEnv(t *testing.T) {
 	}
 }
 
+func TestLangfuseServiceConfigFromEnv(t *testing.T) {
+	t.Setenv("MCP_LANGFUSE_ENABLED", "true")
+	t.Setenv("MCP_LANGFUSE_URL", "https://langfuse.example.com")
+	t.Setenv("MCP_LANGFUSE_PUBLIC_KEY", "pk-test")
+	t.Setenv("MCP_LANGFUSE_SECRET_KEY", "sk-test")
+	t.Setenv("MCP_LANGFUSE_TIMEOUT", "40")
+
+	cfg, err := Load("")
+	if err != nil {
+		t.Fatalf("Load() error = %v", err)
+	}
+
+	if !cfg.Langfuse.Enabled {
+		t.Fatal("Expected Langfuse service to be enabled")
+	}
+	if cfg.Langfuse.URL != "https://langfuse.example.com" {
+		t.Errorf("Expected Langfuse URL override, got %q", cfg.Langfuse.URL)
+	}
+	if cfg.Langfuse.PublicKey != "pk-test" {
+		t.Errorf("Expected Langfuse public key override, got %q", cfg.Langfuse.PublicKey)
+	}
+	if cfg.Langfuse.SecretKey != "sk-test" {
+		t.Errorf("Expected Langfuse secret key override, got %q", cfg.Langfuse.SecretKey)
+	}
+	if cfg.Langfuse.TimeoutSec != 40 {
+		t.Errorf("Expected Langfuse timeout 40, got %d", cfg.Langfuse.TimeoutSec)
+	}
+}
+
 func TestServerPathOverridesFromEnv(t *testing.T) {
 	t.Setenv("MCP_SSE_PATH_ELASTICSEARCH", "/custom/elasticsearch/sse")
 	t.Setenv("MCP_SSE_PATH_JAEGER", "/custom/jaeger/sse")
+	t.Setenv("MCP_SSE_PATH_LANGFUSE", "/custom/langfuse/sse")
 	t.Setenv("MCP_SSE_PATH_LOKI", "/custom/loki/sse")
 	t.Setenv("MCP_SSE_PATH_OPENTELEMETRY", "/custom/opentelemetry/sse")
 	t.Setenv("MCP_STREAMABLE_HTTP_PATH_ELASTICSEARCH", "/custom/elasticsearch/stream")
 	t.Setenv("MCP_STREAMABLE_HTTP_PATH_JAEGER", "/custom/jaeger/stream")
+	t.Setenv("MCP_STREAMABLE_HTTP_PATH_LANGFUSE", "/custom/langfuse/stream")
 	t.Setenv("MCP_STREAMABLE_HTTP_PATH_LOKI", "/custom/loki/stream")
 	t.Setenv("MCP_STREAMABLE_HTTP_PATH_OPENTELEMETRY", "/custom/opentelemetry/stream")
 
@@ -318,6 +349,9 @@ func TestServerPathOverridesFromEnv(t *testing.T) {
 	if cfg.Server.SSEPaths.Jaeger != "/custom/jaeger/sse" {
 		t.Errorf("Expected jaeger SSE path override, got %q", cfg.Server.SSEPaths.Jaeger)
 	}
+	if cfg.Server.SSEPaths.Langfuse != "/custom/langfuse/sse" {
+		t.Errorf("Expected langfuse SSE path override, got %q", cfg.Server.SSEPaths.Langfuse)
+	}
 	if cfg.Server.SSEPaths.Loki != "/custom/loki/sse" {
 		t.Errorf("Expected loki SSE path override, got %q", cfg.Server.SSEPaths.Loki)
 	}
@@ -329,6 +363,9 @@ func TestServerPathOverridesFromEnv(t *testing.T) {
 	}
 	if cfg.Server.StreamableHTTPPaths.Jaeger != "/custom/jaeger/stream" {
 		t.Errorf("Expected jaeger streamable-http path override, got %q", cfg.Server.StreamableHTTPPaths.Jaeger)
+	}
+	if cfg.Server.StreamableHTTPPaths.Langfuse != "/custom/langfuse/stream" {
+		t.Errorf("Expected langfuse streamable-http path override, got %q", cfg.Server.StreamableHTTPPaths.Langfuse)
 	}
 	if cfg.Server.StreamableHTTPPaths.Loki != "/custom/loki/stream" {
 		t.Errorf("Expected loki streamable-http path override, got %q", cfg.Server.StreamableHTTPPaths.Loki)

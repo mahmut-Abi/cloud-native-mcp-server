@@ -244,6 +244,7 @@ func (s *ServerConfig) InitSSEServers(mcpServer *server.MCPServer, addr string, 
 	elasticsearchPath := "/api/elasticsearch/sse"
 	alertmanagerPath := "/api/alertmanager/sse"
 	jaegerPath := "/api/jaeger/sse"
+	langfusePath := "/api/langfuse/sse"
 	aggregatePath := "/api/aggregate/sse"
 	utilitiesPath := "/api/utilities/sse"
 
@@ -276,6 +277,9 @@ func (s *ServerConfig) InitSSEServers(mcpServer *server.MCPServer, addr string, 
 		if appConfig.Server.SSEPaths.Jaeger != "" {
 			jaegerPath = appConfig.Server.SSEPaths.Jaeger
 		}
+		if appConfig.Server.SSEPaths.Langfuse != "" {
+			langfusePath = appConfig.Server.SSEPaths.Langfuse
+		}
 		// Check for aggregate SSE path in config
 		if appConfig.Server.SSEPaths.Aggregate != "" {
 			aggregatePath = appConfig.Server.SSEPaths.Aggregate
@@ -296,6 +300,7 @@ func (s *ServerConfig) InitSSEServers(mcpServer *server.MCPServer, addr string, 
 	elasticsearchServer := s.createServiceMCPServer("elasticsearch")
 	alertmanagerServer := s.createServiceMCPServer("alertmanager")
 	jaegerServer := s.createServiceMCPServer("jaeger")
+	langfuseServer := s.createServiceMCPServer("langfuse")
 	opentelemetryServer := s.createServiceMCPServer("opentelemetry")
 
 	// Create aggregated MCP server with all services
@@ -405,6 +410,16 @@ func (s *ServerConfig) InitSSEServers(mcpServer *server.MCPServer, addr string, 
 		server.WithUseFullURLForMessageEndpoint(true),
 	)
 
+	sseServers["langfuse"] = server.NewSSEServer(langfuseServer,
+		server.WithStaticBasePath(""),
+		server.WithSSEEndpoint(langfusePath),
+		server.WithMessageEndpoint(langfusePath+"/message"),
+		server.WithKeepAlive(true),
+		server.WithKeepAliveInterval(30*time.Second),
+		server.WithAppendQueryToMessageEndpoint(),
+		server.WithUseFullURLForMessageEndpoint(true),
+	)
+
 	// Create opentelemetry SSE server
 	opentelemetryPath := "/api/opentelemetry/sse"
 	if appConfig != nil && appConfig.Server.SSEPaths.OpenTelemetry != "" {
@@ -442,6 +457,7 @@ func (s *ServerConfig) InitSSEServers(mcpServer *server.MCPServer, addr string, 
 		"elasticsearch_path": elasticsearchPath,
 		"alertmanager_path":  alertmanagerPath,
 		"jaeger_path":        jaegerPath,
+		"langfuse_path":      langfusePath,
 		"aggregate_path":     aggregatePath,
 		"utilities_path":     utilitiesPath,
 	}).Info("Multiple SSE servers initialized successfully")
@@ -464,6 +480,7 @@ func (s *ServerConfig) InitStreamableHTTPServers(mcpServer *server.MCPServer, ad
 	elasticsearchPath := "/api/elasticsearch/streamable-http"
 	alertmanagerPath := "/api/alertmanager/streamable-http"
 	jaegerPath := "/api/jaeger/streamable-http"
+	langfusePath := "/api/langfuse/streamable-http"
 	aggregatePath := "/api/aggregate/streamable-http"
 	utilitiesPath := "/api/utilities/streamable-http"
 
@@ -496,6 +513,9 @@ func (s *ServerConfig) InitStreamableHTTPServers(mcpServer *server.MCPServer, ad
 		if appConfig.Server.StreamableHTTPPaths.Jaeger != "" {
 			jaegerPath = appConfig.Server.StreamableHTTPPaths.Jaeger
 		}
+		if appConfig.Server.StreamableHTTPPaths.Langfuse != "" {
+			langfusePath = appConfig.Server.StreamableHTTPPaths.Langfuse
+		}
 		if appConfig.Server.StreamableHTTPPaths.Aggregate != "" {
 			aggregatePath = appConfig.Server.StreamableHTTPPaths.Aggregate
 		}
@@ -514,6 +534,7 @@ func (s *ServerConfig) InitStreamableHTTPServers(mcpServer *server.MCPServer, ad
 	elasticsearchServer := s.createServiceMCPServer("elasticsearch")
 	alertmanagerServer := s.createServiceMCPServer("alertmanager")
 	jaegerServer := s.createServiceMCPServer("jaeger")
+	langfuseServer := s.createServiceMCPServer("langfuse")
 	opentelemetryServer := s.createServiceMCPServer("opentelemetry")
 
 	// Create aggregated MCP server with all services
@@ -583,6 +604,12 @@ func (s *ServerConfig) InitStreamableHTTPServers(mcpServer *server.MCPServer, ad
 		server.WithStateLess(true),
 	)
 
+	streamableHTTPServers["langfuse"] = server.NewStreamableHTTPServer(langfuseServer,
+		server.WithEndpointPath(langfusePath),
+		server.WithHeartbeatInterval(60*time.Second),
+		server.WithStateLess(true),
+	)
+
 	// Create opentelemetry StreamableHTTP server
 	opentelemetryPath := "/api/opentelemetry/streamable-http"
 	if appConfig != nil && appConfig.Server.StreamableHTTPPaths.OpenTelemetry != "" {
@@ -610,6 +637,7 @@ func (s *ServerConfig) InitStreamableHTTPServers(mcpServer *server.MCPServer, ad
 		"elasticsearch_path": elasticsearchPath,
 		"alertmanager_path":  alertmanagerPath,
 		"jaeger_path":        jaegerPath,
+		"langfuse_path":      langfusePath,
 		"opentelemetry_path": opentelemetryPath,
 		"aggregate_path":     aggregatePath,
 		"utilities_path":     utilitiesPath,
@@ -671,6 +699,10 @@ func (s *ServerConfig) createServiceMCPServer(serviceName string) *server.MCPSer
 		case "jaeger":
 			if jaegerService := s.serviceManager.GetJaegerService(); jaegerService != nil && jaegerService.IsEnabled() {
 				s.registerTools(serviceServer, jaegerService.GetTools(), jaegerService.GetHandlers())
+			}
+		case "langfuse":
+			if langfuseService := s.serviceManager.GetLangfuseService(); langfuseService != nil && langfuseService.IsEnabled() {
+				s.registerTools(serviceServer, langfuseService.GetTools(), langfuseService.GetHandlers())
 			}
 		case "opentelemetry":
 			if opentelemetryService := s.serviceManager.GetOpenTelemetryService(); opentelemetryService != nil && opentelemetryService.IsEnabled() {
@@ -751,6 +783,11 @@ func (s *ServerConfig) createAggregateMCPServer() *server.MCPServer {
 		// Add Jaeger service capabilities
 		if jaegerService := s.serviceManager.GetJaegerService(); jaegerService != nil && jaegerService.IsEnabled() {
 			s.registerTools(aggregateServer, jaegerService.GetTools(), jaegerService.GetHandlers())
+		}
+
+		// Add Langfuse service capabilities
+		if langfuseService := s.serviceManager.GetLangfuseService(); langfuseService != nil && langfuseService.IsEnabled() {
+			s.registerTools(aggregateServer, langfuseService.GetTools(), langfuseService.GetHandlers())
 		}
 
 		// Add OpenTelemetry service capabilities

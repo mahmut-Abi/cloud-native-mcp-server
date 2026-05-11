@@ -68,7 +68,7 @@ func TestInitSSEServers(t *testing.T) {
 	sseServers := sc.InitSSEServers(mcpServer, "127.0.0.1:8080", appConfig)
 
 	assert.NotNil(t, sseServers)
-	assert.Len(t, sseServers, 12) // kubernetes, grafana, prometheus, loki, kibana, helm, elasticsearch, alertmanager, jaeger, opentelemetry, aggregate, utilities
+	assert.Len(t, sseServers, 13) // kubernetes, grafana, prometheus, loki, kibana, helm, elasticsearch, alertmanager, jaeger, langfuse, opentelemetry, aggregate, utilities
 	assert.Contains(t, sseServers, "kubernetes")
 	assert.Contains(t, sseServers, "grafana")
 	assert.Contains(t, sseServers, "prometheus")
@@ -78,6 +78,7 @@ func TestInitSSEServers(t *testing.T) {
 	assert.Contains(t, sseServers, "elasticsearch")
 	assert.Contains(t, sseServers, "alertmanager")
 	assert.Contains(t, sseServers, "jaeger")
+	assert.Contains(t, sseServers, "langfuse")
 	assert.Contains(t, sseServers, "opentelemetry")
 	assert.Contains(t, sseServers, "aggregate")
 	assert.Contains(t, sseServers, "utilities")
@@ -105,6 +106,7 @@ func TestInitSSEServersWithCustomPaths(t *testing.T) {
 				Alertmanager  string `yaml:"alertmanager"`
 				Jaeger        string `yaml:"jaeger"`
 				OpenTelemetry string `yaml:"opentelemetry"`
+				Langfuse      string `yaml:"langfuse"`
 				Aggregate     string `yaml:"aggregate"`
 				Utilities     string `yaml:"utilities"`
 			} `yaml:"ssePaths"`
@@ -119,6 +121,7 @@ func TestInitSSEServersWithCustomPaths(t *testing.T) {
 				Alertmanager  string `yaml:"alertmanager"`
 				Jaeger        string `yaml:"jaeger"`
 				OpenTelemetry string `yaml:"opentelemetry"`
+				Langfuse      string `yaml:"langfuse"`
 				Aggregate     string `yaml:"aggregate"`
 				Utilities     string `yaml:"utilities"`
 			} `yaml:"streamableHttpPaths"`
@@ -140,6 +143,7 @@ func TestInitSSEServersWithCustomPaths(t *testing.T) {
 				Alertmanager  string `yaml:"alertmanager"`
 				Jaeger        string `yaml:"jaeger"`
 				OpenTelemetry string `yaml:"opentelemetry"`
+				Langfuse      string `yaml:"langfuse"`
 				Aggregate     string `yaml:"aggregate"`
 				Utilities     string `yaml:"utilities"`
 			}{
@@ -153,7 +157,7 @@ func TestInitSSEServersWithCustomPaths(t *testing.T) {
 	sseServers := sc.InitSSEServers(mcpServer, "127.0.0.1:8080", appConfig)
 
 	assert.NotNil(t, sseServers)
-	assert.Len(t, sseServers, 12)
+	assert.Len(t, sseServers, 13)
 }
 
 // Test InitStreamableHTTPServers
@@ -165,7 +169,7 @@ func TestInitStreamableHTTPServers(t *testing.T) {
 	httpServers := sc.InitStreamableHTTPServers(mcpServer, "127.0.0.1:8080", appConfig)
 
 	assert.NotNil(t, httpServers)
-	assert.Len(t, httpServers, 12) // Same services as SSE
+	assert.Len(t, httpServers, 13) // Same services as SSE
 	assert.Contains(t, httpServers, "kubernetes")
 	assert.Contains(t, httpServers, "grafana")
 	assert.Contains(t, httpServers, "prometheus")
@@ -175,6 +179,7 @@ func TestInitStreamableHTTPServers(t *testing.T) {
 	assert.Contains(t, httpServers, "elasticsearch")
 	assert.Contains(t, httpServers, "alertmanager")
 	assert.Contains(t, httpServers, "jaeger")
+	assert.Contains(t, httpServers, "langfuse")
 	assert.Contains(t, httpServers, "opentelemetry")
 	assert.Contains(t, httpServers, "aggregate")
 	assert.Contains(t, httpServers, "utilities")
@@ -202,6 +207,7 @@ func TestInitStreamableHTTPServersWithCustomPaths(t *testing.T) {
 				Alertmanager  string `yaml:"alertmanager"`
 				Jaeger        string `yaml:"jaeger"`
 				OpenTelemetry string `yaml:"opentelemetry"`
+				Langfuse      string `yaml:"langfuse"`
 				Aggregate     string `yaml:"aggregate"`
 				Utilities     string `yaml:"utilities"`
 			} `yaml:"ssePaths"`
@@ -216,6 +222,7 @@ func TestInitStreamableHTTPServersWithCustomPaths(t *testing.T) {
 				Alertmanager  string `yaml:"alertmanager"`
 				Jaeger        string `yaml:"jaeger"`
 				OpenTelemetry string `yaml:"opentelemetry"`
+				Langfuse      string `yaml:"langfuse"`
 				Aggregate     string `yaml:"aggregate"`
 				Utilities     string `yaml:"utilities"`
 			} `yaml:"streamableHttpPaths"`
@@ -237,6 +244,7 @@ func TestInitStreamableHTTPServersWithCustomPaths(t *testing.T) {
 				Alertmanager  string `yaml:"alertmanager"`
 				Jaeger        string `yaml:"jaeger"`
 				OpenTelemetry string `yaml:"opentelemetry"`
+				Langfuse      string `yaml:"langfuse"`
 				Aggregate     string `yaml:"aggregate"`
 				Utilities     string `yaml:"utilities"`
 			}{
@@ -250,7 +258,7 @@ func TestInitStreamableHTTPServersWithCustomPaths(t *testing.T) {
 	httpServers := sc.InitStreamableHTTPServers(mcpServer, "127.0.0.1:8080", appConfig)
 
 	assert.NotNil(t, httpServers)
-	assert.Len(t, httpServers, 12)
+	assert.Len(t, httpServers, 13)
 }
 
 // Test SetupMultipleRoutes with SSE mode - only test mux creation, not actual HTTP handling

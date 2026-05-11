@@ -6,7 +6,7 @@ description: 面向 Kubernetes 与云原生运维场景的高性能 Model Contex
 
 <div class="hero">
   <h1>Cloud Native MCP Server</h1>
-  <p>面向 Kubernetes 与云原生基础设施管理的生产级 MCP 服务器，聚合 11 个服务与 250+ 工具，支持 SSE / Streamable-HTTP 两种运行模式。</p>
+  <p>面向 Kubernetes 与云原生基础设施管理的生产级 MCP 服务器，聚合 12 个服务与 275 个工具，支持 SSE / Streamable-HTTP 两种运行模式。</p>
   <div class="hero-buttons">
     <a href="https://github.com/mahmut-Abi/cloud-native-mcp-server" class="cta-button"><span>GitHub 仓库</span></a>
     <a href="#quick-start" class="cta-button transparent"><span>快速开始</span></a>
@@ -49,7 +49,7 @@ description: 面向 Kubernetes 与云原生运维场景的高性能 Model Contex
   </article>
   <article class="usecase-card">
     <h3>可观测性协同分析</h3>
-    <p>跨 Prometheus、Grafana、Loki、Jaeger、OpenTelemetry 联动，串联指标、日志与链路数据。</p>
+    <p>跨 Prometheus、Grafana、Loki、Jaeger、Langfuse、OpenTelemetry 联动，串联指标、日志与链路数据。</p>
   </article>
 </div>
 
@@ -59,11 +59,11 @@ description: 面向 Kubernetes 与云原生运维场景的高性能 Model Contex
 
 <div class="stats-grid">
   <div class="stat-item">
-    <div class="stat-number">11</div>
+    <div class="stat-number">12</div>
     <div class="stat-label">集成服务</div>
   </div>
   <div class="stat-item">
-    <div class="stat-number">250+</div>
+    <div class="stat-number">275</div>
     <div class="stat-label">MCP 工具</div>
   </div>
   <div class="stat-item">
@@ -116,6 +116,10 @@ description: 面向 Kubernetes 与云原生运维场景的高性能 Model Contex
   <div class="service-card">
     <h3>Jaeger <span class="tool-count">8 工具</span></h3>
     <p>分布式链路追踪与延迟路径分析。</p>
+  </div>
+  <div class="service-card">
+    <h3>Langfuse <span class="tool-count">13 工具</span></h3>
+    <p>面向 LLM 场景的 Trace、Session、Prompt、评分与指标分析。</p>
   </div>
   <div class="service-card">
     <h3>OpenTelemetry <span class="tool-count">9 工具</span></h3>

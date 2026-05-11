@@ -34,6 +34,7 @@ func (p *EnvParser) Parse(cfg *AppConfig) *AppConfig {
 	p.parseElasticsearchConfig(cfg, over)
 	p.parseAlertmanagerConfig(cfg, over)
 	p.parseJaegerConfig(cfg, over)
+	p.parseLangfuseConfig(cfg, over)
 	p.parseOpenTelemetryConfig(cfg, over)
 	p.parseServerOTELConfig(cfg, over)
 	p.parseRateLimitConfig(cfg, over)
@@ -92,6 +93,9 @@ func (p *EnvParser) parseServerConfig(cfg *AppConfig, over func(string) (string,
 	if v, ok := over("MCP_SSE_PATH_OPENTELEMETRY"); ok {
 		cfg.Server.SSEPaths.OpenTelemetry = v
 	}
+	if v, ok := over("MCP_SSE_PATH_LANGFUSE"); ok {
+		cfg.Server.SSEPaths.Langfuse = v
+	}
 	if v, ok := over("MCP_SSE_PATH_AGGREGATE"); ok {
 		cfg.Server.SSEPaths.Aggregate = v
 	}
@@ -129,6 +133,9 @@ func (p *EnvParser) parseServerConfig(cfg *AppConfig, over func(string) (string,
 	}
 	if v, ok := over("MCP_STREAMABLE_HTTP_PATH_OPENTELEMETRY"); ok {
 		cfg.Server.StreamableHTTPPaths.OpenTelemetry = v
+	}
+	if v, ok := over("MCP_STREAMABLE_HTTP_PATH_LANGFUSE"); ok {
+		cfg.Server.StreamableHTTPPaths.Langfuse = v
 	}
 	if v, ok := over("MCP_STREAMABLE_HTTP_PATH_AGGREGATE"); ok {
 		cfg.Server.StreamableHTTPPaths.Aggregate = v
@@ -381,6 +388,24 @@ func (p *EnvParser) parseJaegerConfig(cfg *AppConfig, over func(string) (string,
 	}
 	if v, ok := over("MCP_JAEGER_TIMEOUT"); ok {
 		cfg.Jaeger.TimeoutSec = atoiDefault(v, cfg.Jaeger.TimeoutSec)
+	}
+}
+
+func (p *EnvParser) parseLangfuseConfig(cfg *AppConfig, over func(string) (string, bool)) {
+	if v, ok := over("MCP_LANGFUSE_ENABLED"); ok {
+		cfg.Langfuse.Enabled = isTrue(v)
+	}
+	if v, ok := over("MCP_LANGFUSE_URL"); ok {
+		cfg.Langfuse.URL = v
+	}
+	if v, ok := over("MCP_LANGFUSE_PUBLIC_KEY"); ok {
+		cfg.Langfuse.PublicKey = v
+	}
+	if v, ok := over("MCP_LANGFUSE_SECRET_KEY"); ok {
+		cfg.Langfuse.SecretKey = v
+	}
+	if v, ok := over("MCP_LANGFUSE_TIMEOUT"); ok {
+		cfg.Langfuse.TimeoutSec = atoiDefault(v, cfg.Langfuse.TimeoutSec)
 	}
 }
 

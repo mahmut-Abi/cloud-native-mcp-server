@@ -44,6 +44,10 @@ server:
     # Environment variable: MCP_SSE_PATH_PROMETHEUS
     prometheus: "/api/prometheus/sse"
 
+    # Loki SSE endpoint
+    # Environment variable: MCP_SSE_PATH_LOKI
+    loki: "/api/loki/sse"
+
     # Kibana SSE endpoint
     # Environment variable: MCP_SSE_PATH_KIBANA
     kibana: "/api/kibana/sse"
@@ -59,6 +63,18 @@ server:
     # Elasticsearch SSE endpoint
     # Environment variable: MCP_SSE_PATH_ELASTICSEARCH
     elasticsearch: "/api/elasticsearch/sse"
+
+    # Jaeger SSE endpoint
+    # Environment variable: MCP_SSE_PATH_JAEGER
+    jaeger: "/api/jaeger/sse"
+
+    # OpenTelemetry SSE endpoint
+    # Environment variable: MCP_SSE_PATH_OPENTELEMETRY
+    opentelemetry: "/api/opentelemetry/sse"
+
+    # Langfuse SSE endpoint
+    # Environment variable: MCP_SSE_PATH_LANGFUSE
+    langfuse: "/api/langfuse/sse"
 
     # Utilities SSE endpoint
     # Environment variable: MCP_SSE_PATH_UTILITIES
@@ -82,6 +98,9 @@ server:
     # Prometheus Streamable-HTTP endpoint
     prometheus: "/api/prometheus/streamable-http"
 
+    # Loki Streamable-HTTP endpoint
+    loki: "/api/loki/streamable-http"
+
     # Kibana Streamable-HTTP endpoint
     kibana: "/api/kibana/streamable-http"
 
@@ -93,6 +112,15 @@ server:
 
     # Elasticsearch Streamable-HTTP endpoint
     elasticsearch: "/api/elasticsearch/streamable-http"
+
+    # Jaeger Streamable-HTTP endpoint
+    jaeger: "/api/jaeger/streamable-http"
+
+    # OpenTelemetry Streamable-HTTP endpoint
+    opentelemetry: "/api/opentelemetry/streamable-http"
+
+    # Langfuse Streamable-HTTP endpoint
+    langfuse: "/api/langfuse/streamable-http"
 
     # Utilities Streamable-HTTP endpoint
     utilities: "/api/utilities/streamable-http"
@@ -436,6 +464,31 @@ opentelemetry:
   # TLS CA certificate file path
   # Environment variable: MCP_OPENTELEMETRY_TLS_CA_FILE
   tlsCAFile: ""
+
+################################################################################
+# Langfuse Configuration
+################################################################################
+langfuse:
+  # Enable/disable Langfuse service
+  # Environment variable: MCP_LANGFUSE_ENABLED (1, true, yes, on)
+  enabled: false
+
+  # Langfuse base URL
+  # Format: https://cloud.langfuse.com or your self-hosted Langfuse URL
+  # Environment variable: MCP_LANGFUSE_URL
+  url: "https://cloud.langfuse.com"
+
+  # Langfuse public key
+  # Environment variable: MCP_LANGFUSE_PUBLIC_KEY
+  publicKey: ""
+
+  # Langfuse secret key
+  # Environment variable: MCP_LANGFUSE_SECRET_KEY
+  secretKey: ""
+
+  # Request timeout (seconds)
+  # Environment variable: MCP_LANGFUSE_TIMEOUT
+  timeoutSec: 30
 
 ################################################################################
 # OpenTelemetry (OTEL) Configuration for Server Observability

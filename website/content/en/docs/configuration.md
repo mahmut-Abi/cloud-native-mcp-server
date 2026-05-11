@@ -97,6 +97,12 @@ server:
     # Alertmanager SSE endpoint
     alertmanager: "/api/alertmanager/sse"
 
+    # Jaeger SSE endpoint
+    jaeger: "/api/jaeger/sse"
+
+    # Langfuse SSE endpoint
+    langfuse: "/api/langfuse/sse"
+
     # Elasticsearch SSE endpoint
     elasticsearch: "/api/elasticsearch/sse"
 
@@ -135,6 +141,12 @@ server:
 
     # Alertmanager Streamable-HTTP endpoint
     alertmanager: "/api/alertmanager/streamable-http"
+
+    # Jaeger Streamable-HTTP endpoint
+    jaeger: "/api/jaeger/streamable-http"
+
+    # Langfuse Streamable-HTTP endpoint
+    langfuse: "/api/langfuse/streamable-http"
 
     # Elasticsearch Streamable-HTTP endpoint
     elasticsearch: "/api/elasticsearch/streamable-http"
@@ -437,6 +449,27 @@ alertmanager:
 
   # TLS CA certificate file path
   tlsCAFile: ""
+```
+
+### Langfuse
+
+```yaml
+langfuse:
+  # Enable/disable Langfuse service
+  enabled: false
+
+  # Langfuse base URL
+  # Format: https://cloud.langfuse.com or your self-hosted Langfuse URL
+  url: "https://cloud.langfuse.com"
+
+  # Langfuse public key
+  publicKey: ""
+
+  # Langfuse secret key
+  secretKey: ""
+
+  # Request timeout (seconds)
+  timeoutSec: 30
 ```
 
 ### OpenTelemetry
