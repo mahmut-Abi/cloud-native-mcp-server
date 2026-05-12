@@ -394,11 +394,18 @@ func (c *Client) GetDashboardVersions(ctx context.Context, uid string, limit, st
 	}
 
 	var versions []DashboardVersion
-	if err := json.Unmarshal(body, &versions); err != nil {
+	if err := json.Unmarshal(body, &versions); err == nil {
+		return versions, nil
+	}
+
+	var wrapped struct {
+		Versions []DashboardVersion `json:"versions"`
+	}
+	if err := json.Unmarshal(body, &wrapped); err != nil {
 		return nil, fmt.Errorf("failed to unmarshal dashboard versions response: %w", err)
 	}
 
-	return versions, nil
+	return wrapped.Versions, nil
 }
 
 // GetDashboardVersion retrieves a specific saved dashboard version.
