@@ -5,7 +5,7 @@ weight: 3
 
 # Grafana 服务
 
-Grafana 服务提供全面的可视化、监控仪表板和告警功能，包含 36 个工具来创建和管理 Grafana 资源。
+Grafana 服务提供全面的可视化、监控仪表板和告警功能，包含 51 个工具来创建和管理 Grafana 资源。
 
 ## 概述
 
@@ -33,7 +33,7 @@ Cloud Native MCP Server 中的 Grafana 服务使 AI 助手能够高效地管理 
 
 ---
 
-## 可用工具 (36)
+## 可用工具 (51)
 
 ### 仪表板管理
 - **grafana-get-dashboards**: 获取所有仪表板

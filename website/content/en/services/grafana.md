@@ -5,7 +5,7 @@ weight: 3
 
 # Grafana Service
 
-The Grafana service provides comprehensive visualization, monitoring dashboards, and alerting capabilities with 36 tools for creating and managing Grafana resources.
+The Grafana service provides comprehensive visualization, monitoring dashboards, and alerting capabilities with 51 tools for creating and managing Grafana resources.
 
 ## Overview
 
@@ -33,7 +33,7 @@ Create and manage Grafana visualizations and panels effectively.
 
 ---
 
-## Available Tools (36)
+## Available Tools (51)
 
 ### Dashboard Management
 - **grafana-get-dashboards**: Get all dashboards

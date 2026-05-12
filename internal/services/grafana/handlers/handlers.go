@@ -470,6 +470,106 @@ func HandleGetFolder(grafanaClient *client.Client) func(ctx context.Context, req
 	}
 }
 
+// HandleCreateFolder handles creating a folder.
+func HandleCreateFolder(grafanaClient *client.Client) func(ctx context.Context, request mcp.CallToolRequest) (*mcp.CallToolResult, error) {
+	return func(ctx context.Context, request mcp.CallToolRequest) (*mcp.CallToolResult, error) {
+		title, err := requireStringParam(request, "title")
+		if err != nil {
+			return nil, err
+		}
+
+		req := client.FolderCreateRequest{
+			Title: title,
+			UID:   getOptionalStringParam(request, "uid"),
+		}
+
+		logrus.WithFields(logrus.Fields{
+			"title": req.Title,
+			"uid":   req.UID,
+		}).Debug("Handler invoked: grafana_create_folder")
+
+		folder, err := grafanaClient.CreateFolder(ctx, req)
+		if err != nil {
+			return nil, fmt.Errorf("failed to create folder: %w", err)
+		}
+
+		return marshalOptimizedResponse(map[string]interface{}{
+			"folder":  folder,
+			"message": "Folder created successfully",
+		}, "grafana_create_folder")
+	}
+}
+
+// HandleUpdateFolder handles updating a folder.
+func HandleUpdateFolder(grafanaClient *client.Client) func(ctx context.Context, request mcp.CallToolRequest) (*mcp.CallToolResult, error) {
+	return func(ctx context.Context, request mcp.CallToolRequest) (*mcp.CallToolResult, error) {
+		uid, err := requireStringParam(request, "uid")
+		if err != nil {
+			return nil, err
+		}
+		title, err := requireStringParam(request, "title")
+		if err != nil {
+			return nil, err
+		}
+
+		req := client.FolderUpdateRequest{
+			UID:       uid,
+			Title:     title,
+			Overwrite: false,
+		}
+		if v, ok := request.GetArguments()["version"].(float64); ok {
+			req.Version = int(v)
+		}
+		if v, ok := request.GetArguments()["overwrite"].(bool); ok {
+			req.Overwrite = v
+		}
+
+		logrus.WithFields(logrus.Fields{
+			"uid":       req.UID,
+			"title":     req.Title,
+			"version":   req.Version,
+			"overwrite": req.Overwrite,
+		}).Debug("Handler invoked: grafana_update_folder")
+
+		folder, err := grafanaClient.UpdateFolder(ctx, req)
+		if err != nil {
+			return nil, fmt.Errorf("failed to update folder: %w", err)
+		}
+
+		return marshalOptimizedResponse(map[string]interface{}{
+			"folder":  folder,
+			"message": "Folder updated successfully",
+		}, "grafana_update_folder")
+	}
+}
+
+// HandleDeleteFolder handles deleting a folder.
+func HandleDeleteFolder(grafanaClient *client.Client) func(ctx context.Context, request mcp.CallToolRequest) (*mcp.CallToolResult, error) {
+	return func(ctx context.Context, request mcp.CallToolRequest) (*mcp.CallToolResult, error) {
+		uid, err := requireStringParam(request, "uid")
+		if err != nil {
+			return nil, err
+		}
+
+		forceDeleteRules := false
+		if v, ok := request.GetArguments()["forceDeleteRules"].(bool); ok {
+			forceDeleteRules = v
+		}
+
+		logrus.WithFields(logrus.Fields{
+			"uid":              uid,
+			"forceDeleteRules": forceDeleteRules,
+		}).Debug("Handler invoked: grafana_delete_folder")
+
+		result, err := grafanaClient.DeleteFolder(ctx, uid, forceDeleteRules)
+		if err != nil {
+			return nil, fmt.Errorf("failed to delete folder: %w", err)
+		}
+
+		return marshalOptimizedResponse(result, "grafana_delete_folder")
+	}
+}
+
 // HandleGetDataSource handles single datasource retrieval requests.
 func HandleGetDataSource(grafanaClient *client.Client) func(ctx context.Context, request mcp.CallToolRequest) (*mcp.CallToolResult, error) {
 	return func(ctx context.Context, request mcp.CallToolRequest) (*mcp.CallToolResult, error) {
@@ -973,6 +1073,118 @@ func HandleUpdateDashboard(grafanaClient *client.Client) func(ctx context.Contex
 	}
 }
 
+// HandleGetDashboardVersions handles retrieving dashboard version history.
+func HandleGetDashboardVersions(grafanaClient *client.Client) func(ctx context.Context, request mcp.CallToolRequest) (*mcp.CallToolResult, error) {
+	return func(ctx context.Context, request mcp.CallToolRequest) (*mcp.CallToolResult, error) {
+		dashboardUID, err := requireStringParam(request, "dashboardUID")
+		if err != nil {
+			return nil, err
+		}
+
+		limit := 0
+		if v, ok := request.GetArguments()["limit"].(float64); ok {
+			limit = int(v)
+		}
+		start := 0
+		if v, ok := request.GetArguments()["start"].(float64); ok {
+			start = int(v)
+		}
+
+		logrus.WithFields(logrus.Fields{
+			"dashboardUID": dashboardUID,
+			"limit":        limit,
+			"start":        start,
+		}).Debug("Handler invoked: grafana_get_dashboard_versions")
+
+		versions, err := grafanaClient.GetDashboardVersions(ctx, dashboardUID, limit, start)
+		if err != nil {
+			return nil, fmt.Errorf("failed to get dashboard versions: %w", err)
+		}
+
+		return marshalOptimizedResponse(map[string]interface{}{
+			"dashboardUID": dashboardUID,
+			"versions":     versions,
+			"count":        len(versions),
+		}, "grafana_get_dashboard_versions")
+	}
+}
+
+// HandleGetDashboardVersion handles retrieving a specific dashboard version.
+func HandleGetDashboardVersion(grafanaClient *client.Client) func(ctx context.Context, request mcp.CallToolRequest) (*mcp.CallToolResult, error) {
+	return func(ctx context.Context, request mcp.CallToolRequest) (*mcp.CallToolResult, error) {
+		dashboardUID, err := requireStringParam(request, "dashboardUID")
+		if err != nil {
+			return nil, err
+		}
+		versionValue, ok := request.GetArguments()["version"].(float64)
+		if !ok {
+			return nil, fmt.Errorf("%w: version", ErrMissingRequiredParam)
+		}
+		version := int(versionValue)
+
+		logrus.WithFields(logrus.Fields{
+			"dashboardUID": dashboardUID,
+			"version":      version,
+		}).Debug("Handler invoked: grafana_get_dashboard_version")
+
+		dashboardVersion, err := grafanaClient.GetDashboardVersion(ctx, dashboardUID, version)
+		if err != nil {
+			return nil, fmt.Errorf("failed to get dashboard version: %w", err)
+		}
+
+		return marshalOptimizedResponse(map[string]interface{}{
+			"dashboardUID": dashboardUID,
+			"version":      dashboardVersion,
+		}, "grafana_get_dashboard_version")
+	}
+}
+
+// HandleRestoreDashboardVersion handles restoring a dashboard version.
+func HandleRestoreDashboardVersion(grafanaClient *client.Client) func(ctx context.Context, request mcp.CallToolRequest) (*mcp.CallToolResult, error) {
+	return func(ctx context.Context, request mcp.CallToolRequest) (*mcp.CallToolResult, error) {
+		dashboardUID, err := requireStringParam(request, "dashboardUID")
+		if err != nil {
+			return nil, err
+		}
+		versionValue, ok := request.GetArguments()["version"].(float64)
+		if !ok {
+			return nil, fmt.Errorf("%w: version", ErrMissingRequiredParam)
+		}
+		version := int(versionValue)
+
+		logrus.WithFields(logrus.Fields{
+			"dashboardUID": dashboardUID,
+			"version":      version,
+		}).Debug("Handler invoked: grafana_restore_dashboard_version")
+
+		result, err := grafanaClient.RestoreDashboardVersion(ctx, dashboardUID, version)
+		if err != nil {
+			return nil, fmt.Errorf("failed to restore dashboard version: %w", err)
+		}
+
+		return marshalOptimizedResponse(result, "grafana_restore_dashboard_version")
+	}
+}
+
+// HandleDeleteDashboard handles deleting a dashboard by UID.
+func HandleDeleteDashboard(grafanaClient *client.Client) func(ctx context.Context, request mcp.CallToolRequest) (*mcp.CallToolResult, error) {
+	return func(ctx context.Context, request mcp.CallToolRequest) (*mcp.CallToolResult, error) {
+		uid, err := requireStringParam(request, "uid")
+		if err != nil {
+			return nil, err
+		}
+
+		logrus.WithField("uid", uid).Debug("Handler invoked: grafana_delete_dashboard")
+
+		result, err := grafanaClient.DeleteDashboard(ctx, uid)
+		if err != nil {
+			return nil, fmt.Errorf("failed to delete dashboard: %w", err)
+		}
+
+		return marshalOptimizedResponse(result, "grafana_delete_dashboard")
+	}
+}
+
 // HandleGetDashboardPanelQueries handles getting panel queries from a dashboard.
 func HandleGetDashboardPanelQueries(grafanaClient *client.Client) func(ctx context.Context, request mcp.CallToolRequest) (*mcp.CallToolResult, error) {
 	return func(ctx context.Context, request mcp.CallToolRequest) (*mcp.CallToolResult, error) {
@@ -1370,6 +1582,32 @@ func HandlePatchAnnotation(grafanaClient *client.Client) func(ctx context.Contex
 			"annotation": annotation,
 			"message":    "Annotation patched successfully",
 		}, "grafana_patch_annotation")
+	}
+}
+
+// HandleDeleteAnnotation handles deleting an annotation.
+func HandleDeleteAnnotation(grafanaClient *client.Client) func(ctx context.Context, request mcp.CallToolRequest) (*mcp.CallToolResult, error) {
+	return func(ctx context.Context, request mcp.CallToolRequest) (*mcp.CallToolResult, error) {
+		annotationIDStr, err := requireStringParam(request, "annotationID")
+		if err != nil {
+			return nil, err
+		}
+
+		annotationID, err := strconv.ParseInt(annotationIDStr, 10, 64)
+		if err != nil {
+			return nil, fmt.Errorf("%w: annotationID must be a valid integer", ErrInvalidParameter)
+		}
+
+		logrus.WithField("annotationID", annotationID).Debug("Handler invoked: grafana_delete_annotation")
+
+		if err := grafanaClient.DeleteAnnotation(ctx, annotationID); err != nil {
+			return nil, fmt.Errorf("failed to delete annotation: %w", err)
+		}
+
+		return marshalOptimizedResponse(map[string]interface{}{
+			"annotationID": annotationID,
+			"message":      "Annotation deleted successfully",
+		}, "grafana_delete_annotation")
 	}
 }
 

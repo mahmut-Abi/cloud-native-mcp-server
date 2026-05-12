@@ -93,6 +93,9 @@ func (s *Service) GetTools() []mcp.Tool {
 			tools.GetDashboardsTool(),
 			tools.GetDataSourcesTool(),
 			tools.GetFoldersTool(),
+			tools.CreateFolderTool(),
+			tools.UpdateFolderTool(),
+			tools.DeleteFolderTool(),
 			tools.SearchDashboardsTool(),
 
 			// 🔍 SPECIFIC RESOURCE TOOLS - For detailed inspection
@@ -111,6 +114,7 @@ func (s *Service) GetTools() []mcp.Tool {
 			tools.CreateAnnotationTool(),
 			tools.UpdateAnnotationTool(),
 			tools.PatchAnnotationTool(),
+			tools.DeleteAnnotationTool(),
 			tools.GetAnnotationTagsTool(),
 
 			// 🔧 UTILITY TOOLS
@@ -132,6 +136,10 @@ func (s *Service) GetTools() []mcp.Tool {
 
 			// 📊 DASHBOARD MANAGEMENT TOOLS
 			tools.UpdateDashboardTool(),
+			tools.GetDashboardVersionsTool(),
+			tools.GetDashboardVersionTool(),
+			tools.RestoreDashboardVersionTool(),
+			tools.DeleteDashboardTool(),
 			tools.GetDashboardPanelQueriesTool(),
 			tools.GetDashboardPropertyTool(),
 
@@ -174,6 +182,9 @@ func (s *Service) GetHandlers() map[string]server.ToolHandlerFunc {
 		"grafana_dashboards":        handlers.HandleGetDashboards(s.client),
 		"grafana_datasources":       handlers.HandleGetDataSources(s.client),
 		"grafana_folders":           handlers.HandleGetFolders(s.client),
+		"grafana_create_folder":     handlers.HandleCreateFolder(s.client),
+		"grafana_update_folder":     handlers.HandleUpdateFolder(s.client),
+		"grafana_delete_folder":     handlers.HandleDeleteFolder(s.client),
 		"grafana_search_dashboards": handlers.HandleSearchDashboards(s.client),
 
 		// 🔍 SPECIFIC RESOURCE TOOLS - For detailed inspection
@@ -192,6 +203,7 @@ func (s *Service) GetHandlers() map[string]server.ToolHandlerFunc {
 		"grafana_create_annotation":   handlers.HandleCreateAnnotation(s.client),
 		"grafana_update_annotation":   handlers.HandleUpdateAnnotation(s.client),
 		"grafana_patch_annotation":    handlers.HandlePatchAnnotation(s.client),
+		"grafana_delete_annotation":   handlers.HandleDeleteAnnotation(s.client),
 		"grafana_get_annotation_tags": handlers.HandleGetAnnotationTags(s.client),
 
 		// 🔧 UTILITY TOOLS
@@ -213,6 +225,10 @@ func (s *Service) GetHandlers() map[string]server.ToolHandlerFunc {
 
 		// 📊 DASHBOARD MANAGEMENT TOOLS
 		"grafana_update_dashboard":            handlers.HandleUpdateDashboard(s.client),
+		"grafana_get_dashboard_versions":      handlers.HandleGetDashboardVersions(s.client),
+		"grafana_get_dashboard_version":       handlers.HandleGetDashboardVersion(s.client),
+		"grafana_restore_dashboard_version":   handlers.HandleRestoreDashboardVersion(s.client),
+		"grafana_delete_dashboard":            handlers.HandleDeleteDashboard(s.client),
 		"grafana_get_dashboard_panel_queries": handlers.HandleGetDashboardPanelQueries(s.client),
 		"grafana_get_dashboard_property":      handlers.HandleGetDashboardProperty(s.client),
 
