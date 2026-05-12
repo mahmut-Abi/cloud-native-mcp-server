@@ -1,6 +1,6 @@
 ---
 name: cloud-native-mcp-tools
-description: Use when an agent should troubleshoot or operate a cloud-native system through MCP tools instead of direct shell or raw API calls. This skill is agent-neutral and guides issue diagnosis, tool selection, argument formatting, cross-signal investigation, common Kubernetes pitfalls, and response parsing across Kubernetes, Helm, Grafana, Prometheus, Loki, Kibana, Elasticsearch, Alertmanager, Jaeger, OpenTelemetry, and utility tools.
+description: Use when an agent should troubleshoot or operate a cloud-native system through MCP tools instead of direct shell or raw API calls. This skill is agent-neutral and guides issue diagnosis, tool selection, argument formatting, cross-signal investigation, common Kubernetes pitfalls, and response parsing across Kubernetes, Helm, Grafana, Prometheus, Loki, Kibana, Elasticsearch, Alertmanager, Jaeger, Langfuse, Sentry, OpenTelemetry, and utility tools.
 ---
 
 # Cloud Native MCP Tools
@@ -78,6 +78,8 @@ Read [references/operations-workflow.md](references/operations-workflow.md) for 
 - Use `alertmanager_*` for active alerts, silences, routing, and cluster health.
 - Use `grafana_*` for dashboards, folders, data sources, annotations, snapshots, and Grafana-managed alert rules.
 - Use `kibana_*` and `elasticsearch_*` for the Elastic stack.
+- Use `langfuse_*` for LLM observability workflows such as traces, sessions, prompts, scores, and metrics.
+- Use `sentry_*` for error-monitoring workflows such as issue triage, issue event inspection, organization discovery, and project discovery.
 - Use `opentelemetry_*` for collector and instrumentation workflows exposed by this server.
 - Use `utilities_*` only for generic helper tasks that do not belong to a domain service.
 
@@ -89,6 +91,8 @@ Read [references/service-map.md](references/service-map.md) when you need first-
 - Prometheus gives current and historical metric evidence.
 - Loki gives workload or component logs.
 - Jaeger gives request path and latency or error traces.
+- Langfuse gives LLM-centric traces, sessions, prompts, evaluation scores, and metrics.
+- Sentry gives issue-level error monitoring, event inspection, and project-scoped exception context.
 - Alertmanager gives the current alert surface and silencing state.
 - Grafana helps discover dashboards and alert rules that explain what operators are looking at.
 - Helm helps confirm release history or recent chart changes.
@@ -149,7 +153,11 @@ Read [references/kubernetes.md](references/kubernetes.md) when the task touches 
 - Metrics missing:
   check Prometheus target summaries, then Kubernetes service or pod state, then logs from the exporter or collector.
 - High latency or request failure:
-  start from traces or alerting metrics, then narrow to workload logs and rollout history.
+  start from traces, error-monitoring issues, or alerting metrics, then narrow to workload logs and rollout history.
+- Application exception or production error spike:
+  start with `sentry_list_issues_summary`, inspect a single issue via `sentry_get_issue`, then review `sentry_list_issue_events` and correlate with logs, metrics, or traces.
+- LLM quality regression or prompt failure:
+  start with `langfuse_list_traces_summary` or `langfuse_list_scores`, then inspect the relevant trace, session, prompt, or score in detail.
 - Suspected bad rollout:
   inspect Helm release status or history, workload rollout status, pod readiness, and recent events before any restart or rollback.
 

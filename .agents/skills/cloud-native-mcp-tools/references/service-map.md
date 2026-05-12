@@ -47,6 +47,22 @@ These are first-choice heuristics, not a substitute for the live runtime invento
 - Inspect one trace: `jaeger_get_trace`
 - Service dependency view: `jaeger_get_dependencies`
 
+## Langfuse
+
+- Check connectivity: `langfuse_check_health`
+- Discover traces quickly: `langfuse_list_traces_summary`
+- Inspect one trace or session: `langfuse_get_trace`, `langfuse_get_session`
+- Inspect prompt and evaluation state: `langfuse_list_prompts`, `langfuse_get_prompt`, `langfuse_list_scores`, `langfuse_get_score`
+- Query LLM observability metrics: `langfuse_get_metrics`
+
+## Sentry
+
+- Verify token and scope: `sentry_test_connection`
+- Discover organizations or projects: `sentry_list_organizations`, `sentry_list_projects`, `sentry_get_project`
+- Triage issues quickly: `sentry_list_issues_summary`
+- Inspect one issue deeply: `sentry_get_issue`
+- Inspect issue events: `sentry_list_issue_events`, `sentry_get_issue_event`
+
 ## Alertmanager
 
 - Current firing alerts: `alertmanager_get_alerts`
