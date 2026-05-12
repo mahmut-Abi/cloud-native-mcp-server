@@ -74,6 +74,33 @@ type DashboardVersion struct {
 	Data      map[string]interface{} `json:"data,omitempty"`
 }
 
+// Plugin represents an installed Grafana plugin or app.
+type Plugin struct {
+	Name            string                   `json:"name"`
+	Type            string                   `json:"type"`
+	ID              string                   `json:"id"`
+	Enabled         bool                     `json:"enabled"`
+	Pinned          bool                     `json:"pinned,omitempty"`
+	AutoEnabled     bool                     `json:"autoEnabled,omitempty"`
+	Module          string                   `json:"module,omitempty"`
+	BaseURL         string                   `json:"baseUrl,omitempty"`
+	Info            map[string]interface{}   `json:"info,omitempty"`
+	Dependencies    map[string]interface{}   `json:"dependencies,omitempty"`
+	Includes        []map[string]interface{} `json:"includes,omitempty"`
+	Extensions      map[string]interface{}   `json:"extensions,omitempty"`
+	JSONData        map[string]interface{}   `json:"jsonData,omitempty"`
+	SecureJSONField map[string]bool          `json:"secureJsonFields,omitempty"`
+	DefaultNavURL   string                   `json:"defaultNavUrl,omitempty"`
+	LatestVersion   string                   `json:"latestVersion,omitempty"`
+	HasUpdate       bool                     `json:"hasUpdate,omitempty"`
+	State           string                   `json:"state,omitempty"`
+	Signature       string                   `json:"signature,omitempty"`
+	SignatureType   string                   `json:"signatureType,omitempty"`
+	SignatureOrg    string                   `json:"signatureOrg,omitempty"`
+	AngularDetected bool                     `json:"angularDetected,omitempty"`
+	LoadingStrategy string                   `json:"loadingStrategy,omitempty"`
+}
+
 // DataSource represents a Grafana data source.
 type DataSource struct {
 	ID        int                    `json:"id,omitempty"`
@@ -406,6 +433,97 @@ func (c *Client) GetDashboardVersions(ctx context.Context, uid string, limit, st
 	}
 
 	return wrapped.Versions, nil
+}
+
+// GetPlugins retrieves installed Grafana plugins and apps.
+func (c *Client) GetPlugins(ctx context.Context) ([]Plugin, error) {
+	logrus.Debug("Getting Grafana plugins")
+
+	resp, err := c.makeRequest(ctx, "GET", "plugins", nil)
+	if err != nil {
+		return nil, err
+	}
+
+	body, err := c.handleResponse(resp)
+	if err != nil {
+		return nil, err
+	}
+
+	var plugins []Plugin
+	if err := json.Unmarshal(body, &plugins); err != nil {
+		return nil, fmt.Errorf("failed to unmarshal plugins response: %w", err)
+	}
+
+	return plugins, nil
+}
+
+// GetPlugin retrieves detailed plugin settings by plugin ID.
+func (c *Client) GetPlugin(ctx context.Context, pluginID string) (*Plugin, error) {
+	logrus.WithField("pluginID", pluginID).Debug("Getting Grafana plugin details")
+
+	resp, err := c.makeRequest(ctx, "GET", "plugins/"+pluginID+"/settings", nil)
+	if err != nil {
+		return nil, err
+	}
+
+	body, err := c.handleResponse(resp)
+	if err != nil {
+		return nil, err
+	}
+
+	var plugin Plugin
+	if err := json.Unmarshal(body, &plugin); err != nil {
+		return nil, fmt.Errorf("failed to unmarshal plugin response: %w", err)
+	}
+
+	return &plugin, nil
+}
+
+// GenerateLogsDrilldownLink builds a deeplink to the Grafana Logs Drilldown app.
+func (c *Client) GenerateLogsDrilldownLink(ctx context.Context, params map[string]string) (*Deeplink, error) {
+	logrus.Debug("Generating Grafana Logs Drilldown deeplink")
+
+	plugin, err := c.GetPlugin(ctx, "grafana-lokiexplore-app")
+	if err != nil {
+		return nil, fmt.Errorf("failed to inspect Grafana Logs Drilldown plugin: %w", err)
+	}
+
+	if !plugin.Enabled {
+		return nil, fmt.Errorf("Grafana Logs Drilldown plugin is installed but disabled")
+	}
+
+	baseURL := strings.TrimSuffix(c.baseURL, "api/")
+	path := plugin.DefaultNavURL
+	if path == "" {
+		path = "/plugins/grafana-lokiexplore-app/page/grafana-logs-drilldown"
+	}
+
+	queryParams := url.Values{}
+	if from, ok := params["from"]; ok && from != "" {
+		queryParams.Set("from", from)
+	}
+	if to, ok := params["to"]; ok && to != "" {
+		queryParams.Set("to", to)
+	}
+	if dsUID, ok := params["datasourceUid"]; ok && dsUID != "" {
+		queryParams.Set("var-datasource", dsUID)
+	}
+	if dsName, ok := params["datasourceName"]; ok && dsName != "" {
+		queryParams.Set("var-datasourceName", dsName)
+	}
+	if orgID, ok := params["orgId"]; ok && orgID != "" {
+		queryParams.Set("orgId", orgID)
+	}
+
+	if encoded := queryParams.Encode(); encoded != "" {
+		path += "?" + encoded
+	}
+
+	return &Deeplink{
+		URL:   baseURL + strings.TrimPrefix(path, "/"),
+		Label: "Grafana Logs Drilldown",
+		Path:  path,
+	}, nil
 }
 
 // GetDashboardVersion retrieves a specific saved dashboard version.

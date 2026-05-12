@@ -400,6 +400,43 @@ func HandleGetDataSourcesSummary(client *client.Client) func(ctx context.Context
 	}
 }
 
+// HandleGetPluginsSummary handles plugin summary requests.
+func HandleGetPluginsSummary(grafanaClient *client.Client) func(ctx context.Context, request mcp.CallToolRequest) (*mcp.CallToolResult, error) {
+	return func(ctx context.Context, request mcp.CallToolRequest) (*mcp.CallToolResult, error) {
+		limit := parseLimitWithWarnings(request, "grafana_plugins_summary")
+
+		plugins, err := grafanaClient.GetPlugins(ctx)
+		if err != nil {
+			return nil, fmt.Errorf("failed to get plugins: %w", err)
+		}
+
+		summaries := make([]map[string]interface{}, 0, len(plugins))
+		for _, plugin := range plugins {
+			summaries = append(summaries, map[string]interface{}{
+				"id":            plugin.ID,
+				"name":          plugin.Name,
+				"type":          plugin.Type,
+				"enabled":       plugin.Enabled,
+				"pinned":        plugin.Pinned,
+				"hasUpdate":     plugin.HasUpdate,
+				"defaultNavUrl": plugin.DefaultNavURL,
+				"signature":     plugin.Signature,
+			})
+		}
+
+		if int(limit) < len(summaries) {
+			summaries = summaries[:limit]
+		}
+
+		return marshalOptimizedResponse(map[string]interface{}{
+			"plugins": summaries,
+			"count":   len(summaries),
+			"total":   len(plugins),
+			"hasMore": len(plugins) > len(summaries),
+		}, "grafana_plugins_summary")
+	}
+}
+
 // HandleGetFolders handles folder listing requests with limits.
 func HandleGetFolders(grafanaClient *client.Client) func(ctx context.Context, request mcp.CallToolRequest) (*mcp.CallToolResult, error) {
 	return func(ctx context.Context, request mcp.CallToolRequest) (*mcp.CallToolResult, error) {
@@ -588,6 +625,46 @@ func HandleGetDataSource(grafanaClient *client.Client) func(ctx context.Context,
 		return marshalOptimizedResponse(map[string]interface{}{
 			"datasource": dataSource,
 		}, "grafana_datasource_detail")
+	}
+}
+
+// HandleGetPlugins handles plugin enumeration requests.
+func HandleGetPlugins(grafanaClient *client.Client) func(ctx context.Context, request mcp.CallToolRequest) (*mcp.CallToolResult, error) {
+	return func(ctx context.Context, request mcp.CallToolRequest) (*mcp.CallToolResult, error) {
+		limit := parseLimitWithWarnings(request, "grafana_plugins")
+
+		plugins, err := grafanaClient.GetPlugins(ctx)
+		if err != nil {
+			return nil, fmt.Errorf("failed to get plugins: %w", err)
+		}
+
+		if int(limit) < len(plugins) {
+			plugins = plugins[:limit]
+		}
+
+		return marshalOptimizedResponse(map[string]interface{}{
+			"plugins": plugins,
+			"count":   len(plugins),
+		}, "grafana_plugins")
+	}
+}
+
+// HandleGetPlugin handles plugin detail requests.
+func HandleGetPlugin(grafanaClient *client.Client) func(ctx context.Context, request mcp.CallToolRequest) (*mcp.CallToolResult, error) {
+	return func(ctx context.Context, request mcp.CallToolRequest) (*mcp.CallToolResult, error) {
+		pluginID, err := requireStringParam(request, "pluginID")
+		if err != nil {
+			return nil, err
+		}
+
+		plugin, err := grafanaClient.GetPlugin(ctx, pluginID)
+		if err != nil {
+			return nil, fmt.Errorf("failed to get plugin: %w", err)
+		}
+
+		return marshalOptimizedResponse(map[string]interface{}{
+			"plugin": plugin,
+		}, "grafana_plugin_detail")
 	}
 }
 
@@ -1672,6 +1749,37 @@ func HandleGenerateDeeplink(grafanaClient *client.Client) func(ctx context.Conte
 		return marshalOptimizedResponse(map[string]interface{}{
 			"deeplink": deeplink,
 		}, "grafana_generate_deeplink")
+	}
+}
+
+// HandleGenerateLogsDrilldownLink handles generating Logs Drilldown deeplink URLs.
+func HandleGenerateLogsDrilldownLink(grafanaClient *client.Client) func(ctx context.Context, request mcp.CallToolRequest) (*mcp.CallToolResult, error) {
+	return func(ctx context.Context, request mcp.CallToolRequest) (*mcp.CallToolResult, error) {
+		params := map[string]string{}
+		if from := getOptionalStringParam(request, "from"); from != "" {
+			params["from"] = from
+		}
+		if to := getOptionalStringParam(request, "to"); to != "" {
+			params["to"] = to
+		}
+		if datasourceUID := getOptionalStringParam(request, "datasourceUid"); datasourceUID != "" {
+			params["datasourceUid"] = datasourceUID
+		}
+		if datasourceName := getOptionalStringParam(request, "datasourceName"); datasourceName != "" {
+			params["datasourceName"] = datasourceName
+		}
+		if orgID := getOptionalStringParam(request, "orgId"); orgID != "" {
+			params["orgId"] = orgID
+		}
+
+		deeplink, err := grafanaClient.GenerateLogsDrilldownLink(ctx, params)
+		if err != nil {
+			return nil, fmt.Errorf("failed to generate logs drilldown link: %w", err)
+		}
+
+		return marshalOptimizedResponse(map[string]interface{}{
+			"deeplink": deeplink,
+		}, "grafana_generate_logs_drilldown_link")
 	}
 }
 
