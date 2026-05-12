@@ -12,6 +12,7 @@ import (
 	"io"
 	"net/http"
 	"net/url"
+	"strconv"
 	"strings"
 	"time"
 
@@ -1925,10 +1926,21 @@ func (c *Client) RenderDashboardPanel(ctx context.Context, dashboardUID string, 
 
 	logrus.WithField("size", len(imageData)).Debug("Rendered panel successfully")
 
+	widthValue := 800
+	heightValue := 400
+	if parsed, err := strconv.Atoi(width); err == nil {
+		widthValue = parsed
+	}
+	if parsed, err := strconv.Atoi(height); err == nil {
+		heightValue = parsed
+	}
+
 	return &PanelImageResponse{
 		ImageData:   imageData,
 		ContentType: resp.Header.Get("Content-Type"),
 		Size:        len(imageData),
+		Width:       widthValue,
+		Height:      heightValue,
 	}, nil
 }
 
