@@ -6,7 +6,7 @@ description: High-performance Model Context Protocol server for Kubernetes and c
 
 <div class="hero">
   <h1>Cloud Native MCP Server</h1>
-  <p>A production-grade MCP server for Kubernetes and cloud-native infrastructure management, exposing 13 services and 292 tools across SSE and Streamable HTTP modes.</p>
+  <p>A production-grade MCP server for Kubernetes and cloud-native infrastructure management, exposing 13 services and 296 tools across SSE and Streamable HTTP modes.</p>
   <div class="hero-buttons">
     <a href="https://github.com/mahmut-Abi/cloud-native-mcp-server" class="cta-button"><span>GitHub Repository</span></a>
     <a href="#quick-start" class="cta-button transparent"><span>Quick Start</span></a>
@@ -63,7 +63,7 @@ description: High-performance Model Context Protocol server for Kubernetes and c
     <div class="stat-label">Integrated Services</div>
   </div>
   <div class="stat-item">
-    <div class="stat-number">292</div>
+    <div class="stat-number">296</div>
     <div class="stat-label">MCP Tools</div>
   </div>
   <div class="stat-item">
@@ -90,7 +90,7 @@ description: High-performance Model Context Protocol server for Kubernetes and c
     <p>Package lifecycle and release operations for Kubernetes apps.</p>
   </div>
   <div class="service-card">
-    <h3>Grafana <span class="tool-count">51 tools</span></h3>
+    <h3>Grafana <span class="tool-count">55 tools</span></h3>
     <p>Dashboards, alerting, and visualization management.</p>
   </div>
   <div class="service-card">

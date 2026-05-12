@@ -6,14 +6,14 @@
 
 [🇨🇳 中文文档](README-zh.md) | [🇬🇧 English](README.md)
 
-A high-performance Model Context Protocol (MCP) server for Kubernetes and cloud-native infrastructure management with 13 integrated services and 292 tools.
+A high-performance Model Context Protocol (MCP) server for Kubernetes and cloud-native infrastructure management with 13 integrated services and 296 tools.
 
 ---
 
 ## Features
 
 - **13 Integrated Services**: Kubernetes, Grafana, Prometheus, Loki, Kibana, Elasticsearch, Helm, Alertmanager, Jaeger, Langfuse, Sentry, OpenTelemetry, Utilities
-- **292 MCP Tools**: Comprehensive toolset for infrastructure operations
+- **296 MCP Tools**: Comprehensive toolset for infrastructure operations
 - **Multi-Protocol Support**: SSE and streamable-http modes
 - **Smart Caching**: LRU cache with TTL support for optimal performance
 - **Performance Optimized**: JSON encoding pool, response size control, intelligent limits
@@ -40,7 +40,7 @@ A high-performance Model Context Protocol (MCP) server for Kubernetes and cloud-
 |---------|-------|-------------|
 | **kubernetes** | 34 | Core container orchestration and resource management |
 | **helm** | 34 | Application package management and deployment |
-| **grafana** | 51 | Visualization, monitoring dashboards, and alerting |
+| **grafana** | 55 | Visualization, monitoring dashboards, and alerting |
 | **prometheus** | 20 | Metrics collection, querying, and monitoring |
 | **loki** | 7 | LogQL queries, label discovery, and stream inspection |
 | **kibana** | 73 | Log analysis, visualization, and data exploration |
@@ -52,7 +52,7 @@ A high-performance Model Context Protocol (MCP) server for Kubernetes and cloud-
 | **opentelemetry** | 9 | Metrics, traces, and logs collection and analysis |
 | **utilities** | 6 | General-purpose utility tools |
 
-**Total: 292 tools**
+**Total: 296 tools**
 
 ---
 

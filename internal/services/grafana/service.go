@@ -88,10 +88,12 @@ func (s *Service) GetTools() []mcp.Tool {
 			// 🎯 SUMMARY TOOLS - Recommended first (95% of use cases)
 			tools.GetDashboardsSummaryTool(),  // RECOMMENDED for dashboard discovery
 			tools.GetDataSourcesSummaryTool(), // RECOMMENDED for datasource discovery
+			tools.GetPluginsSummaryTool(),     // RECOMMENDED for plugin discovery
 
 			// 📋 STANDARD TOOLS - For detailed information when needed
 			tools.GetDashboardsTool(),
 			tools.GetDataSourcesTool(),
+			tools.GetPluginsTool(),
 			tools.GetFoldersTool(),
 			tools.CreateFolderTool(),
 			tools.UpdateFolderTool(),
@@ -103,6 +105,7 @@ func (s *Service) GetTools() []mcp.Tool {
 			tools.GetFolderTool(),
 			tools.GetDataSourceTool(),
 			tools.GetDataSourceByNameTool(),
+			tools.GetPluginTool(),
 
 			// 🚨 MONITORING TOOLS
 			tools.GetAlertRulesTool(),
@@ -150,6 +153,7 @@ func (s *Service) GetTools() []mcp.Tool {
 
 			// 🔗 NAVIGATION TOOLS
 			tools.GenerateDeeplinkTool(),
+			tools.GenerateLogsDrilldownLinkTool(),
 
 			// 🎨 RENDERING TOOLS
 			tools.RenderPanelImageTool(),
@@ -177,10 +181,12 @@ func (s *Service) GetHandlers() map[string]server.ToolHandlerFunc {
 		// 🎯 SUMMARY TOOLS - Recommended first (95% of use cases)
 		"grafana_dashboards_summary":  handlers.HandleGetDashboardsSummary(s.client),
 		"grafana_datasources_summary": handlers.HandleGetDataSourcesSummary(s.client),
+		"grafana_plugins_summary":     handlers.HandleGetPluginsSummary(s.client),
 
 		// 📋 STANDARD TOOLS - For detailed information when needed
 		"grafana_dashboards":        handlers.HandleGetDashboards(s.client),
 		"grafana_datasources":       handlers.HandleGetDataSources(s.client),
+		"grafana_plugins":           handlers.HandleGetPlugins(s.client),
 		"grafana_folders":           handlers.HandleGetFolders(s.client),
 		"grafana_create_folder":     handlers.HandleCreateFolder(s.client),
 		"grafana_update_folder":     handlers.HandleUpdateFolder(s.client),
@@ -192,6 +198,7 @@ func (s *Service) GetHandlers() map[string]server.ToolHandlerFunc {
 		"grafana_folder_detail":          handlers.HandleGetFolder(s.client),
 		"grafana_datasource_detail":      handlers.HandleGetDataSource(s.client),
 		"grafana_get_datasource_by_name": handlers.HandleGetDataSourceByName(s.client),
+		"grafana_plugin_detail":          handlers.HandleGetPlugin(s.client),
 
 		// 🚨 MONITORING TOOLS
 		"grafana_alerts":                handlers.HandleGetAlertRules(s.client),
@@ -238,7 +245,8 @@ func (s *Service) GetHandlers() map[string]server.ToolHandlerFunc {
 		"grafana_delete_alert_rule": handlers.HandleDeleteAlertRule(s.client),
 
 		// 🔗 NAVIGATION TOOLS
-		"grafana_generate_deeplink": handlers.HandleGenerateDeeplink(s.client),
+		"grafana_generate_deeplink":            handlers.HandleGenerateDeeplink(s.client),
+		"grafana_generate_logs_drilldown_link": handlers.HandleGenerateLogsDrilldownLink(s.client),
 
 		// 🎨 RENDERING TOOLS
 		"grafana_render_panel_image": handlers.HandleRenderPanelImage(s.client),

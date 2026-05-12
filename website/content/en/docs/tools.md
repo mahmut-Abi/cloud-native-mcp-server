@@ -1,12 +1,12 @@
 ---
 title: "Tools Reference"
 weight: 70
-description: "Capability catalog for all integrated services and 292 MCP tools."
+description: "Capability catalog for all integrated services and 296 MCP tools."
 ---
 
 # Tools Reference
 
-Cloud Native MCP Server provides 292 powerful tools covering Kubernetes management, deployment, monitoring, logging, tracing, and more.
+Cloud Native MCP Server provides 296 powerful tools covering Kubernetes management, deployment, monitoring, logging, tracing, and more.
 
 {{< columns >}}
 ### 🚀 Kubernetes (34 tools)
@@ -18,7 +18,7 @@ Application package management and deployment
 {{< /columns >}}
 
 {{< columns >}}
-### 📊 Grafana (51 tools)
+### 📊 Grafana (55 tools)
 Visualization, monitoring dashboards, and alerting
 <--->
 

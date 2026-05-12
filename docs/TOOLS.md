@@ -16,7 +16,7 @@ For the exact runtime inventory, prefer `--list tools`.
 
 - [Kubernetes (34 tools)](#kubernetes-34-tools)
 - [Helm (34 tools)](#helm-34-tools)
-- [Grafana (51 tools)](#grafana-51-tools)
+- [Grafana (55 tools)](#grafana-55-tools)
 - [Prometheus (20 tools)](#prometheus-20-tools)
 - [Loki (7 tools)](#loki-7-tools)
 - [Kibana (73 tools)](#kibana-73-tools)
@@ -184,7 +184,7 @@ Practical guidance:
 
 ---
 
-## Grafana (51 tools)
+## Grafana (55 tools)
 
 ### Dashboard Management
 
@@ -823,7 +823,7 @@ Do not edit this block by hand.
 - `helm_upgrade_release`
 - `helm_validate_release`
 
-### Grafana (51 tools)
+### Grafana (55 tools)
 
 - `grafana_alerts`
 - `grafana_check_datasource_health`
@@ -847,6 +847,7 @@ Do not edit this block by hand.
 - `grafana_folder_detail`
 - `grafana_folders`
 - `grafana_generate_deeplink`
+- `grafana_generate_logs_drilldown_link`
 - `grafana_get_alert_rule_by_uid`
 - `grafana_get_annotation_tags`
 - `grafana_get_annotations`
@@ -866,6 +867,9 @@ Do not edit this block by hand.
 - `grafana_list_user_roles`
 - `grafana_organization`
 - `grafana_patch_annotation`
+- `grafana_plugin_detail`
+- `grafana_plugins`
+- `grafana_plugins_summary`
 - `grafana_render_panel_image`
 - `grafana_restore_dashboard_version`
 - `grafana_search_dashboards`

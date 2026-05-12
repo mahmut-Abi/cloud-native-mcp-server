@@ -662,6 +662,126 @@ func TestRestoreDashboardVersionUsesRestoreEndpoint(t *testing.T) {
 	}
 }
 
+func TestGetPluginsUsesPluginsEndpoint(t *testing.T) {
+	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		if r.Method != http.MethodGet {
+			t.Errorf("Expected GET request, got %s", r.Method)
+		}
+		if r.URL.Path != "/api/plugins" {
+			t.Errorf("Expected path /api/plugins, got %s", r.URL.Path)
+		}
+
+		w.Header().Set("Content-Type", "application/json")
+		w.WriteHeader(http.StatusOK)
+		_ = json.NewEncoder(w).Encode([]map[string]interface{}{
+			{
+				"id":            "grafana-lokiexplore-app",
+				"name":          "Grafana Logs Drilldown",
+				"type":          "app",
+				"enabled":       true,
+				"pinned":        true,
+				"defaultNavUrl": "/plugins/grafana-lokiexplore-app/page/grafana-logs-drilldown",
+			},
+			{
+				"id":      "prometheus",
+				"name":    "Prometheus",
+				"type":    "datasource",
+				"enabled": true,
+			},
+		})
+	}))
+	defer server.Close()
+
+	client, err := NewClient(&ClientOptions{URL: server.URL, APIKey: "test-api-key"})
+	if err != nil {
+		t.Fatalf("Failed to create client: %v", err)
+	}
+
+	plugins, err := client.GetPlugins(context.Background())
+	if err != nil {
+		t.Fatalf("GetPlugins failed: %v", err)
+	}
+	if len(plugins) != 2 {
+		t.Fatalf("Expected 2 plugins, got %d", len(plugins))
+	}
+	if plugins[0].ID != "grafana-lokiexplore-app" {
+		t.Errorf("Expected first plugin id grafana-lokiexplore-app, got %s", plugins[0].ID)
+	}
+}
+
+func TestGetPluginUsesSettingsEndpoint(t *testing.T) {
+	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		if r.Method != http.MethodGet {
+			t.Errorf("Expected GET request, got %s", r.Method)
+		}
+		if r.URL.Path != "/api/plugins/grafana-lokiexplore-app/settings" {
+			t.Errorf("Expected path /api/plugins/grafana-lokiexplore-app/settings, got %s", r.URL.Path)
+		}
+
+		w.Header().Set("Content-Type", "application/json")
+		w.WriteHeader(http.StatusOK)
+		_ = json.NewEncoder(w).Encode(map[string]interface{}{
+			"id":            "grafana-lokiexplore-app",
+			"name":          "Grafana Logs Drilldown",
+			"type":          "app",
+			"enabled":       true,
+			"defaultNavUrl": "/plugins/grafana-lokiexplore-app/page/grafana-logs-drilldown",
+		})
+	}))
+	defer server.Close()
+
+	client, err := NewClient(&ClientOptions{URL: server.URL, APIKey: "test-api-key"})
+	if err != nil {
+		t.Fatalf("Failed to create client: %v", err)
+	}
+
+	plugin, err := client.GetPlugin(context.Background(), "grafana-lokiexplore-app")
+	if err != nil {
+		t.Fatalf("GetPlugin failed: %v", err)
+	}
+	if plugin.Name != "Grafana Logs Drilldown" {
+		t.Errorf("Expected plugin name Grafana Logs Drilldown, got %s", plugin.Name)
+	}
+}
+
+func TestGenerateLogsDrilldownLinkUsesPluginNavURL(t *testing.T) {
+	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		if r.URL.Path != "/api/plugins/grafana-lokiexplore-app/settings" {
+			t.Errorf("Expected path /api/plugins/grafana-lokiexplore-app/settings, got %s", r.URL.Path)
+		}
+
+		w.Header().Set("Content-Type", "application/json")
+		w.WriteHeader(http.StatusOK)
+		_ = json.NewEncoder(w).Encode(map[string]interface{}{
+			"id":            "grafana-lokiexplore-app",
+			"name":          "Grafana Logs Drilldown",
+			"type":          "app",
+			"enabled":       true,
+			"defaultNavUrl": "/plugins/grafana-lokiexplore-app/page/grafana-logs-drilldown",
+		})
+	}))
+	defer server.Close()
+
+	client, err := NewClient(&ClientOptions{URL: server.URL, APIKey: "test-api-key"})
+	if err != nil {
+		t.Fatalf("Failed to create client: %v", err)
+	}
+
+	deeplink, err := client.GenerateLogsDrilldownLink(context.Background(), map[string]string{
+		"from":          "now-1h",
+		"to":            "now",
+		"datasourceUid": "loki",
+	})
+	if err != nil {
+		t.Fatalf("GenerateLogsDrilldownLink failed: %v", err)
+	}
+
+	expected := server.URL + "/plugins/grafana-lokiexplore-app/page/grafana-logs-drilldown?from=now-1h&to=now&var-datasource=loki"
+	if deeplink.URL != expected {
+		t.Errorf("Expected %s, got %s", expected, deeplink.URL)
+	}
+}
+
 func TestRenderDashboardPanelUsesRenderEndpointOutsideAPIBase(t *testing.T) {
 	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		if r.Method != "GET" {

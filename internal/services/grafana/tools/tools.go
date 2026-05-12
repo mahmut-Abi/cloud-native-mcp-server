@@ -42,6 +42,16 @@ func GetDataSourcesSummaryTool() mcp.Tool {
 	)
 }
 
+// GetPluginsSummaryTool retrieves installed plugins with minimal output.
+func GetPluginsSummaryTool() mcp.Tool {
+	logrus.Debug("Creating GetPluginsSummaryTool")
+	return mcp.NewTool("grafana_plugins_summary",
+		mcp.WithDescription("🎯 RECOMMENDED: List installed Grafana plugins and apps with minimal output. Returns only essential fields such as id, name, type, enabled, pinned, hasUpdate, and defaultNavUrl. Useful for quick plugin inventory, checking whether Grafana Logs Drilldown is installed, and identifying datasource/app plugins before requesting full detail."),
+		mcp.WithString("limit",
+			mcp.Description("Maximum plugins to return (default: 25, max: 200).")),
+	)
+}
+
 // GetDashboardTool retrieves a specific dashboard from Grafana.
 func GetDashboardTool() mcp.Tool {
 	logrus.Debug("Creating GetDashboardTool")
@@ -63,6 +73,18 @@ func GetDataSourcesTool() mcp.Tool {
 			mcp.Description("Maximum data sources to return (default: 15, max: 100). Conservative limits applied as datasources contain configuration data.")),
 		mcp.WithString("debug",
 			mcp.Description("Enable detailed debug output for troubleshooting. Sensitive data will still be filtered in output.")),
+	)
+}
+
+// GetPluginsTool retrieves installed plugins with extended detail.
+func GetPluginsTool() mcp.Tool {
+	logrus.Debug("Creating GetPluginsTool")
+	return mcp.NewTool("grafana_plugins",
+		mcp.WithDescription("List installed Grafana plugins, panel visualizations, datasource plugins, and apps. Use this to inspect plugin inventory, verify plugin enablement, detect updates, and discover apps such as Grafana Logs Drilldown."),
+		mcp.WithString("limit",
+			mcp.Description("Maximum plugins to return (default: 50, max: 200).")),
+		mcp.WithString("debug",
+			mcp.Description("Enable debug output for troubleshooting plugin enumeration.")),
 	)
 }
 
@@ -181,6 +203,18 @@ func GetDataSourceTool() mcp.Tool {
 			mcp.Description("Unique identifier (UID) of the data source to retrieve.")),
 		mcp.WithString("debug",
 			mcp.Description("Enable debug output for troubleshooting.")),
+	)
+}
+
+// GetPluginTool retrieves a specific plugin by ID.
+func GetPluginTool() mcp.Tool {
+	logrus.Debug("Creating GetPluginTool")
+	return mcp.NewTool("grafana_plugin_detail",
+		mcp.WithDescription("Retrieve detailed information and settings for a specific Grafana plugin or app by plugin ID."),
+		mcp.WithString("pluginID", mcp.Required(),
+			mcp.Description("Plugin identifier, for example prometheus, grafana-lokiexplore-app, or grafana-sentry-datasource.")),
+		mcp.WithString("debug",
+			mcp.Description("Enable debug output for troubleshooting plugin inspection.")),
 	)
 }
 
@@ -574,6 +608,24 @@ func GenerateDeeplinkTool() mcp.Tool {
 			mcp.Description("Start time (e.g., now-1h).")),
 		mcp.WithString("to",
 			mcp.Description("End time (e.g., now).")),
+	)
+}
+
+// GenerateLogsDrilldownLinkTool generates a deeplink to Grafana Logs Drilldown.
+func GenerateLogsDrilldownLinkTool() mcp.Tool {
+	logrus.Debug("Creating GenerateLogsDrilldownLinkTool")
+	return mcp.NewTool("grafana_generate_logs_drilldown_link",
+		mcp.WithDescription("Generate a deeplink to the Grafana Logs Drilldown app after verifying that the plugin is installed and enabled."),
+		mcp.WithString("from",
+			mcp.Description("Optional start time (for example now-1h or epoch milliseconds).")),
+		mcp.WithString("to",
+			mcp.Description("Optional end time (for example now or epoch milliseconds).")),
+		mcp.WithString("datasourceUid",
+			mcp.Description("Optional datasource UID to encode into the drilldown URL.")),
+		mcp.WithString("datasourceName",
+			mcp.Description("Optional datasource name hint to encode into the drilldown URL.")),
+		mcp.WithString("orgId",
+			mcp.Description("Optional Grafana organization ID to include in the URL.")),
 	)
 }
 
