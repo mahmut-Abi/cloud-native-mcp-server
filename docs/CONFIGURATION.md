@@ -52,6 +52,7 @@ server:
     jaeger: "/api/jaeger/sse"
     opentelemetry: "/api/opentelemetry/sse"
     langfuse: "/api/langfuse/sse"
+    sentry: "/api/sentry/sse"
     utilities: "/api/utilities/sse"
     aggregate: "/api/aggregate/sse"
 
@@ -67,6 +68,7 @@ server:
     jaeger: "/api/jaeger/streamable-http"
     opentelemetry: "/api/opentelemetry/streamable-http"
     langfuse: "/api/langfuse/streamable-http"
+    sentry: "/api/sentry/streamable-http"
     utilities: "/api/utilities/streamable-http"
     aggregate: "/api/aggregate/streamable-http"
 
@@ -252,6 +254,14 @@ langfuse:
   url: "https://cloud.langfuse.com"
   publicKey: ""
   secretKey: ""
+  timeoutSec: 30
+
+sentry:
+  enabled: false
+  url: "https://sentry.io"
+  authToken: ""
+  organization: ""
+  project: ""
   timeoutSec: 30
 
 opentelemetry:

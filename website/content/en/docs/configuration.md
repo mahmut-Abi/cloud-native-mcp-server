@@ -103,6 +103,9 @@ server:
     # Langfuse SSE endpoint
     langfuse: "/api/langfuse/sse"
 
+    # Sentry SSE endpoint
+    sentry: "/api/sentry/sse"
+
     # Elasticsearch SSE endpoint
     elasticsearch: "/api/elasticsearch/sse"
 
@@ -147,6 +150,9 @@ server:
 
     # Langfuse Streamable-HTTP endpoint
     langfuse: "/api/langfuse/streamable-http"
+
+    # Sentry Streamable-HTTP endpoint
+    sentry: "/api/sentry/streamable-http"
 
     # Elasticsearch Streamable-HTTP endpoint
     elasticsearch: "/api/elasticsearch/streamable-http"
@@ -467,6 +473,30 @@ langfuse:
 
   # Langfuse secret key
   secretKey: ""
+
+  # Request timeout (seconds)
+  timeoutSec: 30
+```
+
+### Sentry
+
+```yaml
+sentry:
+  # Enable/disable Sentry service
+  enabled: false
+
+  # Sentry base URL
+  # Format: https://sentry.io or your self-hosted Sentry URL
+  url: "https://sentry.io"
+
+  # Sentry auth token
+  authToken: ""
+
+  # Default organization slug (optional)
+  organization: ""
+
+  # Default project slug (optional)
+  project: ""
 
   # Request timeout (seconds)
   timeoutSec: 30

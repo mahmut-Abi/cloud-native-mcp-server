@@ -6,7 +6,7 @@ description: High-performance Model Context Protocol server for Kubernetes and c
 
 <div class="hero">
   <h1>Cloud Native MCP Server</h1>
-  <p>A production-grade MCP server for Kubernetes and cloud-native infrastructure management, exposing 12 services and 275 tools across SSE and Streamable HTTP modes.</p>
+  <p>A production-grade MCP server for Kubernetes and cloud-native infrastructure management, exposing 13 services and 284 tools across SSE and Streamable HTTP modes.</p>
   <div class="hero-buttons">
     <a href="https://github.com/mahmut-Abi/cloud-native-mcp-server" class="cta-button"><span>GitHub Repository</span></a>
     <a href="#quick-start" class="cta-button transparent"><span>Quick Start</span></a>
@@ -49,7 +49,7 @@ description: High-performance Model Context Protocol server for Kubernetes and c
   </article>
   <article class="usecase-card">
     <h3>Cross-Observability Analysis</h3>
-    <p>Bridge Prometheus, Grafana, Loki, Jaeger, and OpenTelemetry signals for end-to-end diagnostics.</p>
+    <p>Bridge Prometheus, Grafana, Loki, Jaeger, Sentry, and OpenTelemetry signals for end-to-end diagnostics.</p>
   </article>
 </div>
 
@@ -59,11 +59,11 @@ description: High-performance Model Context Protocol server for Kubernetes and c
 
 <div class="stats-grid">
   <div class="stat-item">
-    <div class="stat-number">12</div>
+    <div class="stat-number">13</div>
     <div class="stat-label">Integrated Services</div>
   </div>
   <div class="stat-item">
-    <div class="stat-number">275</div>
+    <div class="stat-number">284</div>
     <div class="stat-label">MCP Tools</div>
   </div>
   <div class="stat-item">
@@ -120,6 +120,10 @@ description: High-performance Model Context Protocol server for Kubernetes and c
   <div class="service-card">
     <h3>Langfuse <span class="tool-count">13 tools</span></h3>
     <p>LLM observability for traces, sessions, prompts, scores, and metrics.</p>
+  </div>
+  <div class="service-card">
+    <h3>Sentry <span class="tool-count">9 tools</span></h3>
+    <p>Error monitoring for issue triage, issue events, and project discovery.</p>
   </div>
   <div class="service-card">
     <h3>OpenTelemetry <span class="tool-count">9 tools</span></h3>

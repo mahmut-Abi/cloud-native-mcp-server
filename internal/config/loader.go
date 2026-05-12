@@ -138,6 +138,11 @@ func (l *ConfigLoader) setDefaults(cfg *AppConfig) {
 		cfg.Langfuse.TimeoutSec = 30
 	}
 
+	// Sentry defaults
+	if cfg.Sentry.TimeoutSec == 0 {
+		cfg.Sentry.TimeoutSec = 30
+	}
+
 	// Elasticsearch defaults
 	if cfg.Elasticsearch.TimeoutSec == 0 {
 		cfg.Elasticsearch.TimeoutSec = 30

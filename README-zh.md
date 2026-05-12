@@ -6,7 +6,7 @@
 
 [🇨🇳 中文文档](README-zh.md) | [🇬🇧 English](README.md)
 
-一个高性能的模型上下文协议（MCP）服务器，用于 Kubernetes 和云原生基础设施管理，集成了 12 个服务和 275 个工具。
+一个高性能的模型上下文协议（MCP）服务器，用于 Kubernetes 和云原生基础设施管理，集成了 13 个服务和 284 个工具。
 
 ## LLM 调用工具建议
 
@@ -20,7 +20,7 @@
 
 ## 功能特性
 
-- **多服务集成**: Kubernetes、Grafana、Prometheus、Loki、Kibana、Elasticsearch、Helm、Alertmanager、Jaeger、Langfuse、OpenTelemetry、Utilities
+- **多服务集成**: Kubernetes、Grafana、Prometheus、Loki、Kibana、Elasticsearch、Helm、Alertmanager、Jaeger、Langfuse、Sentry、OpenTelemetry、Utilities
 - **多协议支持**: SSE 和 streamable-http 模式
 - **智能缓存**: 支持 TTL 的 LRU 缓存以优化性能
 - **性能优化**: JSON 编码池、响应大小控制、智能限制
@@ -44,6 +44,7 @@
 | **alertmanager** | 告警规则管理和通知 |
 | **jaeger** | 分布式追踪和性能分析 |
 | **langfuse** | LLM 可观测性、Prompt、Trace、评分与指标分析 |
+| **sentry** | 错误监控、Issue 排障与事件检查 |
 | **opentelemetry** | 指标、追踪和日志收集与分析 |
 | **utilities** | 通用工具 |
 
@@ -97,6 +98,7 @@ make build
 | `/api/alertmanager/sse` | Alertmanager 服务 |
 | `/api/jaeger/sse` | Jaeger 服务 |
 | `/api/langfuse/sse` | Langfuse 服务 |
+| `/api/sentry/sse` | Sentry 服务 |
 | `/api/opentelemetry/sse` | OpenTelemetry 服务 |
 | `/api/utilities/sse` | Utilities 服务 |
 

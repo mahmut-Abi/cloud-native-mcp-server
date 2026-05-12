@@ -21,6 +21,7 @@ import (
 	"github.com/mahmut-Abi/cloud-native-mcp-server/internal/services/loki"
 	"github.com/mahmut-Abi/cloud-native-mcp-server/internal/services/opentelemetry"
 	"github.com/mahmut-Abi/cloud-native-mcp-server/internal/services/prometheus"
+	"github.com/mahmut-Abi/cloud-native-mcp-server/internal/services/sentry"
 	"github.com/mahmut-Abi/cloud-native-mcp-server/internal/services/utilities"
 )
 
@@ -40,6 +41,7 @@ type Manager struct {
 	jaegerService        *jaeger.Service
 	langfuseService      *langfuse.Service
 	opentelemetryService *opentelemetry.Service
+	sentryService        *sentry.Service
 	utilitiesService     *utilities.Service
 	disabledTools        map[string]bool
 	disabledToolsMutex   sync.RWMutex     // Protect disabledTools from concurrent access
@@ -84,6 +86,7 @@ func (m *Manager) Initialize(appConfig *config.AppConfig) error {
 	m.jaegerService = jaeger.NewService()
 	m.langfuseService = langfuse.NewService()
 	m.opentelemetryService = opentelemetry.NewService()
+	m.sentryService = sentry.NewService()
 	m.utilitiesService = utilities.NewService()
 
 	// Apply service filters from configuration after service creation
@@ -126,6 +129,9 @@ func (m *Manager) Initialize(appConfig *config.AppConfig) error {
 	if m.opentelemetryService != nil {
 		m.registry.Register(m.opentelemetryService)
 	}
+	if m.sentryService != nil {
+		m.registry.Register(m.sentryService)
+	}
 	if m.utilitiesService != nil {
 		m.registry.Register(m.utilitiesService)
 	}
@@ -162,6 +168,7 @@ func (m *Manager) Initialize(appConfig *config.AppConfig) error {
 		{"jaeger", m.jaegerService != nil},
 		{"langfuse", m.langfuseService != nil},
 		{"opentelemetry", m.opentelemetryService != nil},
+		{"sentry", m.sentryService != nil},
 		{"utilities", m.utilitiesService != nil},
 	} {
 		if !svc.active {
@@ -185,7 +192,7 @@ func (m *Manager) Initialize(appConfig *config.AppConfig) error {
 	optionalServices := make([]struct {
 		name     string
 		initFunc func() error
-	}, 0, 11)
+	}, 0, 13)
 	if m.grafanaService != nil {
 		optionalServices = append(optionalServices, struct {
 			name     string
@@ -245,6 +252,12 @@ func (m *Manager) Initialize(appConfig *config.AppConfig) error {
 			name     string
 			initFunc func() error
 		}{"opentelemetry", func() error { return m.opentelemetryService.Initialize(cfg) }})
+	}
+	if m.sentryService != nil {
+		optionalServices = append(optionalServices, struct {
+			name     string
+			initFunc func() error
+		}{"sentry", func() error { return m.sentryService.Initialize(cfg) }})
 	}
 	if m.utilitiesService != nil {
 		optionalServices = append(optionalServices, struct {
@@ -441,6 +454,11 @@ func (m *Manager) GetOpenTelemetryService() *opentelemetry.Service {
 	return m.opentelemetryService
 }
 
+// GetSentryService returns the Sentry service
+func (m *Manager) GetSentryService() *sentry.Service {
+	return m.sentryService
+}
+
 // GetLangfuseService returns the Langfuse service
 func (m *Manager) GetLangfuseService() *langfuse.Service {
 	return m.langfuseService
@@ -587,7 +605,7 @@ func (m *Manager) ApplyServiceFilters(disabled, enabled []string) {
 		enabledMap[svc] = true
 	}
 
-	allServices := []string{"kubernetes", "grafana", "prometheus", "loki", "kibana", "helm", "elasticsearch", "alertmanager", "jaeger", "langfuse", "opentelemetry", "utilities"}
+	allServices := []string{"kubernetes", "grafana", "prometheus", "loki", "kibana", "helm", "elasticsearch", "alertmanager", "jaeger", "langfuse", "opentelemetry", "sentry", "utilities"}
 
 	// If specific services are enabled, disable all others
 	if len(enabled) > 0 {
@@ -631,6 +649,9 @@ func (m *Manager) ApplyServiceFilters(disabled, enabled []string) {
 	}
 	if disabledMap["opentelemetry"] && m.opentelemetryService != nil {
 		m.opentelemetryService = nil
+	}
+	if disabledMap["sentry"] && m.sentryService != nil {
+		m.sentryService = nil
 	}
 	if disabledMap["utilities"] && m.utilitiesService != nil {
 		m.utilitiesService = nil
@@ -734,6 +755,7 @@ func (m *Manager) Shutdown() error {
 		{"jaeger", m.jaegerService},
 		{"langfuse", m.langfuseService},
 		{"opentelemetry", m.opentelemetryService},
+		{"sentry", m.sentryService},
 		{"utilities", m.utilitiesService},
 	}
 

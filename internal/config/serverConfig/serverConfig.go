@@ -245,6 +245,7 @@ func (s *ServerConfig) InitSSEServers(mcpServer *server.MCPServer, addr string, 
 	alertmanagerPath := "/api/alertmanager/sse"
 	jaegerPath := "/api/jaeger/sse"
 	langfusePath := "/api/langfuse/sse"
+	sentryPath := "/api/sentry/sse"
 	aggregatePath := "/api/aggregate/sse"
 	utilitiesPath := "/api/utilities/sse"
 
@@ -280,6 +281,9 @@ func (s *ServerConfig) InitSSEServers(mcpServer *server.MCPServer, addr string, 
 		if appConfig.Server.SSEPaths.Langfuse != "" {
 			langfusePath = appConfig.Server.SSEPaths.Langfuse
 		}
+		if appConfig.Server.SSEPaths.Sentry != "" {
+			sentryPath = appConfig.Server.SSEPaths.Sentry
+		}
 		// Check for aggregate SSE path in config
 		if appConfig.Server.SSEPaths.Aggregate != "" {
 			aggregatePath = appConfig.Server.SSEPaths.Aggregate
@@ -301,6 +305,7 @@ func (s *ServerConfig) InitSSEServers(mcpServer *server.MCPServer, addr string, 
 	alertmanagerServer := s.createServiceMCPServer("alertmanager")
 	jaegerServer := s.createServiceMCPServer("jaeger")
 	langfuseServer := s.createServiceMCPServer("langfuse")
+	sentryServer := s.createServiceMCPServer("sentry")
 	opentelemetryServer := s.createServiceMCPServer("opentelemetry")
 
 	// Create aggregated MCP server with all services
@@ -420,6 +425,16 @@ func (s *ServerConfig) InitSSEServers(mcpServer *server.MCPServer, addr string, 
 		server.WithUseFullURLForMessageEndpoint(true),
 	)
 
+	sseServers["sentry"] = server.NewSSEServer(sentryServer,
+		server.WithStaticBasePath(""),
+		server.WithSSEEndpoint(sentryPath),
+		server.WithMessageEndpoint(sentryPath+"/message"),
+		server.WithKeepAlive(true),
+		server.WithKeepAliveInterval(30*time.Second),
+		server.WithAppendQueryToMessageEndpoint(),
+		server.WithUseFullURLForMessageEndpoint(true),
+	)
+
 	// Create opentelemetry SSE server
 	opentelemetryPath := "/api/opentelemetry/sse"
 	if appConfig != nil && appConfig.Server.SSEPaths.OpenTelemetry != "" {
@@ -458,6 +473,7 @@ func (s *ServerConfig) InitSSEServers(mcpServer *server.MCPServer, addr string, 
 		"alertmanager_path":  alertmanagerPath,
 		"jaeger_path":        jaegerPath,
 		"langfuse_path":      langfusePath,
+		"sentry_path":        sentryPath,
 		"aggregate_path":     aggregatePath,
 		"utilities_path":     utilitiesPath,
 	}).Info("Multiple SSE servers initialized successfully")
@@ -481,6 +497,7 @@ func (s *ServerConfig) InitStreamableHTTPServers(mcpServer *server.MCPServer, ad
 	alertmanagerPath := "/api/alertmanager/streamable-http"
 	jaegerPath := "/api/jaeger/streamable-http"
 	langfusePath := "/api/langfuse/streamable-http"
+	sentryPath := "/api/sentry/streamable-http"
 	aggregatePath := "/api/aggregate/streamable-http"
 	utilitiesPath := "/api/utilities/streamable-http"
 
@@ -516,6 +533,9 @@ func (s *ServerConfig) InitStreamableHTTPServers(mcpServer *server.MCPServer, ad
 		if appConfig.Server.StreamableHTTPPaths.Langfuse != "" {
 			langfusePath = appConfig.Server.StreamableHTTPPaths.Langfuse
 		}
+		if appConfig.Server.StreamableHTTPPaths.Sentry != "" {
+			sentryPath = appConfig.Server.StreamableHTTPPaths.Sentry
+		}
 		if appConfig.Server.StreamableHTTPPaths.Aggregate != "" {
 			aggregatePath = appConfig.Server.StreamableHTTPPaths.Aggregate
 		}
@@ -535,6 +555,7 @@ func (s *ServerConfig) InitStreamableHTTPServers(mcpServer *server.MCPServer, ad
 	alertmanagerServer := s.createServiceMCPServer("alertmanager")
 	jaegerServer := s.createServiceMCPServer("jaeger")
 	langfuseServer := s.createServiceMCPServer("langfuse")
+	sentryServer := s.createServiceMCPServer("sentry")
 	opentelemetryServer := s.createServiceMCPServer("opentelemetry")
 
 	// Create aggregated MCP server with all services
@@ -610,6 +631,12 @@ func (s *ServerConfig) InitStreamableHTTPServers(mcpServer *server.MCPServer, ad
 		server.WithStateLess(true),
 	)
 
+	streamableHTTPServers["sentry"] = server.NewStreamableHTTPServer(sentryServer,
+		server.WithEndpointPath(sentryPath),
+		server.WithHeartbeatInterval(60*time.Second),
+		server.WithStateLess(true),
+	)
+
 	// Create opentelemetry StreamableHTTP server
 	opentelemetryPath := "/api/opentelemetry/streamable-http"
 	if appConfig != nil && appConfig.Server.StreamableHTTPPaths.OpenTelemetry != "" {
@@ -638,6 +665,7 @@ func (s *ServerConfig) InitStreamableHTTPServers(mcpServer *server.MCPServer, ad
 		"alertmanager_path":  alertmanagerPath,
 		"jaeger_path":        jaegerPath,
 		"langfuse_path":      langfusePath,
+		"sentry_path":        sentryPath,
 		"opentelemetry_path": opentelemetryPath,
 		"aggregate_path":     aggregatePath,
 		"utilities_path":     utilitiesPath,
@@ -703,6 +731,10 @@ func (s *ServerConfig) createServiceMCPServer(serviceName string) *server.MCPSer
 		case "langfuse":
 			if langfuseService := s.serviceManager.GetLangfuseService(); langfuseService != nil && langfuseService.IsEnabled() {
 				s.registerTools(serviceServer, langfuseService.GetTools(), langfuseService.GetHandlers())
+			}
+		case "sentry":
+			if sentryService := s.serviceManager.GetSentryService(); sentryService != nil && sentryService.IsEnabled() {
+				s.registerTools(serviceServer, sentryService.GetTools(), sentryService.GetHandlers())
 			}
 		case "opentelemetry":
 			if opentelemetryService := s.serviceManager.GetOpenTelemetryService(); opentelemetryService != nil && opentelemetryService.IsEnabled() {
@@ -788,6 +820,11 @@ func (s *ServerConfig) createAggregateMCPServer() *server.MCPServer {
 		// Add Langfuse service capabilities
 		if langfuseService := s.serviceManager.GetLangfuseService(); langfuseService != nil && langfuseService.IsEnabled() {
 			s.registerTools(aggregateServer, langfuseService.GetTools(), langfuseService.GetHandlers())
+		}
+
+		// Add Sentry service capabilities
+		if sentryService := s.serviceManager.GetSentryService(); sentryService != nil && sentryService.IsEnabled() {
+			s.registerTools(aggregateServer, sentryService.GetTools(), sentryService.GetHandlers())
 		}
 
 		// Add OpenTelemetry service capabilities
@@ -1195,7 +1232,7 @@ func (s *ServerConfig) ApplyServiceFilters(disabledServices, enabledServices, di
 	disabledToolList := parseList(disabledTools)
 
 	// If specific services are enabled, disable all others
-	allServices := []string{"kubernetes", "grafana", "prometheus", "loki", "kibana", "helm", "elasticsearch", "alertmanager", "jaeger", "opentelemetry", "utilities"}
+	allServices := []string{"kubernetes", "grafana", "prometheus", "loki", "kibana", "helm", "elasticsearch", "alertmanager", "jaeger", "langfuse", "opentelemetry", "sentry", "utilities"}
 	if len(enabledSvcs) > 0 {
 		for _, svc := range allServices {
 			if !enabledSvcs[svc] {
@@ -1339,6 +1376,8 @@ func (s *ServerConfig) SetupMultipleRoutes(mux *http.ServeMux, sseServers map[st
 	alertmanagerPath := "/api/alertmanager/sse"
 	jaegerPath := "/api/jaeger/sse"
 	opentelemetryPath := "/api/opentelemetry/sse"
+	langfusePath := "/api/langfuse/sse"
+	sentryPath := "/api/sentry/sse"
 	aggregatePath := "/api/aggregate/sse"
 	utilitiesPath := "/api/utilities/sse"
 
@@ -1373,6 +1412,12 @@ func (s *ServerConfig) SetupMultipleRoutes(mux *http.ServeMux, sseServers map[st
 		}
 		if appConfig.Server.SSEPaths.OpenTelemetry != "" {
 			opentelemetryPath = appConfig.Server.SSEPaths.OpenTelemetry
+		}
+		if appConfig.Server.SSEPaths.Langfuse != "" {
+			langfusePath = appConfig.Server.SSEPaths.Langfuse
+		}
+		if appConfig.Server.SSEPaths.Sentry != "" {
+			sentryPath = appConfig.Server.SSEPaths.Sentry
 		}
 		if appConfig.Server.SSEPaths.Aggregate != "" {
 			aggregatePath = appConfig.Server.SSEPaths.Aggregate
@@ -1417,8 +1462,12 @@ func (s *ServerConfig) SetupMultipleRoutes(mux *http.ServeMux, sseServers map[st
 				sseEndpoint = alertmanagerPath
 			case "jaeger":
 				sseEndpoint = jaegerPath
+			case "langfuse":
+				sseEndpoint = langfusePath
 			case "opentelemetry":
 				sseEndpoint = opentelemetryPath
+			case "sentry":
+				sseEndpoint = sentryPath
 			case "aggregate":
 				sseEndpoint = aggregatePath
 			case "utilities":
@@ -1536,6 +1585,12 @@ func (s *ServerConfig) SetupMultipleRoutes(mux *http.ServeMux, sseServers map[st
 		lokiPath := "/api/loki/streamable-http"
 		kibanaPath := "/api/kibana/streamable-http"
 		helmPath := "/api/helm/streamable-http"
+		elasticsearchPath := "/api/elasticsearch/streamable-http"
+		alertmanagerPath := "/api/alertmanager/streamable-http"
+		jaegerPath := "/api/jaeger/streamable-http"
+		opentelemetryPath := "/api/opentelemetry/streamable-http"
+		langfusePath := "/api/langfuse/streamable-http"
+		sentryPath := "/api/sentry/streamable-http"
 		aggregatePath := "/api/aggregate/streamable-http"
 		utilitiesPath := "/api/utilities/streamable-http"
 
@@ -1558,6 +1613,24 @@ func (s *ServerConfig) SetupMultipleRoutes(mux *http.ServeMux, sseServers map[st
 			}
 			if appConfig.Server.StreamableHTTPPaths.Helm != "" {
 				helmPath = appConfig.Server.StreamableHTTPPaths.Helm
+			}
+			if appConfig.Server.StreamableHTTPPaths.Elasticsearch != "" {
+				elasticsearchPath = appConfig.Server.StreamableHTTPPaths.Elasticsearch
+			}
+			if appConfig.Server.StreamableHTTPPaths.Alertmanager != "" {
+				alertmanagerPath = appConfig.Server.StreamableHTTPPaths.Alertmanager
+			}
+			if appConfig.Server.StreamableHTTPPaths.Jaeger != "" {
+				jaegerPath = appConfig.Server.StreamableHTTPPaths.Jaeger
+			}
+			if appConfig.Server.StreamableHTTPPaths.OpenTelemetry != "" {
+				opentelemetryPath = appConfig.Server.StreamableHTTPPaths.OpenTelemetry
+			}
+			if appConfig.Server.StreamableHTTPPaths.Langfuse != "" {
+				langfusePath = appConfig.Server.StreamableHTTPPaths.Langfuse
+			}
+			if appConfig.Server.StreamableHTTPPaths.Sentry != "" {
+				sentryPath = appConfig.Server.StreamableHTTPPaths.Sentry
 			}
 			if appConfig.Server.StreamableHTTPPaths.Aggregate != "" {
 				aggregatePath = appConfig.Server.StreamableHTTPPaths.Aggregate
@@ -1584,6 +1657,18 @@ func (s *ServerConfig) SetupMultipleRoutes(mux *http.ServeMux, sseServers map[st
 				httpPath = kibanaPath
 			case "helm":
 				httpPath = helmPath
+			case "elasticsearch":
+				httpPath = elasticsearchPath
+			case "alertmanager":
+				httpPath = alertmanagerPath
+			case "jaeger":
+				httpPath = jaegerPath
+			case "opentelemetry":
+				httpPath = opentelemetryPath
+			case "langfuse":
+				httpPath = langfusePath
+			case "sentry":
+				httpPath = sentryPath
 			case "aggregate":
 				httpPath = aggregatePath
 			case "utilities":

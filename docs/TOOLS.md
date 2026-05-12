@@ -24,6 +24,7 @@ For the exact runtime inventory, prefer `--list tools`.
 - [Alertmanager (16 tools)](#alertmanager-16-tools)
 - [Jaeger (8 tools)](#jaeger-8-tools)
 - [Langfuse (13 tools)](#langfuse-13-tools)
+- [Sentry (9 tools)](#sentry-9-tools)
 - [OpenTelemetry (9 tools)](#opentelemetry-9-tools)
 - [Utilities (6 tools)](#utilities-6-tools)
 
@@ -643,6 +644,34 @@ Practical guidance:
 
 ---
 
+## Sentry (9 tools)
+
+### Connectivity and Discovery
+
+| Tool | Description | Priority |
+|------|-------------|----------|
+| `sentry_test_connection` | Verify that the configured Sentry token and base URL work, optionally against a default organization or project. | ⚠️ PRIORITY |
+| `sentry_list_organizations` | List organizations visible to the current Sentry token. | - |
+| `sentry_list_projects` | List projects for a Sentry organization. | - |
+| `sentry_get_project` | Get a specific project by organization slug and project slug. | - |
+
+### Issues
+
+| Tool | Description | Priority |
+|------|-------------|----------|
+| `sentry_list_issues_summary` | Recommended first step for issue triage. Returns a compact issue view for faster browsing. | ⚠️ PRIORITY |
+| `sentry_list_issues` | List issues for an organization with optional query, environment, project, and sort filters. | - |
+| `sentry_get_issue` | Get full details for a specific Sentry issue. | - |
+
+### Events
+
+| Tool | Description | Priority |
+|------|-------------|----------|
+| `sentry_list_issue_events` | List events attached to a Sentry issue with optional filters. | - |
+| `sentry_get_issue_event` | Get a specific event for a Sentry issue. | - |
+
+---
+
 ## Utilities (6 tools)
 
 ### Time
@@ -999,6 +1028,18 @@ Do not edit this block by hand.
 - `langfuse_list_sessions`
 - `langfuse_list_traces`
 - `langfuse_list_traces_summary`
+
+### Sentry (9 tools)
+
+- `sentry_get_issue`
+- `sentry_get_issue_event`
+- `sentry_get_project`
+- `sentry_list_issue_events`
+- `sentry_list_issues`
+- `sentry_list_issues_summary`
+- `sentry_list_organizations`
+- `sentry_list_projects`
+- `sentry_test_connection`
 
 ### OpenTelemetry (9 tools)
 

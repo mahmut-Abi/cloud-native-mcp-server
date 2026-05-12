@@ -4,7 +4,7 @@ title: "Services"
 
 # Integrated Services
 
-Cloud Native MCP Server integrates 12 powerful cloud-native services, providing 275 tools that fully cover Kubernetes management, deployment, monitoring, logging, tracing, and more.
+Cloud Native MCP Server integrates 13 powerful cloud-native services, providing 284 tools that fully cover Kubernetes management, deployment, monitoring, logging, tracing, and more.
 
 <div class="service-grid">
 
@@ -149,6 +149,20 @@ Cloud Native MCP Server integrates 12 powerful cloud-native services, providing 
 </div>
 
 <div class="service-card">
+  <h3>🚩 Sentry</h3>
+  <p><span class="tool-count">9 tools</span></p>
+  <p>Error monitoring platform for issue triage, event inspection, and project discovery across Sentry organizations.</p>
+  <p><strong>Key Features:</strong></p>
+  <ul>
+    <li>Organization and project discovery</li>
+    <li>Issue triage with compact summaries</li>
+    <li>Issue detail inspection</li>
+    <li>Issue event browsing</li>
+    <li>Connection validation</li>
+  </ul>
+</div>
+
+<div class="service-card">
   <h3>📡 OpenTelemetry</h3>
   <p><span class="tool-count">9 tools</span></p>
   <p>Unified observability framework for collecting metrics, traces, and logs.</p>
@@ -247,6 +261,15 @@ langfuse:
   url: "https://cloud.langfuse.com"
   publicKey: "pk-lf-..."
   secretKey: "sk-lf-..."
+  timeoutSec: 30
+
+# Sentry
+sentry:
+  enabled: true
+  url: "https://sentry.io"
+  authToken: "sntrys_..."
+  organization: "acme"
+  project: "frontend"
   timeoutSec: 30
 
 # OpenTelemetry

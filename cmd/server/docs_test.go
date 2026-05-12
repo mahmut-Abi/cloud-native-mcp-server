@@ -33,6 +33,7 @@ func TestToolsReferenceServiceCountsMatchInventory(t *testing.T) {
 		"Jaeger":        len(counts["jaeger"]),
 		"Langfuse":      len(counts["langfuse"]),
 		"OpenTelemetry": len(counts["opentelemetry"]),
+		"Sentry":        len(counts["sentry"]),
 		"Utilities":     len(counts["utilities"]),
 	}
 

@@ -25,6 +25,7 @@ type AppConfig struct {
 			Jaeger        string `yaml:"jaeger"`        // SSE path for Jaeger service
 			OpenTelemetry string `yaml:"opentelemetry"` // SSE path for OpenTelemetry service
 			Langfuse      string `yaml:"langfuse"`      // SSE path for Langfuse service
+			Sentry        string `yaml:"sentry"`        // SSE path for Sentry service
 			Aggregate     string `yaml:"aggregate"`     // SSE path for aggregated service
 			Utilities     string `yaml:"utilities"`     // SSE path for Utilities service
 		} `yaml:"ssePaths"`
@@ -40,6 +41,7 @@ type AppConfig struct {
 			Jaeger        string `yaml:"jaeger"`        // Streamable-HTTP path for Jaeger service
 			OpenTelemetry string `yaml:"opentelemetry"` // Streamable-HTTP path for OpenTelemetry service
 			Langfuse      string `yaml:"langfuse"`      // Streamable-HTTP path for Langfuse service
+			Sentry        string `yaml:"sentry"`        // Streamable-HTTP path for Sentry service
 			Aggregate     string `yaml:"aggregate"`     // Streamable-HTTP path for aggregated service
 			Utilities     string `yaml:"utilities"`     // Streamable-HTTP path for Utilities service
 		} `yaml:"streamableHttpPaths"`
@@ -165,6 +167,15 @@ type AppConfig struct {
 		TimeoutSec int    `yaml:"timeoutSec"` // Request timeout in seconds
 	} `yaml:"langfuse"`
 
+	Sentry struct {
+		Enabled      bool   `yaml:"enabled"`      // Enable Sentry service
+		URL          string `yaml:"url"`          // Sentry base URL
+		AuthToken    string `yaml:"authToken"`    // Sentry auth token
+		Organization string `yaml:"organization"` // Default Sentry organization slug
+		Project      string `yaml:"project"`      // Default Sentry project slug
+		TimeoutSec   int    `yaml:"timeoutSec"`   // Request timeout in seconds
+	} `yaml:"sentry"`
+
 	// OTEL configuration for server's own observability
 	OTEL struct {
 		Enabled        bool   `yaml:"enabled"`        // Enable server OpenTelemetry
@@ -287,14 +298,15 @@ type AppConfig struct {
 //	MCP_MODE, MCP_ADDR, MCP_READ_TIMEOUT, MCP_WRITE_TIMEOUT, MCP_IDLE_TIMEOUT,
 //	MCP_SSE_PATH_KUBERNETES, MCP_SSE_PATH_GRAFANA, MCP_SSE_PATH_PROMETHEUS, MCP_SSE_PATH_LOKI,
 //	MCP_SSE_PATH_KIBANA, MCP_SSE_PATH_HELM, MCP_SSE_PATH_ELASTICSEARCH, MCP_SSE_PATH_ALERTMANAGER,
-//	MCP_SSE_PATH_JAEGER, MCP_SSE_PATH_OPENTELEMETRY, MCP_SSE_PATH_LANGFUSE, MCP_SSE_PATH_AGGREGATE,
-//	MCP_SSE_PATH_UTILITIES,
+//	MCP_SSE_PATH_JAEGER, MCP_SSE_PATH_OPENTELEMETRY, MCP_SSE_PATH_LANGFUSE, MCP_SSE_PATH_SENTRY,
+//	MCP_SSE_PATH_AGGREGATE, MCP_SSE_PATH_UTILITIES,
 //	MCP_STREAMABLE_HTTP_PATH_KUBERNETES, MCP_STREAMABLE_HTTP_PATH_GRAFANA,
 //	MCP_STREAMABLE_HTTP_PATH_PROMETHEUS, MCP_STREAMABLE_HTTP_PATH_LOKI, MCP_STREAMABLE_HTTP_PATH_KIBANA,
 //	MCP_STREAMABLE_HTTP_PATH_HELM, MCP_STREAMABLE_HTTP_PATH_ELASTICSEARCH,
 //	MCP_STREAMABLE_HTTP_PATH_ALERTMANAGER, MCP_STREAMABLE_HTTP_PATH_JAEGER,
 //	MCP_STREAMABLE_HTTP_PATH_OPENTELEMETRY, MCP_STREAMABLE_HTTP_PATH_LANGFUSE,
-//	MCP_STREAMABLE_HTTP_PATH_AGGREGATE, MCP_STREAMABLE_HTTP_PATH_UTILITIES,
+//	MCP_STREAMABLE_HTTP_PATH_SENTRY, MCP_STREAMABLE_HTTP_PATH_AGGREGATE,
+//	MCP_STREAMABLE_HTTP_PATH_UTILITIES,
 //	MCP_LOG_LEVEL, MCP_LOG_JSON,
 //	MCP_KUBECONFIG, MCP_K8S_TIMEOUT, MCP_K8S_QPS, MCP_K8S_BURST,
 //	MCP_PROM_ENABLED, MCP_PROM_ADDRESS, MCP_PROM_TIMEOUT, MCP_PROM_USERNAME, MCP_PROM_PASSWORD,
@@ -336,6 +348,7 @@ type AppConfig struct {
 //	MCP_AUTH_OIDC_AUDIENCE, MCP_AUTH_OIDC_CLIENT_ID, MCP_AUTH_OIDC_HTTP_TIMEOUT,
 //	MCP_AUTH_OIDC_JWKS_CACHE_TTL,
 //	MCP_LANGFUSE_ENABLED, MCP_LANGFUSE_URL, MCP_LANGFUSE_PUBLIC_KEY, MCP_LANGFUSE_SECRET_KEY, MCP_LANGFUSE_TIMEOUT,
+//	MCP_SENTRY_ENABLED, MCP_SENTRY_URL, MCP_SENTRY_AUTH_TOKEN, MCP_SENTRY_ORGANIZATION, MCP_SENTRY_PROJECT, MCP_SENTRY_TIMEOUT,
 //	MCP_OPENTELEMETRY_ENABLED, MCP_OPENTELEMETRY_ADDRESS, MCP_OPENTELEMETRY_TIMEOUT,
 //	MCP_OPENTELEMETRY_USERNAME, MCP_OPENTELEMETRY_PASSWORD, MCP_OPENTELEMETRY_BEARER_TOKEN,
 //	MCP_OPENTELEMETRY_TLS_SKIP_VERIFY, MCP_OPENTELEMETRY_TLS_CERT_FILE, MCP_OPENTELEMETRY_TLS_KEY_FILE,
@@ -423,6 +436,9 @@ func (c *AppConfig) Validate() error {
 	}
 	if c.Jaeger.Enabled && c.Jaeger.Address == "" {
 		return fmt.Errorf("jaeger address is required when service is enabled")
+	}
+	if c.Sentry.Enabled && c.Sentry.URL == "" {
+		return fmt.Errorf("sentry URL is required when service is enabled")
 	}
 	if c.OpenTelemetry.Enabled && c.OpenTelemetry.Address == "" {
 		return fmt.Errorf("opentelemetry address is required when service is enabled")
