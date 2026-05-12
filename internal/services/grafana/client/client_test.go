@@ -834,6 +834,12 @@ func TestRenderDashboardPanelUsesRenderEndpointOutsideAPIBase(t *testing.T) {
 	if string(image.ImageData) != "png-data" {
 		t.Errorf("Expected image payload png-data, got %q", string(image.ImageData))
 	}
+	if image.Width != 1000 {
+		t.Errorf("Expected width 1000, got %d", image.Width)
+	}
+	if image.Height != 500 {
+		t.Errorf("Expected height 500, got %d", image.Height)
+	}
 }
 
 func TestDeleteDatasource(t *testing.T) {

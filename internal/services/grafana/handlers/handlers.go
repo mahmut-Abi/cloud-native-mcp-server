@@ -1849,11 +1849,18 @@ func HandleRenderPanelImage(grafanaClient *client.Client) func(ctx context.Conte
 			return nil, fmt.Errorf("failed to render panel: %w", err)
 		}
 
-		// Return base64 encoded image
-		return mcp.NewToolResultText(fmt.Sprintf("data:%s;base64,%s",
-			image.ContentType,
-			base64.StdEncoding.EncodeToString(image.ImageData),
-		)), nil
+		encoded := base64.StdEncoding.EncodeToString(image.ImageData)
+		return marshalOptimizedResponse(map[string]interface{}{
+			"contentType": image.ContentType,
+			"size":        image.Size,
+			"width":       image.Width,
+			"height":      image.Height,
+			"imageData":   encoded,
+			"dataUrl": fmt.Sprintf("data:%s;base64,%s",
+				image.ContentType,
+				encoded,
+			),
+		}, "grafana_render_panel_image")
 	}
 }
 
