@@ -568,6 +568,58 @@ func TestGetDashboardVersionUsesVersionDetailEndpoint(t *testing.T) {
 	}
 }
 
+func TestGetDashboardVersionsHandlesWrappedResponse(t *testing.T) {
+	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		if r.Method != http.MethodGet {
+			t.Errorf("Expected GET request, got %s", r.Method)
+		}
+		if r.URL.Path != "/api/dashboards/uid/test-dashboard/versions" {
+			t.Errorf("Expected path /api/dashboards/uid/test-dashboard/versions, got %s", r.URL.Path)
+		}
+		if got := r.URL.Query().Get("limit"); got != "5" {
+			t.Errorf("Expected limit=5, got %q", got)
+		}
+
+		w.Header().Set("Content-Type", "application/json")
+		w.WriteHeader(http.StatusOK)
+		_ = json.NewEncoder(w).Encode(map[string]interface{}{
+			"dashboardUID": "test-dashboard",
+			"versions": []map[string]interface{}{
+				{
+					"id":        2,
+					"version":   2,
+					"createdBy": "admin",
+					"message":   "smoke_update",
+				},
+				{
+					"id":        1,
+					"version":   1,
+					"createdBy": "admin",
+					"message":   "smoke_create",
+				},
+			},
+		})
+	}))
+	defer server.Close()
+
+	client, err := NewClient(&ClientOptions{URL: server.URL, APIKey: "test-api-key"})
+	if err != nil {
+		t.Fatalf("Failed to create client: %v", err)
+	}
+
+	versions, err := client.GetDashboardVersions(context.Background(), "test-dashboard", 5, 0)
+	if err != nil {
+		t.Fatalf("GetDashboardVersions failed: %v", err)
+	}
+
+	if len(versions) != 2 {
+		t.Fatalf("Expected 2 versions, got %d", len(versions))
+	}
+	if versions[0].Version != 2 || versions[1].Version != 1 {
+		t.Errorf("Unexpected version ordering: %#v", versions)
+	}
+}
+
 func TestRestoreDashboardVersionUsesRestoreEndpoint(t *testing.T) {
 	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		if r.Method != http.MethodPost {
