@@ -78,6 +78,46 @@ func GetFoldersTool() mcp.Tool {
 	)
 }
 
+// CreateFolderTool creates a new folder.
+func CreateFolderTool() mcp.Tool {
+	logrus.Debug("Creating CreateFolderTool")
+	return mcp.NewTool("grafana_create_folder",
+		mcp.WithDescription("Create a new Grafana folder so agents can organize dashboards before writing or moving them."),
+		mcp.WithString("title", mcp.Required(),
+			mcp.Description("Human-readable folder title.")),
+		mcp.WithString("uid",
+			mcp.Description("Optional stable folder UID. If omitted, Grafana will generate one.")),
+	)
+}
+
+// UpdateFolderTool updates a folder.
+func UpdateFolderTool() mcp.Tool {
+	logrus.Debug("Creating UpdateFolderTool")
+	return mcp.NewTool("grafana_update_folder",
+		mcp.WithDescription("Rename or overwrite a Grafana folder by UID. Useful when agents need to keep folder layout aligned with dashboard ownership."),
+		mcp.WithString("uid", mcp.Required(),
+			mcp.Description("Unique identifier of the folder to update.")),
+		mcp.WithString("title", mcp.Required(),
+			mcp.Description("New folder title.")),
+		mcp.WithNumber("version",
+			mcp.Description("Current folder version for optimistic concurrency control.")),
+		mcp.WithBoolean("overwrite",
+			mcp.Description("Allow overwrite semantics when Grafana requires it.")),
+	)
+}
+
+// DeleteFolderTool deletes a folder.
+func DeleteFolderTool() mcp.Tool {
+	logrus.Debug("Creating DeleteFolderTool")
+	return mcp.NewTool("grafana_delete_folder",
+		mcp.WithDescription("Delete a Grafana folder by UID. Use carefully because dashboards and alert rules in that folder may be affected."),
+		mcp.WithString("uid", mcp.Required(),
+			mcp.Description("Unique identifier of the folder to delete.")),
+		mcp.WithBoolean("forceDeleteRules",
+			mcp.Description("Also delete alert rules under the folder when Grafana enforces that dependency.")),
+	)
+}
+
 // GetAlertRulesTool retrieves alert rules from Grafana with limits.
 func GetAlertRulesTool() mcp.Tool {
 	logrus.Debug("Creating GetAlertRulesTool")
@@ -284,6 +324,54 @@ func UpdateDashboardTool() mcp.Tool {
 	)
 }
 
+// GetDashboardVersionsTool retrieves dashboard version history.
+func GetDashboardVersionsTool() mcp.Tool {
+	logrus.Debug("Creating GetDashboardVersionsTool")
+	return mcp.NewTool("grafana_get_dashboard_versions",
+		mcp.WithDescription("List saved versions for a dashboard so agents can inspect change history before modifying or restoring dashboards."),
+		mcp.WithString("dashboardUID", mcp.Required(),
+			mcp.Description("Unique identifier of the dashboard.")),
+		mcp.WithNumber("limit",
+			mcp.Description("Maximum number of versions to return.")),
+		mcp.WithNumber("start",
+			mcp.Description("Offset for paginating the version history.")),
+	)
+}
+
+// GetDashboardVersionTool retrieves a specific dashboard version.
+func GetDashboardVersionTool() mcp.Tool {
+	logrus.Debug("Creating GetDashboardVersionTool")
+	return mcp.NewTool("grafana_get_dashboard_version",
+		mcp.WithDescription("Retrieve a specific saved dashboard version, including the historical dashboard payload when Grafana returns it."),
+		mcp.WithString("dashboardUID", mcp.Required(),
+			mcp.Description("Unique identifier of the dashboard.")),
+		mcp.WithNumber("version", mcp.Required(),
+			mcp.Description("Saved version number to fetch.")),
+	)
+}
+
+// RestoreDashboardVersionTool restores a dashboard version.
+func RestoreDashboardVersionTool() mcp.Tool {
+	logrus.Debug("Creating RestoreDashboardVersionTool")
+	return mcp.NewTool("grafana_restore_dashboard_version",
+		mcp.WithDescription("Restore a dashboard to a previous saved version so agents can quickly roll back a bad change."),
+		mcp.WithString("dashboardUID", mcp.Required(),
+			mcp.Description("Unique identifier of the dashboard.")),
+		mcp.WithNumber("version", mcp.Required(),
+			mcp.Description("Saved version number to restore.")),
+	)
+}
+
+// DeleteDashboardTool deletes a dashboard.
+func DeleteDashboardTool() mcp.Tool {
+	logrus.Debug("Creating DeleteDashboardTool")
+	return mcp.NewTool("grafana_delete_dashboard",
+		mcp.WithDescription("Delete a dashboard by UID. Requires dashboard write permissions and should be used with caution."),
+		mcp.WithString("uid", mcp.Required(),
+			mcp.Description("Unique identifier of the dashboard to delete.")),
+	)
+}
+
 // GetDashboardPanelQueriesTool retrieves panel queries and datasource info.
 func GetDashboardPanelQueriesTool() mcp.Tool {
 	logrus.Debug("Creating GetDashboardPanelQueriesTool")
@@ -444,6 +532,16 @@ func PatchAnnotationTool() mcp.Tool {
 			mcp.Description("Text to update.")),
 		mcp.WithNumber("time",
 			mcp.Description("Timestamp to update.")),
+	)
+}
+
+// DeleteAnnotationTool deletes an annotation.
+func DeleteAnnotationTool() mcp.Tool {
+	logrus.Debug("Creating DeleteAnnotationTool")
+	return mcp.NewTool("grafana_delete_annotation",
+		mcp.WithDescription("Delete an annotation by ID."),
+		mcp.WithString("annotationID", mcp.Required(),
+			mcp.Description("ID of the annotation to delete.")),
 	)
 }
 

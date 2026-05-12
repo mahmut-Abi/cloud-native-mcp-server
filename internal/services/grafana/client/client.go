@@ -63,6 +63,17 @@ type Dashboard struct {
 	Meta      map[string]interface{} `json:"meta,omitempty"`
 }
 
+// DashboardVersion represents a saved dashboard version entry.
+type DashboardVersion struct {
+	ID        int                    `json:"id,omitempty"`
+	Version   int                    `json:"version,omitempty"`
+	Parent    int                    `json:"parentVersion,omitempty"`
+	Created   string                 `json:"created,omitempty"`
+	CreatedBy string                 `json:"createdBy,omitempty"`
+	Message   string                 `json:"message,omitempty"`
+	Data      map[string]interface{} `json:"data,omitempty"`
+}
+
 // DataSource represents a Grafana data source.
 type DataSource struct {
 	ID        int                    `json:"id,omitempty"`
@@ -89,6 +100,20 @@ type Folder struct {
 	CanEdit  bool   `json:"canEdit,omitempty"`
 	CanAdmin bool   `json:"canAdmin,omitempty"`
 	Version  int    `json:"version,omitempty"`
+}
+
+// FolderCreateRequest represents a request to create a folder.
+type FolderCreateRequest struct {
+	UID   string `json:"uid,omitempty"`
+	Title string `json:"title"`
+}
+
+// FolderUpdateRequest represents a request to update a folder.
+type FolderUpdateRequest struct {
+	UID       string `json:"-"`
+	Title     string `json:"title"`
+	Version   int    `json:"version,omitempty"`
+	Overwrite bool   `json:"overwrite,omitempty"`
 }
 
 // AlertRule represents a Grafana alert rule.
@@ -342,6 +367,114 @@ func (c *Client) GetDashboard(ctx context.Context, uid string) (*Dashboard, erro
 	return dashboard, nil
 }
 
+// GetDashboardVersions retrieves version history for a specific dashboard.
+func (c *Client) GetDashboardVersions(ctx context.Context, uid string, limit, start int) ([]DashboardVersion, error) {
+	logrus.WithField("uid", uid).Debug("Getting Grafana dashboard versions")
+
+	endpoint := fmt.Sprintf("dashboards/uid/%s/versions", uid)
+	params := url.Values{}
+	if limit > 0 {
+		params.Set("limit", fmt.Sprintf("%d", limit))
+	}
+	if start > 0 {
+		params.Set("start", fmt.Sprintf("%d", start))
+	}
+	if len(params) > 0 {
+		endpoint += "?" + params.Encode()
+	}
+
+	resp, err := c.makeRequest(ctx, "GET", endpoint, nil)
+	if err != nil {
+		return nil, err
+	}
+
+	body, err := c.handleResponse(resp)
+	if err != nil {
+		return nil, err
+	}
+
+	var versions []DashboardVersion
+	if err := json.Unmarshal(body, &versions); err != nil {
+		return nil, fmt.Errorf("failed to unmarshal dashboard versions response: %w", err)
+	}
+
+	return versions, nil
+}
+
+// GetDashboardVersion retrieves a specific saved dashboard version.
+func (c *Client) GetDashboardVersion(ctx context.Context, uid string, version int) (*DashboardVersion, error) {
+	logrus.WithFields(logrus.Fields{
+		"uid":     uid,
+		"version": version,
+	}).Debug("Getting Grafana dashboard version")
+
+	resp, err := c.makeRequest(ctx, "GET", fmt.Sprintf("dashboards/uid/%s/versions/%d", uid, version), nil)
+	if err != nil {
+		return nil, err
+	}
+
+	body, err := c.handleResponse(resp)
+	if err != nil {
+		return nil, err
+	}
+
+	var dashboardVersion DashboardVersion
+	if err := json.Unmarshal(body, &dashboardVersion); err != nil {
+		return nil, fmt.Errorf("failed to unmarshal dashboard version response: %w", err)
+	}
+
+	return &dashboardVersion, nil
+}
+
+// RestoreDashboardVersion restores a dashboard to a previous saved version.
+func (c *Client) RestoreDashboardVersion(ctx context.Context, uid string, version int) (map[string]interface{}, error) {
+	logrus.WithFields(logrus.Fields{
+		"uid":     uid,
+		"version": version,
+	}).Debug("Restoring Grafana dashboard version")
+
+	resp, err := c.makeRequest(ctx, "POST", fmt.Sprintf("dashboards/uid/%s/restore", uid), map[string]int{
+		"version": version,
+	})
+	if err != nil {
+		return nil, err
+	}
+
+	body, err := c.handleResponse(resp)
+	if err != nil {
+		return nil, err
+	}
+
+	var result map[string]interface{}
+	if err := json.Unmarshal(body, &result); err != nil {
+		return nil, fmt.Errorf("failed to unmarshal dashboard restore response: %w", err)
+	}
+
+	return result, nil
+}
+
+// DeleteDashboard deletes a dashboard by UID.
+func (c *Client) DeleteDashboard(ctx context.Context, uid string) (map[string]interface{}, error) {
+	logrus.WithField("uid", uid).Debug("Deleting Grafana dashboard")
+
+	resp, err := c.makeRequest(ctx, "DELETE", "dashboards/uid/"+uid, nil)
+	if err != nil {
+		return nil, err
+	}
+
+	body, err := c.handleResponse(resp)
+	if err != nil {
+		return nil, err
+	}
+
+	var result map[string]interface{}
+	if err := json.Unmarshal(body, &result); err != nil {
+		return nil, fmt.Errorf("failed to unmarshal dashboard delete response: %w", err)
+	}
+
+	return result, nil
+}
+
 // GetDataSources retrieves all data sources from Grafana.
 func (c *Client) GetDataSources(ctx context.Context) ([]DataSource, error) {
 	logrus.Debug("Getting Grafana data sources")
@@ -386,6 +519,31 @@ func (c *Client) GetFolders(ctx context.Context) ([]Folder, error) {
 
 	logrus.WithField("count", len(folders)).Debug("Retrieved folders")
 	return folders, nil
+}
+
+// CreateFolder creates a new folder.
+func (c *Client) CreateFolder(ctx context.Context, req FolderCreateRequest) (*Folder, error) {
+	logrus.WithFields(logrus.Fields{
+		"title": req.Title,
+		"uid":   req.UID,
+	}).Debug("Creating Grafana folder")
+
+	resp, err := c.makeRequest(ctx, "POST", "folders", req)
+	if err != nil {
+		return nil, err
+	}
+
+	body, err := c.handleResponse(resp)
+	if err != nil {
+		return nil, err
+	}
+
+	var folder Folder
+	if err := json.Unmarshal(body, &folder); err != nil {
+		return nil, fmt.Errorf("failed to unmarshal folder create response: %w", err)
+	}
+
+	return &folder, nil
 }
 
 // GetAlertRules retrieves alert rules from Grafana.
@@ -483,6 +641,63 @@ func (c *Client) GetFolder(ctx context.Context, uid string) (*Folder, error) {
 
 	logrus.Debug("Retrieved folder")
 	return &folder, nil
+}
+
+// UpdateFolder updates a folder by UID.
+func (c *Client) UpdateFolder(ctx context.Context, req FolderUpdateRequest) (*Folder, error) {
+	logrus.WithFields(logrus.Fields{
+		"uid":       req.UID,
+		"title":     req.Title,
+		"version":   req.Version,
+		"overwrite": req.Overwrite,
+	}).Debug("Updating Grafana folder")
+
+	resp, err := c.makeRequest(ctx, "PUT", "folders/"+req.UID, req)
+	if err != nil {
+		return nil, err
+	}
+
+	body, err := c.handleResponse(resp)
+	if err != nil {
+		return nil, err
+	}
+
+	var folder Folder
+	if err := json.Unmarshal(body, &folder); err != nil {
+		return nil, fmt.Errorf("failed to unmarshal folder update response: %w", err)
+	}
+
+	return &folder, nil
+}
+
+// DeleteFolder deletes a folder by UID.
+func (c *Client) DeleteFolder(ctx context.Context, uid string, forceDeleteRules bool) (map[string]interface{}, error) {
+	logrus.WithFields(logrus.Fields{
+		"uid":              uid,
+		"forceDeleteRules": forceDeleteRules,
+	}).Debug("Deleting Grafana folder")
+
+	endpoint := "folders/" + uid
+	if forceDeleteRules {
+		endpoint += "?forceDeleteRules=true"
+	}
+
+	resp, err := c.makeRequest(ctx, "DELETE", endpoint, nil)
+	if err != nil {
+		return nil, err
+	}
+
+	body, err := c.handleResponse(resp)
+	if err != nil {
+		return nil, err
+	}
+
+	var result map[string]interface{}
+	if err := json.Unmarshal(body, &result); err != nil {
+		return nil, fmt.Errorf("failed to unmarshal folder delete response: %w", err)
+	}
+
+	return result, nil
 }
 
 // GetDataSource retrieves a specific data source by UID.
@@ -845,7 +1060,7 @@ type DashboardUpdateRequest struct {
 func (c *Client) UpdateDashboard(ctx context.Context, req DashboardUpdateRequest) (*Dashboard, error) {
 	logrus.Debug("Updating Grafana dashboard")
 
-	resp, err := c.makeRequest(ctx, "POST", "dashboards", req)
+	resp, err := c.makeRequest(ctx, "POST", "dashboards/db", req)
 	if err != nil {
 		return nil, err
 	}
@@ -1481,18 +1696,46 @@ func (c *Client) RenderDashboardPanel(ctx context.Context, dashboardUID string, 
 
 	queryParams := url.Values{}
 	queryParams.Add("panelId", fmt.Sprintf("%d", panelID))
-	queryParams.Add("width", "800")
-	queryParams.Add("height", "400")
+
+	width := "800"
+	height := "400"
 
 	for key, value := range params {
-		queryParams.Add(key, value)
+		switch key {
+		case "width":
+			width = value
+		case "height":
+			height = value
+		default:
+			queryParams.Add(key, value)
+		}
 	}
 
-	queryParams.Add("key", "render")
+	queryParams.Set("width", width)
+	queryParams.Set("height", height)
 
-	path := fmt.Sprintf("render/d-solo/%s?%s", dashboardUID, queryParams.Encode())
+	requestURL := strings.TrimSuffix(c.baseURL, "api/") + fmt.Sprintf("render/d-solo/%s?%s", dashboardUID, queryParams.Encode())
 
-	resp, err := c.makeRequest(ctx, "GET", path, nil)
+	req, err := http.NewRequestWithContext(ctx, http.MethodGet, requestURL, nil)
+	if err != nil {
+		return nil, fmt.Errorf("failed to create render request: %w", err)
+	}
+
+	for key, value := range c.headers {
+		if strings.EqualFold(key, "Content-Type") {
+			continue
+		}
+		req.Header.Set(key, value)
+	}
+	req.Header.Set("Accept", "image/png")
+
+	if c.apiKey != "" {
+		req.Header.Set("Authorization", "Bearer "+c.apiKey)
+	} else if c.username != "" && c.password != "" {
+		req.SetBasicAuth(c.username, c.password)
+	}
+
+	resp, err := c.httpClient.Do(req)
 	if err != nil {
 		return nil, fmt.Errorf("failed to render panel: %w", err)
 	}

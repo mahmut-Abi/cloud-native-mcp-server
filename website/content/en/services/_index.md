@@ -4,7 +4,7 @@ title: "Services"
 
 # Integrated Services
 
-Cloud Native MCP Server integrates 13 powerful cloud-native services, providing 284 tools that fully cover Kubernetes management, deployment, monitoring, logging, tracing, and more.
+Cloud Native MCP Server integrates 13 powerful cloud-native services, providing 292 tools that fully cover Kubernetes management, deployment, monitoring, logging, tracing, and more.
 
 <div class="service-grid">
 
@@ -38,7 +38,7 @@ Cloud Native MCP Server integrates 13 powerful cloud-native services, providing 
 
 <div class="service-card">
   <h3>📊 Grafana</h3>
-  <p><span class="tool-count">43 tools</span></p>
+  <p><span class="tool-count">51 tools</span></p>
   <p>Open-source analytics and visualization platform for monitoring and metrics visualization.</p>
   <p><strong>Key Features:</strong></p>
   <ul>

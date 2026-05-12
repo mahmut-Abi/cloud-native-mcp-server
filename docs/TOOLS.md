@@ -16,7 +16,7 @@ For the exact runtime inventory, prefer `--list tools`.
 
 - [Kubernetes (34 tools)](#kubernetes-34-tools)
 - [Helm (34 tools)](#helm-34-tools)
-- [Grafana (43 tools)](#grafana-43-tools)
+- [Grafana (51 tools)](#grafana-51-tools)
 - [Prometheus (20 tools)](#prometheus-20-tools)
 - [Loki (7 tools)](#loki-7-tools)
 - [Kibana (73 tools)](#kibana-73-tools)
@@ -184,7 +184,7 @@ Practical guidance:
 
 ---
 
-## Grafana (43 tools)
+## Grafana (51 tools)
 
 ### Dashboard Management
 
@@ -823,13 +823,14 @@ Do not edit this block by hand.
 - `helm_upgrade_release`
 - `helm_validate_release`
 
-### Grafana (43 tools)
+### Grafana (51 tools)
 
 - `grafana_alerts`
 - `grafana_check_datasource_health`
 - `grafana_create_alert_rule`
 - `grafana_create_annotation`
 - `grafana_create_datasource`
+- `grafana_create_folder`
 - `grafana_create_graphite_annotation`
 - `grafana_current_user`
 - `grafana_dashboard`
@@ -839,7 +840,10 @@ Do not edit this block by hand.
 - `grafana_datasources`
 - `grafana_datasources_summary`
 - `grafana_delete_alert_rule`
+- `grafana_delete_annotation`
+- `grafana_delete_dashboard`
 - `grafana_delete_datasource`
+- `grafana_delete_folder`
 - `grafana_folder_detail`
 - `grafana_folders`
 - `grafana_generate_deeplink`
@@ -848,6 +852,8 @@ Do not edit this block by hand.
 - `grafana_get_annotations`
 - `grafana_get_dashboard_panel_queries`
 - `grafana_get_dashboard_property`
+- `grafana_get_dashboard_version`
+- `grafana_get_dashboard_versions`
 - `grafana_get_datasource_by_name`
 - `grafana_get_resource_description`
 - `grafana_get_resource_permissions`
@@ -861,12 +867,14 @@ Do not edit this block by hand.
 - `grafana_organization`
 - `grafana_patch_annotation`
 - `grafana_render_panel_image`
+- `grafana_restore_dashboard_version`
 - `grafana_search_dashboards`
 - `grafana_test_connection`
 - `grafana_update_alert_rule`
 - `grafana_update_annotation`
 - `grafana_update_dashboard`
 - `grafana_update_datasource`
+- `grafana_update_folder`
 - `grafana_users`
 
 ### Prometheus (20 tools)

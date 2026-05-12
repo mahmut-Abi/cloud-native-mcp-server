@@ -269,6 +269,338 @@ func TestUpdateDatasourceError(t *testing.T) {
 	}
 }
 
+func TestUpdateDashboardUsesGrafanaSaveEndpoint(t *testing.T) {
+	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		if r.Method != "POST" {
+			t.Errorf("Expected POST request, got %s", r.Method)
+		}
+		if r.URL.Path != "/api/dashboards/db" {
+			t.Errorf("Expected path /api/dashboards/db, got %s", r.URL.Path)
+		}
+
+		var reqBody map[string]interface{}
+		if err := json.NewDecoder(r.Body).Decode(&reqBody); err != nil {
+			t.Fatalf("Failed to decode request body: %v", err)
+		}
+		if _, ok := reqBody["dashboard"].(map[string]interface{}); !ok {
+			t.Fatalf("Expected dashboard object in request body, got %#v", reqBody)
+		}
+
+		w.Header().Set("Content-Type", "application/json")
+		w.WriteHeader(http.StatusOK)
+		response := map[string]interface{}{
+			"id":      1,
+			"uid":     "test-dashboard",
+			"slug":    "test-dashboard",
+			"version": 1,
+			"dashboard": map[string]interface{}{
+				"id":    1,
+				"uid":   "test-dashboard",
+				"title": "Test Dashboard",
+			},
+		}
+		_ = json.NewEncoder(w).Encode(response)
+	}))
+	defer server.Close()
+
+	client, err := NewClient(&ClientOptions{
+		URL:    server.URL,
+		APIKey: "test-api-key",
+	})
+	if err != nil {
+		t.Fatalf("Failed to create client: %v", err)
+	}
+
+	dashboard, err := client.UpdateDashboard(context.Background(), DashboardUpdateRequest{
+		Dashboard: map[string]interface{}{
+			"title": "Test Dashboard",
+			"uid":   "test-dashboard",
+		},
+		Overwrite: true,
+		Message:   "test update",
+	})
+	if err != nil {
+		t.Fatalf("UpdateDashboard failed: %v", err)
+	}
+
+	if dashboard.Title != "Test Dashboard" {
+		t.Errorf("Expected dashboard title Test Dashboard, got %s", dashboard.Title)
+	}
+}
+
+func TestCreateFolderUsesFoldersEndpoint(t *testing.T) {
+	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		if r.Method != http.MethodPost {
+			t.Errorf("Expected POST request, got %s", r.Method)
+		}
+		if r.URL.Path != "/api/folders" {
+			t.Errorf("Expected path /api/folders, got %s", r.URL.Path)
+		}
+
+		var reqBody map[string]interface{}
+		if err := json.NewDecoder(r.Body).Decode(&reqBody); err != nil {
+			t.Fatalf("Failed to decode request body: %v", err)
+		}
+		if reqBody["title"] != "Operations" {
+			t.Fatalf("Expected title Operations, got %#v", reqBody["title"])
+		}
+		if reqBody["uid"] != "ops-folder" {
+			t.Fatalf("Expected uid ops-folder, got %#v", reqBody["uid"])
+		}
+
+		w.Header().Set("Content-Type", "application/json")
+		w.WriteHeader(http.StatusOK)
+		_ = json.NewEncoder(w).Encode(map[string]interface{}{
+			"id":    12,
+			"uid":   "ops-folder",
+			"title": "Operations",
+			"url":   "/dashboards/f/ops-folder/operations",
+		})
+	}))
+	defer server.Close()
+
+	client, err := NewClient(&ClientOptions{URL: server.URL, APIKey: "test-api-key"})
+	if err != nil {
+		t.Fatalf("Failed to create client: %v", err)
+	}
+
+	folder, err := client.CreateFolder(context.Background(), FolderCreateRequest{
+		UID:   "ops-folder",
+		Title: "Operations",
+	})
+	if err != nil {
+		t.Fatalf("CreateFolder failed: %v", err)
+	}
+
+	if folder.UID != "ops-folder" {
+		t.Errorf("Expected UID ops-folder, got %s", folder.UID)
+	}
+}
+
+func TestUpdateFolderUsesFolderUIDEndpoint(t *testing.T) {
+	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		if r.Method != http.MethodPut {
+			t.Errorf("Expected PUT request, got %s", r.Method)
+		}
+		if r.URL.Path != "/api/folders/ops-folder" {
+			t.Errorf("Expected path /api/folders/ops-folder, got %s", r.URL.Path)
+		}
+
+		var reqBody map[string]interface{}
+		if err := json.NewDecoder(r.Body).Decode(&reqBody); err != nil {
+			t.Fatalf("Failed to decode request body: %v", err)
+		}
+		if reqBody["title"] != "Operations Updated" {
+			t.Fatalf("Expected updated title, got %#v", reqBody["title"])
+		}
+		if reqBody["version"] != float64(7) {
+			t.Fatalf("Expected version 7, got %#v", reqBody["version"])
+		}
+		if reqBody["overwrite"] != true {
+			t.Fatalf("Expected overwrite=true, got %#v", reqBody["overwrite"])
+		}
+		if _, ok := reqBody["uid"]; ok {
+			t.Fatalf("UID should not be serialized into request body: %#v", reqBody)
+		}
+
+		w.Header().Set("Content-Type", "application/json")
+		w.WriteHeader(http.StatusOK)
+		_ = json.NewEncoder(w).Encode(map[string]interface{}{
+			"id":      12,
+			"uid":     "ops-folder",
+			"title":   "Operations Updated",
+			"version": 8,
+		})
+	}))
+	defer server.Close()
+
+	client, err := NewClient(&ClientOptions{URL: server.URL, APIKey: "test-api-key"})
+	if err != nil {
+		t.Fatalf("Failed to create client: %v", err)
+	}
+
+	folder, err := client.UpdateFolder(context.Background(), FolderUpdateRequest{
+		UID:       "ops-folder",
+		Title:     "Operations Updated",
+		Version:   7,
+		Overwrite: true,
+	})
+	if err != nil {
+		t.Fatalf("UpdateFolder failed: %v", err)
+	}
+
+	if folder.Version != 8 {
+		t.Errorf("Expected version 8, got %d", folder.Version)
+	}
+}
+
+func TestDeleteFolderIncludesForceDeleteRulesQuery(t *testing.T) {
+	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		if r.Method != http.MethodDelete {
+			t.Errorf("Expected DELETE request, got %s", r.Method)
+		}
+		if r.URL.Path != "/api/folders/ops-folder" {
+			t.Errorf("Expected path /api/folders/ops-folder, got %s", r.URL.Path)
+		}
+		if got := r.URL.Query().Get("forceDeleteRules"); got != "true" {
+			t.Fatalf("Expected forceDeleteRules=true, got %q", got)
+		}
+
+		w.Header().Set("Content-Type", "application/json")
+		w.WriteHeader(http.StatusOK)
+		_ = json.NewEncoder(w).Encode(map[string]interface{}{
+			"message": "Folder deleted",
+		})
+	}))
+	defer server.Close()
+
+	client, err := NewClient(&ClientOptions{URL: server.URL, APIKey: "test-api-key"})
+	if err != nil {
+		t.Fatalf("Failed to create client: %v", err)
+	}
+
+	result, err := client.DeleteFolder(context.Background(), "ops-folder", true)
+	if err != nil {
+		t.Fatalf("DeleteFolder failed: %v", err)
+	}
+
+	if result["message"] != "Folder deleted" {
+		t.Errorf("Expected delete message, got %#v", result["message"])
+	}
+}
+
+func TestGetDashboardVersionUsesVersionDetailEndpoint(t *testing.T) {
+	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		if r.Method != http.MethodGet {
+			t.Errorf("Expected GET request, got %s", r.Method)
+		}
+		if r.URL.Path != "/api/dashboards/uid/test-dashboard/versions/3" {
+			t.Errorf("Expected path /api/dashboards/uid/test-dashboard/versions/3, got %s", r.URL.Path)
+		}
+
+		w.Header().Set("Content-Type", "application/json")
+		w.WriteHeader(http.StatusOK)
+		_ = json.NewEncoder(w).Encode(map[string]interface{}{
+			"id":            33,
+			"version":       3,
+			"createdBy":     "agent",
+			"message":       "before migration",
+			"parentVersion": 2,
+		})
+	}))
+	defer server.Close()
+
+	client, err := NewClient(&ClientOptions{URL: server.URL, APIKey: "test-api-key"})
+	if err != nil {
+		t.Fatalf("Failed to create client: %v", err)
+	}
+
+	version, err := client.GetDashboardVersion(context.Background(), "test-dashboard", 3)
+	if err != nil {
+		t.Fatalf("GetDashboardVersion failed: %v", err)
+	}
+
+	if version.Version != 3 {
+		t.Errorf("Expected version 3, got %d", version.Version)
+	}
+}
+
+func TestRestoreDashboardVersionUsesRestoreEndpoint(t *testing.T) {
+	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		if r.Method != http.MethodPost {
+			t.Errorf("Expected POST request, got %s", r.Method)
+		}
+		if r.URL.Path != "/api/dashboards/uid/test-dashboard/restore" {
+			t.Errorf("Expected path /api/dashboards/uid/test-dashboard/restore, got %s", r.URL.Path)
+		}
+
+		var reqBody map[string]interface{}
+		if err := json.NewDecoder(r.Body).Decode(&reqBody); err != nil {
+			t.Fatalf("Failed to decode request body: %v", err)
+		}
+		if reqBody["version"] != float64(3) {
+			t.Fatalf("Expected restore version 3, got %#v", reqBody["version"])
+		}
+
+		w.Header().Set("Content-Type", "application/json")
+		w.WriteHeader(http.StatusOK)
+		_ = json.NewEncoder(w).Encode(map[string]interface{}{
+			"message": "Dashboard restored",
+			"uid":     "test-dashboard",
+			"version": 3,
+		})
+	}))
+	defer server.Close()
+
+	client, err := NewClient(&ClientOptions{URL: server.URL, APIKey: "test-api-key"})
+	if err != nil {
+		t.Fatalf("Failed to create client: %v", err)
+	}
+
+	result, err := client.RestoreDashboardVersion(context.Background(), "test-dashboard", 3)
+	if err != nil {
+		t.Fatalf("RestoreDashboardVersion failed: %v", err)
+	}
+
+	if result["message"] != "Dashboard restored" {
+		t.Errorf("Expected restore message, got %#v", result["message"])
+	}
+}
+
+func TestRenderDashboardPanelUsesRenderEndpointOutsideAPIBase(t *testing.T) {
+	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		if r.Method != "GET" {
+			t.Errorf("Expected GET request, got %s", r.Method)
+		}
+		if r.URL.Path != "/render/d-solo/test-dashboard" {
+			t.Errorf("Expected path /render/d-solo/test-dashboard, got %s", r.URL.Path)
+		}
+		if got := r.URL.Query().Get("panelId"); got != "7" {
+			t.Errorf("Expected panelId=7, got %q", got)
+		}
+		if got := r.URL.Query().Get("width"); got != "1000" {
+			t.Errorf("Expected width=1000, got %q", got)
+		}
+		if got := r.URL.Query().Get("height"); got != "500" {
+			t.Errorf("Expected height=500, got %q", got)
+		}
+		if r.Header.Get("Authorization") != "Bearer test-api-key" {
+			t.Errorf("Expected Authorization header, got %q", r.Header.Get("Authorization"))
+		}
+		if r.Header.Get("Accept") != "image/png" {
+			t.Errorf("Expected Accept image/png, got %q", r.Header.Get("Accept"))
+		}
+
+		w.Header().Set("Content-Type", "image/png")
+		w.WriteHeader(http.StatusOK)
+		_, _ = w.Write([]byte("png-data"))
+	}))
+	defer server.Close()
+
+	client, err := NewClient(&ClientOptions{
+		URL:    server.URL,
+		APIKey: "test-api-key",
+	})
+	if err != nil {
+		t.Fatalf("Failed to create client: %v", err)
+	}
+
+	image, err := client.RenderDashboardPanel(context.Background(), "test-dashboard", 7, map[string]string{
+		"width":  "1000",
+		"height": "500",
+	})
+	if err != nil {
+		t.Fatalf("RenderDashboardPanel failed: %v", err)
+	}
+
+	if image.ContentType != "image/png" {
+		t.Errorf("Expected content type image/png, got %q", image.ContentType)
+	}
+	if string(image.ImageData) != "png-data" {
+		t.Errorf("Expected image payload png-data, got %q", string(image.ImageData))
+	}
+}
+
 func TestDeleteDatasource(t *testing.T) {
 	// Create a test server
 	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
