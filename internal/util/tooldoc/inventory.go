@@ -30,6 +30,7 @@ var serviceDisplayNames = map[string]string{
 	"kubernetes":    "Kubernetes",
 	"opentelemetry": "OpenTelemetry",
 	"prometheus":    "Prometheus",
+	"sentry":        "Sentry",
 	"utilities":     "Utilities",
 }
 
@@ -43,6 +44,7 @@ var serviceOrder = []string{
 	"alertmanager",
 	"jaeger",
 	"langfuse",
+	"sentry",
 	"opentelemetry",
 	"utilities",
 }

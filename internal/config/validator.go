@@ -65,6 +65,10 @@ func (v *ConfigValidator) Validate(cfg *AppConfig) error {
 		return fmt.Errorf("langfuse config validation failed: %w", err)
 	}
 
+	if err := v.validateSentryConfig(cfg); err != nil {
+		return fmt.Errorf("sentry config validation failed: %w", err)
+	}
+
 	if err := v.validateAuditConfig(cfg); err != nil {
 		return fmt.Errorf("audit config validation failed: %w", err)
 	}
@@ -366,6 +370,30 @@ func (v *ConfigValidator) validateLangfuseConfig(cfg *AppConfig) error {
 
 	if cfg.Langfuse.TimeoutSec <= 0 {
 		cfg.Langfuse.TimeoutSec = 30
+	}
+
+	return nil
+}
+
+func (v *ConfigValidator) validateSentryConfig(cfg *AppConfig) error {
+	if !cfg.Sentry.Enabled {
+		return nil
+	}
+
+	if cfg.Sentry.URL == "" {
+		return fmt.Errorf("sentry URL is required when enabled")
+	}
+
+	if !isValidURL(cfg.Sentry.URL) {
+		return fmt.Errorf("invalid sentry URL format: %s", cfg.Sentry.URL)
+	}
+
+	if cfg.Sentry.AuthToken == "" {
+		return fmt.Errorf("sentry auth token is required when enabled")
+	}
+
+	if cfg.Sentry.TimeoutSec <= 0 {
+		cfg.Sentry.TimeoutSec = 30
 	}
 
 	return nil

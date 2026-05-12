@@ -1,12 +1,12 @@
 ---
 title: "工具参考"
 weight: 70
-description: "12 个服务、275 个 MCP 工具的能力目录与调用示例。"
+description: "13 个服务、284 个 MCP 工具的能力目录与调用示例。"
 ---
 
 # 工具参考
 
-Cloud Native MCP Server 提供 275 个强大的工具，覆盖 Kubernetes 管理、部署、监控、日志、追踪等多个方面。
+Cloud Native MCP Server 提供 284 个强大的工具，覆盖 Kubernetes 管理、部署、监控、日志、追踪等多个方面。
 
 ## Kubernetes 工具（34 个）
 

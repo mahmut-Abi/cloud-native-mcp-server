@@ -76,6 +76,10 @@ server:
     # Environment variable: MCP_SSE_PATH_LANGFUSE
     langfuse: "/api/langfuse/sse"
 
+    # Sentry SSE endpoint
+    # Environment variable: MCP_SSE_PATH_SENTRY
+    sentry: "/api/sentry/sse"
+
     # Utilities SSE endpoint
     # Environment variable: MCP_SSE_PATH_UTILITIES
     utilities: "/api/utilities/sse"
@@ -121,6 +125,9 @@ server:
 
     # Langfuse Streamable-HTTP endpoint
     langfuse: "/api/langfuse/streamable-http"
+
+    # Sentry Streamable-HTTP endpoint
+    sentry: "/api/sentry/streamable-http"
 
     # Utilities Streamable-HTTP endpoint
     utilities: "/api/utilities/streamable-http"
@@ -488,6 +495,35 @@ langfuse:
 
   # Request timeout (seconds)
   # Environment variable: MCP_LANGFUSE_TIMEOUT
+  timeoutSec: 30
+
+################################################################################
+# Sentry Configuration
+################################################################################
+sentry:
+  # Enable/disable Sentry service
+  # Environment variable: MCP_SENTRY_ENABLED (1, true, yes, on)
+  enabled: false
+
+  # Sentry base URL
+  # Format: https://sentry.io or your self-hosted Sentry URL
+  # Environment variable: MCP_SENTRY_URL
+  url: "https://sentry.io"
+
+  # Sentry auth token
+  # Environment variable: MCP_SENTRY_AUTH_TOKEN
+  authToken: ""
+
+  # Default organization slug (optional)
+  # Environment variable: MCP_SENTRY_ORGANIZATION
+  organization: ""
+
+  # Default project slug (optional)
+  # Environment variable: MCP_SENTRY_PROJECT
+  project: ""
+
+  # Request timeout (seconds)
+  # Environment variable: MCP_SENTRY_TIMEOUT
   timeoutSec: 30
 
 ################################################################################

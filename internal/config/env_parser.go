@@ -35,6 +35,7 @@ func (p *EnvParser) Parse(cfg *AppConfig) *AppConfig {
 	p.parseAlertmanagerConfig(cfg, over)
 	p.parseJaegerConfig(cfg, over)
 	p.parseLangfuseConfig(cfg, over)
+	p.parseSentryConfig(cfg, over)
 	p.parseOpenTelemetryConfig(cfg, over)
 	p.parseServerOTELConfig(cfg, over)
 	p.parseRateLimitConfig(cfg, over)
@@ -96,6 +97,9 @@ func (p *EnvParser) parseServerConfig(cfg *AppConfig, over func(string) (string,
 	if v, ok := over("MCP_SSE_PATH_LANGFUSE"); ok {
 		cfg.Server.SSEPaths.Langfuse = v
 	}
+	if v, ok := over("MCP_SSE_PATH_SENTRY"); ok {
+		cfg.Server.SSEPaths.Sentry = v
+	}
 	if v, ok := over("MCP_SSE_PATH_AGGREGATE"); ok {
 		cfg.Server.SSEPaths.Aggregate = v
 	}
@@ -136,6 +140,9 @@ func (p *EnvParser) parseServerConfig(cfg *AppConfig, over func(string) (string,
 	}
 	if v, ok := over("MCP_STREAMABLE_HTTP_PATH_LANGFUSE"); ok {
 		cfg.Server.StreamableHTTPPaths.Langfuse = v
+	}
+	if v, ok := over("MCP_STREAMABLE_HTTP_PATH_SENTRY"); ok {
+		cfg.Server.StreamableHTTPPaths.Sentry = v
 	}
 	if v, ok := over("MCP_STREAMABLE_HTTP_PATH_AGGREGATE"); ok {
 		cfg.Server.StreamableHTTPPaths.Aggregate = v
@@ -406,6 +413,27 @@ func (p *EnvParser) parseLangfuseConfig(cfg *AppConfig, over func(string) (strin
 	}
 	if v, ok := over("MCP_LANGFUSE_TIMEOUT"); ok {
 		cfg.Langfuse.TimeoutSec = atoiDefault(v, cfg.Langfuse.TimeoutSec)
+	}
+}
+
+func (p *EnvParser) parseSentryConfig(cfg *AppConfig, over func(string) (string, bool)) {
+	if v, ok := over("MCP_SENTRY_ENABLED"); ok {
+		cfg.Sentry.Enabled = isTrue(v)
+	}
+	if v, ok := over("MCP_SENTRY_URL"); ok {
+		cfg.Sentry.URL = v
+	}
+	if v, ok := over("MCP_SENTRY_AUTH_TOKEN"); ok {
+		cfg.Sentry.AuthToken = v
+	}
+	if v, ok := over("MCP_SENTRY_ORGANIZATION"); ok {
+		cfg.Sentry.Organization = v
+	}
+	if v, ok := over("MCP_SENTRY_PROJECT"); ok {
+		cfg.Sentry.Project = v
+	}
+	if v, ok := over("MCP_SENTRY_TIMEOUT"); ok {
+		cfg.Sentry.TimeoutSec = atoiDefault(v, cfg.Sentry.TimeoutSec)
 	}
 }
 

@@ -326,17 +326,52 @@ func TestLangfuseServiceConfigFromEnv(t *testing.T) {
 	}
 }
 
+func TestSentryServiceConfigFromEnv(t *testing.T) {
+	t.Setenv("MCP_SENTRY_ENABLED", "true")
+	t.Setenv("MCP_SENTRY_URL", "https://sentry.example.com")
+	t.Setenv("MCP_SENTRY_AUTH_TOKEN", "sentry-token")
+	t.Setenv("MCP_SENTRY_ORGANIZATION", "acme")
+	t.Setenv("MCP_SENTRY_PROJECT", "frontend")
+	t.Setenv("MCP_SENTRY_TIMEOUT", "35")
+
+	cfg, err := Load("")
+	if err != nil {
+		t.Fatalf("Load() error = %v", err)
+	}
+
+	if !cfg.Sentry.Enabled {
+		t.Fatal("Expected Sentry service to be enabled")
+	}
+	if cfg.Sentry.URL != "https://sentry.example.com" {
+		t.Errorf("Expected Sentry URL override, got %q", cfg.Sentry.URL)
+	}
+	if cfg.Sentry.AuthToken != "sentry-token" {
+		t.Errorf("Expected Sentry auth token override, got %q", cfg.Sentry.AuthToken)
+	}
+	if cfg.Sentry.Organization != "acme" {
+		t.Errorf("Expected Sentry organization override, got %q", cfg.Sentry.Organization)
+	}
+	if cfg.Sentry.Project != "frontend" {
+		t.Errorf("Expected Sentry project override, got %q", cfg.Sentry.Project)
+	}
+	if cfg.Sentry.TimeoutSec != 35 {
+		t.Errorf("Expected Sentry timeout 35, got %d", cfg.Sentry.TimeoutSec)
+	}
+}
+
 func TestServerPathOverridesFromEnv(t *testing.T) {
 	t.Setenv("MCP_SSE_PATH_ELASTICSEARCH", "/custom/elasticsearch/sse")
 	t.Setenv("MCP_SSE_PATH_JAEGER", "/custom/jaeger/sse")
 	t.Setenv("MCP_SSE_PATH_LANGFUSE", "/custom/langfuse/sse")
 	t.Setenv("MCP_SSE_PATH_LOKI", "/custom/loki/sse")
 	t.Setenv("MCP_SSE_PATH_OPENTELEMETRY", "/custom/opentelemetry/sse")
+	t.Setenv("MCP_SSE_PATH_SENTRY", "/custom/sentry/sse")
 	t.Setenv("MCP_STREAMABLE_HTTP_PATH_ELASTICSEARCH", "/custom/elasticsearch/stream")
 	t.Setenv("MCP_STREAMABLE_HTTP_PATH_JAEGER", "/custom/jaeger/stream")
 	t.Setenv("MCP_STREAMABLE_HTTP_PATH_LANGFUSE", "/custom/langfuse/stream")
 	t.Setenv("MCP_STREAMABLE_HTTP_PATH_LOKI", "/custom/loki/stream")
 	t.Setenv("MCP_STREAMABLE_HTTP_PATH_OPENTELEMETRY", "/custom/opentelemetry/stream")
+	t.Setenv("MCP_STREAMABLE_HTTP_PATH_SENTRY", "/custom/sentry/stream")
 
 	cfg, err := Load("")
 	if err != nil {
@@ -358,6 +393,9 @@ func TestServerPathOverridesFromEnv(t *testing.T) {
 	if cfg.Server.SSEPaths.OpenTelemetry != "/custom/opentelemetry/sse" {
 		t.Errorf("Expected opentelemetry SSE path override, got %q", cfg.Server.SSEPaths.OpenTelemetry)
 	}
+	if cfg.Server.SSEPaths.Sentry != "/custom/sentry/sse" {
+		t.Errorf("Expected sentry SSE path override, got %q", cfg.Server.SSEPaths.Sentry)
+	}
 	if cfg.Server.StreamableHTTPPaths.Elasticsearch != "/custom/elasticsearch/stream" {
 		t.Errorf("Expected elasticsearch streamable-http path override, got %q", cfg.Server.StreamableHTTPPaths.Elasticsearch)
 	}
@@ -372,6 +410,9 @@ func TestServerPathOverridesFromEnv(t *testing.T) {
 	}
 	if cfg.Server.StreamableHTTPPaths.OpenTelemetry != "/custom/opentelemetry/stream" {
 		t.Errorf("Expected opentelemetry streamable-http path override, got %q", cfg.Server.StreamableHTTPPaths.OpenTelemetry)
+	}
+	if cfg.Server.StreamableHTTPPaths.Sentry != "/custom/sentry/stream" {
+		t.Errorf("Expected sentry streamable-http path override, got %q", cfg.Server.StreamableHTTPPaths.Sentry)
 	}
 }
 

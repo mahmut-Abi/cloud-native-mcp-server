@@ -101,6 +101,9 @@ server:
     # Langfuse SSE 端点
     langfuse: "/api/langfuse/sse"
 
+    # Sentry SSE 端点
+    sentry: "/api/sentry/sse"
+
     # Elasticsearch SSE 端点
     elasticsearch: "/api/elasticsearch/sse"
 
@@ -145,6 +148,9 @@ server:
 
     # Langfuse Streamable-HTTP 端点
     langfuse: "/api/langfuse/streamable-http"
+
+    # Sentry Streamable-HTTP 端点
+    sentry: "/api/sentry/streamable-http"
 
     # Elasticsearch Streamable-HTTP 端点
     elasticsearch: "/api/elasticsearch/streamable-http"
@@ -501,6 +507,30 @@ langfuse:
 
   # Langfuse secret key
   secretKey: ""
+
+  # 请求超时（秒）
+  timeoutSec: 30
+```
+
+### Sentry
+
+```yaml
+sentry:
+  # 启用/禁用 Sentry 服务
+  enabled: false
+
+  # Sentry 基础地址
+  # 格式: https://sentry.io 或自建 Sentry 地址
+  url: "https://sentry.io"
+
+  # Sentry auth token
+  authToken: ""
+
+  # 默认 organization slug（可选）
+  organization: ""
+
+  # 默认 project slug（可选）
+  project: ""
 
   # 请求超时（秒）
   timeoutSec: 30
