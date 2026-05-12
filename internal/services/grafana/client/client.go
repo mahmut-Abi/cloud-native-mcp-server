@@ -1071,18 +1071,65 @@ func (c *Client) UpdateDashboard(ctx context.Context, req DashboardUpdateRequest
 	}
 
 	var result struct {
+		Status    string    `json:"status"`
 		Dashboard Dashboard `json:"dashboard"`
 		Slug      string    `json:"slug"`
 		Version   int       `json:"version"`
 		ID        int       `json:"id"`
 		UID       string    `json:"uid"`
+		URL       string    `json:"url"`
 	}
 	if err := json.Unmarshal(body, &result); err != nil {
 		return nil, fmt.Errorf("failed to unmarshal dashboard update response: %w", err)
 	}
 
-	logrus.WithField("uid", result.UID).Debug("Dashboard updated")
-	return &result.Dashboard, nil
+	dashboard := result.Dashboard
+	if dashboard.ID == 0 {
+		dashboard.ID = result.ID
+	}
+	if dashboard.UID == "" {
+		dashboard.UID = result.UID
+	}
+	if dashboard.URL == "" {
+		dashboard.URL = result.URL
+	}
+	if dashboard.Version == 0 {
+		dashboard.Version = result.Version
+	}
+	if dashboard.FolderUID == "" {
+		dashboard.FolderUID = req.FolderUID
+	}
+
+	if req.Dashboard != nil {
+		if dashboard.Dashboard == nil {
+			dashboard.Dashboard = req.Dashboard
+		}
+		if dashboard.Title == "" {
+			if title, ok := req.Dashboard["title"].(string); ok {
+				dashboard.Title = title
+			}
+		}
+		if len(dashboard.Tags) == 0 {
+			switch tags := req.Dashboard["tags"].(type) {
+			case []string:
+				dashboard.Tags = tags
+			case []interface{}:
+				dashboard.Tags = make([]string, 0, len(tags))
+				for _, tag := range tags {
+					if value, ok := tag.(string); ok {
+						dashboard.Tags = append(dashboard.Tags, value)
+					}
+				}
+			}
+		}
+	}
+
+	logrus.WithFields(logrus.Fields{
+		"uid":     dashboard.UID,
+		"version": dashboard.Version,
+		"status":  result.Status,
+	}).Debug("Dashboard updated")
+	return &dashboard, nil
 }
 
 // PanelQuery represents a panel query with datasource info.

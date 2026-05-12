@@ -328,6 +328,69 @@ func TestUpdateDashboardUsesGrafanaSaveEndpoint(t *testing.T) {
 	}
 }
 
+func TestUpdateDashboardSynthesizesDashboardFromSaveResponse(t *testing.T) {
+	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		if r.URL.Path != "/api/dashboards/db" {
+			t.Errorf("Expected path /api/dashboards/db, got %s", r.URL.Path)
+		}
+
+		w.Header().Set("Content-Type", "application/json")
+		w.WriteHeader(http.StatusOK)
+		_ = json.NewEncoder(w).Encode(map[string]interface{}{
+			"id":      27,
+			"uid":     "synth-dashboard",
+			"url":     "/d/synth-dashboard/synth-dashboard",
+			"version": 4,
+			"status":  "success",
+			"slug":    "synth-dashboard",
+		})
+	}))
+	defer server.Close()
+
+	client, err := NewClient(&ClientOptions{
+		URL:    server.URL,
+		APIKey: "test-api-key",
+	})
+	if err != nil {
+		t.Fatalf("Failed to create client: %v", err)
+	}
+
+	dashboard, err := client.UpdateDashboard(context.Background(), DashboardUpdateRequest{
+		FolderUID: "ops-folder",
+		Overwrite: true,
+		Dashboard: map[string]interface{}{
+			"title": "Synth Dashboard",
+			"uid":   "synth-dashboard",
+			"tags":  []interface{}{"mcp", "smoke"},
+		},
+	})
+	if err != nil {
+		t.Fatalf("UpdateDashboard failed: %v", err)
+	}
+
+	if dashboard.UID != "synth-dashboard" {
+		t.Errorf("Expected UID synth-dashboard, got %s", dashboard.UID)
+	}
+	if dashboard.Title != "Synth Dashboard" {
+		t.Errorf("Expected title Synth Dashboard, got %s", dashboard.Title)
+	}
+	if dashboard.FolderUID != "ops-folder" {
+		t.Errorf("Expected folder UID ops-folder, got %s", dashboard.FolderUID)
+	}
+	if dashboard.Version != 4 {
+		t.Errorf("Expected version 4, got %d", dashboard.Version)
+	}
+	if dashboard.URL != "/d/synth-dashboard/synth-dashboard" {
+		t.Errorf("Expected dashboard URL to be populated, got %s", dashboard.URL)
+	}
+	if len(dashboard.Tags) != 2 || dashboard.Tags[0] != "mcp" || dashboard.Tags[1] != "smoke" {
+		t.Errorf("Expected tags to be synthesized from request, got %#v", dashboard.Tags)
+	}
+	if dashboard.Dashboard == nil {
+		t.Errorf("Expected original dashboard payload to be retained")
+	}
+}
+
 func TestCreateFolderUsesFoldersEndpoint(t *testing.T) {
 	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		if r.Method != http.MethodPost {
