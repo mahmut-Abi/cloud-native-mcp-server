@@ -5,7 +5,7 @@ weight: 10
 
 # Langfuse Service
 
-The Langfuse service provides LLM observability and evaluation workflows with 13 tools for traces, sessions, prompts, scores, and metrics.
+The Langfuse service provides LLM observability and evaluation workflows with 25 tools for traces, sessions, prompts, scores, datasets, models, annotation queues, and metrics.
 
 ## Overview
 
@@ -33,7 +33,7 @@ Inspect scores and query Langfuse metrics for trend analysis.
 
 ---
 
-## Available Tools (13)
+## Available Tools (25)
 
 ### Health
 - **langfuse_check_health**: Check Langfuse API and database health
@@ -43,11 +43,27 @@ Inspect scores and query Langfuse metrics for trend analysis.
 - **langfuse_list_traces**: Full trace listing with filters
 - **langfuse_get_trace**: Get a specific trace by ID
 
+### Annotation Queues and Datasets
+- **langfuse_list_annotation_queues**: List annotation queues
+- **langfuse_get_annotation_queue**: Get one annotation queue
+- **langfuse_list_annotation_queue_items**: List queue items
+- **langfuse_list_datasets**: List datasets
+- **langfuse_get_dataset**: Get one dataset
+- **langfuse_list_dataset_runs**: List dataset runs
+- **langfuse_get_dataset_run**: Get one dataset run
+
 ### Sessions and Observations
 - **langfuse_list_sessions**: List sessions
 - **langfuse_get_session**: Get a specific session
 - **langfuse_list_observations**: List observations
 - **langfuse_get_observation**: Get a specific observation
+
+### Models and Score Configurations
+- **langfuse_list_llm_connections**: List LLM connections
+- **langfuse_list_models**: List models
+- **langfuse_get_model**: Get one model
+- **langfuse_list_score_configs**: List score configurations
+- **langfuse_get_score_config**: Get one score configuration
 
 ### Prompts, Scores, and Metrics
 - **langfuse_list_prompts**: List prompt versions
