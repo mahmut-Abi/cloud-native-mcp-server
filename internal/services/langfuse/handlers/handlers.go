@@ -5,6 +5,8 @@ import (
 	"encoding/json"
 	"fmt"
 	"net/url"
+	"strconv"
+	"strings"
 
 	svccommon "github.com/mahmut-Abi/cloud-native-mcp-server/internal/services/common"
 	"github.com/mahmut-Abi/cloud-native-mcp-server/internal/services/langfuse/client"
@@ -569,12 +571,21 @@ func HandleGetScore(service ServiceInterface) server.ToolHandlerFunc {
 // HandleGetMetrics handles Langfuse metrics queries.
 func HandleGetMetrics(service ServiceInterface) server.ToolHandlerFunc {
 	return func(ctx context.Context, request mcp.CallToolRequest) (*mcp.CallToolResult, error) {
-		query, ok, err := svccommon.GetJSONStringArg(request.GetArguments(), "query")
+		rawQuery, ok, err := svccommon.GetObjectArg(request.GetArguments(), "query")
 		if err != nil {
 			return nil, err
 		}
-		if !ok || query == "" {
+		if !ok || len(rawQuery) == 0 {
 			return nil, fmt.Errorf("missing required parameter: query")
+		}
+
+		normalizedQuery, err := normalizeMetricsQuery(rawQuery)
+		if err != nil {
+			return nil, err
+		}
+		queryBytes, err := json.Marshal(normalizedQuery)
+		if err != nil {
+			return nil, fmt.Errorf("failed to serialize normalized metrics query: %w", err)
 		}
 
 		langfuseClient, err := getClient(service)
@@ -582,12 +593,135 @@ func HandleGetMetrics(service ServiceInterface) server.ToolHandlerFunc {
 			return nil, err
 		}
 
-		result, err := langfuseClient.GetMetrics(ctx, query)
+		result, err := langfuseClient.GetMetrics(ctx, string(queryBytes))
 		if err != nil {
 			return nil, fmt.Errorf("failed to query langfuse metrics: %w", err)
 		}
 		return marshalResult(result)
 	}
+}
+
+func normalizeMetricsQuery(query map[string]interface{}) (map[string]interface{}, error) {
+	normalized := cloneObject(query)
+	filters, _, err := svccommon.GetObjectSliceArg(query, "filters")
+	if err != nil {
+		return nil, fmt.Errorf("invalid metrics query filters: %w", err)
+	}
+	normalizedFilters := make([]map[string]interface{}, 0, len(filters))
+
+	for _, filter := range filters {
+		current := cloneObject(filter)
+		column := strings.TrimSpace(firstStringValue(current, "column", "field"))
+		if column == "" {
+			normalizedFilters = append(normalizedFilters, current)
+			continue
+		}
+
+		if _, exists := current["column"]; !exists {
+			current["column"] = column
+		}
+		delete(current, "field")
+
+		if strings.EqualFold(column, "timestamp") {
+			operator := strings.TrimSpace(firstStringValue(current, "operator"))
+			value := strings.TrimSpace(firstStringValue(current, "value"))
+			switch operator {
+			case ">", ">=", "after", "gte":
+				if value != "" && firstStringValue(normalized, "fromTimestamp", "from_timestamp") == "" {
+					normalized["fromTimestamp"] = value
+				}
+				continue
+			case "<", "<=", "before", "lte":
+				if value != "" && firstStringValue(normalized, "toTimestamp", "to_timestamp") == "" {
+					normalized["toTimestamp"] = value
+				}
+				continue
+			}
+		}
+
+		if _, exists := current["type"]; !exists {
+			current["type"] = inferMetricsFilterType(current)
+		}
+		normalizedFilters = append(normalizedFilters, current)
+	}
+
+	if len(normalizedFilters) > 0 {
+		normalized["filters"] = normalizedFilters
+	} else {
+		delete(normalized, "filters")
+	}
+
+	if from := firstStringValue(normalized, "from_timestamp"); from != "" && firstStringValue(normalized, "fromTimestamp") == "" {
+		normalized["fromTimestamp"] = from
+	}
+	if to := firstStringValue(normalized, "to_timestamp"); to != "" && firstStringValue(normalized, "toTimestamp") == "" {
+		normalized["toTimestamp"] = to
+	}
+	delete(normalized, "from_timestamp")
+	delete(normalized, "to_timestamp")
+
+	if firstStringValue(normalized, "fromTimestamp") == "" {
+		return nil, fmt.Errorf("metrics query requires fromTimestamp (or equivalent Timestamp >= filter)")
+	}
+	if firstStringValue(normalized, "toTimestamp") == "" {
+		return nil, fmt.Errorf("metrics query requires toTimestamp (or equivalent Timestamp <= filter)")
+	}
+
+	return normalized, nil
+}
+
+func inferMetricsFilterType(filter map[string]interface{}) string {
+	if _, ok := filter["key"]; ok {
+		return "stringObject"
+	}
+
+	if raw, ok := filter["value"]; ok {
+		switch typed := raw.(type) {
+		case bool:
+			return "boolean"
+		case float64, float32, int, int32, int64, uint, uint32, uint64:
+			return "number"
+		case string:
+			if _, err := strconv.ParseFloat(strings.TrimSpace(typed), 64); err == nil {
+				return "number"
+			}
+			return "string"
+		}
+	}
+
+	return "string"
+}
+
+func cloneObject(input map[string]interface{}) map[string]interface{} {
+	if input == nil {
+		return map[string]interface{}{}
+	}
+	result := make(map[string]interface{}, len(input))
+	for key, value := range input {
+		result[key] = value
+	}
+	return result
+}
+
+func firstStringValue(values map[string]interface{}, keys ...string) string {
+	for _, key := range keys {
+		raw, ok := values[key]
+		if !ok || raw == nil {
+			continue
+		}
+		switch typed := raw.(type) {
+		case string:
+			if strings.TrimSpace(typed) != "" {
+				return strings.TrimSpace(typed)
+			}
+		default:
+			value := strings.TrimSpace(fmt.Sprintf("%v", typed))
+			if value != "" {
+				return value
+			}
+		}
+	}
+	return ""
 }
 
 func buildTraceListParams(args map[string]interface{}) (url.Values, error) {
