@@ -194,7 +194,7 @@ func QueryLogsTool() mcp.Tool {
 func GetHealthTool() mcp.Tool {
 	return mcp.Tool{
 		Name:        "opentelemetry_get_health",
-		Description: "Check the health status of OpenTelemetry Collector. Returns overall health and component status.",
+		Description: "Read the OpenTelemetry Collector health endpoint. Best-effort: returns structured JSON when available, otherwise returns the text payload exposed by the collector.",
 		InputSchema: mcp.ToolInputSchema{
 			Type:       "object",
 			Properties: map[string]interface{}{},
@@ -206,7 +206,7 @@ func GetHealthTool() mcp.Tool {
 func GetStatusTool() mcp.Tool {
 	return mcp.Tool{
 		Name:        "opentelemetry_get_status",
-		Description: "Retrieve detailed status information about OpenTelemetry Collector, including components, pipelines, and configuration.",
+		Description: "Read the OpenTelemetry Collector status endpoint. Use this to inspect whatever runtime status payload the collector exposes; shape may vary by distribution.",
 		InputSchema: mcp.ToolInputSchema{
 			Type:       "object",
 			Properties: map[string]interface{}{},
@@ -218,7 +218,7 @@ func GetStatusTool() mcp.Tool {
 func GetConfigTool() mcp.Tool {
 	return mcp.Tool{
 		Name:        "opentelemetry_get_config",
-		Description: "Retrieve the current configuration of OpenTelemetry Collector. Shows pipelines, receivers, processors, exporters, and extensions.",
+		Description: "Retrieve the collector configuration payload. Supports collectors that expose JSON or YAML config documents.",
 		InputSchema: mcp.ToolInputSchema{
 			Type:       "object",
 			Properties: map[string]interface{}{},
@@ -230,7 +230,7 @@ func GetConfigTool() mcp.Tool {
 func GetConfigSummaryTool() mcp.Tool {
 	return mcp.Tool{
 		Name:        "opentelemetry_get_config_summary",
-		Description: "Summarize OpenTelemetry Collector configuration into components, signal coverage, telemetry settings, and pipeline topology.",
+		Description: "Summarize collector configuration into receivers, processors, exporters, connectors, signal coverage, telemetry settings, and pipeline topology.",
 		InputSchema: mcp.ToolInputSchema{
 			Type:       "object",
 			Properties: map[string]interface{}{},
@@ -242,7 +242,7 @@ func GetConfigSummaryTool() mcp.Tool {
 func GetCollectorSummaryTool() mcp.Tool {
 	return mcp.Tool{
 		Name:        "opentelemetry_get_collector_summary",
-		Description: "Recommended first step for collector troubleshooting. Combines health, status, config coverage, and pipeline counts into one compact overview.",
+		Description: "Recommended first step for collector troubleshooting. Combines health endpoint output, status endpoint output, config coverage, and pipeline counts into one compact overview.",
 		InputSchema: mcp.ToolInputSchema{
 			Type:       "object",
 			Properties: map[string]interface{}{},
@@ -254,7 +254,7 @@ func GetCollectorSummaryTool() mcp.Tool {
 func AnalyzePipelineStatusTool() mcp.Tool {
 	return mcp.Tool{
 		Name:        "opentelemetry_analyze_pipeline_status",
-		Description: "Analyze OpenTelemetry Collector pipelines for missing component references, missing processors/exporters, absent batching or memory limiting, and collector-side sampling gaps.",
+		Description: "Analyze collector pipelines for broken component references, missing processors/exporters, absent batching or memory limiting, and likely trace-sampling gaps inferred from config.",
 		InputSchema: mcp.ToolInputSchema{
 			Type: "object",
 			Properties: map[string]interface{}{
