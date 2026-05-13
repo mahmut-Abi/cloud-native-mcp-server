@@ -111,6 +111,12 @@ func TestLLMVisibleDocsReferenceKnownTools(t *testing.T) {
 		filepath.Join(repoRoot, "website", "content", "zh", "services", "opentelemetry.md"),
 	}
 
+	toolGuideFiles, err := filepath.Glob(filepath.Join(repoRoot, "website", "content", "zh", "tools", "*.md"))
+	if err != nil {
+		t.Fatalf("failed to glob zh tools guides: %v", err)
+	}
+	files = append(files, toolGuideFiles...)
+
 	toolPattern := regexp.MustCompile(`\b(?:kubernetes|helm|grafana|prometheus|loki|kibana|elasticsearch|alertmanager|jaeger|langfuse|sentry|opentelemetry|utilities)_[a-z0-9_]+\b`)
 
 	for _, path := range files {
