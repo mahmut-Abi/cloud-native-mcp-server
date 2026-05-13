@@ -4,6 +4,7 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
+	"sort"
 	"strconv"
 	"strings"
 	"time"
@@ -23,19 +24,22 @@ func GetTracesHandler(service ServiceInterface) server.ToolHandlerFunc {
 	return func(ctx context.Context, request mcp.CallToolRequest) (*mcp.CallToolResult, error) {
 		args := request.GetArguments()
 
-		serviceName := getStringArg(args, "service")
+		serviceName, err := getRequiredStringArg(args, "service")
+		if err != nil {
+			return nil, err
+		}
 		operation := getStringArg(args, "operation")
-		startTime := getStringArg(args, "start_time")
-		endTime := getStringArg(args, "end_time")
 		limit := getBoundedIntArg(args, "limit", 20, 100)
 		minDuration := getStringArg(args, "min_duration")
 		maxDuration := getStringArg(args, "max_duration")
 
-		if startTime == "" {
-			startTime = time.Now().Add(-24 * time.Hour).Format(time.RFC3339)
+		startTime, err := normalizeJaegerTime(getStringArg(args, "start_time"), time.Now().Add(-24*time.Hour))
+		if err != nil {
+			return nil, err
 		}
-		if endTime == "" {
-			endTime = time.Now().Format(time.RFC3339)
+		endTime, err := normalizeJaegerTime(getStringArg(args, "end_time"), time.Now())
+		if err != nil {
+			return nil, err
 		}
 
 		jaegerClient, err := getJaegerClient(service)
@@ -144,20 +148,23 @@ func SearchTracesHandler(service ServiceInterface) server.ToolHandlerFunc {
 	return func(ctx context.Context, request mcp.CallToolRequest) (*mcp.CallToolResult, error) {
 		args := request.GetArguments()
 
-		serviceName := getStringArg(args, "service")
+		serviceName, err := getRequiredStringArg(args, "service")
+		if err != nil {
+			return nil, err
+		}
 		operation := getStringArg(args, "operation")
-		startTime := getStringArg(args, "start_time")
-		endTime := getStringArg(args, "end_time")
 		limit := getBoundedIntArg(args, "limit", 20, 100)
 		minDuration := getStringArg(args, "min_duration")
 		maxDuration := getStringArg(args, "max_duration")
 		tags := getStringMapArg(args, "tags")
 
-		if startTime == "" {
-			startTime = time.Now().Add(-24 * time.Hour).Format(time.RFC3339)
+		startTime, err := normalizeJaegerTime(getStringArg(args, "start_time"), time.Now().Add(-24*time.Hour))
+		if err != nil {
+			return nil, err
 		}
-		if endTime == "" {
-			endTime = time.Now().Format(time.RFC3339)
+		endTime, err := normalizeJaegerTime(getStringArg(args, "end_time"), time.Now())
+		if err != nil {
+			return nil, err
 		}
 
 		jaegerClient, err := getJaegerClient(service)
@@ -225,18 +232,21 @@ func GetTracesSummaryHandler(service ServiceInterface) server.ToolHandlerFunc {
 	return func(ctx context.Context, request mcp.CallToolRequest) (*mcp.CallToolResult, error) {
 		args := request.GetArguments()
 
-		serviceName := getStringArg(args, "service")
+		serviceName, err := getRequiredStringArg(args, "service")
+		if err != nil {
+			return nil, err
+		}
 		operation := getStringArg(args, "operation")
-		startTime := getStringArg(args, "start_time")
-		endTime := getStringArg(args, "end_time")
 		limit := getBoundedIntArg(args, "limit", 20, 100)
 		minDuration := getStringArg(args, "min_duration")
 
-		if startTime == "" {
-			startTime = time.Now().Add(-24 * time.Hour).Format(time.RFC3339)
+		startTime, err := normalizeJaegerTime(getStringArg(args, "start_time"), time.Now().Add(-24*time.Hour))
+		if err != nil {
+			return nil, err
 		}
-		if endTime == "" {
-			endTime = time.Now().Format(time.RFC3339)
+		endTime, err := normalizeJaegerTime(getStringArg(args, "end_time"), time.Now())
+		if err != nil {
+			return nil, err
 		}
 
 		jaegerClient, err := getJaegerClient(service)
@@ -270,8 +280,8 @@ func GetTracesSummaryHandler(service ServiceInterface) server.ToolHandlerFunc {
 				summary["operation"] = trace.Spans[0].OperationName
 				summary["duration_us"] = trace.Spans[0].Duration
 			}
-			if len(trace.Processes) > 0 {
-				summary["service"] = trace.Processes[0].ServiceName
+			if service := primaryTraceService(trace); service != "" {
+				summary["service"] = service
 			}
 
 			summaries = append(summaries, summary)
@@ -282,6 +292,66 @@ func GetTracesSummaryHandler(service ServiceInterface) server.ToolHandlerFunc {
 			"traces": summaries,
 		})
 	}
+}
+
+func normalizeJaegerTime(raw string, fallback time.Time) (string, error) {
+	if strings.TrimSpace(raw) == "" {
+		return strconv.FormatInt(fallback.UTC().UnixMicro(), 10), nil
+	}
+
+	raw = strings.TrimSpace(raw)
+	if micros, err := normalizeUnixMicros(raw); err == nil {
+		return strconv.FormatInt(micros, 10), nil
+	}
+
+	parsed, err := time.Parse(time.RFC3339, raw)
+	if err != nil {
+		parsed, err = time.Parse(time.RFC3339Nano, raw)
+		if err != nil {
+			return "", fmt.Errorf("invalid time value %q: expected RFC3339 or unix timestamp", raw)
+		}
+	}
+
+	return strconv.FormatInt(parsed.UTC().UnixMicro(), 10), nil
+}
+
+func normalizeUnixMicros(raw string) (int64, error) {
+	value, err := strconv.ParseInt(raw, 10, 64)
+	if err != nil {
+		return 0, err
+	}
+
+	switch len(strings.TrimLeft(raw, "-")) {
+	case 19:
+		return value / int64(time.Microsecond), nil
+	case 16:
+		return value, nil
+	case 13:
+		return value * 1000, nil
+	case 10:
+		return value * 1_000_000, nil
+	default:
+		return 0, fmt.Errorf("unsupported unix timestamp precision")
+	}
+}
+
+func primaryTraceService(trace client.Trace) string {
+	if len(trace.Spans) > 0 {
+		if process, ok := trace.Processes[trace.Spans[0].ProcessID]; ok {
+			return process.ServiceName
+		}
+	}
+
+	if len(trace.Processes) == 0 {
+		return ""
+	}
+
+	processIDs := make([]string, 0, len(trace.Processes))
+	for processID := range trace.Processes {
+		processIDs = append(processIDs, processID)
+	}
+	sort.Strings(processIDs)
+	return trace.Processes[processIDs[0]].ServiceName
 }
 
 // GetServicesSummaryHandler handles the jaeger_get_services_summary tool.

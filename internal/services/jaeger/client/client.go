@@ -40,10 +40,10 @@ type Client struct {
 
 // Trace represents a Jaeger trace.
 type Trace struct {
-	TraceID   string    `json:"traceID"`
-	Spans     []Span    `json:"spans"`
-	Processes []Process `json:"processes"`
-	Warnings  []string  `json:"warnings"`
+	TraceID   string             `json:"traceID"`
+	Spans     []Span             `json:"spans"`
+	Processes map[string]Process `json:"processes"`
+	Warnings  []string           `json:"warnings"`
 }
 
 // Span represents a span in a trace.

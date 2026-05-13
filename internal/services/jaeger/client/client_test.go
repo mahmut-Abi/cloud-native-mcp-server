@@ -78,7 +78,7 @@ func TestGetTrace(t *testing.T) {
 		}
 		w.Header().Set("Content-Type", "application/json")
 		w.WriteHeader(http.StatusOK)
-		_, _ = w.Write([]byte(`{"data": [{"traceID": "test-trace-id", "spans": [], "processes": []}]}`))
+		_, _ = w.Write([]byte(`{"data": [{"traceID": "test-trace-id", "spans": [{"processID":"p1"}], "processes": {"p1":{"serviceName":"test-service","tags":[]}}}]}`))
 	}))
 	defer server.Close()
 
@@ -101,6 +101,9 @@ func TestGetTrace(t *testing.T) {
 
 	if trace.TraceID != "test-trace-id" {
 		t.Errorf("Expected traceID 'test-trace-id', got '%s'", trace.TraceID)
+	}
+	if trace.Processes["p1"].ServiceName != "test-service" {
+		t.Errorf("Expected process service 'test-service', got '%s'", trace.Processes["p1"].ServiceName)
 	}
 }
 
@@ -127,7 +130,7 @@ func TestSearchTraces(t *testing.T) {
 	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		w.Header().Set("Content-Type", "application/json")
 		w.WriteHeader(http.StatusOK)
-		_, _ = w.Write([]byte(`{"data": []}`))
+		_, _ = w.Write([]byte(`{"data": [{"traceID":"trace-1","spans":[{"processID":"p1"}],"processes":{"p1":{"serviceName":"svc-a","tags":[]}}}]}`))
 	}))
 	defer server.Close()
 
@@ -151,6 +154,12 @@ func TestSearchTraces(t *testing.T) {
 
 	if traces == nil {
 		t.Error("SearchTraces() should return non-nil traces")
+	}
+	if len(traces) != 1 {
+		t.Fatalf("expected 1 trace, got %d", len(traces))
+	}
+	if traces[0].Processes["p1"].ServiceName != "svc-a" {
+		t.Fatalf("expected process service svc-a, got %q", traces[0].Processes["p1"].ServiceName)
 	}
 }
 
