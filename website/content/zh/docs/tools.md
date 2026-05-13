@@ -352,7 +352,7 @@ Cloud Native MCP Server 提供 308 个强大的工具，覆盖 Kubernetes 管理
 - `get_config` - 获取配置
 - `get_status` - 获取状态
 
-## OpenTelemetry 工具（9 个）
+## OpenTelemetry 工具（12 个）
 
 ### 指标管理
 - `get_metrics` - 获取指标
@@ -370,6 +370,9 @@ Cloud Native MCP Server 提供 308 个强大的工具，覆盖 Kubernetes 管理
 ### 配置管理
 - `get_config` - 获取配置
 - `get_status` - 获取状态
+- `get_config_summary` - 获取配置摘要
+- `get_collector_summary` - 获取采集器概览
+- `analyze_pipeline_status` - 分析 pipeline 状态
 
 ## Utilities 工具（6 个）
 

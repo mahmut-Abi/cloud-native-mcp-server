@@ -112,6 +112,59 @@ func requireRawStringParam(request mcp.CallToolRequest, param string) (string, e
 	return value, nil
 }
 
+func requireCommandParam(request mcp.CallToolRequest, param string) ([]string, error) {
+	value, err := requireArgument(request, param)
+	if err != nil {
+		return nil, err
+	}
+
+	switch typed := value.(type) {
+	case []string:
+		if len(typed) == 0 {
+			return nil, fmt.Errorf("%w: %s", ErrMissingRequiredParam, param)
+		}
+		return typed, nil
+	case []interface{}:
+		if len(typed) == 0 {
+			return nil, fmt.Errorf("%w: %s", ErrMissingRequiredParam, param)
+		}
+
+		result := make([]string, 0, len(typed))
+		for _, item := range typed {
+			str, ok := item.(string)
+			if !ok {
+				return nil, fmt.Errorf("%s must contain only strings", param)
+			}
+			result = append(result, str)
+		}
+		return result, nil
+	case string:
+		trimmed := strings.TrimSpace(typed)
+		if trimmed == "" {
+			return nil, fmt.Errorf("%w: %s", ErrMissingRequiredParam, param)
+		}
+
+		if strings.HasPrefix(trimmed, "[") {
+			var result []string
+			if err := json.Unmarshal([]byte(trimmed), &result); err != nil {
+				return nil, fmt.Errorf("failed to parse %s JSON array: %w", param, err)
+			}
+			if len(result) == 0 {
+				return nil, fmt.Errorf("%w: %s", ErrMissingRequiredParam, param)
+			}
+			return result, nil
+		}
+
+		result := strings.Fields(typed)
+		if len(result) == 0 {
+			return nil, fmt.Errorf("%w: %s", ErrMissingRequiredParam, param)
+		}
+		return result, nil
+	default:
+		return nil, fmt.Errorf("%s must be a JSON array of strings or a command string", param)
+	}
+}
+
 // Helper function to get optional string parameter
 func getOptionalStringParam(request mcp.CallToolRequest, param string) string {
 	value, _ := getRequestArguments(request)[param].(string)
@@ -811,13 +864,9 @@ func HandleContainerExec(client *client.Client) func(ctx context.Context, reques
 		if err != nil {
 			return nil, err
 		}
-		commandEncoded, err := requireRawStringParam(request, "command")
+		commandArgs, err := requireCommandParam(request, "command")
 		if err != nil {
 			return nil, err
-		}
-		commandArgs := strings.Fields(commandEncoded)
-		if len(commandArgs) == 0 {
-			return nil, fmt.Errorf("parsed command is empty")
 		}
 		logrus.WithFields(logrus.Fields{"tool": "pod_exec", "pod": name, "ns": namespace, "container": container}).Debug("Handler invoked")
 

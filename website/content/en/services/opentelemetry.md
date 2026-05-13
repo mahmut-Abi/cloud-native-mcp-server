@@ -5,7 +5,7 @@ weight: 9
 
 # OpenTelemetry Service
 
-The OpenTelemetry service provides comprehensive metrics, traces, and logs collection and analysis with 9 tools for managing observability resources.
+The OpenTelemetry service provides collector diagnostics, configuration analysis, and telemetry inspection with 12 tools for managing observability resources.
 
 ## Overview
 
@@ -33,7 +33,7 @@ Manage OpenTelemetry collector configuration and status.
 
 ---
 
-## Available Tools (9)
+## Available Tools (12)
 
 ### Metrics Management
 - **otel-get-metrics**: Get metrics from OpenTelemetry collector
@@ -50,11 +50,13 @@ Manage OpenTelemetry collector configuration and status.
 - **otel-get-logs**: Get logs from OpenTelemetry collector
 - **otel-get-logs-schema**: Get logs schema
 
-### System Information
-- **otel-get-status**: Get OpenTelemetry collector status
-- **otel-get-config**: Get OpenTelemetry collector configuration
-- **otel-get-health**: Get OpenTelemetry collector health
-- **otel-get-versions**: Get OpenTelemetry component versions
+### Collector Diagnostics
+- **opentelemetry_get_health**: Get OpenTelemetry collector health
+- **opentelemetry_get_status**: Get OpenTelemetry collector status
+- **opentelemetry_get_collector_summary**: Get a compact collector health and config overview
+- **opentelemetry_get_config**: Get full OpenTelemetry collector configuration
+- **opentelemetry_get_config_summary**: Get a compact config summary
+- **opentelemetry_analyze_pipeline_status**: Analyze pipelines for missing components and common misconfigurations
 
 ---
 

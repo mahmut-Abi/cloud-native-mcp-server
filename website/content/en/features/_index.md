@@ -54,7 +54,7 @@ description: "Overview of Cloud Native MCP Server features, including performanc
 - **Prometheus**: 20 tools, metrics collection and querying
 - **Grafana**: 36 tools, dashboards and visualization
 - **Jaeger**: 8 tools, distributed tracing
-- **OpenTelemetry**: 9 tools, unified observability
+- **OpenTelemetry**: 12 tools, unified observability
 
 ### Log Management
 - **Elasticsearch**: 14 tools, log storage and search

@@ -50,7 +50,7 @@ Distributed tracing and performance analysis
 {{< /columns >}}
 
 {{< columns >}}
-### 🌐 OpenTelemetry (9 tools)
+### 🌐 OpenTelemetry (12 tools)
 Metrics, traces, and logs collection and analysis
 <--->
 
@@ -440,7 +440,7 @@ The Jaeger service provides distributed tracing:
 
 ---
 
-## OpenTelemetry Tools (9)
+## OpenTelemetry Tools (12)
 
 The OpenTelemetry service provides comprehensive observability:
 
@@ -460,6 +460,9 @@ The OpenTelemetry service provides comprehensive observability:
 ### Configuration Management
 - `get_config` - Get configuration
 - `get_status` - Get status
+- `get_config_summary` - Get configuration summary
+- `get_collector_summary` - Get collector overview
+- `analyze_pipeline_status` - Analyze pipeline status
 
 ---
 
