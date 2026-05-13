@@ -140,10 +140,7 @@ Practical guidance:
 | `helm_search_charts` | Search Helm charts. | - |
 | `helm_get_chart_info` | Get chart information. | - |
 | `helm_template_chart` | Template a chart. | - |
-| `helm_pull_chart` | Pull chart to local. | - |
-| `helm_show_chart` | Show chart details. | - |
-| `helm_show_values` | Show chart values. | - |
-| `helm_show_readme` | Show chart README. | - |
+| `helm_compare_revisions` | Compare two release revisions. | - |
 
 ### Release Lifecycle
 
@@ -194,9 +191,13 @@ Practical guidance:
 | `grafana_dashboards` | List all dashboards with metadata. | - |
 | `grafana_dashboard` | Get specific dashboard by UID. | - |
 | `grafana_search_dashboards` | Search dashboards by query. | - |
-| `grafana_create_dashboard` | Create new dashboard. | - |
-| `grafana_update_dashboard` | Update existing dashboard. | - |
+| `grafana_update_dashboard` | Create or update a dashboard in one call. | - |
+| `grafana_get_dashboard_versions` | List saved versions for a dashboard. | - |
+| `grafana_get_dashboard_version` | Get one saved dashboard version. | - |
+| `grafana_restore_dashboard_version` | Restore a dashboard to a previous saved version. | - |
 | `grafana_delete_dashboard` | Delete dashboard. | - |
+| `grafana_get_dashboard_panel_queries` | Extract panel queries and data source references from a dashboard. | - |
+| `grafana_get_dashboard_property` | Read one dashboard property without fetching the full model. | - |
 
 ### Data Sources
 
@@ -204,18 +205,19 @@ Practical guidance:
 |------|-------------|----------|
 | `grafana_datasources_summary` | List data sources with minimal output (70-85% smaller). | ⚠️ PRIORITY |
 | `grafana_datasources` | List all data sources with smart filtering. | - |
-| `grafana_datasource` | Get specific data source by UID. | - |
+| `grafana_datasource_detail` | Get specific data source by UID. | - |
+| `grafana_get_datasource_by_name` | Get a data source by name. | - |
 | `grafana_create_datasource` | Create new data source. | - |
 | `grafana_update_datasource` | Update data source. | - |
 | `grafana_delete_datasource` | Delete data source. | - |
-| `grafana_test_datasource` | Test data source connection. | - |
+| `grafana_check_datasource_health` | Test data source connection and health. | - |
 
 ### Folders
 
 | Tool | Description | Priority |
 |------|-------------|----------|
 | `grafana_folders` | List all folders with metadata. | - |
-| `grafana_folder` | Get specific folder by UID. | - |
+| `grafana_folder_detail` | Get specific folder by UID. | - |
 | `grafana_create_folder` | Create new folder. | - |
 | `grafana_update_folder` | Update folder. | - |
 | `grafana_delete_folder` | Delete folder. | - |
@@ -225,10 +227,11 @@ Practical guidance:
 | Tool | Description | Priority |
 |------|-------------|----------|
 | `grafana_alerts` | List alert rules with intelligent limits. | - |
-| `grafana_alert_rule` | Get specific alert rule. | - |
+| `grafana_get_alert_rule_by_uid` | Get specific alert rule. | - |
 | `grafana_create_alert_rule` | Create alert rule. | - |
 | `grafana_update_alert_rule` | Update alert rule. | - |
 | `grafana_delete_alert_rule` | Delete alert rule. | - |
+| `grafana_list_contact_points` | List Grafana contact points. | - |
 
 ### Annotations
 
@@ -237,22 +240,29 @@ Practical guidance:
 | `grafana_create_annotation` | Create annotation. | - |
 | `grafana_get_annotations` | Get annotations. | - |
 | `grafana_update_annotation` | Update annotation. | - |
+| `grafana_patch_annotation` | Partially update an annotation. | - |
 | `grafana_delete_annotation` | Delete annotation. | - |
+| `grafana_get_annotation_tags` | List available annotation tags. | - |
 
 ### Connection and Health
 
 | Tool | Description | Priority |
 |------|-------------|----------|
 | `grafana_test_connection` | Test connection to Grafana. | - |
-| `grafana_health` | Get Grafana health status. | - |
+| `grafana_current_user` | Get current Grafana user information. | - |
+| `grafana_organization` | Get current Grafana organization information. | - |
+| `grafana_users` | List Grafana users. | - |
 
-### Snapshots
+### Plugins and Navigation
 
 | Tool | Description | Priority |
 |------|-------------|----------|
-| `grafana_create_snapshot` | Create dashboard snapshot. | - |
-| `grafana_get_snapshot` | Get snapshot. | - |
-| `grafana_delete_snapshot` | Delete snapshot. | - |
+| `grafana_plugins_summary` | List installed plugins and apps with minimal output. | ⚠️ PRIORITY |
+| `grafana_plugins` | List installed plugins with extended detail. | - |
+| `grafana_plugin_detail` | Get details for one plugin or app. | - |
+| `grafana_generate_deeplink` | Generate a Grafana deeplink for dashboard, panel, or explore navigation. | - |
+| `grafana_generate_logs_drilldown_link` | Generate a Grafana Logs Drilldown link after validating the plugin is enabled. | - |
+| `grafana_render_panel_image` | Render one dashboard panel to PNG. | - |
 
 ---
 
@@ -367,44 +377,36 @@ Practical guidance:
 | Tool | Description | Priority |
 |------|-------------|----------|
 | `kibana_search_saved_objects` | Search saved objects with pagination. | - |
-| `kibana_get_saved_object` | Get specific saved object. | - |
+| `kibana_get_saved_searches` | Get saved searches. | - |
+| `kibana_get_saved_search` | Get a specific saved search. | - |
 | `kibana_create_saved_object` | Create saved object. | - |
 | `kibana_update_saved_object` | Update saved object. | - |
 | `kibana_delete_saved_object` | Delete saved object. | - |
+| `kibana_search_saved_objects_advanced` | Search saved objects with advanced filters and pagination. | - |
 
 ### Discover
 
 | Tool | Description | Priority |
 |------|-------------|----------|
-| `kibana_search` | Search documents in Kibana. | - |
-| `kibana_get_discover_history` | Get discover history. | - |
+| `kibana_query_logs` | Search logs through Kibana with query, sort, and size controls. | - |
 
 ### Canvas
 
 | Tool | Description | Priority |
 |------|-------------|----------|
 | `kibana_get_canvas_workpads` | Get canvas workpads. | - |
-| `kibana_get_canvas_workpad` | Get specific workpad. | - |
+
+### Lens
+
+| Tool | Description | Priority |
+|------|-------------|----------|
+| `kibana_get_lens_objects` | Get Lens visualizations. | - |
 
 ### Maps
 
 | Tool | Description | Priority |
 |------|-------------|----------|
 | `kibana_get_maps` | Get maps. | - |
-| `kibana_get_map` | Get specific map. | - |
-
-### ML (Machine Learning)
-
-| Tool | Description | Priority |
-|------|-------------|----------|
-| `kibana_get_ml_jobs` | Get ML jobs. | - |
-| `kibana_get_ml_job` | Get specific ML job. | - |
-
-### Security
-
-| Tool | Description | Priority |
-|------|-------------|----------|
-| `kibana_get_saved_queries` | Get saved queries. | - |
 
 ### Advanced Operations
 
@@ -455,7 +457,7 @@ Practical guidance:
 
 | Tool | Description | Priority |
 |------|-------------|----------|
-| `elasticsearch_search` | Search documents. | - |
+| `elasticsearch_search_indices` | Search indices with advanced filters and pagination. | - |
 
 ---
 

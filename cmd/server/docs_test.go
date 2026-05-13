@@ -5,6 +5,7 @@ import (
 	"path/filepath"
 	"regexp"
 	"strconv"
+	"strings"
 	"testing"
 
 	"github.com/mahmut-Abi/cloud-native-mcp-server/internal/util/tooldoc"
@@ -83,5 +84,55 @@ func TestGeneratedInventoryBlockMatchesGenerator(t *testing.T) {
 	updated := tooldoc.ReplaceGeneratedInventory(string(docContent), generated)
 	if updated != string(docContent) {
 		t.Fatalf("generated inventory block is out of date; run `go run ./cmd/toolsdocgen`")
+	}
+}
+
+func TestLLMVisibleDocsReferenceKnownTools(t *testing.T) {
+	repoRoot := filepath.Join("..", "..")
+	inventory, err := tooldoc.CollectInventory(repoRoot)
+	if err != nil {
+		t.Fatalf("failed to collect inventory: %v", err)
+	}
+
+	known := make(map[string]struct{})
+	for _, names := range inventory {
+		for _, name := range names {
+			known[name] = struct{}{}
+		}
+	}
+
+	files := []string{
+		filepath.Join(repoRoot, "docs", "TOOLS.md"),
+		filepath.Join(repoRoot, "website", "content", "en", "docs", "tools.md"),
+		filepath.Join(repoRoot, "website", "content", "zh", "docs", "tools.md"),
+		filepath.Join(repoRoot, "website", "content", "en", "tools.md"),
+		filepath.Join(repoRoot, "website", "content", "zh", "tools.md"),
+		filepath.Join(repoRoot, "website", "content", "en", "services", "opentelemetry.md"),
+		filepath.Join(repoRoot, "website", "content", "zh", "services", "opentelemetry.md"),
+	}
+
+	toolPattern := regexp.MustCompile(`\b(?:kubernetes|helm|grafana|prometheus|loki|kibana|elasticsearch|alertmanager|jaeger|langfuse|sentry|opentelemetry|utilities)_[a-z0-9_]+\b`)
+
+	for _, path := range files {
+		content, err := os.ReadFile(path)
+		if err != nil {
+			t.Fatalf("failed to read %s: %v", path, err)
+		}
+
+		seen := make(map[string]struct{})
+		var unknown []string
+		for _, match := range toolPattern.FindAllString(string(content), -1) {
+			if _, ok := seen[match]; ok {
+				continue
+			}
+			seen[match] = struct{}{}
+			if _, ok := known[match]; !ok {
+				unknown = append(unknown, match)
+			}
+		}
+
+		if len(unknown) > 0 {
+			t.Fatalf("%s references unknown tool names: %s", path, strings.Join(unknown, ", "))
+		}
 	}
 }

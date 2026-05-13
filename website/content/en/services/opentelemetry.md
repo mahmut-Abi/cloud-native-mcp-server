@@ -36,27 +36,24 @@ Manage OpenTelemetry collector configuration and status.
 ## Available Tools (12)
 
 ### Metrics Management
-- **otel-get-metrics**: Get metrics from OpenTelemetry collector
-- **otel-get-metric-data**: Get metric data
-- **otel-list-metric-streams**: List metric streams
-- **otel-get-metrics-schema**: Get metrics schema
+- `opentelemetry_get_metrics`: Get metrics from the collector
+- `opentelemetry_query_metrics`: Run a PromQL-style query against collector metrics
 
 ### Trace Management
-- **otel-get-traces**: Get traces from OpenTelemetry collector
-- **otel-search-traces**: Search traces
-- **otel-get-traces-schema**: Get traces schema
+- `opentelemetry_get_traces`: Get traces from the collector
+- `opentelemetry_query_traces`: Search traces with filters and time range
 
-### Log and Configuration Management
-- **otel-get-logs**: Get logs from OpenTelemetry collector
-- **otel-get-logs-schema**: Get logs schema
+### Log Management
+- `opentelemetry_get_logs`: Get logs from the collector
+- `opentelemetry_query_logs`: Search logs with filters and time range
 
 ### Collector Diagnostics
-- **opentelemetry_get_health**: Get OpenTelemetry collector health
-- **opentelemetry_get_status**: Get OpenTelemetry collector status
-- **opentelemetry_get_collector_summary**: Get a compact collector health and config overview
-- **opentelemetry_get_config**: Get full OpenTelemetry collector configuration
-- **opentelemetry_get_config_summary**: Get a compact config summary
-- **opentelemetry_analyze_pipeline_status**: Analyze pipelines for missing components and common misconfigurations
+- `opentelemetry_get_health`: Get OpenTelemetry collector health
+- `opentelemetry_get_status`: Get detailed collector status
+- `opentelemetry_get_collector_summary`: Get a compact collector health and config overview
+- `opentelemetry_get_config`: Get full collector configuration
+- `opentelemetry_get_config_summary`: Get a compact config summary
+- `opentelemetry_analyze_pipeline_status`: Analyze pipelines for missing components and common misconfigurations
 
 ---
 
@@ -68,38 +65,35 @@ Manage OpenTelemetry collector configuration and status.
 {
   "method": "tools/call",
   "params": {
-    "name": "otel-get-metrics",
+    "name": "opentelemetry_get_metrics",
     "arguments": {
-      "metric_name": "http_requests_total",
-      "start_time": "1 hour ago",
-      "end_time": "now"
+      "metric_name": "http_requests_total"
     }
   }
 }
 ```
 
-### Get traces for a specific service
+### Analyze one collector's pipelines
 
 ```json
 {
   "method": "tools/call",
   "params": {
-    "name": "otel-get-traces",
+    "name": "opentelemetry_analyze_pipeline_status",
     "arguments": {
-      "service_name": "my-app",
-      "limit": 50
+      "signal": "traces"
     }
   }
 }
 ```
 
-### Get collector configuration
+### Get collector configuration summary
 
 ```json
 {
   "method": "tools/call",
   "params": {
-    "name": "otel-get-config",
+    "name": "opentelemetry_get_config_summary",
     "arguments": {}
   }
 }
