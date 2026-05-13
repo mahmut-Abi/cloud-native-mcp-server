@@ -221,6 +221,34 @@ func TestGetOperations(t *testing.T) {
 	}
 }
 
+func TestGetOperations_ObjectEntries(t *testing.T) {
+	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		w.Header().Set("Content-Type", "application/json")
+		w.WriteHeader(http.StatusOK)
+		_, _ = w.Write([]byte(`{"data":[{"name":"GET /health","spanKind":"server"},{"name":"GET /health","spanKind":"consumer"},{"name":"POST /v1/chat","spanKind":"server"}]}`))
+	}))
+	defer server.Close()
+
+	client, _ := NewClient(&ClientOptions{
+		BaseURL: server.URL,
+		Timeout: 30 * time.Second,
+	})
+
+	ctx := context.Background()
+	ops, err := client.GetOperations(ctx, "test-service")
+	if err != nil {
+		t.Errorf("GetOperations() error = %v", err)
+		return
+	}
+
+	if len(ops) != 2 {
+		t.Fatalf("Expected 2 deduplicated operations, got %d", len(ops))
+	}
+	if ops[0] != "GET /health" || ops[1] != "POST /v1/chat" {
+		t.Fatalf("Unexpected operations: %#v", ops)
+	}
+}
+
 func TestGetDependencies(t *testing.T) {
 	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		w.Header().Set("Content-Type", "application/json")
@@ -243,6 +271,34 @@ func TestGetDependencies(t *testing.T) {
 
 	if deps == nil {
 		t.Error("GetDependencies() should return non-nil dependencies")
+	}
+}
+
+func TestGetDependencies_WrappedData(t *testing.T) {
+	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		w.Header().Set("Content-Type", "application/json")
+		w.WriteHeader(http.StatusOK)
+		_, _ = w.Write([]byte(`{"data":[{"parent":"frontend","child":"api","callCount":42}]}`))
+	}))
+	defer server.Close()
+
+	client, _ := NewClient(&ClientOptions{
+		BaseURL: server.URL,
+		Timeout: 30 * time.Second,
+	})
+
+	ctx := context.Background()
+	deps, err := client.GetDependencies(ctx, "2024-01-01T00:00:00Z", "2024-01-02T00:00:00Z")
+	if err != nil {
+		t.Errorf("GetDependencies() error = %v", err)
+		return
+	}
+
+	if len(deps) != 1 {
+		t.Fatalf("Expected 1 dependency, got %d", len(deps))
+	}
+	if deps[0].Parent != "frontend" || deps[0].Child != "api" || deps[0].CallCount != 42 {
+		t.Fatalf("Unexpected dependency: %#v", deps[0])
 	}
 }
 
