@@ -490,7 +490,7 @@ func (c *Client) GenerateLogsDrilldownLink(ctx context.Context, params map[strin
 	}
 
 	if !plugin.Enabled {
-		return nil, fmt.Errorf("Grafana Logs Drilldown plugin is installed but disabled")
+		return nil, fmt.Errorf("grafana logs drilldown plugin is installed but disabled")
 	}
 
 	baseURL := strings.TrimSuffix(c.baseURL, "api/")
