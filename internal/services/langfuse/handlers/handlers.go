@@ -219,6 +219,274 @@ func HandleListPrompts(service ServiceInterface) server.ToolHandlerFunc {
 	}
 }
 
+// HandleListAnnotationQueues handles annotation queue listing.
+func HandleListAnnotationQueues(service ServiceInterface) server.ToolHandlerFunc {
+	return func(ctx context.Context, request mcp.CallToolRequest) (*mcp.CallToolResult, error) {
+		params, err := buildPaginationParams(request.GetArguments())
+		if err != nil {
+			return nil, err
+		}
+
+		langfuseClient, err := getClient(service)
+		if err != nil {
+			return nil, err
+		}
+
+		result, err := langfuseClient.ListAnnotationQueues(ctx, params)
+		if err != nil {
+			return nil, fmt.Errorf("failed to list langfuse annotation queues: %w", err)
+		}
+		return marshalResult(result)
+	}
+}
+
+// HandleGetAnnotationQueue handles annotation queue detail lookups.
+func HandleGetAnnotationQueue(service ServiceInterface) server.ToolHandlerFunc {
+	return func(ctx context.Context, request mcp.CallToolRequest) (*mcp.CallToolResult, error) {
+		queueID, err := svccommon.RequireStringArg(request.GetArguments(), "queue_id")
+		if err != nil {
+			return nil, err
+		}
+
+		langfuseClient, err := getClient(service)
+		if err != nil {
+			return nil, err
+		}
+
+		result, err := langfuseClient.GetAnnotationQueue(ctx, queueID)
+		if err != nil {
+			return nil, fmt.Errorf("failed to get langfuse annotation queue: %w", err)
+		}
+		return marshalResult(result)
+	}
+}
+
+// HandleListAnnotationQueueItems handles queue item listing.
+func HandleListAnnotationQueueItems(service ServiceInterface) server.ToolHandlerFunc {
+	return func(ctx context.Context, request mcp.CallToolRequest) (*mcp.CallToolResult, error) {
+		args := request.GetArguments()
+		queueID, err := svccommon.RequireStringArg(args, "queue_id")
+		if err != nil {
+			return nil, err
+		}
+		params, err := buildPaginationParams(args)
+		if err != nil {
+			return nil, err
+		}
+		addStringParam(params, args, "status", "status")
+
+		langfuseClient, err := getClient(service)
+		if err != nil {
+			return nil, err
+		}
+
+		result, err := langfuseClient.ListAnnotationQueueItems(ctx, queueID, params)
+		if err != nil {
+			return nil, fmt.Errorf("failed to list langfuse annotation queue items: %w", err)
+		}
+		return marshalResult(result)
+	}
+}
+
+// HandleListDatasets handles dataset listing.
+func HandleListDatasets(service ServiceInterface) server.ToolHandlerFunc {
+	return func(ctx context.Context, request mcp.CallToolRequest) (*mcp.CallToolResult, error) {
+		params, err := buildPaginationParams(request.GetArguments())
+		if err != nil {
+			return nil, err
+		}
+
+		langfuseClient, err := getClient(service)
+		if err != nil {
+			return nil, err
+		}
+
+		result, err := langfuseClient.ListDatasets(ctx, params)
+		if err != nil {
+			return nil, fmt.Errorf("failed to list langfuse datasets: %w", err)
+		}
+		return marshalResult(result)
+	}
+}
+
+// HandleGetDataset handles dataset detail lookups.
+func HandleGetDataset(service ServiceInterface) server.ToolHandlerFunc {
+	return func(ctx context.Context, request mcp.CallToolRequest) (*mcp.CallToolResult, error) {
+		datasetName, err := svccommon.RequireStringArg(request.GetArguments(), "dataset_name")
+		if err != nil {
+			return nil, err
+		}
+
+		langfuseClient, err := getClient(service)
+		if err != nil {
+			return nil, err
+		}
+
+		result, err := langfuseClient.GetDataset(ctx, datasetName)
+		if err != nil {
+			return nil, fmt.Errorf("failed to get langfuse dataset: %w", err)
+		}
+		return marshalResult(result)
+	}
+}
+
+// HandleListDatasetRuns handles dataset run listing.
+func HandleListDatasetRuns(service ServiceInterface) server.ToolHandlerFunc {
+	return func(ctx context.Context, request mcp.CallToolRequest) (*mcp.CallToolResult, error) {
+		args := request.GetArguments()
+		datasetName, err := svccommon.RequireStringArg(args, "dataset_name")
+		if err != nil {
+			return nil, err
+		}
+		params, err := buildPaginationParams(args)
+		if err != nil {
+			return nil, err
+		}
+
+		langfuseClient, err := getClient(service)
+		if err != nil {
+			return nil, err
+		}
+
+		result, err := langfuseClient.ListDatasetRuns(ctx, datasetName, params)
+		if err != nil {
+			return nil, fmt.Errorf("failed to list langfuse dataset runs: %w", err)
+		}
+		return marshalResult(result)
+	}
+}
+
+// HandleGetDatasetRun handles dataset run detail lookups.
+func HandleGetDatasetRun(service ServiceInterface) server.ToolHandlerFunc {
+	return func(ctx context.Context, request mcp.CallToolRequest) (*mcp.CallToolResult, error) {
+		args := request.GetArguments()
+		datasetName, err := svccommon.RequireStringArg(args, "dataset_name")
+		if err != nil {
+			return nil, err
+		}
+		runName, err := svccommon.RequireStringArg(args, "run_name")
+		if err != nil {
+			return nil, err
+		}
+
+		langfuseClient, err := getClient(service)
+		if err != nil {
+			return nil, err
+		}
+
+		result, err := langfuseClient.GetDatasetRun(ctx, datasetName, runName)
+		if err != nil {
+			return nil, fmt.Errorf("failed to get langfuse dataset run: %w", err)
+		}
+		return marshalResult(result)
+	}
+}
+
+// HandleListLLMConnections handles LLM connection listing.
+func HandleListLLMConnections(service ServiceInterface) server.ToolHandlerFunc {
+	return func(ctx context.Context, request mcp.CallToolRequest) (*mcp.CallToolResult, error) {
+		params, err := buildPaginationParams(request.GetArguments())
+		if err != nil {
+			return nil, err
+		}
+
+		langfuseClient, err := getClient(service)
+		if err != nil {
+			return nil, err
+		}
+
+		result, err := langfuseClient.ListLLMConnections(ctx, params)
+		if err != nil {
+			return nil, fmt.Errorf("failed to list langfuse llm connections: %w", err)
+		}
+		return marshalResult(result)
+	}
+}
+
+// HandleListModels handles model listing.
+func HandleListModels(service ServiceInterface) server.ToolHandlerFunc {
+	return func(ctx context.Context, request mcp.CallToolRequest) (*mcp.CallToolResult, error) {
+		params, err := buildPaginationParams(request.GetArguments())
+		if err != nil {
+			return nil, err
+		}
+
+		langfuseClient, err := getClient(service)
+		if err != nil {
+			return nil, err
+		}
+
+		result, err := langfuseClient.ListModels(ctx, params)
+		if err != nil {
+			return nil, fmt.Errorf("failed to list langfuse models: %w", err)
+		}
+		return marshalResult(result)
+	}
+}
+
+// HandleGetModel handles model detail lookups.
+func HandleGetModel(service ServiceInterface) server.ToolHandlerFunc {
+	return func(ctx context.Context, request mcp.CallToolRequest) (*mcp.CallToolResult, error) {
+		modelID, err := svccommon.RequireStringArg(request.GetArguments(), "model_id")
+		if err != nil {
+			return nil, err
+		}
+
+		langfuseClient, err := getClient(service)
+		if err != nil {
+			return nil, err
+		}
+
+		result, err := langfuseClient.GetModel(ctx, modelID)
+		if err != nil {
+			return nil, fmt.Errorf("failed to get langfuse model: %w", err)
+		}
+		return marshalResult(result)
+	}
+}
+
+// HandleListScoreConfigs handles score configuration listing.
+func HandleListScoreConfigs(service ServiceInterface) server.ToolHandlerFunc {
+	return func(ctx context.Context, request mcp.CallToolRequest) (*mcp.CallToolResult, error) {
+		params, err := buildPaginationParams(request.GetArguments())
+		if err != nil {
+			return nil, err
+		}
+
+		langfuseClient, err := getClient(service)
+		if err != nil {
+			return nil, err
+		}
+
+		result, err := langfuseClient.ListScoreConfigs(ctx, params)
+		if err != nil {
+			return nil, fmt.Errorf("failed to list langfuse score configs: %w", err)
+		}
+		return marshalResult(result)
+	}
+}
+
+// HandleGetScoreConfig handles score configuration detail lookups.
+func HandleGetScoreConfig(service ServiceInterface) server.ToolHandlerFunc {
+	return func(ctx context.Context, request mcp.CallToolRequest) (*mcp.CallToolResult, error) {
+		configID, err := svccommon.RequireStringArg(request.GetArguments(), "config_id")
+		if err != nil {
+			return nil, err
+		}
+
+		langfuseClient, err := getClient(service)
+		if err != nil {
+			return nil, err
+		}
+
+		result, err := langfuseClient.GetScoreConfig(ctx, configID)
+		if err != nil {
+			return nil, fmt.Errorf("failed to get langfuse score config: %w", err)
+		}
+		return marshalResult(result)
+	}
+}
+
 // HandleGetPrompt handles Langfuse prompt detail lookups.
 func HandleGetPrompt(service ServiceInterface) server.ToolHandlerFunc {
 	return func(ctx context.Context, request mcp.CallToolRequest) (*mcp.CallToolResult, error) {

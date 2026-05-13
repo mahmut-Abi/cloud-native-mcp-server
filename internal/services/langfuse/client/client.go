@@ -133,6 +133,66 @@ func (c *Client) ListPrompts(ctx context.Context, params url.Values) (map[string
 	return c.getJSON(ctx, "v2/prompts", params)
 }
 
+// ListAnnotationQueues returns paginated annotation queues.
+func (c *Client) ListAnnotationQueues(ctx context.Context, params url.Values) (map[string]interface{}, error) {
+	return c.getJSON(ctx, "annotation-queues", params)
+}
+
+// GetAnnotationQueue returns a single annotation queue by ID.
+func (c *Client) GetAnnotationQueue(ctx context.Context, queueID string) (map[string]interface{}, error) {
+	return c.getJSON(ctx, "annotation-queues/"+url.PathEscape(strings.TrimSpace(queueID)), nil)
+}
+
+// ListAnnotationQueueItems returns items for a specific annotation queue.
+func (c *Client) ListAnnotationQueueItems(ctx context.Context, queueID string, params url.Values) (map[string]interface{}, error) {
+	return c.getJSON(ctx, "annotation-queues/"+url.PathEscape(strings.TrimSpace(queueID))+"/items", params)
+}
+
+// ListDatasets returns paginated datasets.
+func (c *Client) ListDatasets(ctx context.Context, params url.Values) (map[string]interface{}, error) {
+	return c.getJSON(ctx, "v2/datasets", params)
+}
+
+// GetDataset returns a specific dataset by name.
+func (c *Client) GetDataset(ctx context.Context, datasetName string) (map[string]interface{}, error) {
+	return c.getJSON(ctx, "v2/datasets/"+url.PathEscape(strings.TrimSpace(datasetName)), nil)
+}
+
+// ListDatasetRuns returns paginated runs for a dataset.
+func (c *Client) ListDatasetRuns(ctx context.Context, datasetName string, params url.Values) (map[string]interface{}, error) {
+	return c.getJSON(ctx, "datasets/"+url.PathEscape(strings.TrimSpace(datasetName))+"/runs", params)
+}
+
+// GetDatasetRun returns a single dataset run by name.
+func (c *Client) GetDatasetRun(ctx context.Context, datasetName, runName string) (map[string]interface{}, error) {
+	return c.getJSON(ctx, "datasets/"+url.PathEscape(strings.TrimSpace(datasetName))+"/runs/"+url.PathEscape(strings.TrimSpace(runName)), nil)
+}
+
+// ListLLMConnections returns paginated LLM connections.
+func (c *Client) ListLLMConnections(ctx context.Context, params url.Values) (map[string]interface{}, error) {
+	return c.getJSON(ctx, "llm-connections", params)
+}
+
+// ListModels returns paginated model definitions.
+func (c *Client) ListModels(ctx context.Context, params url.Values) (map[string]interface{}, error) {
+	return c.getJSON(ctx, "models", params)
+}
+
+// GetModel returns a single model definition by ID.
+func (c *Client) GetModel(ctx context.Context, modelID string) (map[string]interface{}, error) {
+	return c.getJSON(ctx, "models/"+url.PathEscape(strings.TrimSpace(modelID)), nil)
+}
+
+// ListScoreConfigs returns paginated score configurations.
+func (c *Client) ListScoreConfigs(ctx context.Context, params url.Values) (map[string]interface{}, error) {
+	return c.getJSON(ctx, "score-configs", params)
+}
+
+// GetScoreConfig returns a single score configuration by ID.
+func (c *Client) GetScoreConfig(ctx context.Context, configID string) (map[string]interface{}, error) {
+	return c.getJSON(ctx, "score-configs/"+url.PathEscape(strings.TrimSpace(configID)), nil)
+}
+
 // GetPrompt returns a prompt by name, label, or version.
 func (c *Client) GetPrompt(ctx context.Context, promptName string, params url.Values) (map[string]interface{}, error) {
 	return c.getJSON(ctx, "v2/prompts/"+url.PathEscape(strings.TrimSpace(promptName)), params)

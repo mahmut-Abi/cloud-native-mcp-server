@@ -99,6 +99,115 @@ func ListPromptsTool() mcp.Tool {
 	return mcp.NewTool("langfuse_list_prompts", options...)
 }
 
+// ListAnnotationQueuesTool returns the annotation queue listing tool.
+func ListAnnotationQueuesTool() mcp.Tool {
+	options := append([]mcp.ToolOption{
+		mcp.WithDescription("List Langfuse annotation queues for manual review workflows."),
+	}, paginationOptions()...)
+	return mcp.NewTool("langfuse_list_annotation_queues", options...)
+}
+
+// GetAnnotationQueueTool returns the annotation queue detail tool.
+func GetAnnotationQueueTool() mcp.Tool {
+	return mcp.NewTool("langfuse_get_annotation_queue",
+		mcp.WithDescription("Get a specific Langfuse annotation queue by ID."),
+		mcp.WithString("queue_id", mcp.Required(),
+			mcp.Description("Langfuse annotation queue ID.")),
+	)
+}
+
+// ListAnnotationQueueItemsTool returns the annotation queue item listing tool.
+func ListAnnotationQueueItemsTool() mcp.Tool {
+	options := append([]mcp.ToolOption{
+		mcp.WithDescription("List items inside a specific Langfuse annotation queue."),
+		mcp.WithString("queue_id", mcp.Required(),
+			mcp.Description("Langfuse annotation queue ID.")),
+		mcp.WithString("status",
+			mcp.Description("Optional queue item status filter.")),
+	}, paginationOptions()...)
+	return mcp.NewTool("langfuse_list_annotation_queue_items", options...)
+}
+
+// ListDatasetsTool returns the dataset listing tool.
+func ListDatasetsTool() mcp.Tool {
+	options := append([]mcp.ToolOption{
+		mcp.WithDescription("List Langfuse datasets for evaluation and experimentation workflows."),
+	}, paginationOptions()...)
+	return mcp.NewTool("langfuse_list_datasets", options...)
+}
+
+// GetDatasetTool returns the dataset detail tool.
+func GetDatasetTool() mcp.Tool {
+	return mcp.NewTool("langfuse_get_dataset",
+		mcp.WithDescription("Get a specific Langfuse dataset by name."),
+		mcp.WithString("dataset_name", mcp.Required(),
+			mcp.Description("Langfuse dataset name.")),
+	)
+}
+
+// ListDatasetRunsTool returns the dataset run listing tool.
+func ListDatasetRunsTool() mcp.Tool {
+	options := append([]mcp.ToolOption{
+		mcp.WithDescription("List runs for a specific Langfuse dataset."),
+		mcp.WithString("dataset_name", mcp.Required(),
+			mcp.Description("Langfuse dataset name.")),
+	}, paginationOptions()...)
+	return mcp.NewTool("langfuse_list_dataset_runs", options...)
+}
+
+// GetDatasetRunTool returns the dataset run detail tool.
+func GetDatasetRunTool() mcp.Tool {
+	return mcp.NewTool("langfuse_get_dataset_run",
+		mcp.WithDescription("Get a specific Langfuse dataset run by dataset name and run name."),
+		mcp.WithString("dataset_name", mcp.Required(),
+			mcp.Description("Langfuse dataset name.")),
+		mcp.WithString("run_name", mcp.Required(),
+			mcp.Description("Dataset run name.")),
+	)
+}
+
+// ListLLMConnectionsTool returns the LLM connection listing tool.
+func ListLLMConnectionsTool() mcp.Tool {
+	options := append([]mcp.ToolOption{
+		mcp.WithDescription("List Langfuse LLM connections configured for model gateways or providers."),
+	}, paginationOptions()...)
+	return mcp.NewTool("langfuse_list_llm_connections", options...)
+}
+
+// ListModelsTool returns the model listing tool.
+func ListModelsTool() mcp.Tool {
+	options := append([]mcp.ToolOption{
+		mcp.WithDescription("List Langfuse model definitions."),
+	}, paginationOptions()...)
+	return mcp.NewTool("langfuse_list_models", options...)
+}
+
+// GetModelTool returns the model detail tool.
+func GetModelTool() mcp.Tool {
+	return mcp.NewTool("langfuse_get_model",
+		mcp.WithDescription("Get a specific Langfuse model definition by ID."),
+		mcp.WithString("model_id", mcp.Required(),
+			mcp.Description("Langfuse model ID.")),
+	)
+}
+
+// ListScoreConfigsTool returns the score config listing tool.
+func ListScoreConfigsTool() mcp.Tool {
+	options := append([]mcp.ToolOption{
+		mcp.WithDescription("List Langfuse score configurations."),
+	}, paginationOptions()...)
+	return mcp.NewTool("langfuse_list_score_configs", options...)
+}
+
+// GetScoreConfigTool returns the score config detail tool.
+func GetScoreConfigTool() mcp.Tool {
+	return mcp.NewTool("langfuse_get_score_config",
+		mcp.WithDescription("Get a specific Langfuse score configuration by ID."),
+		mcp.WithString("config_id", mcp.Required(),
+			mcp.Description("Langfuse score configuration ID.")),
+	)
+}
+
 // GetPromptTool returns the prompt detail tool.
 func GetPromptTool() mcp.Tool {
 	return mcp.NewTool("langfuse_get_prompt",

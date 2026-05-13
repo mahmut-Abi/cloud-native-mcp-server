@@ -111,6 +111,14 @@ type Dependency struct {
 	CallCount int64  `json:"callCount"`
 }
 
+type rawDataResponse struct {
+	Data json.RawMessage `json:"data"`
+}
+
+type operationEntry struct {
+	Name string `json:"name"`
+}
+
 // NewClient creates a new Jaeger client with the specified options.
 func NewClient(opts *ClientOptions) (*Client, error) {
 	if opts == nil {
@@ -379,14 +387,35 @@ func (c *Client) GetOperations(ctx context.Context, service string) ([]string, e
 		return nil, err
 	}
 
-	var result struct {
-		Data []string `json:"data"`
-	}
+	var result rawDataResponse
 	if err := json.Unmarshal(body, &result); err != nil {
+		return nil, fmt.Errorf("failed to unmarshal operations wrapper: %w", err)
+	}
+
+	var names []string
+	if err := json.Unmarshal(result.Data, &names); err == nil {
+		return names, nil
+	}
+
+	var entries []operationEntry
+	if err := json.Unmarshal(result.Data, &entries); err != nil {
 		return nil, fmt.Errorf("failed to unmarshal operations: %w", err)
 	}
 
-	return result.Data, nil
+	names = make([]string, 0, len(entries))
+	seen := make(map[string]struct{}, len(entries))
+	for _, entry := range entries {
+		if entry.Name == "" {
+			continue
+		}
+		if _, exists := seen[entry.Name]; exists {
+			continue
+		}
+		seen[entry.Name] = struct{}{}
+		names = append(names, entry.Name)
+	}
+
+	return names, nil
 }
 
 // GetDependencies retrieves service dependencies.
@@ -412,7 +441,15 @@ func (c *Client) GetDependencies(ctx context.Context, startTime, endTime string)
 	}
 
 	var result []Dependency
-	if err := json.Unmarshal(body, &result); err != nil {
+	if err := json.Unmarshal(body, &result); err == nil {
+		return result, nil
+	}
+
+	var wrapped rawDataResponse
+	if err := json.Unmarshal(body, &wrapped); err != nil {
+		return nil, fmt.Errorf("failed to unmarshal dependencies wrapper: %w", err)
+	}
+	if err := json.Unmarshal(wrapped.Data, &result); err != nil {
 		return nil, fmt.Errorf("failed to unmarshal dependencies: %w", err)
 	}
 

@@ -23,7 +23,7 @@ For the exact runtime inventory, prefer `--list tools`.
 - [Elasticsearch (12 tools)](#elasticsearch-12-tools)
 - [Alertmanager (16 tools)](#alertmanager-16-tools)
 - [Jaeger (8 tools)](#jaeger-8-tools)
-- [Langfuse (13 tools)](#langfuse-13-tools)
+- [Langfuse (25 tools)](#langfuse-25-tools)
 - [Sentry (9 tools)](#sentry-9-tools)
 - [OpenTelemetry (9 tools)](#opentelemetry-9-tools)
 - [Utilities (6 tools)](#utilities-6-tools)
@@ -592,7 +592,7 @@ Practical guidance:
 
 ---
 
-## Langfuse (13 tools)
+## Langfuse (25 tools)
 
 ### Health
 
@@ -607,6 +607,31 @@ Practical guidance:
 | `langfuse_list_traces_summary` | Recommended first step for trace discovery. Returns a compact trace view for faster browsing. | ⚠️ PRIORITY |
 | `langfuse_list_traces` | List traces with optional filters for user, session, tags, environment, and time range. | - |
 | `langfuse_get_trace` | Get a specific trace by ID with optional field-group filtering. | - |
+
+### Annotation Queues
+
+| Tool | Description | Priority |
+|------|-------------|----------|
+| `langfuse_list_annotation_queues` | List annotation queues for manual review workflows. | - |
+| `langfuse_get_annotation_queue` | Get a specific annotation queue by ID. | - |
+| `langfuse_list_annotation_queue_items` | List items inside a specific annotation queue with optional status filtering. | - |
+
+### Datasets
+
+| Tool | Description | Priority |
+|------|-------------|----------|
+| `langfuse_list_datasets` | List datasets for evaluation and experimentation workflows. | - |
+| `langfuse_get_dataset` | Get a specific dataset by name. | - |
+| `langfuse_list_dataset_runs` | List runs for a specific dataset. | - |
+| `langfuse_get_dataset_run` | Get a specific dataset run by dataset name and run name. | - |
+
+### Models and Connections
+
+| Tool | Description | Priority |
+|------|-------------|----------|
+| `langfuse_list_llm_connections` | List configured LLM connections for model gateways or providers. | - |
+| `langfuse_list_models` | List model definitions. | - |
+| `langfuse_get_model` | Get a specific model definition by ID. | - |
 
 ### Sessions
 
@@ -628,6 +653,13 @@ Practical guidance:
 |------|-------------|----------|
 | `langfuse_list_prompts` | List prompt versions with name, label, tag, and update-time filters. | - |
 | `langfuse_get_prompt` | Get a prompt by name and optional label or version. | - |
+
+### Score Configurations
+
+| Tool | Description | Priority |
+|------|-------------|----------|
+| `langfuse_list_score_configs` | List score configurations. | - |
+| `langfuse_get_score_config` | Get a specific score configuration by ID. | - |
 
 ### Scores
 
@@ -1025,17 +1057,29 @@ Do not edit this block by hand.
 - `jaeger_get_traces_summary`
 - `jaeger_search_traces`
 
-### Langfuse (13 tools)
+### Langfuse (25 tools)
 
 - `langfuse_check_health`
+- `langfuse_get_annotation_queue`
+- `langfuse_get_dataset`
+- `langfuse_get_dataset_run`
 - `langfuse_get_metrics`
+- `langfuse_get_model`
 - `langfuse_get_observation`
 - `langfuse_get_prompt`
 - `langfuse_get_score`
+- `langfuse_get_score_config`
 - `langfuse_get_session`
 - `langfuse_get_trace`
+- `langfuse_list_annotation_queue_items`
+- `langfuse_list_annotation_queues`
+- `langfuse_list_dataset_runs`
+- `langfuse_list_datasets`
+- `langfuse_list_llm_connections`
+- `langfuse_list_models`
 - `langfuse_list_observations`
 - `langfuse_list_prompts`
+- `langfuse_list_score_configs`
 - `langfuse_list_scores`
 - `langfuse_list_sessions`
 - `langfuse_list_traces`

@@ -6,7 +6,7 @@ description: 面向 Kubernetes 与云原生运维场景的高性能 Model Contex
 
 <div class="hero">
   <h1>Cloud Native MCP Server</h1>
-  <p>面向 Kubernetes 与云原生基础设施管理的生产级 MCP 服务器，聚合 13 个服务与 296 个工具，支持 SSE / Streamable-HTTP 两种运行模式。</p>
+  <p>面向 Kubernetes 与云原生基础设施管理的生产级 MCP 服务器，聚合 13 个服务与 308 个工具，支持 SSE / Streamable-HTTP 两种运行模式。</p>
   <div class="hero-buttons">
     <a href="https://github.com/mahmut-Abi/cloud-native-mcp-server" class="cta-button"><span>GitHub 仓库</span></a>
     <a href="#quick-start" class="cta-button transparent"><span>快速开始</span></a>
@@ -63,7 +63,7 @@ description: 面向 Kubernetes 与云原生运维场景的高性能 Model Contex
     <div class="stat-label">集成服务</div>
   </div>
   <div class="stat-item">
-    <div class="stat-number">296</div>
+    <div class="stat-number">308</div>
     <div class="stat-label">MCP 工具</div>
   </div>
   <div class="stat-item">
@@ -118,7 +118,7 @@ description: 面向 Kubernetes 与云原生运维场景的高性能 Model Contex
     <p>分布式链路追踪与延迟路径分析。</p>
   </div>
   <div class="service-card">
-    <h3>Langfuse <span class="tool-count">13 工具</span></h3>
+    <h3>Langfuse <span class="tool-count">25 工具</span></h3>
     <p>面向 LLM 场景的 Trace、Session、Prompt、评分与指标分析。</p>
   </div>
   <div class="service-card">
