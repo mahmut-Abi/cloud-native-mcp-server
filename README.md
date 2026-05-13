@@ -6,14 +6,14 @@
 
 [🇨🇳 中文文档](README-zh.md) | [🇬🇧 English](README.md)
 
-A high-performance Model Context Protocol (MCP) server for Kubernetes and cloud-native infrastructure management with 13 integrated services and 308 tools.
+A high-performance Model Context Protocol (MCP) server for Kubernetes and cloud-native infrastructure management with 13 integrated services and 311 tools.
 
 ---
 
 ## Features
 
 - **13 Integrated Services**: Kubernetes, Grafana, Prometheus, Loki, Kibana, Elasticsearch, Helm, Alertmanager, Jaeger, Langfuse, Sentry, OpenTelemetry, Utilities
-- **308 MCP Tools**: Comprehensive toolset for infrastructure operations
+- **311 MCP Tools**: Comprehensive toolset for infrastructure operations
 - **Multi-Protocol Support**: SSE and streamable-http modes
 - **Smart Caching**: LRU cache with TTL support for optimal performance
 - **Performance Optimized**: JSON encoding pool, response size control, intelligent limits
@@ -49,10 +49,10 @@ A high-performance Model Context Protocol (MCP) server for Kubernetes and cloud-
 | **jaeger** | 8 | Distributed tracing and performance analysis |
 | **langfuse** | 25 | LLM observability, prompts, traces, scores, datasets, models, and metrics |
 | **sentry** | 9 | Error monitoring, issue triage, and issue event inspection |
-| **opentelemetry** | 9 | Metrics, traces, and logs collection and analysis |
+| **opentelemetry** | 12 | Collector health, config, pipeline analysis, and telemetry diagnostics |
 | **utilities** | 6 | General-purpose utility tools |
 
-**Total: 308 tools**
+**Total: 311 tools**
 
 ---
 

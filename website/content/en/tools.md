@@ -350,7 +350,7 @@ Cloud Native MCP Server provides 220+ powerful tools covering Kubernetes managem
 - `get_config` - Get configuration
 - `get_status` - Get status
 
-## OpenTelemetry Tools (9)
+## OpenTelemetry Tools (12)
 
 ### Metrics Management
 - `get_metrics` - Get metrics
@@ -368,6 +368,9 @@ Cloud Native MCP Server provides 220+ powerful tools covering Kubernetes managem
 ### Configuration Management
 - `get_config` - Get configuration
 - `get_status` - Get status
+- `get_config_summary` - Get configuration summary
+- `get_collector_summary` - Get collector overview
+- `analyze_pipeline_status` - Analyze pipeline status
 
 ## Utilities Tools (6)
 

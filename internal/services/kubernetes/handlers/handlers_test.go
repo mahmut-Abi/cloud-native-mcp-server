@@ -197,6 +197,55 @@ func TestGetOptionalStringArrayParamSupportsStructuredAndLegacyInputs(t *testing
 	}
 }
 
+func TestRequireCommandParamSupportsJSONAndLegacyInputs(t *testing.T) {
+	tests := []struct {
+		name string
+		arg  interface{}
+		want []string
+	}{
+		{
+			name: "json string array input",
+			arg:  `["/bin/sh","-c","env"]`,
+			want: []string{"/bin/sh", "-c", "env"},
+		},
+		{
+			name: "structured array input",
+			arg:  []interface{}{"/bin/sh", "-c", "env"},
+			want: []string{"/bin/sh", "-c", "env"},
+		},
+		{
+			name: "legacy string input",
+			arg:  "ls -la /app",
+			want: []string{"ls", "-la", "/app"},
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			req := mcp.CallToolRequest{
+				Params: mcp.CallToolParams{
+					Arguments: map[string]interface{}{
+						"command": tt.arg,
+					},
+				},
+			}
+
+			got, err := requireCommandParam(req, "command")
+			if err != nil {
+				t.Fatalf("requireCommandParam returned error: %v", err)
+			}
+			if len(got) != len(tt.want) {
+				t.Fatalf("requireCommandParam length = %d, want %d", len(got), len(tt.want))
+			}
+			for i := range got {
+				if got[i] != tt.want[i] {
+					t.Fatalf("requireCommandParam[%d] = %q, want %q", i, got[i], tt.want[i])
+				}
+			}
+		})
+	}
+}
+
 func TestNormalizeJSONPathExpression(t *testing.T) {
 	tests := []struct {
 		input string

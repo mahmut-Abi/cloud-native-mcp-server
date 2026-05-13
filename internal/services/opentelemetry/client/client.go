@@ -12,10 +12,12 @@ import (
 	"io"
 	"net/http"
 	"os"
+	"strings"
 	"time"
 
 	"github.com/mahmut-Abi/cloud-native-mcp-server/internal/errors"
 	optimize "github.com/mahmut-Abi/cloud-native-mcp-server/internal/util/performance"
+	"gopkg.in/yaml.v3"
 )
 
 // ClientOptions defines configuration options for the OpenTelemetry HTTP client.
@@ -171,6 +173,37 @@ func (c *Client) handleResponse(resp *http.Response) ([]byte, error) {
 	return body, nil
 }
 
+func decodeJSONMap(body []byte) (map[string]interface{}, error) {
+	var result map[string]interface{}
+	if err := json.Unmarshal(body, &result); err != nil {
+		return nil, err
+	}
+	return result, nil
+}
+
+func decodeYAMLMap(body []byte) (map[string]interface{}, error) {
+	var result map[string]interface{}
+	if err := yaml.Unmarshal(body, &result); err != nil {
+		return nil, err
+	}
+	return result, nil
+}
+
+func fallbackTextMap(body []byte, status string, includeRaw bool) map[string]interface{} {
+	text := strings.TrimSpace(string(body))
+	result := map[string]interface{}{
+		"status": status,
+		"format": "text",
+	}
+	if text != "" {
+		result["message"] = text
+	}
+	if includeRaw {
+		result["raw"] = text
+	}
+	return result
+}
+
 // GetHealth retrieves the health status of the OpenTelemetry Collector.
 func (c *Client) GetHealth(ctx context.Context) (map[string]interface{}, error) {
 	body, err := c.makeRequest(ctx, http.MethodGet, "/healthz", nil)
@@ -178,12 +211,12 @@ func (c *Client) GetHealth(ctx context.Context) (map[string]interface{}, error) 
 		return nil, err
 	}
 
-	var health map[string]interface{}
-	if err := json.Unmarshal(body, &health); err != nil {
-		return nil, fmt.Errorf("failed to unmarshal health response: %w", err)
+	health, err := decodeJSONMap(body)
+	if err == nil {
+		return health, nil
 	}
 
-	return health, nil
+	return fallbackTextMap(body, "ok", false), nil
 }
 
 // GetStatus retrieves the status information of the OpenTelemetry Collector.
@@ -193,12 +226,12 @@ func (c *Client) GetStatus(ctx context.Context) (map[string]interface{}, error) 
 		return nil, err
 	}
 
-	var status map[string]interface{}
-	if err := json.Unmarshal(body, &status); err != nil {
-		return nil, fmt.Errorf("failed to unmarshal status response: %w", err)
+	status, err := decodeJSONMap(body)
+	if err == nil {
+		return status, nil
 	}
 
-	return status, nil
+	return fallbackTextMap(body, "unknown", true), nil
 }
 
 // GetConfig retrieves the configuration of the OpenTelemetry Collector.
@@ -208,12 +241,16 @@ func (c *Client) GetConfig(ctx context.Context) (map[string]interface{}, error) 
 		return nil, err
 	}
 
-	var config map[string]interface{}
-	if err := json.Unmarshal(body, &config); err != nil {
-		return nil, fmt.Errorf("failed to unmarshal config response: %w", err)
+	config, err := decodeJSONMap(body)
+	if err == nil {
+		return config, nil
+	}
+	config, err = decodeYAMLMap(body)
+	if err == nil {
+		return config, nil
 	}
 
-	return config, nil
+	return nil, fmt.Errorf("failed to unmarshal config response as JSON or YAML")
 }
 
 // GetMetrics retrieves metrics from the OpenTelemetry Collector.
@@ -250,12 +287,15 @@ func (c *Client) GetMetrics(ctx context.Context, metricName *string, startTime *
 		return nil, err
 	}
 
-	var metrics map[string]interface{}
-	if err := json.Unmarshal(body, &metrics); err != nil {
-		return nil, fmt.Errorf("failed to unmarshal metrics response: %w", err)
+	metrics, err := decodeJSONMap(body)
+	if err == nil {
+		return metrics, nil
 	}
 
-	return metrics, nil
+	return map[string]interface{}{
+		"format": "prometheus_text",
+		"raw":    string(body),
+	}, nil
 }
 
 // QueryMetrics executes a PromQL-style query against the OpenTelemetry Collector.

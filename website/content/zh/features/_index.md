@@ -49,7 +49,7 @@ description: "Cloud Native MCP Server 的核心能力总览：性能、安全、
 - **Prometheus**：20 个工具，指标采集与查询
 - **Grafana**：36 个工具，仪表盘与可视化
 - **Jaeger**：8 个工具，分布式追踪
-- **OpenTelemetry**：9 个工具，统一观测链路
+- **OpenTelemetry**：12 个工具，统一观测链路
 
 ### 日志与检索
 - **Elasticsearch**：14 个工具，日志索引与搜索

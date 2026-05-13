@@ -25,7 +25,7 @@ For the exact runtime inventory, prefer `--list tools`.
 - [Jaeger (8 tools)](#jaeger-8-tools)
 - [Langfuse (25 tools)](#langfuse-25-tools)
 - [Sentry (9 tools)](#sentry-9-tools)
-- [OpenTelemetry (9 tools)](#opentelemetry-9-tools)
+- [OpenTelemetry (12 tools)](#opentelemetry-12-tools)
 - [Utilities (6 tools)](#utilities-6-tools)
 
 ---
@@ -554,7 +554,7 @@ Practical guidance:
 
 ---
 
-## OpenTelemetry (9 tools)
+## OpenTelemetry (12 tools)
 
 ### Metrics
 
@@ -583,12 +583,15 @@ Practical guidance:
 |------|-------------|----------|
 | `opentelemetry_get_health` | Check the health status of OpenTelemetry Collector. Returns overall health and component status. | ⚠️ PRIORITY |
 | `opentelemetry_get_status` | Retrieve detailed status information about OpenTelemetry Collector, including components, pipelines, and configuration. | - |
+| `opentelemetry_get_collector_summary` | Recommended first step for collector troubleshooting. Combines health, status, config coverage, and pipeline counts into one compact overview. | ⚠️ PRIORITY |
 
 ### Configuration
 
 | Tool | Description | Priority |
 |------|-------------|----------|
 | `opentelemetry_get_config` | Retrieve the current configuration of OpenTelemetry Collector. Shows pipelines, receivers, processors, exporters, and extensions. | - |
+| `opentelemetry_get_config_summary` | Summarize collector configuration into components, signal coverage, telemetry settings, and pipeline topology. | - |
+| `opentelemetry_analyze_pipeline_status` | Analyze collector pipelines for missing refs, missing processors/exporters, absent batching or memory limiting, and sampling gaps. | - |
 
 ---
 
@@ -1097,9 +1100,12 @@ Do not edit this block by hand.
 - `sentry_list_projects`
 - `sentry_test_connection`
 
-### OpenTelemetry (9 tools)
+### OpenTelemetry (12 tools)
 
+- `opentelemetry_analyze_pipeline_status`
+- `opentelemetry_get_collector_summary`
 - `opentelemetry_get_config`
+- `opentelemetry_get_config_summary`
 - `opentelemetry_get_health`
 - `opentelemetry_get_logs`
 - `opentelemetry_get_metrics`

@@ -114,6 +114,9 @@ func (s *Service) GetTools() []mcp.Tool {
 
 			// Configuration
 			tools.GetConfigTool(),
+			tools.GetConfigSummaryTool(),
+			tools.GetCollectorSummaryTool(),
+			tools.AnalyzePipelineStatusTool(),
 		}
 	})
 }
@@ -143,7 +146,10 @@ func (s *Service) GetHandlers() map[string]server.ToolHandlerFunc {
 		"opentelemetry_get_status": handlers.HandleGetStatus(s.client),
 
 		// Configuration
-		"opentelemetry_get_config": handlers.HandleGetConfig(s.client),
+		"opentelemetry_get_config":              handlers.HandleGetConfig(s.client),
+		"opentelemetry_get_config_summary":      handlers.HandleGetConfigSummary(s.client),
+		"opentelemetry_get_collector_summary":   handlers.HandleGetCollectorSummary(s.client),
+		"opentelemetry_analyze_pipeline_status": handlers.HandleAnalyzePipelineStatus(s.client),
 	}
 }
 

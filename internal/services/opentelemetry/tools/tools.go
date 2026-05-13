@@ -225,3 +225,48 @@ func GetConfigTool() mcp.Tool {
 		},
 	}
 }
+
+// GetConfigSummaryTool returns a compact collector configuration summary.
+func GetConfigSummaryTool() mcp.Tool {
+	return mcp.Tool{
+		Name:        "opentelemetry_get_config_summary",
+		Description: "Summarize OpenTelemetry Collector configuration into components, signal coverage, telemetry settings, and pipeline topology.",
+		InputSchema: mcp.ToolInputSchema{
+			Type:       "object",
+			Properties: map[string]interface{}{},
+		},
+	}
+}
+
+// GetCollectorSummaryTool returns a compact collector health, status, and config overview.
+func GetCollectorSummaryTool() mcp.Tool {
+	return mcp.Tool{
+		Name:        "opentelemetry_get_collector_summary",
+		Description: "Recommended first step for collector troubleshooting. Combines health, status, config coverage, and pipeline counts into one compact overview.",
+		InputSchema: mcp.ToolInputSchema{
+			Type:       "object",
+			Properties: map[string]interface{}{},
+		},
+	}
+}
+
+// AnalyzePipelineStatusTool returns a pipeline-focused diagnostic tool.
+func AnalyzePipelineStatusTool() mcp.Tool {
+	return mcp.Tool{
+		Name:        "opentelemetry_analyze_pipeline_status",
+		Description: "Analyze OpenTelemetry Collector pipelines for missing component references, missing processors/exporters, absent batching or memory limiting, and collector-side sampling gaps.",
+		InputSchema: mcp.ToolInputSchema{
+			Type: "object",
+			Properties: map[string]interface{}{
+				"signal": map[string]interface{}{
+					"type":        "string",
+					"description": "Optional: Restrict analysis to one signal type such as metrics, traces, or logs.",
+				},
+				"pipeline": map[string]interface{}{
+					"type":        "string",
+					"description": "Optional: Restrict analysis to one specific pipeline name.",
+				},
+			},
+		},
+	}
+}

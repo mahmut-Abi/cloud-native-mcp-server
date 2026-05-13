@@ -107,6 +107,31 @@ func TestGetHealth(t *testing.T) {
 	}
 }
 
+func TestGetHealthTextResponse(t *testing.T) {
+	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		w.Header().Set("Content-Type", "text/plain")
+		w.WriteHeader(http.StatusOK)
+		_, _ = w.Write([]byte("Server available"))
+	}))
+	defer server.Close()
+
+	client, _ := NewClient(&ClientOptions{
+		Address: server.URL,
+		Timeout: 30 * time.Second,
+	})
+
+	health, err := client.GetHealth(context.Background())
+	if err != nil {
+		t.Fatalf("GetHealth() unexpected error = %v", err)
+	}
+	if health["status"] != "ok" {
+		t.Fatalf("expected status ok, got %#v", health["status"])
+	}
+	if health["message"] != "Server available" {
+		t.Fatalf("expected message to preserve text response, got %#v", health["message"])
+	}
+}
+
 func TestGetHealthError(t *testing.T) {
 	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		w.WriteHeader(http.StatusServiceUnavailable)
@@ -181,6 +206,58 @@ func TestGetMetrics(t *testing.T) {
 
 	if metrics == nil {
 		t.Error("GetMetrics() should return non-nil metrics")
+	}
+}
+
+func TestGetMetricsPrometheusTextResponse(t *testing.T) {
+	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		w.Header().Set("Content-Type", "text/plain; version=0.0.4")
+		w.WriteHeader(http.StatusOK)
+		_, _ = w.Write([]byte("# HELP otelcol_exporter_sent_spans Number of spans\notelcol_exporter_sent_spans 42\n"))
+	}))
+	defer server.Close()
+
+	client, _ := NewClient(&ClientOptions{
+		Address: server.URL,
+		Timeout: 30 * time.Second,
+	})
+
+	metrics, err := client.GetMetrics(context.Background(), nil, nil, nil)
+	if err != nil {
+		t.Fatalf("GetMetrics() unexpected error = %v", err)
+	}
+	if metrics["format"] != "prometheus_text" {
+		t.Fatalf("expected prometheus_text format, got %#v", metrics["format"])
+	}
+	raw, ok := metrics["raw"].(string)
+	if !ok || raw == "" {
+		t.Fatalf("expected raw prometheus text payload, got %#v", metrics["raw"])
+	}
+}
+
+func TestGetConfigYAMLResponse(t *testing.T) {
+	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		w.Header().Set("Content-Type", "application/x-yaml")
+		w.WriteHeader(http.StatusOK)
+		_, _ = w.Write([]byte("receivers:\n  otlp:\n    protocols:\n      grpc: {}\nservice:\n  pipelines:\n    traces:\n      receivers: [otlp]\n      exporters: [debug]\n"))
+	}))
+	defer server.Close()
+
+	client, _ := NewClient(&ClientOptions{
+		Address: server.URL,
+		Timeout: 30 * time.Second,
+	})
+
+	config, err := client.GetConfig(context.Background())
+	if err != nil {
+		t.Fatalf("GetConfig() unexpected error = %v", err)
+	}
+	receivers, ok := config["receivers"].(map[string]interface{})
+	if !ok {
+		t.Fatalf("expected receivers map, got %#v", config["receivers"])
+	}
+	if _, exists := receivers["otlp"]; !exists {
+		t.Fatalf("expected YAML receiver otlp to be present, got %#v", receivers)
 	}
 }
 
