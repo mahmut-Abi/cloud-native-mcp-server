@@ -244,6 +244,8 @@ func (s *ServerConfig) InitSSEServers(mcpServer *server.MCPServer, addr string, 
 	elasticsearchPath := "/api/elasticsearch/sse"
 	alertmanagerPath := "/api/alertmanager/sse"
 	jaegerPath := "/api/jaeger/sse"
+	argocdPath := "/api/argocd/sse"
+	nacosPath := "/api/nacos/sse"
 	langfusePath := "/api/langfuse/sse"
 	sentryPath := "/api/sentry/sse"
 	aggregatePath := "/api/aggregate/sse"
@@ -278,6 +280,12 @@ func (s *ServerConfig) InitSSEServers(mcpServer *server.MCPServer, addr string, 
 		if appConfig.Server.SSEPaths.Jaeger != "" {
 			jaegerPath = appConfig.Server.SSEPaths.Jaeger
 		}
+		if appConfig.Server.SSEPaths.ArgoCD != "" {
+			argocdPath = appConfig.Server.SSEPaths.ArgoCD
+		}
+		if appConfig.Server.SSEPaths.Nacos != "" {
+			nacosPath = appConfig.Server.SSEPaths.Nacos
+		}
 		if appConfig.Server.SSEPaths.Langfuse != "" {
 			langfusePath = appConfig.Server.SSEPaths.Langfuse
 		}
@@ -301,9 +309,11 @@ func (s *ServerConfig) InitSSEServers(mcpServer *server.MCPServer, addr string, 
 	lokiServer := s.createServiceMCPServer("loki")
 	kibanaServer := s.createServiceMCPServer("kibana")
 	helmServer := s.createServiceMCPServer("helm")
+	argocdServer := s.createServiceMCPServer("argocd")
 	elasticsearchServer := s.createServiceMCPServer("elasticsearch")
 	alertmanagerServer := s.createServiceMCPServer("alertmanager")
 	jaegerServer := s.createServiceMCPServer("jaeger")
+	nacosServer := s.createServiceMCPServer("nacos")
 	langfuseServer := s.createServiceMCPServer("langfuse")
 	sentryServer := s.createServiceMCPServer("sentry")
 	opentelemetryServer := s.createServiceMCPServer("opentelemetry")
@@ -371,6 +381,16 @@ func (s *ServerConfig) InitSSEServers(mcpServer *server.MCPServer, addr string, 
 		server.WithUseFullURLForMessageEndpoint(true),
 	)
 
+	sseServers["argocd"] = server.NewSSEServer(argocdServer,
+		server.WithStaticBasePath(""),
+		server.WithSSEEndpoint(argocdPath),
+		server.WithMessageEndpoint(argocdPath+"/message"),
+		server.WithKeepAlive(true),
+		server.WithKeepAliveInterval(30*time.Second),
+		server.WithAppendQueryToMessageEndpoint(),
+		server.WithUseFullURLForMessageEndpoint(true),
+	)
+
 	// Create aggregated SSE server
 	sseServers["aggregate"] = server.NewSSEServer(aggregateServer,
 		server.WithStaticBasePath(""),
@@ -409,6 +429,16 @@ func (s *ServerConfig) InitSSEServers(mcpServer *server.MCPServer, addr string, 
 		server.WithStaticBasePath(""),
 		server.WithSSEEndpoint(jaegerPath),
 		server.WithMessageEndpoint(jaegerPath+"/message"),
+		server.WithKeepAlive(true),
+		server.WithKeepAliveInterval(30*time.Second),
+		server.WithAppendQueryToMessageEndpoint(),
+		server.WithUseFullURLForMessageEndpoint(true),
+	)
+
+	sseServers["nacos"] = server.NewSSEServer(nacosServer,
+		server.WithStaticBasePath(""),
+		server.WithSSEEndpoint(nacosPath),
+		server.WithMessageEndpoint(nacosPath+"/message"),
 		server.WithKeepAlive(true),
 		server.WithKeepAliveInterval(30*time.Second),
 		server.WithAppendQueryToMessageEndpoint(),
@@ -469,9 +499,11 @@ func (s *ServerConfig) InitSSEServers(mcpServer *server.MCPServer, addr string, 
 		"loki_path":          lokiPath,
 		"kibana_path":        kibanaPath,
 		"helm_path":          helmPath,
+		"argocd_path":        argocdPath,
 		"elasticsearch_path": elasticsearchPath,
 		"alertmanager_path":  alertmanagerPath,
 		"jaeger_path":        jaegerPath,
+		"nacos_path":         nacosPath,
 		"langfuse_path":      langfusePath,
 		"sentry_path":        sentryPath,
 		"aggregate_path":     aggregatePath,
@@ -496,6 +528,8 @@ func (s *ServerConfig) InitStreamableHTTPServers(mcpServer *server.MCPServer, ad
 	elasticsearchPath := "/api/elasticsearch/streamable-http"
 	alertmanagerPath := "/api/alertmanager/streamable-http"
 	jaegerPath := "/api/jaeger/streamable-http"
+	argocdPath := "/api/argocd/streamable-http"
+	nacosPath := "/api/nacos/streamable-http"
 	langfusePath := "/api/langfuse/streamable-http"
 	sentryPath := "/api/sentry/streamable-http"
 	aggregatePath := "/api/aggregate/streamable-http"
@@ -530,6 +564,12 @@ func (s *ServerConfig) InitStreamableHTTPServers(mcpServer *server.MCPServer, ad
 		if appConfig.Server.StreamableHTTPPaths.Jaeger != "" {
 			jaegerPath = appConfig.Server.StreamableHTTPPaths.Jaeger
 		}
+		if appConfig.Server.StreamableHTTPPaths.ArgoCD != "" {
+			argocdPath = appConfig.Server.StreamableHTTPPaths.ArgoCD
+		}
+		if appConfig.Server.StreamableHTTPPaths.Nacos != "" {
+			nacosPath = appConfig.Server.StreamableHTTPPaths.Nacos
+		}
 		if appConfig.Server.StreamableHTTPPaths.Langfuse != "" {
 			langfusePath = appConfig.Server.StreamableHTTPPaths.Langfuse
 		}
@@ -551,9 +591,11 @@ func (s *ServerConfig) InitStreamableHTTPServers(mcpServer *server.MCPServer, ad
 	lokiServer := s.createServiceMCPServer("loki")
 	kibanaServer := s.createServiceMCPServer("kibana")
 	helmServer := s.createServiceMCPServer("helm")
+	argocdServer := s.createServiceMCPServer("argocd")
 	elasticsearchServer := s.createServiceMCPServer("elasticsearch")
 	alertmanagerServer := s.createServiceMCPServer("alertmanager")
 	jaegerServer := s.createServiceMCPServer("jaeger")
+	nacosServer := s.createServiceMCPServer("nacos")
 	langfuseServer := s.createServiceMCPServer("langfuse")
 	sentryServer := s.createServiceMCPServer("sentry")
 	opentelemetryServer := s.createServiceMCPServer("opentelemetry")
@@ -601,6 +643,12 @@ func (s *ServerConfig) InitStreamableHTTPServers(mcpServer *server.MCPServer, ad
 		server.WithStateLess(true),
 	)
 
+	streamableHTTPServers["argocd"] = server.NewStreamableHTTPServer(argocdServer,
+		server.WithEndpointPath(argocdPath),
+		server.WithHeartbeatInterval(60*time.Second),
+		server.WithStateLess(true),
+	)
+
 	streamableHTTPServers["aggregate"] = server.NewStreamableHTTPServer(aggregateServer,
 		server.WithEndpointPath(aggregatePath),
 		server.WithHeartbeatInterval(60*time.Second),
@@ -621,6 +669,12 @@ func (s *ServerConfig) InitStreamableHTTPServers(mcpServer *server.MCPServer, ad
 
 	streamableHTTPServers["jaeger"] = server.NewStreamableHTTPServer(jaegerServer,
 		server.WithEndpointPath(jaegerPath),
+		server.WithHeartbeatInterval(60*time.Second),
+		server.WithStateLess(true),
+	)
+
+	streamableHTTPServers["nacos"] = server.NewStreamableHTTPServer(nacosServer,
+		server.WithEndpointPath(nacosPath),
 		server.WithHeartbeatInterval(60*time.Second),
 		server.WithStateLess(true),
 	)
@@ -661,9 +715,11 @@ func (s *ServerConfig) InitStreamableHTTPServers(mcpServer *server.MCPServer, ad
 		"loki_path":          lokiPath,
 		"kibana_path":        kibanaPath,
 		"helm_path":          helmPath,
+		"argocd_path":        argocdPath,
 		"elasticsearch_path": elasticsearchPath,
 		"alertmanager_path":  alertmanagerPath,
 		"jaeger_path":        jaegerPath,
+		"nacos_path":         nacosPath,
 		"langfuse_path":      langfusePath,
 		"sentry_path":        sentryPath,
 		"opentelemetry_path": opentelemetryPath,
@@ -716,6 +772,10 @@ func (s *ServerConfig) createServiceMCPServer(serviceName string) *server.MCPSer
 				// Add additional tools for Helm service
 				s.registerTools(serviceServer, helmService.GetAdditionalTools(), helmService.GetAdditionalHandlers())
 			}
+		case "argocd":
+			if argocdService := s.serviceManager.GetArgoCDService(); argocdService != nil && argocdService.IsEnabled() {
+				s.registerTools(serviceServer, argocdService.GetTools(), argocdService.GetHandlers())
+			}
 		case "elasticsearch":
 			if elasticsearchService := s.serviceManager.GetElasticsearchService(); elasticsearchService != nil && elasticsearchService.IsEnabled() {
 				s.registerTools(serviceServer, elasticsearchService.GetTools(), elasticsearchService.GetHandlers())
@@ -727,6 +787,10 @@ func (s *ServerConfig) createServiceMCPServer(serviceName string) *server.MCPSer
 		case "jaeger":
 			if jaegerService := s.serviceManager.GetJaegerService(); jaegerService != nil && jaegerService.IsEnabled() {
 				s.registerTools(serviceServer, jaegerService.GetTools(), jaegerService.GetHandlers())
+			}
+		case "nacos":
+			if nacosService := s.serviceManager.GetNacosService(); nacosService != nil && nacosService.IsEnabled() {
+				s.registerTools(serviceServer, nacosService.GetTools(), nacosService.GetHandlers())
 			}
 		case "langfuse":
 			if langfuseService := s.serviceManager.GetLangfuseService(); langfuseService != nil && langfuseService.IsEnabled() {
@@ -797,6 +861,11 @@ func (s *ServerConfig) createAggregateMCPServer() *server.MCPServer {
 			s.registerTools(aggregateServer, helmService.GetAdditionalTools(), helmService.GetAdditionalHandlers())
 		}
 
+		// Add Argo CD service capabilities
+		if argocdService := s.serviceManager.GetArgoCDService(); argocdService != nil && argocdService.IsEnabled() {
+			s.registerTools(aggregateServer, argocdService.GetTools(), argocdService.GetHandlers())
+		}
+
 		// Add Utilities service capabilities
 		if utilitiesService := s.serviceManager.GetUtilitiesService(); utilitiesService != nil && utilitiesService.IsEnabled() {
 			s.registerTools(aggregateServer, utilitiesService.GetTools(), utilitiesService.GetHandlers())
@@ -815,6 +884,11 @@ func (s *ServerConfig) createAggregateMCPServer() *server.MCPServer {
 		// Add Jaeger service capabilities
 		if jaegerService := s.serviceManager.GetJaegerService(); jaegerService != nil && jaegerService.IsEnabled() {
 			s.registerTools(aggregateServer, jaegerService.GetTools(), jaegerService.GetHandlers())
+		}
+
+		// Add Nacos service capabilities
+		if nacosService := s.serviceManager.GetNacosService(); nacosService != nil && nacosService.IsEnabled() {
+			s.registerTools(aggregateServer, nacosService.GetTools(), nacosService.GetHandlers())
 		}
 
 		// Add Langfuse service capabilities
@@ -1232,7 +1306,7 @@ func (s *ServerConfig) ApplyServiceFilters(disabledServices, enabledServices, di
 	disabledToolList := parseList(disabledTools)
 
 	// If specific services are enabled, disable all others
-	allServices := []string{"kubernetes", "grafana", "prometheus", "loki", "kibana", "helm", "elasticsearch", "alertmanager", "jaeger", "langfuse", "opentelemetry", "sentry", "utilities"}
+	allServices := []string{"kubernetes", "grafana", "prometheus", "loki", "kibana", "helm", "argocd", "elasticsearch", "alertmanager", "jaeger", "nacos", "langfuse", "opentelemetry", "sentry", "utilities"}
 	if len(enabledSvcs) > 0 {
 		for _, svc := range allServices {
 			if !enabledSvcs[svc] {

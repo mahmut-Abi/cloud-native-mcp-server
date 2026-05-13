@@ -4,7 +4,7 @@ title: "工具参考"
 
 # 工具参考
 
-Cloud Native MCP Server 当前暴露 **311 个工具**。这页只保留适合 LLM 的精简入口。
+Cloud Native MCP Server 当前暴露 **327 个工具**。这页只保留适合 LLM 的精简入口。
 如果你需要精确的运行时清单，优先查看仓库里的 [docs/TOOLS.md](https://github.com/mahmut-Abi/cloud-native-mcp-server/blob/main/docs/TOOLS.md) 或直接运行 `cloud-native-mcp-server --list tools`。
 
 ## 推荐起点
@@ -15,6 +15,8 @@ Cloud Native MCP Server 当前暴露 **311 个工具**。这页只保留适合 L
 - `kubernetes_get_recent_events`
 - `helm_list_releases_paginated`
 - `helm_get_release_summary`
+- `argocd_list_applications_summary`
+- `nacos_list_services_summary`
 
 ### 指标、日志、链路
 

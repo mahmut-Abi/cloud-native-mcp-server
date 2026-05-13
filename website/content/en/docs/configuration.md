@@ -100,6 +100,12 @@ server:
     # Jaeger SSE endpoint
     jaeger: "/api/jaeger/sse"
 
+    # Argo CD SSE endpoint
+    argocd: "/api/argocd/sse"
+
+    # Nacos SSE endpoint
+    nacos: "/api/nacos/sse"
+
     # Langfuse SSE endpoint
     langfuse: "/api/langfuse/sse"
 
@@ -147,6 +153,12 @@ server:
 
     # Jaeger Streamable-HTTP endpoint
     jaeger: "/api/jaeger/streamable-http"
+
+    # Argo CD Streamable-HTTP endpoint
+    argocd: "/api/argocd/streamable-http"
+
+    # Nacos Streamable-HTTP endpoint
+    nacos: "/api/nacos/streamable-http"
 
     # Langfuse Streamable-HTTP endpoint
     langfuse: "/api/langfuse/streamable-http"
@@ -537,6 +549,32 @@ opentelemetry:
 
   # TLS CA certificate file path
   tlsCAFile: ""
+```
+
+### ArgoCD
+
+```yaml
+argocd:
+  enabled: false
+  url: "https://argocd.example.com"
+  username: ""
+  password: ""
+  authToken: ""
+  timeoutSec: 30
+```
+
+### Nacos
+
+```yaml
+nacos:
+  enabled: false
+  url: "http://localhost:8848/nacos"
+  username: ""
+  password: ""
+  accessToken: ""
+  namespaceId: ""
+  group: "DEFAULT_GROUP"
+  timeoutSec: 30
 ```
 
 ### Utilities

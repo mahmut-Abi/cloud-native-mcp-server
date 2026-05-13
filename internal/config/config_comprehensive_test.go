@@ -297,6 +297,72 @@ func TestOpenTelemetryServiceConfigFromEnv(t *testing.T) {
 	}
 }
 
+func TestArgoCDServiceConfigFromEnv(t *testing.T) {
+	t.Setenv("MCP_ARGOCD_ENABLED", "true")
+	t.Setenv("MCP_ARGOCD_URL", "https://argocd.example.com")
+	t.Setenv("MCP_ARGOCD_USERNAME", "admin")
+	t.Setenv("MCP_ARGOCD_PASSWORD", "secret")
+	t.Setenv("MCP_ARGOCD_TIMEOUT", "25")
+
+	cfg, err := Load("")
+	if err != nil {
+		t.Fatalf("Load() error = %v", err)
+	}
+
+	if !cfg.ArgoCD.Enabled {
+		t.Fatal("Expected ArgoCD service to be enabled")
+	}
+	if cfg.ArgoCD.URL != "https://argocd.example.com" {
+		t.Errorf("Expected ArgoCD URL override, got %q", cfg.ArgoCD.URL)
+	}
+	if cfg.ArgoCD.Username != "admin" {
+		t.Errorf("Expected ArgoCD username override, got %q", cfg.ArgoCD.Username)
+	}
+	if cfg.ArgoCD.Password != "secret" {
+		t.Errorf("Expected ArgoCD password override, got %q", cfg.ArgoCD.Password)
+	}
+	if cfg.ArgoCD.TimeoutSec != 25 {
+		t.Errorf("Expected ArgoCD timeout 25, got %d", cfg.ArgoCD.TimeoutSec)
+	}
+}
+
+func TestNacosServiceConfigFromEnv(t *testing.T) {
+	t.Setenv("MCP_NACOS_ENABLED", "true")
+	t.Setenv("MCP_NACOS_URL", "https://nacos.example.com")
+	t.Setenv("MCP_NACOS_USERNAME", "nacos")
+	t.Setenv("MCP_NACOS_PASSWORD", "secret")
+	t.Setenv("MCP_NACOS_NAMESPACE_ID", "public")
+	t.Setenv("MCP_NACOS_GROUP", "DEFAULT_GROUP")
+	t.Setenv("MCP_NACOS_TIMEOUT", "35")
+
+	cfg, err := Load("")
+	if err != nil {
+		t.Fatalf("Load() error = %v", err)
+	}
+
+	if !cfg.Nacos.Enabled {
+		t.Fatal("Expected Nacos service to be enabled")
+	}
+	if cfg.Nacos.URL != "https://nacos.example.com" {
+		t.Errorf("Expected Nacos URL override, got %q", cfg.Nacos.URL)
+	}
+	if cfg.Nacos.Username != "nacos" {
+		t.Errorf("Expected Nacos username override, got %q", cfg.Nacos.Username)
+	}
+	if cfg.Nacos.Password != "secret" {
+		t.Errorf("Expected Nacos password override, got %q", cfg.Nacos.Password)
+	}
+	if cfg.Nacos.NamespaceID != "public" {
+		t.Errorf("Expected Nacos namespace override, got %q", cfg.Nacos.NamespaceID)
+	}
+	if cfg.Nacos.Group != "DEFAULT_GROUP" {
+		t.Errorf("Expected Nacos group override, got %q", cfg.Nacos.Group)
+	}
+	if cfg.Nacos.TimeoutSec != 35 {
+		t.Errorf("Expected Nacos timeout 35, got %d", cfg.Nacos.TimeoutSec)
+	}
+}
+
 func TestLangfuseServiceConfigFromEnv(t *testing.T) {
 	t.Setenv("MCP_LANGFUSE_ENABLED", "true")
 	t.Setenv("MCP_LANGFUSE_URL", "https://langfuse.example.com")
@@ -362,12 +428,16 @@ func TestSentryServiceConfigFromEnv(t *testing.T) {
 func TestServerPathOverridesFromEnv(t *testing.T) {
 	t.Setenv("MCP_SSE_PATH_ELASTICSEARCH", "/custom/elasticsearch/sse")
 	t.Setenv("MCP_SSE_PATH_JAEGER", "/custom/jaeger/sse")
+	t.Setenv("MCP_SSE_PATH_ARGOCD", "/custom/argocd/sse")
+	t.Setenv("MCP_SSE_PATH_NACOS", "/custom/nacos/sse")
 	t.Setenv("MCP_SSE_PATH_LANGFUSE", "/custom/langfuse/sse")
 	t.Setenv("MCP_SSE_PATH_LOKI", "/custom/loki/sse")
 	t.Setenv("MCP_SSE_PATH_OPENTELEMETRY", "/custom/opentelemetry/sse")
 	t.Setenv("MCP_SSE_PATH_SENTRY", "/custom/sentry/sse")
 	t.Setenv("MCP_STREAMABLE_HTTP_PATH_ELASTICSEARCH", "/custom/elasticsearch/stream")
 	t.Setenv("MCP_STREAMABLE_HTTP_PATH_JAEGER", "/custom/jaeger/stream")
+	t.Setenv("MCP_STREAMABLE_HTTP_PATH_ARGOCD", "/custom/argocd/stream")
+	t.Setenv("MCP_STREAMABLE_HTTP_PATH_NACOS", "/custom/nacos/stream")
 	t.Setenv("MCP_STREAMABLE_HTTP_PATH_LANGFUSE", "/custom/langfuse/stream")
 	t.Setenv("MCP_STREAMABLE_HTTP_PATH_LOKI", "/custom/loki/stream")
 	t.Setenv("MCP_STREAMABLE_HTTP_PATH_OPENTELEMETRY", "/custom/opentelemetry/stream")
@@ -383,6 +453,12 @@ func TestServerPathOverridesFromEnv(t *testing.T) {
 	}
 	if cfg.Server.SSEPaths.Jaeger != "/custom/jaeger/sse" {
 		t.Errorf("Expected jaeger SSE path override, got %q", cfg.Server.SSEPaths.Jaeger)
+	}
+	if cfg.Server.SSEPaths.ArgoCD != "/custom/argocd/sse" {
+		t.Errorf("Expected argocd SSE path override, got %q", cfg.Server.SSEPaths.ArgoCD)
+	}
+	if cfg.Server.SSEPaths.Nacos != "/custom/nacos/sse" {
+		t.Errorf("Expected nacos SSE path override, got %q", cfg.Server.SSEPaths.Nacos)
 	}
 	if cfg.Server.SSEPaths.Langfuse != "/custom/langfuse/sse" {
 		t.Errorf("Expected langfuse SSE path override, got %q", cfg.Server.SSEPaths.Langfuse)
@@ -401,6 +477,12 @@ func TestServerPathOverridesFromEnv(t *testing.T) {
 	}
 	if cfg.Server.StreamableHTTPPaths.Jaeger != "/custom/jaeger/stream" {
 		t.Errorf("Expected jaeger streamable-http path override, got %q", cfg.Server.StreamableHTTPPaths.Jaeger)
+	}
+	if cfg.Server.StreamableHTTPPaths.ArgoCD != "/custom/argocd/stream" {
+		t.Errorf("Expected argocd streamable-http path override, got %q", cfg.Server.StreamableHTTPPaths.ArgoCD)
+	}
+	if cfg.Server.StreamableHTTPPaths.Nacos != "/custom/nacos/stream" {
+		t.Errorf("Expected nacos streamable-http path override, got %q", cfg.Server.StreamableHTTPPaths.Nacos)
 	}
 	if cfg.Server.StreamableHTTPPaths.Langfuse != "/custom/langfuse/stream" {
 		t.Errorf("Expected langfuse streamable-http path override, got %q", cfg.Server.StreamableHTTPPaths.Langfuse)

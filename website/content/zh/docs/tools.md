@@ -6,7 +6,7 @@ description: "面向 LLM 的高价值 MCP 工具入口参考。"
 
 # 工具参考
 
-Cloud Native MCP Server 当前暴露 **311 个工具**，覆盖 **13 个服务**。
+Cloud Native MCP Server 当前暴露 **327 个工具**，覆盖 **15 个服务**。
 如果你需要精确的运行时清单，优先查看仓库里的 [docs/TOOLS.md](https://github.com/mahmut-Abi/cloud-native-mcp-server/blob/main/docs/TOOLS.md) 或直接运行 `cloud-native-mcp-server --list tools`。
 
 本页只保留适合 LLM / Agent 首次调用的稳定入口，避免过时别名误导调用。
@@ -36,6 +36,13 @@ Cloud Native MCP Server 当前暴露 **311 个工具**，覆盖 **13 个服务**
 - `helm_get_release_status`
 - `helm_get_release_manifest`
 - `helm_template_chart`
+
+### Argo CD
+
+- `argocd_test_connection`
+- `argocd_list_applications_summary`
+- `argocd_get_application`
+- `argocd_get_application_manifests`
 
 ### Grafana
 
@@ -85,6 +92,14 @@ Cloud Native MCP Server 当前暴露 **311 个工具**，覆盖 **13 个服务**
 - `jaeger_get_services_summary`
 - `jaeger_get_traces_summary`
 - `jaeger_get_trace`
+
+### Nacos
+
+- `nacos_test_connection`
+- `nacos_list_namespaces`
+- `nacos_list_configs_summary`
+- `nacos_list_services_summary`
+- `nacos_list_instances`
 
 ### Langfuse
 

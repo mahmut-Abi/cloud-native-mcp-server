@@ -23,6 +23,8 @@ type AppConfig struct {
 			Elasticsearch string `yaml:"elasticsearch"` // SSE path for Elasticsearch service
 			Alertmanager  string `yaml:"alertmanager"`  // SSE path for Alertmanager service
 			Jaeger        string `yaml:"jaeger"`        // SSE path for Jaeger service
+			ArgoCD        string `yaml:"argocd"`        // SSE path for Argo CD service
+			Nacos         string `yaml:"nacos"`         // SSE path for Nacos service
 			OpenTelemetry string `yaml:"opentelemetry"` // SSE path for OpenTelemetry service
 			Langfuse      string `yaml:"langfuse"`      // SSE path for Langfuse service
 			Sentry        string `yaml:"sentry"`        // SSE path for Sentry service
@@ -39,6 +41,8 @@ type AppConfig struct {
 			Elasticsearch string `yaml:"elasticsearch"` // Streamable-HTTP path for Elasticsearch service
 			Alertmanager  string `yaml:"alertmanager"`  // Streamable-HTTP path for Alertmanager service
 			Jaeger        string `yaml:"jaeger"`        // Streamable-HTTP path for Jaeger service
+			ArgoCD        string `yaml:"argocd"`        // Streamable-HTTP path for Argo CD service
+			Nacos         string `yaml:"nacos"`         // Streamable-HTTP path for Nacos service
 			OpenTelemetry string `yaml:"opentelemetry"` // Streamable-HTTP path for OpenTelemetry service
 			Langfuse      string `yaml:"langfuse"`      // Streamable-HTTP path for Langfuse service
 			Sentry        string `yaml:"sentry"`        // Streamable-HTTP path for Sentry service
@@ -145,6 +149,26 @@ type AppConfig struct {
 		Address    string `yaml:"address"`    // Jaeger server address
 		TimeoutSec int    `yaml:"timeoutSec"` // Request timeout in seconds
 	} `yaml:"jaeger"`
+
+	ArgoCD struct {
+		Enabled    bool   `yaml:"enabled"`    // Enable Argo CD service
+		URL        string `yaml:"url"`        // Argo CD server base URL
+		Username   string `yaml:"username"`   // Username for session login
+		Password   string `yaml:"password"`   // Password for session login
+		AuthToken  string `yaml:"authToken"`  // Pre-issued bearer token
+		TimeoutSec int    `yaml:"timeoutSec"` // Request timeout in seconds
+	} `yaml:"argocd"`
+
+	Nacos struct {
+		Enabled     bool   `yaml:"enabled"`     // Enable Nacos service
+		URL         string `yaml:"url"`         // Nacos server base URL
+		Username    string `yaml:"username"`    // Username for auth login
+		Password    string `yaml:"password"`    // Password for auth login
+		AccessToken string `yaml:"accessToken"` // Pre-issued access token
+		NamespaceID string `yaml:"namespaceId"` // Default namespace ID
+		Group       string `yaml:"group"`       // Default group for configs and naming
+		TimeoutSec  int    `yaml:"timeoutSec"`  // Request timeout in seconds
+	} `yaml:"nacos"`
 
 	OpenTelemetry struct {
 		Enabled       bool   `yaml:"enabled"`       // Enable OpenTelemetry service
@@ -436,6 +460,12 @@ func (c *AppConfig) Validate() error {
 	}
 	if c.Jaeger.Enabled && c.Jaeger.Address == "" {
 		return fmt.Errorf("jaeger address is required when service is enabled")
+	}
+	if c.ArgoCD.Enabled && c.ArgoCD.URL == "" {
+		return fmt.Errorf("argocd URL is required when service is enabled")
+	}
+	if c.Nacos.Enabled && c.Nacos.URL == "" {
+		return fmt.Errorf("nacos URL is required when service is enabled")
 	}
 	if c.Sentry.Enabled && c.Sentry.URL == "" {
 		return fmt.Errorf("sentry URL is required when service is enabled")

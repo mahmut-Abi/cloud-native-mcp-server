@@ -6,14 +6,14 @@
 
 [🇨🇳 中文文档](README-zh.md) | [🇬🇧 English](README.md)
 
-A high-performance Model Context Protocol (MCP) server for Kubernetes and cloud-native infrastructure management with 13 integrated services and 311 tools.
+A high-performance Model Context Protocol (MCP) server for Kubernetes and cloud-native infrastructure management with 15 integrated services and 327 tools.
 
 ---
 
 ## Features
 
-- **13 Integrated Services**: Kubernetes, Grafana, Prometheus, Loki, Kibana, Elasticsearch, Helm, Alertmanager, Jaeger, Langfuse, Sentry, OpenTelemetry, Utilities
-- **311 MCP Tools**: Comprehensive toolset for infrastructure operations
+- **15 Integrated Services**: Kubernetes, Grafana, Prometheus, Loki, Kibana, Elasticsearch, Helm, Argo CD, Alertmanager, Jaeger, Nacos, Langfuse, Sentry, OpenTelemetry, Utilities
+- **327 MCP Tools**: Comprehensive toolset for infrastructure operations
 - **Multi-Protocol Support**: SSE and streamable-http modes
 - **Smart Caching**: LRU cache with TTL support for optimal performance
 - **Performance Optimized**: JSON encoding pool, response size control, intelligent limits
@@ -44,15 +44,17 @@ A high-performance Model Context Protocol (MCP) server for Kubernetes and cloud-
 | **prometheus** | 20 | Metrics collection, querying, and monitoring |
 | **loki** | 7 | LogQL queries, label discovery, and stream inspection |
 | **kibana** | 73 | Log analysis, visualization, and data exploration |
+| **argocd** | 7 | Argo CD application, project, cluster, and manifest inspection |
 | **elasticsearch** | 12 | Log storage, search, and data indexing |
 | **alertmanager** | 16 | Alert rules management and notifications |
 | **jaeger** | 8 | Distributed tracing and performance analysis |
+| **nacos** | 9 | Nacos namespace, config, service discovery, and node inspection |
 | **langfuse** | 25 | LLM observability, prompts, traces, scores, datasets, models, and metrics |
 | **sentry** | 9 | Error monitoring, issue triage, and issue event inspection |
 | **opentelemetry** | 12 | Collector health, config, pipeline analysis, and telemetry diagnostics |
 | **utilities** | 6 | General-purpose utility tools |
 
-**Total: 311 tools**
+**Total: 327 tools**
 
 ---
 
@@ -107,6 +109,8 @@ make build
 | `/api/elasticsearch/sse` | Elasticsearch service |
 | `/api/alertmanager/sse` | Alertmanager service |
 | `/api/jaeger/sse` | Jaeger service |
+| `/api/argocd/sse` | Argo CD service |
+| `/api/nacos/sse` | Nacos service |
 | `/api/langfuse/sse` | Langfuse service |
 | `/api/sentry/sse` | Sentry service |
 | `/api/opentelemetry/sse` | OpenTelemetry service |

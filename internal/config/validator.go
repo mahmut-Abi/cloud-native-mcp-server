@@ -61,6 +61,14 @@ func (v *ConfigValidator) Validate(cfg *AppConfig) error {
 		return fmt.Errorf("jaeger config validation failed: %w", err)
 	}
 
+	if err := v.validateArgoCDConfig(cfg); err != nil {
+		return fmt.Errorf("argocd config validation failed: %w", err)
+	}
+
+	if err := v.validateNacosConfig(cfg); err != nil {
+		return fmt.Errorf("nacos config validation failed: %w", err)
+	}
+
 	if err := v.validateLangfuseConfig(cfg); err != nil {
 		return fmt.Errorf("langfuse config validation failed: %w", err)
 	}
@@ -344,6 +352,40 @@ func (v *ConfigValidator) validateJaegerConfig(cfg *AppConfig) error {
 		return fmt.Errorf("jaeger timeout must be positive")
 	}
 
+	return nil
+}
+
+func (v *ConfigValidator) validateArgoCDConfig(cfg *AppConfig) error {
+	if !cfg.ArgoCD.Enabled {
+		return nil
+	}
+
+	if cfg.ArgoCD.URL == "" {
+		return fmt.Errorf("argocd URL is required when enabled")
+	}
+	if !isValidURL(cfg.ArgoCD.URL) {
+		return fmt.Errorf("invalid argocd URL format: %s", cfg.ArgoCD.URL)
+	}
+	if cfg.ArgoCD.TimeoutSec <= 0 {
+		cfg.ArgoCD.TimeoutSec = 30
+	}
+	return nil
+}
+
+func (v *ConfigValidator) validateNacosConfig(cfg *AppConfig) error {
+	if !cfg.Nacos.Enabled {
+		return nil
+	}
+
+	if cfg.Nacos.URL == "" {
+		return fmt.Errorf("nacos URL is required when enabled")
+	}
+	if !isValidURL(cfg.Nacos.URL) {
+		return fmt.Errorf("invalid nacos URL format: %s", cfg.Nacos.URL)
+	}
+	if cfg.Nacos.TimeoutSec <= 0 {
+		cfg.Nacos.TimeoutSec = 30
+	}
 	return nil
 }
 

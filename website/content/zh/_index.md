@@ -6,7 +6,7 @@ description: 面向 Kubernetes 与云原生运维场景的高性能 Model Contex
 
 <div class="hero">
   <h1>Cloud Native MCP Server</h1>
-  <p>面向 Kubernetes 与云原生基础设施管理的生产级 MCP 服务器，聚合 13 个服务与 311 个工具，支持 SSE / Streamable-HTTP 两种运行模式。</p>
+  <p>面向 Kubernetes 与云原生基础设施管理的生产级 MCP 服务器，聚合 15 个服务与 327 个工具，支持 SSE / Streamable-HTTP 两种运行模式。</p>
   <div class="hero-buttons">
     <a href="https://github.com/mahmut-Abi/cloud-native-mcp-server" class="cta-button"><span>GitHub 仓库</span></a>
     <a href="#quick-start" class="cta-button transparent"><span>快速开始</span></a>
@@ -59,11 +59,11 @@ description: 面向 Kubernetes 与云原生运维场景的高性能 Model Contex
 
 <div class="stats-grid">
   <div class="stat-item">
-    <div class="stat-number">13</div>
+    <div class="stat-number">15</div>
     <div class="stat-label">集成服务</div>
   </div>
   <div class="stat-item">
-    <div class="stat-number">311</div>
+    <div class="stat-number">327</div>
     <div class="stat-label">MCP 工具</div>
   </div>
   <div class="stat-item">
@@ -88,6 +88,10 @@ description: 面向 Kubernetes 与云原生运维场景的高性能 Model Contex
   <div class="service-card">
     <h3>Helm <span class="tool-count">34 工具</span></h3>
     <p>应用包生命周期管理与发布流程支持。</p>
+  </div>
+  <div class="service-card">
+    <h3>Argo CD <span class="tool-count">7 工具</span></h3>
+    <p>面向 GitOps 的应用、项目、集群与 manifest 检查。</p>
   </div>
   <div class="service-card">
     <h3>Grafana <span class="tool-count">55 工具</span></h3>
@@ -116,6 +120,10 @@ description: 面向 Kubernetes 与云原生运维场景的高性能 Model Contex
   <div class="service-card">
     <h3>Jaeger <span class="tool-count">8 工具</span></h3>
     <p>分布式链路追踪与延迟路径分析。</p>
+  </div>
+  <div class="service-card">
+    <h3>Nacos <span class="tool-count">9 工具</span></h3>
+    <p>命名空间、配置、服务发现、实例与节点状态检查。</p>
   </div>
   <div class="service-card">
     <h3>Langfuse <span class="tool-count">25 工具</span></h3>

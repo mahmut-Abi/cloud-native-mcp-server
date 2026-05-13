@@ -34,6 +34,8 @@ func (p *EnvParser) Parse(cfg *AppConfig) *AppConfig {
 	p.parseElasticsearchConfig(cfg, over)
 	p.parseAlertmanagerConfig(cfg, over)
 	p.parseJaegerConfig(cfg, over)
+	p.parseArgoCDConfig(cfg, over)
+	p.parseNacosConfig(cfg, over)
 	p.parseLangfuseConfig(cfg, over)
 	p.parseSentryConfig(cfg, over)
 	p.parseOpenTelemetryConfig(cfg, over)
@@ -91,6 +93,12 @@ func (p *EnvParser) parseServerConfig(cfg *AppConfig, over func(string) (string,
 	if v, ok := over("MCP_SSE_PATH_JAEGER"); ok {
 		cfg.Server.SSEPaths.Jaeger = v
 	}
+	if v, ok := over("MCP_SSE_PATH_ARGOCD"); ok {
+		cfg.Server.SSEPaths.ArgoCD = v
+	}
+	if v, ok := over("MCP_SSE_PATH_NACOS"); ok {
+		cfg.Server.SSEPaths.Nacos = v
+	}
 	if v, ok := over("MCP_SSE_PATH_OPENTELEMETRY"); ok {
 		cfg.Server.SSEPaths.OpenTelemetry = v
 	}
@@ -134,6 +142,12 @@ func (p *EnvParser) parseServerConfig(cfg *AppConfig, over func(string) (string,
 	}
 	if v, ok := over("MCP_STREAMABLE_HTTP_PATH_JAEGER"); ok {
 		cfg.Server.StreamableHTTPPaths.Jaeger = v
+	}
+	if v, ok := over("MCP_STREAMABLE_HTTP_PATH_ARGOCD"); ok {
+		cfg.Server.StreamableHTTPPaths.ArgoCD = v
+	}
+	if v, ok := over("MCP_STREAMABLE_HTTP_PATH_NACOS"); ok {
+		cfg.Server.StreamableHTTPPaths.Nacos = v
 	}
 	if v, ok := over("MCP_STREAMABLE_HTTP_PATH_OPENTELEMETRY"); ok {
 		cfg.Server.StreamableHTTPPaths.OpenTelemetry = v
@@ -395,6 +409,54 @@ func (p *EnvParser) parseJaegerConfig(cfg *AppConfig, over func(string) (string,
 	}
 	if v, ok := over("MCP_JAEGER_TIMEOUT"); ok {
 		cfg.Jaeger.TimeoutSec = atoiDefault(v, cfg.Jaeger.TimeoutSec)
+	}
+}
+
+func (p *EnvParser) parseArgoCDConfig(cfg *AppConfig, over func(string) (string, bool)) {
+	if v, ok := over("MCP_ARGOCD_ENABLED"); ok {
+		cfg.ArgoCD.Enabled = isTrue(v)
+	}
+	if v, ok := over("MCP_ARGOCD_URL"); ok {
+		cfg.ArgoCD.URL = v
+	}
+	if v, ok := over("MCP_ARGOCD_USERNAME"); ok {
+		cfg.ArgoCD.Username = v
+	}
+	if v, ok := over("MCP_ARGOCD_PASSWORD"); ok {
+		cfg.ArgoCD.Password = v
+	}
+	if v, ok := over("MCP_ARGOCD_AUTH_TOKEN"); ok {
+		cfg.ArgoCD.AuthToken = v
+	}
+	if v, ok := over("MCP_ARGOCD_TIMEOUT"); ok {
+		cfg.ArgoCD.TimeoutSec = atoiDefault(v, cfg.ArgoCD.TimeoutSec)
+	}
+}
+
+func (p *EnvParser) parseNacosConfig(cfg *AppConfig, over func(string) (string, bool)) {
+	if v, ok := over("MCP_NACOS_ENABLED"); ok {
+		cfg.Nacos.Enabled = isTrue(v)
+	}
+	if v, ok := over("MCP_NACOS_URL"); ok {
+		cfg.Nacos.URL = v
+	}
+	if v, ok := over("MCP_NACOS_USERNAME"); ok {
+		cfg.Nacos.Username = v
+	}
+	if v, ok := over("MCP_NACOS_PASSWORD"); ok {
+		cfg.Nacos.Password = v
+	}
+	if v, ok := over("MCP_NACOS_ACCESS_TOKEN"); ok {
+		cfg.Nacos.AccessToken = v
+	}
+	if v, ok := over("MCP_NACOS_NAMESPACE_ID"); ok {
+		cfg.Nacos.NamespaceID = v
+	}
+	if v, ok := over("MCP_NACOS_GROUP"); ok {
+		cfg.Nacos.Group = v
+	}
+	if v, ok := over("MCP_NACOS_TIMEOUT"); ok {
+		cfg.Nacos.TimeoutSec = atoiDefault(v, cfg.Nacos.TimeoutSec)
 	}
 }
 

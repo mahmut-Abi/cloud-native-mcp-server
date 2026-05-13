@@ -4,7 +4,7 @@ title: "Services"
 
 # Integrated Services
 
-Cloud Native MCP Server integrates 13 powerful cloud-native services, providing 296 tools that fully cover Kubernetes management, deployment, monitoring, logging, tracing, and more.
+Cloud Native MCP Server integrates 15 powerful cloud-native services, providing 327 tools that fully cover Kubernetes management, deployment, monitoring, logging, tracing, configuration, and GitOps workflows.
 
 <div class="service-grid">
 
@@ -33,6 +33,20 @@ Cloud Native MCP Server integrates 13 powerful cloud-native services, providing 
     <li>Values configuration management</li>
     <li>Dependency management</li>
     <li>Plugin system</li>
+  </ul>
+</div>
+
+<div class="service-card">
+  <h3>🚀 Argo CD</h3>
+  <p><span class="tool-count">7 tools</span></p>
+  <p>GitOps application delivery visibility for applications, projects, clusters, and rendered manifests.</p>
+  <p><strong>Key Features:</strong></p>
+  <ul>
+    <li>Application summary and detail inspection</li>
+    <li>Rendered manifest retrieval</li>
+    <li>Project discovery</li>
+    <li>Cluster registration inspection</li>
+    <li>Connection validation</li>
   </ul>
 </div>
 
@@ -135,8 +149,22 @@ Cloud Native MCP Server integrates 13 powerful cloud-native services, providing 
 </div>
 
 <div class="service-card">
+  <h3>🛰️ Nacos</h3>
+  <p><span class="tool-count">9 tools</span></p>
+  <p>Configuration center and service discovery inspection for namespaces, configs, services, instances, and cluster nodes.</p>
+  <p><strong>Key Features:</strong></p>
+  <ul>
+    <li>Namespace listing</li>
+    <li>Config summary and content retrieval</li>
+    <li>Service and instance discovery</li>
+    <li>Cluster node inspection</li>
+    <li>System metrics overview</li>
+  </ul>
+</div>
+
+<div class="service-card">
   <h3>🧠 Langfuse</h3>
-  <p><span class="tool-count">13 tools</span></p>
+  <p><span class="tool-count">25 tools</span></p>
   <p>LLM observability platform for tracing prompt and response flows, session analysis, score inspection, and metrics exploration.</p>
   <p><strong>Key Features:</strong></p>
   <ul>
@@ -164,15 +192,15 @@ Cloud Native MCP Server integrates 13 powerful cloud-native services, providing 
 
 <div class="service-card">
   <h3>📡 OpenTelemetry</h3>
-  <p><span class="tool-count">9 tools</span></p>
-  <p>Unified observability framework for collecting metrics, traces, and logs.</p>
+  <p><span class="tool-count">12 tools</span></p>
+  <p>Unified observability framework for collector health, pipeline diagnostics, and telemetry inspection.</p>
   <p><strong>Key Features:</strong></p>
   <ul>
-    <li>Metric collection</li>
-    <li>Trace management</li>
-    <li>Log aggregation</li>
-    <li>Unified configuration</li>
-    <li>Cross-language support</li>
+    <li>Collector health and status</li>
+    <li>Config summary and raw config retrieval</li>
+    <li>Pipeline diagnostics</li>
+    <li>Metrics, traces, and logs inspection</li>
+    <li>Collector troubleshooting</li>
   </ul>
 </div>
 

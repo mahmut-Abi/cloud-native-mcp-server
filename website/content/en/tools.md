@@ -4,7 +4,7 @@ title: "Tools Reference"
 
 # Tools Reference
 
-Cloud Native MCP Server exposes **311 tools**. This page is a compact, LLM-friendly shortlist.
+Cloud Native MCP Server exposes **327 tools**. This page is a compact, LLM-friendly shortlist.
 For the exact runtime inventory, prefer [docs/TOOLS.md](https://github.com/mahmut-Abi/cloud-native-mcp-server/blob/main/docs/TOOLS.md) or `cloud-native-mcp-server --list tools`.
 
 ## Recommended Starting Points
@@ -15,6 +15,8 @@ For the exact runtime inventory, prefer [docs/TOOLS.md](https://github.com/mahmu
 - `kubernetes_get_recent_events`
 - `helm_list_releases_paginated`
 - `helm_get_release_summary`
+- `argocd_list_applications_summary`
+- `nacos_list_services_summary`
 
 ### Metrics, Logs, and Traces
 

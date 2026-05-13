@@ -11,6 +11,7 @@ import (
 	"github.com/mahmut-Abi/cloud-native-mcp-server/internal/config"
 	"github.com/mahmut-Abi/cloud-native-mcp-server/internal/services"
 	"github.com/mahmut-Abi/cloud-native-mcp-server/internal/services/alertmanager"
+	"github.com/mahmut-Abi/cloud-native-mcp-server/internal/services/argocd"
 	"github.com/mahmut-Abi/cloud-native-mcp-server/internal/services/elasticsearch"
 	"github.com/mahmut-Abi/cloud-native-mcp-server/internal/services/grafana"
 	"github.com/mahmut-Abi/cloud-native-mcp-server/internal/services/helm"
@@ -19,6 +20,7 @@ import (
 	"github.com/mahmut-Abi/cloud-native-mcp-server/internal/services/kubernetes"
 	"github.com/mahmut-Abi/cloud-native-mcp-server/internal/services/langfuse"
 	"github.com/mahmut-Abi/cloud-native-mcp-server/internal/services/loki"
+	"github.com/mahmut-Abi/cloud-native-mcp-server/internal/services/nacos"
 	"github.com/mahmut-Abi/cloud-native-mcp-server/internal/services/opentelemetry"
 	"github.com/mahmut-Abi/cloud-native-mcp-server/internal/services/prometheus"
 	"github.com/mahmut-Abi/cloud-native-mcp-server/internal/services/sentry"
@@ -36,9 +38,11 @@ type Manager struct {
 	lokiService          *loki.Service
 	kibanaService        *kibana.Service
 	helmService          *helm.Service
+	argocdService        *argocd.Service
 	alertmanagerService  *alertmanager.Service
 	elasticsearchService *elasticsearch.Service
 	jaegerService        *jaeger.Service
+	nacosService         *nacos.Service
 	langfuseService      *langfuse.Service
 	opentelemetryService *opentelemetry.Service
 	sentryService        *sentry.Service
@@ -81,9 +85,11 @@ func (m *Manager) Initialize(appConfig *config.AppConfig) error {
 	m.lokiService = loki.NewService()
 	m.kibanaService = kibana.NewService()
 	m.helmService = helm.NewService()
+	m.argocdService = argocd.NewService()
 	m.alertmanagerService = alertmanager.NewService()
 	m.elasticsearchService = elasticsearch.NewService()
 	m.jaegerService = jaeger.NewService()
+	m.nacosService = nacos.NewService()
 	m.langfuseService = langfuse.NewService()
 	m.opentelemetryService = opentelemetry.NewService()
 	m.sentryService = sentry.NewService()
@@ -114,6 +120,9 @@ func (m *Manager) Initialize(appConfig *config.AppConfig) error {
 	if m.helmService != nil {
 		m.registry.Register(m.helmService)
 	}
+	if m.argocdService != nil {
+		m.registry.Register(m.argocdService)
+	}
 	if m.alertmanagerService != nil {
 		m.registry.Register(m.alertmanagerService)
 	}
@@ -122,6 +131,9 @@ func (m *Manager) Initialize(appConfig *config.AppConfig) error {
 	}
 	if m.jaegerService != nil {
 		m.registry.Register(m.jaegerService)
+	}
+	if m.nacosService != nil {
+		m.registry.Register(m.nacosService)
 	}
 	if m.langfuseService != nil {
 		m.registry.Register(m.langfuseService)
@@ -163,9 +175,11 @@ func (m *Manager) Initialize(appConfig *config.AppConfig) error {
 		{"loki", m.lokiService != nil},
 		{"kibana", m.kibanaService != nil},
 		{"helm", m.helmService != nil},
+		{"argocd", m.argocdService != nil},
 		{"alertmanager", m.alertmanagerService != nil},
 		{"elasticsearch", m.elasticsearchService != nil},
 		{"jaeger", m.jaegerService != nil},
+		{"nacos", m.nacosService != nil},
 		{"langfuse", m.langfuseService != nil},
 		{"opentelemetry", m.opentelemetryService != nil},
 		{"sentry", m.sentryService != nil},
@@ -229,6 +243,12 @@ func (m *Manager) Initialize(appConfig *config.AppConfig) error {
 			initFunc func() error
 		}{"helm", func() error { return m.helmService.Initialize(cfg) }})
 	}
+	if m.argocdService != nil {
+		optionalServices = append(optionalServices, struct {
+			name     string
+			initFunc func() error
+		}{"argocd", func() error { return m.argocdService.Initialize(cfg) }})
+	}
 	if m.alertmanagerService != nil {
 		optionalServices = append(optionalServices, struct {
 			name     string
@@ -246,6 +266,12 @@ func (m *Manager) Initialize(appConfig *config.AppConfig) error {
 			name     string
 			initFunc func() error
 		}{"langfuse", func() error { return m.langfuseService.Initialize(cfg) }})
+	}
+	if m.nacosService != nil {
+		optionalServices = append(optionalServices, struct {
+			name     string
+			initFunc func() error
+		}{"nacos", func() error { return m.nacosService.Initialize(cfg) }})
 	}
 	if m.opentelemetryService != nil {
 		optionalServices = append(optionalServices, struct {
@@ -434,6 +460,11 @@ func (m *Manager) GetHelmService() *helm.Service {
 	return m.helmService
 }
 
+// GetArgoCDService returns the Argo CD service
+func (m *Manager) GetArgoCDService() *argocd.Service {
+	return m.argocdService
+}
+
 // GetElasticsearchService returns the Elasticsearch service
 func (m *Manager) GetElasticsearchService() *elasticsearch.Service {
 	return m.elasticsearchService
@@ -447,6 +478,11 @@ func (m *Manager) GetAlertmanagerService() *alertmanager.Service {
 // GetJaegerService returns the Jaeger service
 func (m *Manager) GetJaegerService() *jaeger.Service {
 	return m.jaegerService
+}
+
+// GetNacosService returns the Nacos service
+func (m *Manager) GetNacosService() *nacos.Service {
+	return m.nacosService
 }
 
 // GetOpenTelemetryService returns the OpenTelemetry service
@@ -605,7 +641,7 @@ func (m *Manager) ApplyServiceFilters(disabled, enabled []string) {
 		enabledMap[svc] = true
 	}
 
-	allServices := []string{"kubernetes", "grafana", "prometheus", "loki", "kibana", "helm", "elasticsearch", "alertmanager", "jaeger", "langfuse", "opentelemetry", "sentry", "utilities"}
+	allServices := []string{"kubernetes", "grafana", "prometheus", "loki", "kibana", "helm", "argocd", "elasticsearch", "alertmanager", "jaeger", "nacos", "langfuse", "opentelemetry", "sentry", "utilities"}
 
 	// If specific services are enabled, disable all others
 	if len(enabled) > 0 {
@@ -635,6 +671,9 @@ func (m *Manager) ApplyServiceFilters(disabled, enabled []string) {
 	if disabledMap["helm"] && m.helmService != nil {
 		m.helmService = nil
 	}
+	if disabledMap["argocd"] && m.argocdService != nil {
+		m.argocdService = nil
+	}
 	if disabledMap["elasticsearch"] && m.elasticsearchService != nil {
 		m.elasticsearchService = nil
 	}
@@ -643,6 +682,9 @@ func (m *Manager) ApplyServiceFilters(disabled, enabled []string) {
 	}
 	if disabledMap["jaeger"] && m.jaegerService != nil {
 		m.jaegerService = nil
+	}
+	if disabledMap["nacos"] && m.nacosService != nil {
+		m.nacosService = nil
 	}
 	if disabledMap["langfuse"] && m.langfuseService != nil {
 		m.langfuseService = nil
