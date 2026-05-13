@@ -50,6 +50,8 @@ server:
     elasticsearch: "/api/elasticsearch/sse"
     alertmanager: "/api/alertmanager/sse"
     jaeger: "/api/jaeger/sse"
+    argocd: "/api/argocd/sse"
+    nacos: "/api/nacos/sse"
     opentelemetry: "/api/opentelemetry/sse"
     langfuse: "/api/langfuse/sse"
     sentry: "/api/sentry/sse"
@@ -66,6 +68,8 @@ server:
     elasticsearch: "/api/elasticsearch/streamable-http"
     alertmanager: "/api/alertmanager/streamable-http"
     jaeger: "/api/jaeger/streamable-http"
+    argocd: "/api/argocd/streamable-http"
+    nacos: "/api/nacos/streamable-http"
     opentelemetry: "/api/opentelemetry/streamable-http"
     langfuse: "/api/langfuse/streamable-http"
     sentry: "/api/sentry/streamable-http"
@@ -247,6 +251,24 @@ alertmanager:
 jaeger:
   enabled: false
   address: "http://jaeger:16686"
+  timeoutSec: 30
+
+argocd:
+  enabled: false
+  url: "https://argocd.example.com"
+  username: ""
+  password: ""
+  authToken: ""
+  timeoutSec: 30
+
+nacos:
+  enabled: false
+  url: "http://localhost:8848/nacos"
+  username: ""
+  password: ""
+  accessToken: ""
+  namespaceId: ""
+  group: "DEFAULT_GROUP"
   timeoutSec: 30
 
 langfuse:

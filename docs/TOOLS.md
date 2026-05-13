@@ -16,6 +16,7 @@ For the exact runtime inventory, prefer `--list tools`.
 
 - [Kubernetes (34 tools)](#kubernetes-34-tools)
 - [Helm (34 tools)](#helm-34-tools)
+- [ArgoCD (7 tools)](#argocd-7-tools)
 - [Grafana (55 tools)](#grafana-55-tools)
 - [Prometheus (20 tools)](#prometheus-20-tools)
 - [Loki (7 tools)](#loki-7-tools)
@@ -23,6 +24,7 @@ For the exact runtime inventory, prefer `--list tools`.
 - [Elasticsearch (12 tools)](#elasticsearch-12-tools)
 - [Alertmanager (16 tools)](#alertmanager-16-tools)
 - [Jaeger (8 tools)](#jaeger-8-tools)
+- [Nacos (9 tools)](#nacos-9-tools)
 - [Langfuse (25 tools)](#langfuse-25-tools)
 - [Sentry (9 tools)](#sentry-9-tools)
 - [OpenTelemetry (12 tools)](#opentelemetry-12-tools)
@@ -178,6 +180,27 @@ Practical guidance:
 | `helm_list_repos` | List Helm repositories. | - |
 | `helm_remove_repository` | Remove Helm repository. | - |
 | `helm_update_repositories` | Update Helm repositories. | - |
+
+---
+
+## ArgoCD (7 tools)
+
+### Connectivity and Discovery
+
+| Tool | Description | Priority |
+|------|-------------|----------|
+| `argocd_test_connection` | Verify that the configured Argo CD server is reachable and authentication works. | ⚠️ PRIORITY |
+| `argocd_list_applications_summary` | Recommended first step for Argo CD application discovery. Returns compact application summaries. | ⚠️ PRIORITY |
+| `argocd_list_projects` | List Argo CD projects. | - |
+| `argocd_list_clusters` | List clusters registered in Argo CD. | - |
+
+### Applications
+
+| Tool | Description | Priority |
+|------|-------------|----------|
+| `argocd_get_application` | Get one Argo CD application including sync and health detail. | - |
+| `argocd_get_application_manifests` | Get rendered manifests for one Argo CD application. | - |
+| `argocd_get_project` | Get one Argo CD project by name. | - |
 
 ---
 
@@ -522,6 +545,39 @@ Practical guidance:
 | Tool | Description | Priority |
 |------|-------------|----------|
 | `jaeger_get_dependencies` | Get service dependency graph. | - |
+
+---
+
+## Nacos (9 tools)
+
+### Connectivity and Discovery
+
+| Tool | Description | Priority |
+|------|-------------|----------|
+| `nacos_test_connection` | Verify that the configured Nacos server is reachable and authentication works. | ⚠️ PRIORITY |
+| `nacos_list_namespaces` | List namespaces from Nacos. | - |
+
+### Config Center
+
+| Tool | Description | Priority |
+|------|-------------|----------|
+| `nacos_list_configs_summary` | Recommended first step for Nacos config discovery. Returns compact config summaries. | ⚠️ PRIORITY |
+| `nacos_get_config` | Get the full content of one Nacos configuration entry. | - |
+
+### Naming Service
+
+| Tool | Description | Priority |
+|------|-------------|----------|
+| `nacos_list_services_summary` | Recommended first step for Nacos service discovery. Returns compact service summaries. | ⚠️ PRIORITY |
+| `nacos_get_service` | Get one Nacos service including metadata and thresholds. | - |
+| `nacos_list_instances` | List instances for one Nacos service. | - |
+
+### Cluster
+
+| Tool | Description | Priority |
+|------|-------------|----------|
+| `nacos_list_cluster_nodes` | List Nacos cluster nodes and their reported state. | - |
+| `nacos_get_system_metrics` | Get Nacos server metrics and runtime counters. | - |
 
 ---
 

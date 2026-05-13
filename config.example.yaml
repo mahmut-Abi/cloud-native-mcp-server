@@ -68,6 +68,14 @@ server:
     # Environment variable: MCP_SSE_PATH_JAEGER
     jaeger: "/api/jaeger/sse"
 
+    # Argo CD SSE endpoint
+    # Environment variable: MCP_SSE_PATH_ARGOCD
+    argocd: "/api/argocd/sse"
+
+    # Nacos SSE endpoint
+    # Environment variable: MCP_SSE_PATH_NACOS
+    nacos: "/api/nacos/sse"
+
     # OpenTelemetry SSE endpoint
     # Environment variable: MCP_SSE_PATH_OPENTELEMETRY
     opentelemetry: "/api/opentelemetry/sse"
@@ -119,6 +127,12 @@ server:
 
     # Jaeger Streamable-HTTP endpoint
     jaeger: "/api/jaeger/streamable-http"
+
+    # Argo CD Streamable-HTTP endpoint
+    argocd: "/api/argocd/streamable-http"
+
+    # Nacos Streamable-HTTP endpoint
+    nacos: "/api/nacos/streamable-http"
 
     # OpenTelemetry Streamable-HTTP endpoint
     opentelemetry: "/api/opentelemetry/streamable-http"
@@ -422,9 +436,75 @@ alertmanager:
   # Environment variable: MCP_ALERTMANAGER_TLS_KEY_FILE
   tlsKeyFile: ""
 
-  # TLS CA certificate file path
+ # TLS CA certificate file path
   # Environment variable: MCP_ALERTMANAGER_TLS_CA_FILE
   tlsCAFile: ""
+
+################################################################################
+# Argo CD Configuration
+################################################################################
+argocd:
+  # Enable/disable Argo CD service
+  # Environment variable: MCP_ARGOCD_ENABLED (1, true, yes, on)
+  enabled: false
+
+  # Argo CD base URL
+  # Format: https://argocd.example.com or your self-hosted Argo CD URL
+  # Environment variable: MCP_ARGOCD_URL
+  url: "https://argocd.example.com"
+
+  # Username for session login (optional when authToken is provided)
+  # Environment variable: MCP_ARGOCD_USERNAME
+  username: ""
+
+  # Password for session login (optional when authToken is provided)
+  # Environment variable: MCP_ARGOCD_PASSWORD
+  password: ""
+
+  # Bearer token for API access (optional, takes precedence over username/password)
+  # Environment variable: MCP_ARGOCD_AUTH_TOKEN
+  authToken: ""
+
+  # Request timeout (seconds)
+  # Environment variable: MCP_ARGOCD_TIMEOUT
+  timeoutSec: 30
+
+################################################################################
+# Nacos Configuration
+################################################################################
+nacos:
+  # Enable/disable Nacos service
+  # Environment variable: MCP_NACOS_ENABLED (1, true, yes, on)
+  enabled: false
+
+  # Nacos base URL
+  # Format: http://localhost:8848/nacos
+  # Environment variable: MCP_NACOS_URL
+  url: "http://localhost:8848/nacos"
+
+  # Username for token login (optional when accessToken is provided)
+  # Environment variable: MCP_NACOS_USERNAME
+  username: ""
+
+  # Password for token login (optional when accessToken is provided)
+  # Environment variable: MCP_NACOS_PASSWORD
+  password: ""
+
+  # Pre-issued access token (optional, takes precedence over username/password)
+  # Environment variable: MCP_NACOS_ACCESS_TOKEN
+  accessToken: ""
+
+  # Default namespace ID (optional)
+  # Environment variable: MCP_NACOS_NAMESPACE_ID
+  namespaceId: ""
+
+  # Default group for config and naming lookups (optional)
+  # Environment variable: MCP_NACOS_GROUP
+  group: "DEFAULT_GROUP"
+
+  # Request timeout (seconds)
+  # Environment variable: MCP_NACOS_TIMEOUT
+  timeoutSec: 30
 
 ################################################################################
 # OpenTelemetry Configuration

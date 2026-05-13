@@ -6,7 +6,7 @@ description: "LLM-friendly entry points for the current MCP tool inventory."
 
 # Tools Reference
 
-Cloud Native MCP Server currently exposes **311 tools** across **13 services**.
+Cloud Native MCP Server currently exposes **327 tools** across **15 services**.
 For the exact runtime inventory, prefer the repository-level [docs/TOOLS.md](https://github.com/mahmut-Abi/cloud-native-mcp-server/blob/main/docs/TOOLS.md) file or `cloud-native-mcp-server --list tools`.
 
 This page intentionally lists only stable, high-value entry points for LLM and agent workflows.
@@ -36,6 +36,13 @@ This page intentionally lists only stable, high-value entry points for LLM and a
 - `helm_get_release_status`
 - `helm_get_release_manifest`
 - `helm_template_chart`
+
+### Argo CD
+
+- `argocd_test_connection`
+- `argocd_list_applications_summary`
+- `argocd_get_application`
+- `argocd_get_application_manifests`
 
 ### Grafana
 
@@ -85,6 +92,14 @@ This page intentionally lists only stable, high-value entry points for LLM and a
 - `jaeger_get_services_summary`
 - `jaeger_get_traces_summary`
 - `jaeger_get_trace`
+
+### Nacos
+
+- `nacos_test_connection`
+- `nacos_list_namespaces`
+- `nacos_list_configs_summary`
+- `nacos_list_services_summary`
+- `nacos_list_instances`
 
 ### Langfuse
 

@@ -148,6 +148,8 @@ func TestApplyAppConfigWithValidConfig(t *testing.T) {
 				Elasticsearch string `yaml:"elasticsearch"`
 				Alertmanager  string `yaml:"alertmanager"`
 				Jaeger        string `yaml:"jaeger"`
+				ArgoCD        string `yaml:"argocd"`
+				Nacos         string `yaml:"nacos"`
 				OpenTelemetry string `yaml:"opentelemetry"`
 				Langfuse      string `yaml:"langfuse"`
 				Sentry        string `yaml:"sentry"`
@@ -164,6 +166,8 @@ func TestApplyAppConfigWithValidConfig(t *testing.T) {
 				Elasticsearch string `yaml:"elasticsearch"`
 				Alertmanager  string `yaml:"alertmanager"`
 				Jaeger        string `yaml:"jaeger"`
+				ArgoCD        string `yaml:"argocd"`
+				Nacos         string `yaml:"nacos"`
 				OpenTelemetry string `yaml:"opentelemetry"`
 				Langfuse      string `yaml:"langfuse"`
 				Sentry        string `yaml:"sentry"`
@@ -251,6 +255,8 @@ func TestApplyAppConfigCLITakesPrecedence(t *testing.T) {
 				Elasticsearch string `yaml:"elasticsearch"`
 				Alertmanager  string `yaml:"alertmanager"`
 				Jaeger        string `yaml:"jaeger"`
+				ArgoCD        string `yaml:"argocd"`
+				Nacos         string `yaml:"nacos"`
 				OpenTelemetry string `yaml:"opentelemetry"`
 				Langfuse      string `yaml:"langfuse"`
 				Sentry        string `yaml:"sentry"`
@@ -267,6 +273,8 @@ func TestApplyAppConfigCLITakesPrecedence(t *testing.T) {
 				Elasticsearch string `yaml:"elasticsearch"`
 				Alertmanager  string `yaml:"alertmanager"`
 				Jaeger        string `yaml:"jaeger"`
+				ArgoCD        string `yaml:"argocd"`
+				Nacos         string `yaml:"nacos"`
 				OpenTelemetry string `yaml:"opentelemetry"`
 				Langfuse      string `yaml:"langfuse"`
 				Sentry        string `yaml:"sentry"`

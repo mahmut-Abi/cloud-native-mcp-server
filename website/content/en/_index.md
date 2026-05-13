@@ -6,7 +6,7 @@ description: High-performance Model Context Protocol server for Kubernetes and c
 
 <div class="hero">
   <h1>Cloud Native MCP Server</h1>
-  <p>A production-grade MCP server for Kubernetes and cloud-native infrastructure management, exposing 13 services and 311 tools across SSE and Streamable HTTP modes.</p>
+  <p>A production-grade MCP server for Kubernetes and cloud-native infrastructure management, exposing 15 services and 327 tools across SSE and Streamable HTTP modes.</p>
   <div class="hero-buttons">
     <a href="https://github.com/mahmut-Abi/cloud-native-mcp-server" class="cta-button"><span>GitHub Repository</span></a>
     <a href="#quick-start" class="cta-button transparent"><span>Quick Start</span></a>
@@ -59,11 +59,11 @@ description: High-performance Model Context Protocol server for Kubernetes and c
 
 <div class="stats-grid">
   <div class="stat-item">
-    <div class="stat-number">13</div>
+    <div class="stat-number">15</div>
     <div class="stat-label">Integrated Services</div>
   </div>
   <div class="stat-item">
-    <div class="stat-number">311</div>
+    <div class="stat-number">327</div>
     <div class="stat-label">MCP Tools</div>
   </div>
   <div class="stat-item">
@@ -88,6 +88,10 @@ description: High-performance Model Context Protocol server for Kubernetes and c
   <div class="service-card">
     <h3>Helm <span class="tool-count">34 tools</span></h3>
     <p>Package lifecycle and release operations for Kubernetes apps.</p>
+  </div>
+  <div class="service-card">
+    <h3>Argo CD <span class="tool-count">7 tools</span></h3>
+    <p>Application, project, cluster, and manifest inspection for GitOps workflows.</p>
   </div>
   <div class="service-card">
     <h3>Grafana <span class="tool-count">55 tools</span></h3>
@@ -116,6 +120,10 @@ description: High-performance Model Context Protocol server for Kubernetes and c
   <div class="service-card">
     <h3>Jaeger <span class="tool-count">8 tools</span></h3>
     <p>Distributed tracing and request-path diagnostics.</p>
+  </div>
+  <div class="service-card">
+    <h3>Nacos <span class="tool-count">9 tools</span></h3>
+    <p>Namespaces, configs, service discovery, instances, and node-level inspection.</p>
   </div>
   <div class="service-card">
     <h3>Langfuse <span class="tool-count">25 tools</span></h3>

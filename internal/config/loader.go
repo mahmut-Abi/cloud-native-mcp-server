@@ -133,6 +133,16 @@ func (l *ConfigLoader) setDefaults(cfg *AppConfig) {
 		cfg.Jaeger.TimeoutSec = 30
 	}
 
+	// Argo CD defaults
+	if cfg.ArgoCD.TimeoutSec == 0 {
+		cfg.ArgoCD.TimeoutSec = 30
+	}
+
+	// Nacos defaults
+	if cfg.Nacos.TimeoutSec == 0 {
+		cfg.Nacos.TimeoutSec = 30
+	}
+
 	// Langfuse defaults
 	if cfg.Langfuse.TimeoutSec == 0 {
 		cfg.Langfuse.TimeoutSec = 30
