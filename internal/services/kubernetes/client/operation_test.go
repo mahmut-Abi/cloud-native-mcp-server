@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"testing"
 
+	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/apis/meta/v1/unstructured"
 	"k8s.io/apimachinery/pkg/runtime/schema"
 )
@@ -146,6 +147,40 @@ func TestFindGroupVersionResourceEmptyKind(t *testing.T) {
 	kind := ""
 	if kind == "" {
 		t.Log("Empty kind parameter would be rejected by parameter validation")
+	}
+}
+
+func TestFindGVRInResourceListsUsesExactAPIVersion(t *testing.T) {
+	resourceLists := []*metav1.APIResourceList{
+		{
+			GroupVersion: "app.k8s.io/v1beta1",
+			APIResources: []metav1.APIResource{
+				{
+					Name:       "applications",
+					Namespaced: true,
+					Kind:       "Application",
+				},
+			},
+		},
+		{
+			GroupVersion: "argoproj.io/v1alpha1",
+			APIResources: []metav1.APIResource{
+				{
+					Name:       "applications",
+					Namespaced: true,
+					Kind:       "Application",
+				},
+			},
+		},
+	}
+
+	gvr, err := findGVRInResourceLists(resourceLists, "Application", "argoproj.io/v1alpha1")
+	if err != nil {
+		t.Fatalf("findGVRInResourceLists returned error: %v", err)
+	}
+
+	if gvr.Group != "argoproj.io" || gvr.Version != "v1alpha1" || gvr.Resource != "applications" {
+		t.Fatalf("unexpected GVR: %#v", gvr)
 	}
 }
 
