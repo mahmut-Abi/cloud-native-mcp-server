@@ -465,7 +465,7 @@ func (c *Client) CreateResource(ctx context.Context, kind, apiVersion, metadataJ
 		obj.Object["spec"] = spec
 	}
 
-	gvr, err := c.findGroupVersionResource(kind)
+	gvr, err := c.findGroupVersionResourceForAPIVersion(kind, apiVersion)
 	if err != nil {
 		return nil, err
 	}
@@ -498,7 +498,7 @@ func (c *Client) UpdateResource(ctx context.Context, kind, name, namespace strin
 		return nil, fmt.Errorf("name mismatch: manifest has %q, expected %q", obj.GetName(), name)
 	}
 
-	gvr, err := c.findGroupVersionResource(kind)
+	gvr, err := c.findGroupVersionResourceForAPIVersion(obj.GetKind(), obj.GetAPIVersion())
 	if err != nil {
 		return nil, err
 	}
