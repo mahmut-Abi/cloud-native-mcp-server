@@ -44,7 +44,7 @@ func ExtractResourceSummary(obj *unstructured.Unstructured, selectedLabelKeys []
 
 	// Extract all labels if not too many
 	allLabels := obj.GetLabels()
-	if len(allLabels) > 0 && len(allLabels) <= 10 {
+	if obj.GetKind() != "Pod" && len(allLabels) > 0 && len(allLabels) <= 10 {
 		summary.Labels = allLabels
 	}
 

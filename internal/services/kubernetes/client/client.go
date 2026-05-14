@@ -497,7 +497,7 @@ func extractResourceSummary(obj *unstructured.Unstructured, selectedLabelKeys []
 			if len(selected) > 0 {
 				summary["labels"] = selected
 			}
-		} else if len(labels) <= 10 {
+		} else if obj.GetKind() != "Pod" && len(labels) <= 10 {
 			summary["labels"] = labels
 		}
 	}
