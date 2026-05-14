@@ -135,7 +135,7 @@ func CreateResourceTool() mcp.Tool {
 		mcp.WithString("apiVersion", mcp.Required(),
 			mcp.Description("Kubernetes API version, for example `v1`, `apps/v1`, or `networking.k8s.io/v1`.")),
 		mcp.WithObject("metadata", mcp.Required(),
-			mcp.Description("Resource metadata object. Include at least `name`, and include `namespace` for namespaced resources. Labels and annotations are also accepted. Legacy clients may still send this as a JSON string.")),
+			mcp.Description("Resource metadata object. `metadata.name` or `metadata.generateName` is required for creation. Include `namespace` for namespaced resources. Labels and annotations are also accepted. An empty metadata object will be rejected before the Kubernetes API call. Legacy clients may still send this as a JSON string.")),
 		mcp.WithObject("spec",
 			mcp.Description("Resource spec object for kinds that use `spec`, for example Deployments and Services. Omit for kinds such as `Namespace` that do not require `spec`. Legacy clients may still send this as a JSON string.")),
 		mcp.WithString("debug",
