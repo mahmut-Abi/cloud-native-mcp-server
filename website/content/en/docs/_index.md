@@ -20,6 +20,7 @@ This section is the primary reference for deploying and operating Cloud Native M
 - [Apply hardening and security controls]({{< relref "security.md" >}})
 - [Tune throughput and latency]({{< relref "performance.md" >}})
 - [Explore all available tools]({{< relref "tools.md" >}})
+- [Discover built-in MCP prompts]({{< relref "prompts.md" >}})
 - [Integrate via MCP endpoints]({{< relref "api.md" >}})
 
 ## Quick Start
@@ -51,4 +52,5 @@ Then open:
 - `Security`: auth and operational hardening practices
 - `Performance`: optimization and benchmarking guidance
 - `Tools`: complete service tool catalog
+- `Prompts`: built-in troubleshooting and remediation workflows for agents
 - `API`: protocol endpoints and request examples

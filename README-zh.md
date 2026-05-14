@@ -29,6 +29,7 @@
 - **输入清理**: 防止注入攻击
 - **审计日志**: 跟踪所有工具调用和操作
 - **LLM 优化**: 摘要工具和分页以防止上下文溢出
+- **内置 MCP Prompt**: 为 Agent 预置排障与修复工作流
 
 ## 服务概览
 
@@ -129,6 +130,7 @@ API_KEY=your-key make sse-smoke BASE_URL=http://127.0.0.1:8080
 - [安全指南](docs/SECURITY.md) - 身份验证、密钥管理和安全最佳实践
 - [架构指南](docs/ARCHITECTURE.md) - 系统架构和设计
 - [性能指南](docs/PERFORMANCE.md) - 性能功能和调优
+- [Prompt 指南](docs/PROMPTS.md) - 内置 MCP Prompt 与 Agent 工作流
 
 ## 构建
 
