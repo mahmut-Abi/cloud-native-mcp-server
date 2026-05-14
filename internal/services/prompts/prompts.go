@@ -566,7 +566,7 @@ func HandleK8sOpsPrompt(ctx context.Context, request mcp.GetPromptRequest) (*mcp
 			"2. Call `kubernetes_get_resource` for the Pod to inspect containers and status.",
 			"3. Call `kubernetes_get_pod_logs` with a bounded tail, then summarize errors and next checks.",
 			"",
-			fmt.Sprintf("Suggested calls:"),
+			"Suggested calls:",
 			fmt.Sprintf("- kubernetes_get_resource {kind: \"Pod\", name: %q, namespace: %q}", name, namespace),
 			fmt.Sprintf("- kubernetes_get_pod_logs {name: %q, namespace: %q, container: \"<container>\", tailLines: 100}", name, namespace),
 		), nil
@@ -836,13 +836,14 @@ func HandleRolloutRecoveryPrompt(ctx context.Context, request mcp.GetPromptReque
 		"- kubernetes_get_pod_logs for the first failing Pod",
 	}
 
-	if managedBy == "argocd" {
+	switch managedBy {
+	case "argocd":
 		lines = append(lines,
 			"- argocd_get_application to inspect sync and health state",
 			"- argocd_get_application_manifests to inspect rendered source of truth",
 			"- Avoid patching Git-managed resources blindly; confirm whether the fix belongs in Git or as an emergency mitigation",
 		)
-	} else if managedBy == "helm" {
+	case "helm":
 		lines = append(lines,
 			"- helm_get_release_status and helm_get_release_history to inspect release health",
 			"- If rollback is explicitly requested and justified, consider helm_rollback_release",
@@ -890,7 +891,7 @@ func HandleArgoCDDiagnosisPrompt(ctx context.Context, request mcp.GetPromptReque
 			"notes", argOrDefault(args, "notes", "<none>"),
 		),
 		"Workflow:",
-		fmt.Sprintf("- argocd_list_applications_summary to confirm the application is visible"),
+		"- argocd_list_applications_summary to confirm the application is visible",
 		fmt.Sprintf("- argocd_get_application {name: %q}", app),
 		fmt.Sprintf("- argocd_get_application_manifests {name: %q}", app),
 		"- Correlate sync or health failures with kubernetes_get_rollout_status, kubernetes_get_recent_events, and kubernetes_get_pod_logs",
