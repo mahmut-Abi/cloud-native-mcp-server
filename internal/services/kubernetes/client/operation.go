@@ -582,6 +582,28 @@ func (c *Client) findGroupVersionResource(kind string) (*schema.GroupVersionReso
 	return c.discoverAndCacheGVR(kind)
 }
 
+// findGroupVersionResourceForAPIVersion resolves a GVR for a specific kind and apiVersion.
+// When apiVersion is empty it falls back to the legacy kind-only lookup behavior.
+func (c *Client) findGroupVersionResourceForAPIVersion(kind, apiVersion string) (*schema.GroupVersionResource, error) {
+	kind = normalizeKind(kind)
+	apiVersion = strings.TrimSpace(apiVersion)
+	if apiVersion == "" {
+		return c.findGroupVersionResource(kind)
+	}
+
+	c.cacheDiscovery.Invalidate()
+	resourceLists, err := c.cacheDiscovery.GetAPIResources()
+	if err != nil {
+		return nil, fmt.Errorf("failed to discover API resources for %s %s: %w", kind, apiVersion, err)
+	}
+
+	gvr, err := findGVRInResourceLists(resourceLists, kind, apiVersion)
+	if err != nil {
+		return nil, err
+	}
+	return &gvr, nil
+}
+
 // findGVRUsingDiscovery finds GVR using the discovery client
 func (c *Client) findGVRUsingDiscovery(kind, version string) (schema.GroupVersionResource, error) {
 	// Force refresh cache by invalidating it first
@@ -614,6 +636,34 @@ func (c *Client) findGVRUsingDiscovery(kind, version string) (schema.GroupVersio
 	}
 
 	return schema.GroupVersionResource{}, fmt.Errorf("resource kind %s not found", kind)
+}
+
+func findGVRInResourceLists(resourceLists []*metav1.APIResourceList, kind, apiVersion string) (schema.GroupVersionResource, error) {
+	for _, resourceList := range resourceLists {
+		if resourceList == nil || resourceList.GroupVersion != apiVersion {
+			continue
+		}
+
+		gv, err := schema.ParseGroupVersion(resourceList.GroupVersion)
+		if err != nil {
+			continue
+		}
+
+		for _, resource := range resourceList.APIResources {
+			if strings.Contains(resource.Name, "/") {
+				continue
+			}
+			if strings.EqualFold(resource.Kind, kind) {
+				return schema.GroupVersionResource{
+					Group:    gv.Group,
+					Version:  gv.Version,
+					Resource: resource.Name,
+				}, nil
+			}
+		}
+	}
+
+	return schema.GroupVersionResource{}, fmt.Errorf("resource kind %q with apiVersion %q not found", kind, apiVersion)
 }
 
 // discoverAndCacheGVR discovers GVR via API and updates cache
