@@ -17,7 +17,7 @@ func GetResourceSummaryTool() mcp.Tool {
 		mcp.WithString("namespace",
 			mcp.Description("Required for namespaced resources (Pod, Service, Deployment, etc.). Omit for cluster-scoped resources (Node, PersistentVolume, ClusterRole, etc.")),
 		mcp.WithString("includeLabels",
-			mcp.Description("Optional comma-separated label keys to include (e.g., 'app,version,env'). If omitted, includes up to 10 labels automatically. Use to focus on specific labels important for your use case.")),
+			mcp.Description("Optional comma-separated label keys to include (e.g., 'app,version,env'). If omitted, non-Pod resources may include up to 10 labels automatically, while Pod summaries omit labels by default to keep the response small. Use this when you need specific label keys.")),
 		mcp.WithString("debug",
 			mcp.Description("Enable verbose debug output for troubleshooting the tool itself (true/false).")),
 	)
@@ -182,7 +182,7 @@ func ListResourcesSummaryTool() mcp.Tool {
 		mcp.WithString("labelSelector",
 			mcp.Description("Optional label selector for filtering resources (e.g., 'app=nginx', 'env=production', 'tier in (frontend,backend)'). Use combination with commas for AND logic: 'app=nginx,env=prod'. This helps narrow down results to specific applications or environments.")),
 		mcp.WithString("includeLabels",
-			mcp.Description("Optional comma-separated label keys to include in the summary output (e.g., 'app,version,env'). When specified, only these labels will be included for each resource. If omitted, a limited set of labels (max 10) will be included automatically. Useful for reducing output size while maintaining essential context.")),
+			mcp.Description("Optional comma-separated label keys to include in the summary output (e.g., 'app,version,env'). When specified, only these labels will be included for each resource. If omitted, non-Pod resources may include up to 10 labels automatically, while Pod summaries omit labels by default to reduce response size.")),
 		mcp.WithNumber("limit",
 			mcp.Description("Maximum number of resources to return (default: 100, max: 500). This enables server-side pagination to prevent context overflow. Use smaller values (10-50) for quick overviews, larger values (100-500) for comprehensive analysis. Pagination is handled by Kubernetes API for efficiency.")),
 		mcp.WithString("continueToken",
