@@ -86,8 +86,8 @@ func (s *ServerConfig) createConfiguredMCPServer(name string, hooks *server.Hook
 		server.WithLogging(),
 		server.WithRecovery(),
 		server.WithPromptHandlerMiddleware(hook.PromptLoggingMiddleware()),
-		server.WithPromptHandlerMiddleware(hook.PromptAvailabilityMiddleware(func() bool {
-			return s.serviceManager != nil && s.serviceManager.GetKubernetesService() != nil && s.serviceManager.GetKubernetesService().IsEnabled()
+		server.WithPromptHandlerMiddleware(hook.PromptAvailabilityMiddleware(func(serviceName string) bool {
+			return s.isServiceEnabled(serviceName)
 		})),
 		server.WithPromptFilter(s.promptFilter()),
 	)
@@ -149,19 +149,56 @@ func (s *ServerConfig) InitMCPServer(hooks *server.Hooks) *server.MCPServer {
 
 func (s *ServerConfig) promptFilter() server.PromptFilterFunc {
 	return func(ctx context.Context, promptList []mcp.Prompt) []mcp.Prompt {
-		kubernetesEnabled := s.serviceManager != nil &&
-			s.serviceManager.GetKubernetesService() != nil &&
-			s.serviceManager.GetKubernetesService().IsEnabled()
-
 		filtered := make([]mcp.Prompt, 0, len(promptList))
 		for _, prompt := range promptList {
-			if prompt.Name == prompts.K8sOpsPromptName && !kubernetesEnabled {
+			if !prompts.IsAvailable(prompt.Name, s.isServiceEnabled) {
 				continue
 			}
 			filtered = append(filtered, prompt)
 		}
 
 		return filtered
+	}
+}
+
+func (s *ServerConfig) isServiceEnabled(serviceName string) bool {
+	if s.serviceManager == nil {
+		return false
+	}
+
+	switch serviceName {
+	case "kubernetes":
+		return s.serviceManager.GetKubernetesService() != nil && s.serviceManager.GetKubernetesService().IsEnabled()
+	case "grafana":
+		return s.serviceManager.GetGrafanaService() != nil && s.serviceManager.GetGrafanaService().IsEnabled()
+	case "prometheus":
+		return s.serviceManager.GetPrometheusService() != nil && s.serviceManager.GetPrometheusService().IsEnabled()
+	case "loki":
+		return s.serviceManager.GetLokiService() != nil && s.serviceManager.GetLokiService().IsEnabled()
+	case "kibana":
+		return s.serviceManager.GetKibanaService() != nil && s.serviceManager.GetKibanaService().IsEnabled()
+	case "helm":
+		return s.serviceManager.GetHelmService() != nil && s.serviceManager.GetHelmService().IsEnabled()
+	case "argocd":
+		return s.serviceManager.GetArgoCDService() != nil && s.serviceManager.GetArgoCDService().IsEnabled()
+	case "elasticsearch":
+		return s.serviceManager.GetElasticsearchService() != nil && s.serviceManager.GetElasticsearchService().IsEnabled()
+	case "alertmanager":
+		return s.serviceManager.GetAlertmanagerService() != nil && s.serviceManager.GetAlertmanagerService().IsEnabled()
+	case "jaeger":
+		return s.serviceManager.GetJaegerService() != nil && s.serviceManager.GetJaegerService().IsEnabled()
+	case "nacos":
+		return s.serviceManager.GetNacosService() != nil && s.serviceManager.GetNacosService().IsEnabled()
+	case "opentelemetry":
+		return s.serviceManager.GetOpenTelemetryService() != nil && s.serviceManager.GetOpenTelemetryService().IsEnabled()
+	case "sentry":
+		return s.serviceManager.GetSentryService() != nil && s.serviceManager.GetSentryService().IsEnabled()
+	case "langfuse":
+		return s.serviceManager.GetLangfuseService() != nil && s.serviceManager.GetLangfuseService().IsEnabled()
+	case "utilities":
+		return s.serviceManager.GetUtilitiesService() != nil && s.serviceManager.GetUtilitiesService().IsEnabled()
+	default:
+		return false
 	}
 }
 
@@ -224,9 +261,12 @@ func (s *ServerConfig) AddPromptsToServer(mcpServer *server.MCPServer) {
 		"component": "server",
 		"operation": "add_prompts",
 	}).Debug("Adding prompts to MCP server")
-	mcpServer.AddPrompt(prompts.TestPodPrompt(), prompts.HandleTestPrompt)
-	mcpServer.AddPrompt(prompts.K8sOpsPrompt(), prompts.HandleK8sOpsPrompt)
+	prompts.RegisterAll(mcpServer)
 	logrus.Debug("Prompts added to MCP server successfully")
+}
+
+func (s *ServerConfig) addServicePrompts(mcpServer *server.MCPServer, availableServices ...string) {
+	prompts.RegisterForServices(mcpServer, availableServices)
 }
 
 func (s *ServerConfig) InitSSEServers(mcpServer *server.MCPServer, addr string, appConfig *config.AppConfig) map[string]*server.SSEServer {
@@ -744,26 +784,28 @@ func (s *ServerConfig) createServiceMCPServer(serviceName string) *server.MCPSer
 		case "kubernetes":
 			if kubernetesService := s.serviceManager.GetKubernetesService(); kubernetesService != nil && kubernetesService.IsEnabled() {
 				s.registerTools(serviceServer, kubernetesService.GetTools(), kubernetesService.GetHandlers())
-				// Add prompts for Kubernetes service
-				serviceServer.AddPrompt(prompts.TestPodPrompt(), prompts.HandleTestPrompt)
-				serviceServer.AddPrompt(prompts.K8sOpsPrompt(), prompts.HandleK8sOpsPrompt)
+				s.addServicePrompts(serviceServer, "kubernetes")
 			}
 		case "grafana":
 			if grafanaService := s.serviceManager.GetGrafanaService(); grafanaService != nil && grafanaService.IsEnabled() {
 				s.registerTools(serviceServer, grafanaService.GetTools(), grafanaService.GetHandlers())
+				s.addServicePrompts(serviceServer, "grafana")
 			}
 		case "prometheus":
 			if prometheusService := s.serviceManager.GetPrometheusService(); prometheusService != nil && prometheusService.IsEnabled() {
 				s.registerTools(serviceServer, prometheusService.GetTools(), prometheusService.GetHandlers())
 				s.registerResources(serviceServer, prometheusService.GetResources(), prometheusService.GetResourceHandlers())
+				s.addServicePrompts(serviceServer, "prometheus")
 			}
 		case "loki":
 			if lokiService := s.serviceManager.GetLokiService(); lokiService != nil && lokiService.IsEnabled() {
 				s.registerTools(serviceServer, lokiService.GetTools(), lokiService.GetHandlers())
+				s.addServicePrompts(serviceServer, "loki")
 			}
 		case "kibana":
 			if kibanaService := s.serviceManager.GetKibanaService(); kibanaService != nil && kibanaService.IsEnabled() {
 				s.registerTools(serviceServer, kibanaService.GetTools(), kibanaService.GetHandlers())
+				s.addServicePrompts(serviceServer, "kibana")
 			}
 		case "helm":
 			if helmService := s.serviceManager.GetHelmService(); helmService != nil && helmService.IsEnabled() {
@@ -771,43 +813,53 @@ func (s *ServerConfig) createServiceMCPServer(serviceName string) *server.MCPSer
 
 				// Add additional tools for Helm service
 				s.registerTools(serviceServer, helmService.GetAdditionalTools(), helmService.GetAdditionalHandlers())
+				s.addServicePrompts(serviceServer, "helm")
 			}
 		case "argocd":
 			if argocdService := s.serviceManager.GetArgoCDService(); argocdService != nil && argocdService.IsEnabled() {
 				s.registerTools(serviceServer, argocdService.GetTools(), argocdService.GetHandlers())
+				s.addServicePrompts(serviceServer, "argocd")
 			}
 		case "elasticsearch":
 			if elasticsearchService := s.serviceManager.GetElasticsearchService(); elasticsearchService != nil && elasticsearchService.IsEnabled() {
 				s.registerTools(serviceServer, elasticsearchService.GetTools(), elasticsearchService.GetHandlers())
+				s.addServicePrompts(serviceServer, "elasticsearch")
 			}
 		case "alertmanager":
 			if alertmanagerService := s.serviceManager.GetAlertmanagerService(); alertmanagerService != nil && alertmanagerService.IsEnabled() {
 				s.registerTools(serviceServer, alertmanagerService.GetTools(), alertmanagerService.GetHandlers())
+				s.addServicePrompts(serviceServer, "alertmanager")
 			}
 		case "jaeger":
 			if jaegerService := s.serviceManager.GetJaegerService(); jaegerService != nil && jaegerService.IsEnabled() {
 				s.registerTools(serviceServer, jaegerService.GetTools(), jaegerService.GetHandlers())
+				s.addServicePrompts(serviceServer, "jaeger")
 			}
 		case "nacos":
 			if nacosService := s.serviceManager.GetNacosService(); nacosService != nil && nacosService.IsEnabled() {
 				s.registerTools(serviceServer, nacosService.GetTools(), nacosService.GetHandlers())
+				s.addServicePrompts(serviceServer, "nacos")
 			}
 		case "langfuse":
 			if langfuseService := s.serviceManager.GetLangfuseService(); langfuseService != nil && langfuseService.IsEnabled() {
 				s.registerTools(serviceServer, langfuseService.GetTools(), langfuseService.GetHandlers())
+				s.addServicePrompts(serviceServer, "langfuse")
 			}
 		case "sentry":
 			if sentryService := s.serviceManager.GetSentryService(); sentryService != nil && sentryService.IsEnabled() {
 				s.registerTools(serviceServer, sentryService.GetTools(), sentryService.GetHandlers())
+				s.addServicePrompts(serviceServer, "sentry")
 			}
 		case "opentelemetry":
 			if opentelemetryService := s.serviceManager.GetOpenTelemetryService(); opentelemetryService != nil && opentelemetryService.IsEnabled() {
 				s.registerTools(serviceServer, opentelemetryService.GetTools(), opentelemetryService.GetHandlers())
 				s.registerResources(serviceServer, opentelemetryService.GetResources(), opentelemetryService.GetResourceHandlers())
+				s.addServicePrompts(serviceServer, "opentelemetry")
 			}
 		case "utilities":
 			if utilitiesService := s.serviceManager.GetUtilitiesService(); utilitiesService != nil && utilitiesService.IsEnabled() {
 				s.registerTools(serviceServer, utilitiesService.GetTools(), utilitiesService.GetHandlers())
+				s.addServicePrompts(serviceServer, "utilities")
 			}
 		}
 	}
@@ -829,9 +881,7 @@ func (s *ServerConfig) createAggregateMCPServer() *server.MCPServer {
 		// Add Kubernetes service capabilities
 		if kubernetesService := s.serviceManager.GetKubernetesService(); kubernetesService != nil && kubernetesService.IsEnabled() {
 			s.registerTools(aggregateServer, kubernetesService.GetTools(), kubernetesService.GetHandlers())
-			// Add prompts for Kubernetes service
-			aggregateServer.AddPrompt(prompts.TestPodPrompt(), prompts.HandleTestPrompt)
-			aggregateServer.AddPrompt(prompts.K8sOpsPrompt(), prompts.HandleK8sOpsPrompt)
+			prompts.RegisterAll(aggregateServer)
 		}
 
 		// Add Grafana service capabilities

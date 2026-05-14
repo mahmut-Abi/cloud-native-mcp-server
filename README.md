@@ -14,6 +14,7 @@ A high-performance Model Context Protocol (MCP) server for Kubernetes and cloud-
 
 - **15 Integrated Services**: Kubernetes, Grafana, Prometheus, Loki, Kibana, Elasticsearch, Helm, Argo CD, Alertmanager, Jaeger, Nacos, Langfuse, Sentry, OpenTelemetry, Utilities
 - **327 MCP Tools**: Comprehensive toolset for infrastructure operations
+- **Built-in MCP Prompts**: Pre-authored troubleshooting and remediation workflows for agents
 - **Multi-Protocol Support**: SSE and streamable-http modes
 - **Smart Caching**: LRU cache with TTL support for optimal performance
 - **Performance Optimized**: JSON encoding pool, response size control, intelligent limits
@@ -143,6 +144,7 @@ API_KEY=your-key make sse-smoke BASE_URL=http://127.0.0.1:8080
 - [Security Guide](docs/SECURITY.md) - Authentication, secrets management, and security best practices
 - [Architecture Guide](docs/ARCHITECTURE.md) - System architecture and design
 - [Performance Guide](docs/PERFORMANCE.md) - Performance features and tuning
+- [Prompt Guide](docs/PROMPTS.md) - Built-in MCP prompts for agent workflows
 
 ---
 

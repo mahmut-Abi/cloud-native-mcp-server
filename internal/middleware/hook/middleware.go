@@ -113,11 +113,11 @@ func NewTaskHooks() *server.TaskHooks {
 }
 
 // PromptAvailabilityMiddleware blocks prompts whose backing services are unavailable.
-func PromptAvailabilityMiddleware(isKubernetesEnabled func() bool) server.PromptHandlerMiddleware {
+func PromptAvailabilityMiddleware(isServiceEnabled func(string) bool) server.PromptHandlerMiddleware {
 	return func(next server.PromptHandlerFunc) server.PromptHandlerFunc {
 		return func(ctx context.Context, request mcp.GetPromptRequest) (*mcp.GetPromptResult, error) {
-			if request.Params.Name == prompts.K8sOpsPromptName && !isKubernetesEnabled() {
-				return nil, fmt.Errorf("prompt %q is unavailable because the kubernetes service is disabled", prompts.K8sOpsPromptName)
+			if !prompts.IsAvailable(request.Params.Name, isServiceEnabled) {
+				return nil, fmt.Errorf("prompt %q is unavailable because one or more required services are disabled", request.Params.Name)
 			}
 			return next(ctx, request)
 		}

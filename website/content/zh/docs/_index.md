@@ -20,6 +20,7 @@ bookCollapseSection: true
 - [落实安全策略与加固措施]({{< relref "security.md" >}})
 - [进行性能调优与压测]({{< relref "performance.md" >}})
 - [查看完整工具能力清单]({{< relref "tools.md" >}})
+- [查看内置 MCP Prompt]({{< relref "prompts.md" >}})
 - [对接 MCP API 端点]({{< relref "api.md" >}})
 
 ## 快速开始
@@ -51,4 +52,5 @@ docker run -d \
 - `安全指南`: 认证、审计、密钥与安全实践
 - `性能指南`: 缓存、并发、压测与优化建议
 - `工具参考`: 全部服务工具目录与示例
+- `Prompts`: 面向 Agent 的内置排障与修复工作流
 - `API 文档`: 协议端点与请求/响应格式
