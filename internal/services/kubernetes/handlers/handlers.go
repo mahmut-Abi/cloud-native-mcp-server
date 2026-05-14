@@ -766,6 +766,9 @@ func HandleCreateResource(client *client.Client) func(ctx context.Context, reque
 		if err != nil {
 			return nil, err
 		}
+		if !hasCreateIdentity(metadata) {
+			return nil, fmt.Errorf("metadata.name or metadata.generateName is required for kubernetes_create_resource")
+		}
 		metadataJSON, err := optimize.GlobalJSONPool.MarshalToBytes(metadata)
 		if err != nil {
 			return nil, fmt.Errorf("failed to serialize metadata JSON: %w", err)
@@ -792,6 +795,15 @@ func HandleCreateResource(client *client.Client) func(ctx context.Context, reque
 		logrus.Debug("create_resource succeeded")
 		return marshalJSONResponse(result)
 	}
+}
+
+func hasCreateIdentity(metadata map[string]any) bool {
+	for _, key := range []string{"name", "generateName"} {
+		if value, ok := metadata[key].(string); ok && strings.TrimSpace(value) != "" {
+			return true
+		}
+	}
+	return false
 }
 
 // HandleUpdateResource handles update requests for Kubernetes resources.

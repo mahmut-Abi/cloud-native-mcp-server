@@ -305,3 +305,40 @@ func TestGetOptionalSearchKinds(t *testing.T) {
 		t.Fatalf("unexpected kinds: %#v", kinds)
 	}
 }
+
+func TestHasCreateIdentity(t *testing.T) {
+	tests := []struct {
+		name     string
+		metadata map[string]any
+		want     bool
+	}{
+		{
+			name:     "name present",
+			metadata: map[string]any{"name": "demo"},
+			want:     true,
+		},
+		{
+			name:     "generateName present",
+			metadata: map[string]any{"generateName": "demo-"},
+			want:     true,
+		},
+		{
+			name:     "blank name",
+			metadata: map[string]any{"name": "   "},
+			want:     false,
+		},
+		{
+			name:     "empty metadata",
+			metadata: map[string]any{},
+			want:     false,
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			if got := hasCreateIdentity(tt.metadata); got != tt.want {
+				t.Fatalf("hasCreateIdentity(%#v) = %v, want %v", tt.metadata, got, tt.want)
+			}
+		})
+	}
+}
