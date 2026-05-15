@@ -2,6 +2,7 @@ package config
 
 import (
 	"os"
+	"strings"
 	"testing"
 )
 
@@ -392,28 +393,18 @@ func TestLangfuseServiceConfigFromEnv(t *testing.T) {
 	}
 }
 
-func TestLangfuseLegacyKeyEnvFallback(t *testing.T) {
+func TestLangfuseLegacyKeyEnvVarsDoNotAuthenticate(t *testing.T) {
 	t.Setenv("MCP_LANGFUSE_ENABLED", "true")
 	t.Setenv("MCP_LANGFUSE_URL", "https://langfuse.example.com")
 	t.Setenv("MCP_LANGFUSE_PUBLIC_KEY", "pk-legacy")
 	t.Setenv("MCP_LANGFUSE_SECRET_KEY", "sk-legacy")
 
-	cfg, err := Load("")
-	if err != nil {
-		t.Fatalf("Load() error = %v", err)
+	_, err := Load("")
+	if err == nil {
+		t.Fatal("expected Load() to fail without MCP_LANGFUSE_USERNAME and MCP_LANGFUSE_PASSWORD")
 	}
-
-	if cfg.Langfuse.Username != "pk-legacy" {
-		t.Errorf("Expected Langfuse username fallback, got %q", cfg.Langfuse.Username)
-	}
-	if cfg.Langfuse.Password != "sk-legacy" {
-		t.Errorf("Expected Langfuse password fallback, got %q", cfg.Langfuse.Password)
-	}
-	if cfg.Langfuse.PublicKey != "pk-legacy" {
-		t.Errorf("Expected legacy public key to remain populated, got %q", cfg.Langfuse.PublicKey)
-	}
-	if cfg.Langfuse.SecretKey != "sk-legacy" {
-		t.Errorf("Expected legacy secret key to remain populated, got %q", cfg.Langfuse.SecretKey)
+	if !strings.Contains(err.Error(), "langfuse username is required") {
+		t.Fatalf("expected username validation error, got %v", err)
 	}
 }
 

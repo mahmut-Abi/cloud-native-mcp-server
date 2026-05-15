@@ -486,10 +486,6 @@ langfuse:
   # Basic auth password for Langfuse Public API
   password: ""
 
-  # Deprecated aliases for username/password
-  publicKey: ""
-  secretKey: ""
-
   # Request timeout (seconds)
   timeoutSec: 30
 ```

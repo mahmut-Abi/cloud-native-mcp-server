@@ -34,12 +34,10 @@ func NewService() *Service {
 		URLValidator: framework.SimpleURLValidator,
 		ClientBuilder: func(cfg *config.AppConfig) (interface{}, error) {
 			return client.NewClient(&client.ClientOptions{
-				URL:       cfg.Langfuse.URL,
-				Username:  cfg.Langfuse.Username,
-				Password:  cfg.Langfuse.Password,
-				PublicKey: cfg.Langfuse.PublicKey,
-				SecretKey: cfg.Langfuse.SecretKey,
-				Timeout:   time.Duration(cfg.Langfuse.TimeoutSec) * time.Second,
+				URL:      cfg.Langfuse.URL,
+				Username: cfg.Langfuse.Username,
+				Password: cfg.Langfuse.Password,
+				Timeout:  time.Duration(cfg.Langfuse.TimeoutSec) * time.Second,
 			})
 		},
 	}

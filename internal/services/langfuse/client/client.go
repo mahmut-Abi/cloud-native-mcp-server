@@ -23,8 +23,6 @@ type ClientOptions struct {
 	URL            string
 	Username       string
 	Password       string
-	PublicKey      string // Deprecated: use Username.
-	SecretKey      string // Deprecated: use Password.
 	Timeout        time.Duration
 	MaxRetries     int
 	RetryBaseDelay time.Duration
@@ -52,13 +50,7 @@ func NewClient(opts *ClientOptions) (*Client, error) {
 	}
 
 	username := strings.TrimSpace(opts.Username)
-	if username == "" {
-		username = strings.TrimSpace(opts.PublicKey)
-	}
 	password := strings.TrimSpace(opts.Password)
-	if password == "" {
-		password = strings.TrimSpace(opts.SecretKey)
-	}
 	if username == "" {
 		return nil, fmt.Errorf("langfuse username is required")
 	}

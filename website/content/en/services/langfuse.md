@@ -103,10 +103,10 @@ langfuse:
 
 Langfuse uses HTTP Basic Auth on the Public API:
 
-- Username: Langfuse public key
-- Password: Langfuse secret key
+- Username: configured Langfuse Basic Auth username
+- Password: configured Langfuse Basic Auth password
 
-`publicKey` and `secretKey` are still accepted as deprecated aliases for `username` and `password`. The API key management tools require organization-scoped Langfuse credentials.
+The project, membership, and API key management tools require organization-scoped Langfuse credentials.
 
 ## Next Steps
 

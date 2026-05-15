@@ -114,7 +114,9 @@ func NewClientWithOptions(opts *ClientOptions) (*Client, error) {
 // buildURL constructs a full URL for an API endpoint
 func (c *Client) buildURL(endpoint string) string {
 	u := *c.baseURL
-	u.Path = path.Join(u.Path, "api/v2", endpoint)
+	endpointPath, rawQuery, _ := strings.Cut(endpoint, "?")
+	u.Path = path.Join(u.Path, "api/v2", endpointPath)
+	u.RawQuery = rawQuery
 	return u.String()
 }
 

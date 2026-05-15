@@ -566,21 +566,15 @@ langfuse:
   url: "https://cloud.langfuse.com"
 
   # Basic auth username for Langfuse Public API
-  # For project reads, this is usually a Langfuse public key.
-  # For API key management tools, use an organization-scoped public key.
+  # Use project-scoped credentials for project reads.
+  # Use organization-scoped credentials for project, membership, and API key management tools.
   # Environment variable: MCP_LANGFUSE_USERNAME
   username: ""
 
   # Basic auth password for Langfuse Public API
-  # For project reads, this is usually a Langfuse secret key.
-  # For API key management tools, use an organization-scoped secret key.
+  # Must match the scope of the configured username.
   # Environment variable: MCP_LANGFUSE_PASSWORD
   password: ""
-
-  # Deprecated compatibility aliases for username/password
-  # Environment variables: MCP_LANGFUSE_PUBLIC_KEY, MCP_LANGFUSE_SECRET_KEY
-  publicKey: ""
-  secretKey: ""
 
   # Request timeout (seconds)
   # Environment variable: MCP_LANGFUSE_TIMEOUT

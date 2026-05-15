@@ -168,6 +168,34 @@ func TestGetAlerts(t *testing.T) {
 	}
 }
 
+func TestGetAlertsWithFiltersKeepsQueryString(t *testing.T) {
+	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		if r.URL.Path != "/api/v2/alerts" {
+			t.Fatalf("expected path /api/v2/alerts, got %s", r.URL.Path)
+		}
+		if r.URL.Query().Get("active") != "true" {
+			t.Fatalf("expected active=true query, got %q", r.URL.RawQuery)
+		}
+
+		w.Header().Set("Content-Type", "application/json")
+		w.WriteHeader(http.StatusOK)
+		_, _ = w.Write([]byte(`[]`))
+	}))
+	defer server.Close()
+
+	client, err := NewClientWithOptions(&ClientOptions{
+		Address: server.URL,
+		Timeout: 5 * time.Second,
+	})
+	if err != nil {
+		t.Fatalf("Failed to create client: %v", err)
+	}
+
+	if _, err := client.GetAlerts(context.Background(), map[string]string{"active": "true"}); err != nil {
+		t.Fatalf("Failed to get alerts: %v", err)
+	}
+}
+
 func TestInvalidURL(t *testing.T) {
 	opts := &ClientOptions{
 		Address: "ht tp://invalid url with spaces",

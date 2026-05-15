@@ -276,8 +276,6 @@ langfuse:
   url: "https://cloud.langfuse.com"
   username: ""
   password: ""
-  publicKey: ""  # deprecated alias for username
-  secretKey: ""  # deprecated alias for password
   timeoutSec: 30
 
 sentry:

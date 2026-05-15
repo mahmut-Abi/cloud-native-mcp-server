@@ -546,10 +546,6 @@ langfuse:
   # Langfuse Public API Basic Auth 密码
   password: ""
 
-  # username/password 的废弃兼容别名
-  publicKey: ""
-  secretKey: ""
-
   # 请求超时（秒）
   timeoutSec: 30
 ```
