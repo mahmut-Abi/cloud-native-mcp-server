@@ -1,6 +1,10 @@
 package langfuse
 
-import "testing"
+import (
+	"testing"
+
+	"github.com/mahmut-Abi/cloud-native-mcp-server/internal/services/langfuse/client"
+)
 
 func TestLangfuseServiceNew(t *testing.T) {
 	svc := NewService()
@@ -36,5 +40,36 @@ func TestLangfuseServiceInitializeNilConfig(t *testing.T) {
 	}
 	if svc.IsEnabled() {
 		t.Fatal("service should remain disabled without config")
+	}
+}
+
+func TestLangfuseServiceExposesProjectManagementTools(t *testing.T) {
+	svc := NewService()
+	svc.enabled = true
+	svc.client = &client.Client{}
+
+	tools := svc.GetTools()
+	if len(tools) != 37 {
+		t.Fatalf("expected 37 tools, got %d", len(tools))
+	}
+
+	handlers := svc.GetHandlers()
+	for _, name := range []string{
+		"langfuse_get_project",
+		"langfuse_list_organization_projects",
+		"langfuse_create_project",
+		"langfuse_update_project",
+		"langfuse_delete_project",
+		"langfuse_list_project_memberships",
+		"langfuse_upsert_project_membership",
+		"langfuse_delete_project_membership",
+		"langfuse_list_organization_api_keys",
+		"langfuse_list_project_api_keys",
+		"langfuse_create_project_api_key",
+		"langfuse_delete_project_api_key",
+	} {
+		if _, ok := handlers[name]; !ok {
+			t.Fatalf("expected handler %q to be registered", name)
+		}
 	}
 }

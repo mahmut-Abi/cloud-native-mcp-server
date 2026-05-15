@@ -1,6 +1,7 @@
 package client
 
 import (
+	"bytes"
 	"context"
 	"encoding/json"
 	"fmt"
@@ -20,20 +21,22 @@ const defaultRequestTimeout = 30 * time.Second
 // ClientOptions holds configuration for creating a Langfuse client.
 type ClientOptions struct {
 	URL            string
-	PublicKey      string
-	SecretKey      string
+	Username       string
+	Password       string
+	PublicKey      string // Deprecated: use Username.
+	SecretKey      string // Deprecated: use Password.
 	Timeout        time.Duration
 	MaxRetries     int
 	RetryBaseDelay time.Duration
 	RetryMaxDelay  time.Duration
 }
 
-// Client provides read-only access to the Langfuse Public API.
+// Client provides access to the Langfuse Public API.
 type Client struct {
 	baseURL        string
 	httpClient     *http.Client
-	publicKey      string
-	secretKey      string
+	username       string
+	password       string
 	maxRetries     int
 	retryBaseDelay time.Duration
 	retryMaxDelay  time.Duration
@@ -47,11 +50,20 @@ func NewClient(opts *ClientOptions) (*Client, error) {
 	if strings.TrimSpace(opts.URL) == "" {
 		return nil, fmt.Errorf("langfuse URL is required")
 	}
-	if strings.TrimSpace(opts.PublicKey) == "" {
-		return nil, fmt.Errorf("langfuse public key is required")
+
+	username := strings.TrimSpace(opts.Username)
+	if username == "" {
+		username = strings.TrimSpace(opts.PublicKey)
 	}
-	if strings.TrimSpace(opts.SecretKey) == "" {
-		return nil, fmt.Errorf("langfuse secret key is required")
+	password := strings.TrimSpace(opts.Password)
+	if password == "" {
+		password = strings.TrimSpace(opts.SecretKey)
+	}
+	if username == "" {
+		return nil, fmt.Errorf("langfuse username is required")
+	}
+	if password == "" {
+		return nil, fmt.Errorf("langfuse password is required")
 	}
 
 	parsedURL, err := url.Parse(strings.TrimSpace(opts.URL))
@@ -81,8 +93,8 @@ func NewClient(opts *ClientOptions) (*Client, error) {
 	return &Client{
 		baseURL:        parsedURL.String(),
 		httpClient:     optimize.NewOptimizedHTTPClientWithTimeout(timeout),
-		publicKey:      strings.TrimSpace(opts.PublicKey),
-		secretKey:      strings.TrimSpace(opts.SecretKey),
+		username:       username,
+		password:       password,
 		maxRetries:     maxRetries,
 		retryBaseDelay: retryBaseDelay,
 		retryMaxDelay:  retryMaxDelay,
@@ -215,37 +227,169 @@ func (c *Client) GetMetrics(ctx context.Context, queryJSON string) (map[string]i
 	return c.getJSON(ctx, "metrics", params)
 }
 
+// GetProject returns the project associated with the configured project-scoped credentials.
+func (c *Client) GetProject(ctx context.Context) (map[string]interface{}, error) {
+	return c.getJSON(ctx, "projects", nil)
+}
+
+// ListOrganizationProjects returns all projects visible to the configured organization-scoped credentials.
+func (c *Client) ListOrganizationProjects(ctx context.Context) (map[string]interface{}, error) {
+	return c.getJSON(ctx, "organizations/projects", nil)
+}
+
+// CreateProject creates a Langfuse project.
+func (c *Client) CreateProject(ctx context.Context, name string, metadata map[string]interface{}, retentionDays int) (map[string]interface{}, error) {
+	payload := map[string]interface{}{
+		"name":      strings.TrimSpace(name),
+		"retention": retentionDays,
+	}
+	if metadata != nil {
+		payload["metadata"] = metadata
+	}
+	return c.postJSON(ctx, "projects", nil, payload)
+}
+
+// UpdateProject updates a Langfuse project.
+func (c *Client) UpdateProject(ctx context.Context, projectID, name string, metadata map[string]interface{}, retentionDays *int) (map[string]interface{}, error) {
+	payload := map[string]interface{}{
+		"name": strings.TrimSpace(name),
+	}
+	if metadata != nil {
+		payload["metadata"] = metadata
+	}
+	if retentionDays != nil {
+		payload["retention"] = *retentionDays
+	}
+	return c.putJSON(ctx, "projects/"+url.PathEscape(strings.TrimSpace(projectID)), nil, payload)
+}
+
+// DeleteProject deletes a Langfuse project asynchronously.
+func (c *Client) DeleteProject(ctx context.Context, projectID string) (map[string]interface{}, error) {
+	return c.deleteJSON(ctx, "projects/"+url.PathEscape(strings.TrimSpace(projectID)), nil)
+}
+
+// ListProjectMemberships returns memberships for a project.
+func (c *Client) ListProjectMemberships(ctx context.Context, projectID string) (map[string]interface{}, error) {
+	return c.getJSON(ctx, "projects/"+url.PathEscape(strings.TrimSpace(projectID))+"/memberships", nil)
+}
+
+// UpsertProjectMembership creates or updates a user's project membership.
+func (c *Client) UpsertProjectMembership(ctx context.Context, projectID, userID, role string) (map[string]interface{}, error) {
+	payload := map[string]interface{}{
+		"userId": strings.TrimSpace(userID),
+		"role":   strings.TrimSpace(role),
+	}
+	return c.putJSON(ctx, "projects/"+url.PathEscape(strings.TrimSpace(projectID))+"/memberships", nil, payload)
+}
+
+// DeleteProjectMembership deletes a user's membership from a project.
+func (c *Client) DeleteProjectMembership(ctx context.Context, projectID, userID string) (map[string]interface{}, error) {
+	payload := map[string]interface{}{
+		"userId": strings.TrimSpace(userID),
+	}
+	return c.requestJSON(ctx, http.MethodDelete, "projects/"+url.PathEscape(strings.TrimSpace(projectID))+"/memberships", nil, payload)
+}
+
+// ListOrganizationAPIKeys returns organization API keys visible to the configured organization-scoped credentials.
+func (c *Client) ListOrganizationAPIKeys(ctx context.Context) (map[string]interface{}, error) {
+	return c.getJSON(ctx, "organizations/apiKeys", nil)
+}
+
+// ListProjectAPIKeys returns API keys for a project.
+func (c *Client) ListProjectAPIKeys(ctx context.Context, projectID string) (map[string]interface{}, error) {
+	return c.getJSON(ctx, "projects/"+url.PathEscape(strings.TrimSpace(projectID))+"/apiKeys", nil)
+}
+
+// CreateProjectAPIKey creates a new API key for a project.
+func (c *Client) CreateProjectAPIKey(ctx context.Context, projectID, note, publicKey, secretKey string) (map[string]interface{}, error) {
+	publicKey = strings.TrimSpace(publicKey)
+	secretKey = strings.TrimSpace(secretKey)
+	if (publicKey == "") != (secretKey == "") {
+		return nil, fmt.Errorf("publicKey and secretKey must be provided together when predefining credentials")
+	}
+
+	payload := map[string]interface{}{}
+	if note = strings.TrimSpace(note); note != "" {
+		payload["note"] = note
+	}
+	if publicKey != "" {
+		payload["publicKey"] = publicKey
+		payload["secretKey"] = secretKey
+	}
+
+	return c.postJSON(ctx, "projects/"+url.PathEscape(strings.TrimSpace(projectID))+"/apiKeys", nil, payload)
+}
+
+// DeleteProjectAPIKey deletes an API key from a project.
+func (c *Client) DeleteProjectAPIKey(ctx context.Context, projectID, apiKeyID string) (map[string]interface{}, error) {
+	endpoint := "projects/" + url.PathEscape(strings.TrimSpace(projectID)) + "/apiKeys/" + url.PathEscape(strings.TrimSpace(apiKeyID))
+	return c.deleteJSON(ctx, endpoint, nil)
+}
+
 func (c *Client) getJSON(ctx context.Context, endpoint string, params url.Values) (map[string]interface{}, error) {
-	resp, err := c.makeRequest(ctx, endpoint, params)
+	return c.requestJSON(ctx, http.MethodGet, endpoint, params, nil)
+}
+
+func (c *Client) postJSON(ctx context.Context, endpoint string, params url.Values, payload interface{}) (map[string]interface{}, error) {
+	return c.requestJSON(ctx, http.MethodPost, endpoint, params, payload)
+}
+
+func (c *Client) putJSON(ctx context.Context, endpoint string, params url.Values, payload interface{}) (map[string]interface{}, error) {
+	return c.requestJSON(ctx, http.MethodPut, endpoint, params, payload)
+}
+
+func (c *Client) deleteJSON(ctx context.Context, endpoint string, params url.Values) (map[string]interface{}, error) {
+	return c.requestJSON(ctx, http.MethodDelete, endpoint, params, nil)
+}
+
+func (c *Client) requestJSON(ctx context.Context, method, endpoint string, params url.Values, payload interface{}) (map[string]interface{}, error) {
+	resp, err := c.makeRequest(ctx, method, endpoint, params, payload)
 	if err != nil {
 		return nil, err
 	}
 	return c.readJSON(resp)
 }
 
-func (c *Client) makeRequest(ctx context.Context, endpoint string, params url.Values) (*http.Response, error) {
+func (c *Client) makeRequest(ctx context.Context, method, endpoint string, params url.Values, payload interface{}) (*http.Response, error) {
 	requestURL := c.baseURL + strings.TrimPrefix(endpoint, "/")
 	if len(params) > 0 {
 		requestURL += "?" + params.Encode()
 	}
 
+	var bodyBytes []byte
+	if payload != nil {
+		var err error
+		bodyBytes, err = json.Marshal(payload)
+		if err != nil {
+			return nil, fmt.Errorf("failed to marshal Langfuse request body: %w", err)
+		}
+	}
+
 	return optimize.DoWithHTTPRetry(
 		ctx,
-		http.MethodGet,
+		method,
 		c.maxRetries,
 		c.retryBaseDelay,
 		c.retryMaxDelay,
 		func(attempt int) (*http.Response, error) {
-			req, err := http.NewRequestWithContext(ctx, http.MethodGet, requestURL, nil)
+			var body io.Reader
+			if bodyBytes != nil {
+				body = bytes.NewReader(bodyBytes)
+			}
+			req, err := http.NewRequestWithContext(ctx, method, requestURL, body)
 			if err != nil {
 				return nil, fmt.Errorf("failed to create request: %w", err)
 			}
 
 			req.Header.Set("Accept", "application/json")
-			req.SetBasicAuth(c.publicKey, c.secretKey)
+			if bodyBytes != nil {
+				req.Header.Set("Content-Type", "application/json")
+			}
+			req.SetBasicAuth(c.username, c.password)
 
 			logrus.WithFields(logrus.Fields{
 				"attempt": attempt,
+				"method":  method,
 				"url":     requestURL,
 			}).Debug("Making Langfuse API request")
 

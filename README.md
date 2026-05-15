@@ -50,7 +50,7 @@ A high-performance Model Context Protocol (MCP) server for Kubernetes and cloud-
 | **alertmanager** | 16 | Alert rules management and notifications |
 | **jaeger** | 8 | Distributed tracing and performance analysis |
 | **nacos** | 9 | Nacos namespace, config, service discovery, and node inspection |
-| **langfuse** | 25 | LLM observability, prompts, traces, scores, datasets, models, and metrics |
+| **langfuse** | 37 | LLM observability, prompts, traces, scores, datasets, models, metrics, projects, memberships, and API key management |
 | **sentry** | 9 | Error monitoring, issue triage, and issue event inspection |
 | **opentelemetry** | 12 | Collector health, config, pipeline analysis, and telemetry diagnostics |
 | **utilities** | 6 | General-purpose utility tools |

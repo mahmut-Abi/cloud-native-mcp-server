@@ -126,8 +126,8 @@ description: High-performance Model Context Protocol server for Kubernetes and c
     <p>Namespaces, configs, service discovery, instances, and node-level inspection.</p>
   </div>
   <div class="service-card">
-    <h3>Langfuse <span class="tool-count">25 tools</span></h3>
-    <p>LLM observability for traces, sessions, prompts, scores, and metrics.</p>
+    <h3>Langfuse <span class="tool-count">37 tools</span></h3>
+    <p>LLM observability for traces, sessions, prompts, scores, metrics, projects, memberships, and keys.</p>
   </div>
   <div class="service-card">
     <h3>Sentry <span class="tool-count">9 tools</span></h3>

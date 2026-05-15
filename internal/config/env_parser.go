@@ -467,11 +467,23 @@ func (p *EnvParser) parseLangfuseConfig(cfg *AppConfig, over func(string) (strin
 	if v, ok := over("MCP_LANGFUSE_URL"); ok {
 		cfg.Langfuse.URL = v
 	}
+	if v, ok := over("MCP_LANGFUSE_USERNAME"); ok {
+		cfg.Langfuse.Username = v
+	}
+	if v, ok := over("MCP_LANGFUSE_PASSWORD"); ok {
+		cfg.Langfuse.Password = v
+	}
 	if v, ok := over("MCP_LANGFUSE_PUBLIC_KEY"); ok {
 		cfg.Langfuse.PublicKey = v
+		if cfg.Langfuse.Username == "" {
+			cfg.Langfuse.Username = v
+		}
 	}
 	if v, ok := over("MCP_LANGFUSE_SECRET_KEY"); ok {
 		cfg.Langfuse.SecretKey = v
+		if cfg.Langfuse.Password == "" {
+			cfg.Langfuse.Password = v
+		}
 	}
 	if v, ok := over("MCP_LANGFUSE_TIMEOUT"); ok {
 		cfg.Langfuse.TimeoutSec = atoiDefault(v, cfg.Langfuse.TimeoutSec)

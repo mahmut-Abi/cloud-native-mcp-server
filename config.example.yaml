@@ -565,12 +565,21 @@ langfuse:
   # Environment variable: MCP_LANGFUSE_URL
   url: "https://cloud.langfuse.com"
 
-  # Langfuse public key
-  # Environment variable: MCP_LANGFUSE_PUBLIC_KEY
-  publicKey: ""
+  # Basic auth username for Langfuse Public API
+  # For project reads, this is usually a Langfuse public key.
+  # For API key management tools, use an organization-scoped public key.
+  # Environment variable: MCP_LANGFUSE_USERNAME
+  username: ""
 
-  # Langfuse secret key
-  # Environment variable: MCP_LANGFUSE_SECRET_KEY
+  # Basic auth password for Langfuse Public API
+  # For project reads, this is usually a Langfuse secret key.
+  # For API key management tools, use an organization-scoped secret key.
+  # Environment variable: MCP_LANGFUSE_PASSWORD
+  password: ""
+
+  # Deprecated compatibility aliases for username/password
+  # Environment variables: MCP_LANGFUSE_PUBLIC_KEY, MCP_LANGFUSE_SECRET_KEY
+  publicKey: ""
   secretKey: ""
 
   # Request timeout (seconds)
