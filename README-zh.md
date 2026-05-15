@@ -44,7 +44,7 @@
 | **elasticsearch** | 日志存储、搜索和数据索引 |
 | **alertmanager** | 告警规则管理和通知 |
 | **jaeger** | 分布式追踪和性能分析 |
-| **langfuse** | LLM 可观测性、Prompt、Trace、评分与指标分析 |
+| **langfuse** | LLM 可观测性、Prompt、Trace、评分、指标分析、项目与成员管理、API Key 管理 |
 | **sentry** | 错误监控、Issue 排障与事件检查 |
 | **opentelemetry** | 指标、追踪和日志收集与分析 |
 | **utilities** | 通用工具 |

@@ -126,8 +126,8 @@ description: 面向 Kubernetes 与云原生运维场景的高性能 Model Contex
     <p>命名空间、配置、服务发现、实例与节点状态检查。</p>
   </div>
   <div class="service-card">
-    <h3>Langfuse <span class="tool-count">25 工具</span></h3>
-    <p>面向 LLM 场景的 Trace、Session、Prompt、评分与指标分析。</p>
+    <h3>Langfuse <span class="tool-count">37 工具</span></h3>
+    <p>面向 LLM 场景的 Trace、Session、Prompt、评分、指标、项目、成员与密钥管理。</p>
   </div>
   <div class="service-card">
     <h3>Sentry <span class="tool-count">9 工具</span></h3>

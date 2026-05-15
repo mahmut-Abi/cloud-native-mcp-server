@@ -25,7 +25,7 @@ For the exact runtime inventory, prefer `--list tools`.
 - [Alertmanager (16 tools)](#alertmanager-16-tools)
 - [Jaeger (8 tools)](#jaeger-8-tools)
 - [Nacos (9 tools)](#nacos-9-tools)
-- [Langfuse (25 tools)](#langfuse-25-tools)
+- [Langfuse (37 tools)](#langfuse-37-tools)
 - [Sentry (9 tools)](#sentry-9-tools)
 - [OpenTelemetry (12 tools)](#opentelemetry-12-tools)
 - [Utilities (6 tools)](#utilities-6-tools)
@@ -653,7 +653,7 @@ Practical guidance:
 
 ---
 
-## Langfuse (25 tools)
+## Langfuse (37 tools)
 
 ### Health
 
@@ -734,6 +734,33 @@ Practical guidance:
 | Tool | Description | Priority |
 |------|-------------|----------|
 | `langfuse_get_metrics` | Execute a Langfuse metrics query using the Public API query object. | - |
+
+### Projects
+
+| Tool | Description | Priority |
+|------|-------------|----------|
+| `langfuse_get_project` | Get the project associated with the configured project-scoped credentials. | - |
+| `langfuse_list_organization_projects` | List projects in the organization. Requires organization-scoped credentials. | - |
+| `langfuse_create_project` | Create a Langfuse project. Requires organization-scoped credentials. | - |
+| `langfuse_update_project` | Update a Langfuse project by ID. Requires organization-scoped credentials. | - |
+| `langfuse_delete_project` | Delete a Langfuse project by ID. Requires organization-scoped credentials. | - |
+
+### Project Memberships
+
+| Tool | Description | Priority |
+|------|-------------|----------|
+| `langfuse_list_project_memberships` | List memberships for a Langfuse project. Requires organization-scoped credentials. | - |
+| `langfuse_upsert_project_membership` | Create or update a Langfuse project membership. Requires organization-scoped credentials. | - |
+| `langfuse_delete_project_membership` | Delete a project membership by user ID. Requires organization-scoped credentials. | - |
+
+### API Key Management
+
+| Tool | Description | Priority |
+|------|-------------|----------|
+| `langfuse_list_organization_api_keys` | List organization-scoped Langfuse API keys. Requires organization-scoped credentials. | - |
+| `langfuse_list_project_api_keys` | List project API keys for a Langfuse project. Requires organization-scoped credentials. | - |
+| `langfuse_create_project_api_key` | Create a project API key and return its public and secret key pair. Requires organization-scoped credentials. | - |
+| `langfuse_delete_project_api_key` | Delete a project API key by ID. Requires organization-scoped credentials. | - |
 
 ---
 
@@ -1118,15 +1145,21 @@ Do not edit this block by hand.
 - `jaeger_get_traces_summary`
 - `jaeger_search_traces`
 
-### Langfuse (25 tools)
+### Langfuse (37 tools)
 
 - `langfuse_check_health`
+- `langfuse_create_project`
+- `langfuse_create_project_api_key`
+- `langfuse_delete_project`
+- `langfuse_delete_project_api_key`
+- `langfuse_delete_project_membership`
 - `langfuse_get_annotation_queue`
 - `langfuse_get_dataset`
 - `langfuse_get_dataset_run`
 - `langfuse_get_metrics`
 - `langfuse_get_model`
 - `langfuse_get_observation`
+- `langfuse_get_project`
 - `langfuse_get_prompt`
 - `langfuse_get_score`
 - `langfuse_get_score_config`
@@ -1139,12 +1172,18 @@ Do not edit this block by hand.
 - `langfuse_list_llm_connections`
 - `langfuse_list_models`
 - `langfuse_list_observations`
+- `langfuse_list_organization_api_keys`
+- `langfuse_list_organization_projects`
+- `langfuse_list_project_api_keys`
+- `langfuse_list_project_memberships`
 - `langfuse_list_prompts`
 - `langfuse_list_score_configs`
 - `langfuse_list_scores`
 - `langfuse_list_sessions`
 - `langfuse_list_traces`
 - `langfuse_list_traces_summary`
+- `langfuse_update_project`
+- `langfuse_upsert_project_membership`
 
 ### Sentry (9 tools)
 

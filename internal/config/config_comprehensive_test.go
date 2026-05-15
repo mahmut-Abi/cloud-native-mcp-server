@@ -366,8 +366,8 @@ func TestNacosServiceConfigFromEnv(t *testing.T) {
 func TestLangfuseServiceConfigFromEnv(t *testing.T) {
 	t.Setenv("MCP_LANGFUSE_ENABLED", "true")
 	t.Setenv("MCP_LANGFUSE_URL", "https://langfuse.example.com")
-	t.Setenv("MCP_LANGFUSE_PUBLIC_KEY", "pk-test")
-	t.Setenv("MCP_LANGFUSE_SECRET_KEY", "sk-test")
+	t.Setenv("MCP_LANGFUSE_USERNAME", "pk-test")
+	t.Setenv("MCP_LANGFUSE_PASSWORD", "sk-test")
 	t.Setenv("MCP_LANGFUSE_TIMEOUT", "40")
 
 	cfg, err := Load("")
@@ -381,14 +381,39 @@ func TestLangfuseServiceConfigFromEnv(t *testing.T) {
 	if cfg.Langfuse.URL != "https://langfuse.example.com" {
 		t.Errorf("Expected Langfuse URL override, got %q", cfg.Langfuse.URL)
 	}
-	if cfg.Langfuse.PublicKey != "pk-test" {
-		t.Errorf("Expected Langfuse public key override, got %q", cfg.Langfuse.PublicKey)
+	if cfg.Langfuse.Username != "pk-test" {
+		t.Errorf("Expected Langfuse username override, got %q", cfg.Langfuse.Username)
 	}
-	if cfg.Langfuse.SecretKey != "sk-test" {
-		t.Errorf("Expected Langfuse secret key override, got %q", cfg.Langfuse.SecretKey)
+	if cfg.Langfuse.Password != "sk-test" {
+		t.Errorf("Expected Langfuse password override, got %q", cfg.Langfuse.Password)
 	}
 	if cfg.Langfuse.TimeoutSec != 40 {
 		t.Errorf("Expected Langfuse timeout 40, got %d", cfg.Langfuse.TimeoutSec)
+	}
+}
+
+func TestLangfuseLegacyKeyEnvFallback(t *testing.T) {
+	t.Setenv("MCP_LANGFUSE_ENABLED", "true")
+	t.Setenv("MCP_LANGFUSE_URL", "https://langfuse.example.com")
+	t.Setenv("MCP_LANGFUSE_PUBLIC_KEY", "pk-legacy")
+	t.Setenv("MCP_LANGFUSE_SECRET_KEY", "sk-legacy")
+
+	cfg, err := Load("")
+	if err != nil {
+		t.Fatalf("Load() error = %v", err)
+	}
+
+	if cfg.Langfuse.Username != "pk-legacy" {
+		t.Errorf("Expected Langfuse username fallback, got %q", cfg.Langfuse.Username)
+	}
+	if cfg.Langfuse.Password != "sk-legacy" {
+		t.Errorf("Expected Langfuse password fallback, got %q", cfg.Langfuse.Password)
+	}
+	if cfg.Langfuse.PublicKey != "pk-legacy" {
+		t.Errorf("Expected legacy public key to remain populated, got %q", cfg.Langfuse.PublicKey)
+	}
+	if cfg.Langfuse.SecretKey != "sk-legacy" {
+		t.Errorf("Expected legacy secret key to remain populated, got %q", cfg.Langfuse.SecretKey)
 	}
 }
 

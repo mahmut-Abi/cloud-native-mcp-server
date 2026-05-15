@@ -114,3 +114,17 @@ func TestNormalizeMetricsQueryAddsTypeAndColumn(t *testing.T) {
 		t.Fatalf("expected inferred type string, got %#v", filters[0]["type"])
 	}
 }
+
+func TestNormalizeMembershipRole(t *testing.T) {
+	role, err := normalizeMembershipRole("admin")
+	if err != nil {
+		t.Fatalf("normalizeMembershipRole() error = %v", err)
+	}
+	if role != "ADMIN" {
+		t.Fatalf("expected ADMIN, got %q", role)
+	}
+
+	if _, err := normalizeMembershipRole("superuser"); err == nil {
+		t.Fatal("expected invalid role error")
+	}
+}

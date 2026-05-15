@@ -601,6 +601,297 @@ func HandleGetMetrics(service ServiceInterface) server.ToolHandlerFunc {
 	}
 }
 
+// HandleGetProject handles current project lookup.
+func HandleGetProject(service ServiceInterface) server.ToolHandlerFunc {
+	return func(ctx context.Context, request mcp.CallToolRequest) (*mcp.CallToolResult, error) {
+		langfuseClient, err := getClient(service)
+		if err != nil {
+			return nil, err
+		}
+
+		result, err := langfuseClient.GetProject(ctx)
+		if err != nil {
+			return nil, fmt.Errorf("failed to get langfuse project: %w", err)
+		}
+		return marshalResult(result)
+	}
+}
+
+// HandleListOrganizationProjects handles organization project listing.
+func HandleListOrganizationProjects(service ServiceInterface) server.ToolHandlerFunc {
+	return func(ctx context.Context, request mcp.CallToolRequest) (*mcp.CallToolResult, error) {
+		langfuseClient, err := getClient(service)
+		if err != nil {
+			return nil, err
+		}
+
+		result, err := langfuseClient.ListOrganizationProjects(ctx)
+		if err != nil {
+			return nil, fmt.Errorf("failed to list langfuse organization projects: %w", err)
+		}
+		return marshalResult(result)
+	}
+}
+
+// HandleCreateProject handles project creation.
+func HandleCreateProject(service ServiceInterface) server.ToolHandlerFunc {
+	return func(ctx context.Context, request mcp.CallToolRequest) (*mcp.CallToolResult, error) {
+		args := request.GetArguments()
+		name, err := svccommon.RequireStringArg(args, "name")
+		if err != nil {
+			return nil, err
+		}
+		metadata, hasMetadata, err := svccommon.GetObjectArg(args, "metadata")
+		if err != nil {
+			return nil, fmt.Errorf("invalid metadata: %w", err)
+		}
+		if !hasMetadata {
+			metadata = nil
+		}
+		retentionDays := normalizeNonNegativeInt(svccommon.GetIntArg(args, 0, "retention_days", "retentionDays", "retention"))
+
+		langfuseClient, err := getClient(service)
+		if err != nil {
+			return nil, err
+		}
+
+		result, err := langfuseClient.CreateProject(ctx, name, metadata, retentionDays)
+		if err != nil {
+			return nil, fmt.Errorf("failed to create langfuse project: %w", err)
+		}
+		return marshalResult(result)
+	}
+}
+
+// HandleUpdateProject handles project updates.
+func HandleUpdateProject(service ServiceInterface) server.ToolHandlerFunc {
+	return func(ctx context.Context, request mcp.CallToolRequest) (*mcp.CallToolResult, error) {
+		args := request.GetArguments()
+		projectID, err := svccommon.RequireStringArg(args, "project_id", "projectId")
+		if err != nil {
+			return nil, err
+		}
+		name, err := svccommon.RequireStringArg(args, "name")
+		if err != nil {
+			return nil, err
+		}
+		metadata, hasMetadata, err := svccommon.GetObjectArg(args, "metadata")
+		if err != nil {
+			return nil, fmt.Errorf("invalid metadata: %w", err)
+		}
+		if !hasMetadata {
+			metadata = nil
+		}
+
+		var retentionDays *int
+		if _, ok := svccommon.LookupArg(args, "retention_days", "retentionDays", "retention"); ok {
+			value := normalizeNonNegativeInt(svccommon.GetIntArg(args, 0, "retention_days", "retentionDays", "retention"))
+			retentionDays = &value
+		}
+
+		langfuseClient, err := getClient(service)
+		if err != nil {
+			return nil, err
+		}
+
+		result, err := langfuseClient.UpdateProject(ctx, projectID, name, metadata, retentionDays)
+		if err != nil {
+			return nil, fmt.Errorf("failed to update langfuse project: %w", err)
+		}
+		return marshalResult(result)
+	}
+}
+
+// HandleDeleteProject handles project deletion.
+func HandleDeleteProject(service ServiceInterface) server.ToolHandlerFunc {
+	return func(ctx context.Context, request mcp.CallToolRequest) (*mcp.CallToolResult, error) {
+		projectID, err := svccommon.RequireStringArg(request.GetArguments(), "project_id", "projectId")
+		if err != nil {
+			return nil, err
+		}
+
+		langfuseClient, err := getClient(service)
+		if err != nil {
+			return nil, err
+		}
+
+		result, err := langfuseClient.DeleteProject(ctx, projectID)
+		if err != nil {
+			return nil, fmt.Errorf("failed to delete langfuse project: %w", err)
+		}
+		return marshalResult(result)
+	}
+}
+
+// HandleListProjectMemberships handles project membership listing.
+func HandleListProjectMemberships(service ServiceInterface) server.ToolHandlerFunc {
+	return func(ctx context.Context, request mcp.CallToolRequest) (*mcp.CallToolResult, error) {
+		projectID, err := svccommon.RequireStringArg(request.GetArguments(), "project_id", "projectId")
+		if err != nil {
+			return nil, err
+		}
+
+		langfuseClient, err := getClient(service)
+		if err != nil {
+			return nil, err
+		}
+
+		result, err := langfuseClient.ListProjectMemberships(ctx, projectID)
+		if err != nil {
+			return nil, fmt.Errorf("failed to list langfuse project memberships: %w", err)
+		}
+		return marshalResult(result)
+	}
+}
+
+// HandleUpsertProjectMembership handles project membership creation or update.
+func HandleUpsertProjectMembership(service ServiceInterface) server.ToolHandlerFunc {
+	return func(ctx context.Context, request mcp.CallToolRequest) (*mcp.CallToolResult, error) {
+		args := request.GetArguments()
+		projectID, err := svccommon.RequireStringArg(args, "project_id", "projectId")
+		if err != nil {
+			return nil, err
+		}
+		userID, err := svccommon.RequireStringArg(args, "user_id", "userId")
+		if err != nil {
+			return nil, err
+		}
+		role, err := svccommon.RequireStringArg(args, "role")
+		if err != nil {
+			return nil, err
+		}
+		role, err = normalizeMembershipRole(role)
+		if err != nil {
+			return nil, err
+		}
+
+		langfuseClient, err := getClient(service)
+		if err != nil {
+			return nil, err
+		}
+
+		result, err := langfuseClient.UpsertProjectMembership(ctx, projectID, userID, role)
+		if err != nil {
+			return nil, fmt.Errorf("failed to upsert langfuse project membership: %w", err)
+		}
+		return marshalResult(result)
+	}
+}
+
+// HandleDeleteProjectMembership handles project membership deletion.
+func HandleDeleteProjectMembership(service ServiceInterface) server.ToolHandlerFunc {
+	return func(ctx context.Context, request mcp.CallToolRequest) (*mcp.CallToolResult, error) {
+		args := request.GetArguments()
+		projectID, err := svccommon.RequireStringArg(args, "project_id", "projectId")
+		if err != nil {
+			return nil, err
+		}
+		userID, err := svccommon.RequireStringArg(args, "user_id", "userId")
+		if err != nil {
+			return nil, err
+		}
+
+		langfuseClient, err := getClient(service)
+		if err != nil {
+			return nil, err
+		}
+
+		result, err := langfuseClient.DeleteProjectMembership(ctx, projectID, userID)
+		if err != nil {
+			return nil, fmt.Errorf("failed to delete langfuse project membership: %w", err)
+		}
+		return marshalResult(result)
+	}
+}
+
+// HandleListOrganizationAPIKeys handles organization API key listing.
+func HandleListOrganizationAPIKeys(service ServiceInterface) server.ToolHandlerFunc {
+	return func(ctx context.Context, request mcp.CallToolRequest) (*mcp.CallToolResult, error) {
+		langfuseClient, err := getClient(service)
+		if err != nil {
+			return nil, err
+		}
+
+		result, err := langfuseClient.ListOrganizationAPIKeys(ctx)
+		if err != nil {
+			return nil, fmt.Errorf("failed to list langfuse organization api keys: %w", err)
+		}
+		return marshalResult(result)
+	}
+}
+
+// HandleListProjectAPIKeys handles project API key listing.
+func HandleListProjectAPIKeys(service ServiceInterface) server.ToolHandlerFunc {
+	return func(ctx context.Context, request mcp.CallToolRequest) (*mcp.CallToolResult, error) {
+		projectID, err := svccommon.RequireStringArg(request.GetArguments(), "project_id", "projectId")
+		if err != nil {
+			return nil, err
+		}
+
+		langfuseClient, err := getClient(service)
+		if err != nil {
+			return nil, err
+		}
+
+		result, err := langfuseClient.ListProjectAPIKeys(ctx, projectID)
+		if err != nil {
+			return nil, fmt.Errorf("failed to list langfuse project api keys: %w", err)
+		}
+		return marshalResult(result)
+	}
+}
+
+// HandleCreateProjectAPIKey handles project API key creation.
+func HandleCreateProjectAPIKey(service ServiceInterface) server.ToolHandlerFunc {
+	return func(ctx context.Context, request mcp.CallToolRequest) (*mcp.CallToolResult, error) {
+		args := request.GetArguments()
+		projectID, err := svccommon.RequireStringArg(args, "project_id", "projectId")
+		if err != nil {
+			return nil, err
+		}
+		note, _ := svccommon.GetStringArg(args, "note")
+		publicKey, _ := svccommon.GetStringArg(args, "public_key", "publicKey")
+		secretKey, _ := svccommon.GetStringArg(args, "secret_key", "secretKey")
+
+		langfuseClient, err := getClient(service)
+		if err != nil {
+			return nil, err
+		}
+
+		result, err := langfuseClient.CreateProjectAPIKey(ctx, projectID, note, publicKey, secretKey)
+		if err != nil {
+			return nil, fmt.Errorf("failed to create langfuse project api key: %w", err)
+		}
+		return marshalResult(result)
+	}
+}
+
+// HandleDeleteProjectAPIKey handles project API key deletion.
+func HandleDeleteProjectAPIKey(service ServiceInterface) server.ToolHandlerFunc {
+	return func(ctx context.Context, request mcp.CallToolRequest) (*mcp.CallToolResult, error) {
+		args := request.GetArguments()
+		projectID, err := svccommon.RequireStringArg(args, "project_id", "projectId")
+		if err != nil {
+			return nil, err
+		}
+		apiKeyID, err := svccommon.RequireStringArg(args, "api_key_id", "apiKeyId")
+		if err != nil {
+			return nil, err
+		}
+
+		langfuseClient, err := getClient(service)
+		if err != nil {
+			return nil, err
+		}
+
+		result, err := langfuseClient.DeleteProjectAPIKey(ctx, projectID, apiKeyID)
+		if err != nil {
+			return nil, fmt.Errorf("failed to delete langfuse project api key: %w", err)
+		}
+		return marshalResult(result)
+	}
+}
+
 func normalizeMetricsQuery(query map[string]interface{}) (map[string]interface{}, error) {
 	normalized := cloneObject(query)
 	filters, _, err := svccommon.GetObjectSliceArg(query, "filters")
@@ -690,6 +981,23 @@ func inferMetricsFilterType(filter map[string]interface{}) string {
 	}
 
 	return "string"
+}
+
+func normalizeNonNegativeInt(value int) int {
+	if value < 0 {
+		return 0
+	}
+	return value
+}
+
+func normalizeMembershipRole(role string) (string, error) {
+	normalized := strings.ToUpper(strings.TrimSpace(role))
+	switch normalized {
+	case "OWNER", "ADMIN", "MEMBER", "VIEWER":
+		return normalized, nil
+	default:
+		return "", fmt.Errorf("invalid role %q: expected OWNER, ADMIN, MEMBER, or VIEWER", role)
+	}
 }
 
 func cloneObject(input map[string]interface{}) map[string]interface{} {

@@ -480,10 +480,14 @@ langfuse:
   # Format: https://cloud.langfuse.com or your self-hosted Langfuse URL
   url: "https://cloud.langfuse.com"
 
-  # Langfuse public key
-  publicKey: ""
+  # Basic auth username for Langfuse Public API
+  username: ""
 
-  # Langfuse secret key
+  # Basic auth password for Langfuse Public API
+  password: ""
+
+  # Deprecated aliases for username/password
+  publicKey: ""
   secretKey: ""
 
   # Request timeout (seconds)

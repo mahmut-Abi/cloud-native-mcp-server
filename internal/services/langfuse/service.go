@@ -35,6 +35,8 @@ func NewService() *Service {
 		ClientBuilder: func(cfg *config.AppConfig) (interface{}, error) {
 			return client.NewClient(&client.ClientOptions{
 				URL:       cfg.Langfuse.URL,
+				Username:  cfg.Langfuse.Username,
+				Password:  cfg.Langfuse.Password,
 				PublicKey: cfg.Langfuse.PublicKey,
 				SecretKey: cfg.Langfuse.SecretKey,
 				Timeout:   time.Duration(cfg.Langfuse.TimeoutSec) * time.Second,
@@ -99,6 +101,18 @@ func (s *Service) GetTools() []mcp.Tool {
 			tools.ListScoresTool(),
 			tools.GetScoreTool(),
 			tools.GetMetricsTool(),
+			tools.GetProjectTool(),
+			tools.ListOrganizationProjectsTool(),
+			tools.CreateProjectTool(),
+			tools.UpdateProjectTool(),
+			tools.DeleteProjectTool(),
+			tools.ListProjectMembershipsTool(),
+			tools.UpsertProjectMembershipTool(),
+			tools.DeleteProjectMembershipTool(),
+			tools.ListOrganizationAPIKeysTool(),
+			tools.ListProjectAPIKeysTool(),
+			tools.CreateProjectAPIKeyTool(),
+			tools.DeleteProjectAPIKeyTool(),
 		}
 	})
 }
@@ -135,6 +149,18 @@ func (s *Service) GetHandlers() map[string]server.ToolHandlerFunc {
 		"langfuse_list_scores":                 handlers.HandleListScores(s),
 		"langfuse_get_score":                   handlers.HandleGetScore(s),
 		"langfuse_get_metrics":                 handlers.HandleGetMetrics(s),
+		"langfuse_get_project":                 handlers.HandleGetProject(s),
+		"langfuse_list_organization_projects":  handlers.HandleListOrganizationProjects(s),
+		"langfuse_create_project":              handlers.HandleCreateProject(s),
+		"langfuse_update_project":              handlers.HandleUpdateProject(s),
+		"langfuse_delete_project":              handlers.HandleDeleteProject(s),
+		"langfuse_list_project_memberships":    handlers.HandleListProjectMemberships(s),
+		"langfuse_upsert_project_membership":   handlers.HandleUpsertProjectMembership(s),
+		"langfuse_delete_project_membership":   handlers.HandleDeleteProjectMembership(s),
+		"langfuse_list_organization_api_keys":  handlers.HandleListOrganizationAPIKeys(s),
+		"langfuse_list_project_api_keys":       handlers.HandleListProjectAPIKeys(s),
+		"langfuse_create_project_api_key":      handlers.HandleCreateProjectAPIKey(s),
+		"langfuse_delete_project_api_key":      handlers.HandleDeleteProjectAPIKey(s),
 	}
 }
 

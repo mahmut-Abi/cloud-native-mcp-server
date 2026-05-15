@@ -5,7 +5,7 @@ weight: 10
 
 # Langfuse Service
 
-The Langfuse service provides LLM observability and evaluation workflows with 25 tools for traces, sessions, prompts, scores, datasets, models, annotation queues, and metrics.
+The Langfuse service provides LLM observability and evaluation workflows with 37 tools for traces, sessions, prompts, scores, datasets, models, annotation queues, metrics, project management, membership management, and API key management.
 
 ## Overview
 
@@ -33,7 +33,7 @@ Inspect scores and query Langfuse metrics for trend analysis.
 
 ---
 
-## Available Tools (25)
+## Available Tools (37)
 
 ### Health
 - **langfuse_check_health**: Check Langfuse API and database health
@@ -72,6 +72,22 @@ Inspect scores and query Langfuse metrics for trend analysis.
 - **langfuse_get_score**: Get a specific score
 - **langfuse_get_metrics**: Run a Langfuse metrics query
 
+### Projects
+- **langfuse_get_project**: Get the project associated with the configured credentials
+- **langfuse_list_organization_projects**: List organization projects
+- **langfuse_create_project**: Create a project
+- **langfuse_update_project**: Update a project
+- **langfuse_delete_project**: Delete a project
+- **langfuse_list_project_memberships**: List project memberships
+- **langfuse_upsert_project_membership**: Create or update a project membership
+- **langfuse_delete_project_membership**: Delete a project membership
+
+### API Key Management
+- **langfuse_list_organization_api_keys**: List organization API keys
+- **langfuse_list_project_api_keys**: List project API keys
+- **langfuse_create_project_api_key**: Create a project API key
+- **langfuse_delete_project_api_key**: Delete a project API key
+
 ---
 
 ## Configuration Example
@@ -80,8 +96,8 @@ Inspect scores and query Langfuse metrics for trend analysis.
 langfuse:
   enabled: true
   url: "https://cloud.langfuse.com"
-  publicKey: "pk-lf-..."
-  secretKey: "sk-lf-..."
+  username: "pk-lf-..."
+  password: "sk-lf-..."
   timeoutSec: 30
 ```
 
@@ -89,6 +105,8 @@ Langfuse uses HTTP Basic Auth on the Public API:
 
 - Username: Langfuse public key
 - Password: Langfuse secret key
+
+`publicKey` and `secretKey` are still accepted as deprecated aliases for `username` and `password`. The API key management tools require organization-scoped Langfuse credentials.
 
 ## Next Steps
 

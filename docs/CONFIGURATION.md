@@ -274,8 +274,10 @@ nacos:
 langfuse:
   enabled: false
   url: "https://cloud.langfuse.com"
-  publicKey: ""
-  secretKey: ""
+  username: ""
+  password: ""
+  publicKey: ""  # deprecated alias for username
+  secretKey: ""  # deprecated alias for password
   timeoutSec: 30
 
 sentry:

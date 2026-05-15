@@ -540,10 +540,14 @@ langfuse:
   # 格式: https://cloud.langfuse.com 或自建 Langfuse 地址
   url: "https://cloud.langfuse.com"
 
-  # Langfuse public key
-  publicKey: ""
+  # Langfuse Public API Basic Auth 用户名
+  username: ""
 
-  # Langfuse secret key
+  # Langfuse Public API Basic Auth 密码
+  password: ""
+
+  # username/password 的废弃兼容别名
+  publicKey: ""
   secretKey: ""
 
   # 请求超时（秒）

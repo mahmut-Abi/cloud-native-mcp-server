@@ -164,15 +164,15 @@ Cloud Native MCP Server integrates 15 powerful cloud-native services, providing 
 
 <div class="service-card">
   <h3>🧠 Langfuse</h3>
-  <p><span class="tool-count">25 tools</span></p>
-  <p>LLM observability platform for tracing prompt and response flows, session analysis, score inspection, and metrics exploration.</p>
+  <p><span class="tool-count">37 tools</span></p>
+  <p>LLM observability platform for tracing prompt and response flows, session analysis, score inspection, metrics exploration, project management, membership management, and API key management.</p>
   <p><strong>Key Features:</strong></p>
   <ul>
     <li>Trace and session inspection</li>
     <li>Observation and generation analysis</li>
     <li>Prompt version discovery</li>
     <li>Score and evaluation lookups</li>
-    <li>Metrics API queries</li>
+    <li>Metrics API queries, project management, membership management, and API key management</li>
   </ul>
 </div>
 
@@ -287,8 +287,8 @@ jaeger:
 langfuse:
   enabled: true
   url: "https://cloud.langfuse.com"
-  publicKey: "pk-lf-..."
-  secretKey: "sk-lf-..."
+  username: "pk-lf-..."
+  password: "sk-lf-..."
   timeoutSec: 30
 
 # Sentry

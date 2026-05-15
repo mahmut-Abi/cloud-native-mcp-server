@@ -262,6 +262,132 @@ func GetMetricsTool() mcp.Tool {
 	)
 }
 
+// GetProjectTool returns the project associated with the configured credentials.
+func GetProjectTool() mcp.Tool {
+	return mcp.NewTool("langfuse_get_project",
+		mcp.WithDescription("Get the Langfuse project associated with the configured project-scoped credentials."),
+	)
+}
+
+// ListOrganizationProjectsTool returns organization project summaries.
+func ListOrganizationProjectsTool() mcp.Tool {
+	return mcp.NewTool("langfuse_list_organization_projects",
+		mcp.WithDescription("List Langfuse projects in the organization. Requires organization-scoped Langfuse credentials configured as username/password."),
+	)
+}
+
+// CreateProjectTool returns a tool for creating Langfuse projects.
+func CreateProjectTool() mcp.Tool {
+	return mcp.NewTool("langfuse_create_project",
+		mcp.WithDescription("Create a Langfuse project. Requires organization-scoped credentials. retention_days defaults to 0, which means no retention limit."),
+		mcp.WithString("name", mcp.Required(),
+			mcp.Description("Project name.")),
+		mcp.WithObject("metadata",
+			mcp.Description("Optional project metadata object.")),
+		mcp.WithNumber("retention_days",
+			mcp.Description("Number of days to retain data. Use 0 for no retention limit; otherwise Langfuse requires at least 3 days.")),
+	)
+}
+
+// UpdateProjectTool returns a tool for updating Langfuse projects.
+func UpdateProjectTool() mcp.Tool {
+	return mcp.NewTool("langfuse_update_project",
+		mcp.WithDescription("Update a Langfuse project by ID. Requires organization-scoped credentials."),
+		mcp.WithString("project_id", mcp.Required(),
+			mcp.Description("Langfuse project ID.")),
+		mcp.WithString("name", mcp.Required(),
+			mcp.Description("Updated project name.")),
+		mcp.WithObject("metadata",
+			mcp.Description("Optional project metadata object.")),
+		mcp.WithNumber("retention_days",
+			mcp.Description("Optional number of days to retain data. Use 0 for no retention limit; otherwise Langfuse requires at least 3 days.")),
+	)
+}
+
+// DeleteProjectTool returns a tool for deleting Langfuse projects.
+func DeleteProjectTool() mcp.Tool {
+	return mcp.NewTool("langfuse_delete_project",
+		mcp.WithDescription("Delete a Langfuse project by ID. Requires organization-scoped credentials. Project deletion is asynchronous and should be explicitly confirmed before use."),
+		mcp.WithString("project_id", mcp.Required(),
+			mcp.Description("Langfuse project ID.")),
+	)
+}
+
+// ListProjectMembershipsTool returns project membership listing.
+func ListProjectMembershipsTool() mcp.Tool {
+	return mcp.NewTool("langfuse_list_project_memberships",
+		mcp.WithDescription("List memberships for a Langfuse project. Requires organization-scoped Langfuse credentials configured as username/password."),
+		mcp.WithString("project_id", mcp.Required(),
+			mcp.Description("Langfuse project ID.")),
+	)
+}
+
+// UpsertProjectMembershipTool returns a tool for creating or updating project memberships.
+func UpsertProjectMembershipTool() mcp.Tool {
+	return mcp.NewTool("langfuse_upsert_project_membership",
+		mcp.WithDescription("Create or update a Langfuse project membership. Requires organization-scoped credentials."),
+		mcp.WithString("project_id", mcp.Required(),
+			mcp.Description("Langfuse project ID.")),
+		mcp.WithString("user_id", mcp.Required(),
+			mcp.Description("Langfuse user ID to add or update.")),
+		mcp.WithString("role", mcp.Required(),
+			mcp.Description("Membership role. Use OWNER, ADMIN, MEMBER, or VIEWER.")),
+	)
+}
+
+// DeleteProjectMembershipTool returns a tool for deleting project memberships.
+func DeleteProjectMembershipTool() mcp.Tool {
+	return mcp.NewTool("langfuse_delete_project_membership",
+		mcp.WithDescription("Delete a Langfuse project membership by user ID. Requires organization-scoped credentials. Confirm the project_id and user_id before calling."),
+		mcp.WithString("project_id", mcp.Required(),
+			mcp.Description("Langfuse project ID.")),
+		mcp.WithString("user_id", mcp.Required(),
+			mcp.Description("Langfuse user ID to remove.")),
+	)
+}
+
+// ListOrganizationAPIKeysTool returns organization-scoped API key summaries.
+func ListOrganizationAPIKeysTool() mcp.Tool {
+	return mcp.NewTool("langfuse_list_organization_api_keys",
+		mcp.WithDescription("List Langfuse organization API keys. Requires organization-scoped Langfuse credentials configured as username/password."),
+	)
+}
+
+// ListProjectAPIKeysTool returns project API key summaries.
+func ListProjectAPIKeysTool() mcp.Tool {
+	return mcp.NewTool("langfuse_list_project_api_keys",
+		mcp.WithDescription("List Langfuse project API keys for one project. Requires organization-scoped Langfuse credentials configured as username/password."),
+		mcp.WithString("project_id", mcp.Required(),
+			mcp.Description("Langfuse project ID.")),
+	)
+}
+
+// CreateProjectAPIKeyTool returns a tool for creating project API keys.
+func CreateProjectAPIKeyTool() mcp.Tool {
+	return mcp.NewTool("langfuse_create_project_api_key",
+		mcp.WithDescription("Create a Langfuse project API key. Requires organization-scoped credentials. The returned secretKey is only available in the creation response."),
+		mcp.WithString("project_id", mcp.Required(),
+			mcp.Description("Langfuse project ID.")),
+		mcp.WithString("note",
+			mcp.Description("Optional note for the API key.")),
+		mcp.WithString("public_key",
+			mcp.Description("Optional predefined public key. Must start with `pk-lf-`; if set, secret_key is required.")),
+		mcp.WithString("secret_key",
+			mcp.Description("Optional predefined secret key. Must start with `sk-lf-`; if set, public_key is required.")),
+	)
+}
+
+// DeleteProjectAPIKeyTool returns a tool for deleting project API keys.
+func DeleteProjectAPIKeyTool() mcp.Tool {
+	return mcp.NewTool("langfuse_delete_project_api_key",
+		mcp.WithDescription("Delete a Langfuse project API key by ID. Requires organization-scoped credentials. Confirm the project_id and api_key_id before calling."),
+		mcp.WithString("project_id", mcp.Required(),
+			mcp.Description("Langfuse project ID.")),
+		mcp.WithString("api_key_id", mcp.Required(),
+			mcp.Description("Langfuse API key ID to delete.")),
+	)
+}
+
 func paginationOptions() []mcp.ToolOption {
 	return []mcp.ToolOption{
 		mcp.WithNumber("page",
