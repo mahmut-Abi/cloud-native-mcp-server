@@ -27,10 +27,10 @@ func newMockLangfuseService(t *testing.T, handler http.HandlerFunc) *mockLangfus
 	t.Cleanup(server.Close)
 
 	c, err := client.NewClient(&client.ClientOptions{
-		URL:       server.URL,
-		PublicKey: "pk-test",
-		SecretKey: "sk-test",
-		Timeout:   5 * time.Second,
+		URL:      server.URL,
+		Username: "pk-test",
+		Password: "sk-test",
+		Timeout:  5 * time.Second,
 	})
 	if err != nil {
 		t.Fatalf("failed to create langfuse client: %v", err)

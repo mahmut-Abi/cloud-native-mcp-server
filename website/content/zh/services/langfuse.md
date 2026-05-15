@@ -103,10 +103,10 @@ langfuse:
 
 Langfuse Public API 使用 HTTP Basic Auth：
 
-- 用户名：Langfuse public key
-- 密码：Langfuse secret key
+- 用户名：配置的 Langfuse Basic Auth 用户名
+- 密码：配置的 Langfuse Basic Auth 密码
 
-`publicKey` 和 `secretKey` 仍作为 `username`、`password` 的废弃兼容别名保留。API Key 管理工具需要配置组织级 Langfuse 凭据。
+项目、成员与 API Key 管理工具需要配置组织级 Langfuse 凭据。
 
 ## 下一步
 

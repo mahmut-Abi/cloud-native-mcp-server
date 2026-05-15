@@ -402,20 +402,11 @@ func (v *ConfigValidator) validateLangfuseConfig(cfg *AppConfig) error {
 		return fmt.Errorf("invalid langfuse URL format: %s", cfg.Langfuse.URL)
 	}
 
-	username := cfg.Langfuse.Username
-	if username == "" {
-		username = cfg.Langfuse.PublicKey
-	}
-	password := cfg.Langfuse.Password
-	if password == "" {
-		password = cfg.Langfuse.SecretKey
-	}
-
-	if username == "" {
+	if cfg.Langfuse.Username == "" {
 		return fmt.Errorf("langfuse username is required when enabled")
 	}
 
-	if password == "" {
+	if cfg.Langfuse.Password == "" {
 		return fmt.Errorf("langfuse password is required when enabled")
 	}
 

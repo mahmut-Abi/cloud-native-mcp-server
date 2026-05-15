@@ -33,14 +33,6 @@ func TestNewClient(t *testing.T) {
 			},
 		},
 		{
-			name: "legacy public and secret key aliases",
-			opts: &ClientOptions{
-				URL:       "https://langfuse.example.com",
-				PublicKey: "pk-test",
-				SecretKey: "sk-test",
-			},
-		},
-		{
 			name: "missing URL",
 			opts: &ClientOptions{
 				Username: "pk-test",

@@ -188,8 +188,6 @@ type AppConfig struct {
 		URL        string `yaml:"url"`        // Langfuse base URL
 		Username   string `yaml:"username"`   // Basic auth username for Langfuse API
 		Password   string `yaml:"password"`   // Basic auth password for Langfuse API
-		PublicKey  string `yaml:"publicKey"`  // Deprecated: use username
-		SecretKey  string `yaml:"secretKey"`  // Deprecated: use password
 		TimeoutSec int    `yaml:"timeoutSec"` // Request timeout in seconds
 	} `yaml:"langfuse"`
 
@@ -373,8 +371,7 @@ type AppConfig struct {
 //	MCP_AUTH_OIDC_ISSUER_URL, MCP_AUTH_OIDC_DISCOVERY_URL, MCP_AUTH_OIDC_ISSUER,
 //	MCP_AUTH_OIDC_AUDIENCE, MCP_AUTH_OIDC_CLIENT_ID, MCP_AUTH_OIDC_HTTP_TIMEOUT,
 //	MCP_AUTH_OIDC_JWKS_CACHE_TTL,
-//	MCP_LANGFUSE_ENABLED, MCP_LANGFUSE_URL, MCP_LANGFUSE_USERNAME, MCP_LANGFUSE_PASSWORD,
-//	MCP_LANGFUSE_PUBLIC_KEY, MCP_LANGFUSE_SECRET_KEY, MCP_LANGFUSE_TIMEOUT,
+//	MCP_LANGFUSE_ENABLED, MCP_LANGFUSE_URL, MCP_LANGFUSE_USERNAME, MCP_LANGFUSE_PASSWORD, MCP_LANGFUSE_TIMEOUT,
 //	MCP_SENTRY_ENABLED, MCP_SENTRY_URL, MCP_SENTRY_AUTH_TOKEN, MCP_SENTRY_ORGANIZATION, MCP_SENTRY_PROJECT, MCP_SENTRY_TIMEOUT,
 //	MCP_OPENTELEMETRY_ENABLED, MCP_OPENTELEMETRY_ADDRESS, MCP_OPENTELEMETRY_TIMEOUT,
 //	MCP_OPENTELEMETRY_USERNAME, MCP_OPENTELEMETRY_PASSWORD, MCP_OPENTELEMETRY_BEARER_TOKEN,
