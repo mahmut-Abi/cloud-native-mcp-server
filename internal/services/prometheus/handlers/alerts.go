@@ -13,8 +13,12 @@ import (
 )
 
 // HandleGetAlerts handles Prometheus alerts retrieval requests.
-func HandleGetAlerts(c *client.Client) func(ctx context.Context, req mcp.CallToolRequest) (*mcp.CallToolResult, error) {
+func HandleGetAlerts() func(ctx context.Context, req mcp.CallToolRequest) (*mcp.CallToolResult, error) {
 	return func(ctx context.Context, req mcp.CallToolRequest) (*mcp.CallToolResult, error) {
+		c, err := client.FromContext(ctx)
+		if err != nil {
+			return mcp.NewToolResultError(err.Error()), nil
+		}
 		logrus.Debug("Executing Prometheus get alerts handler")
 
 		// Get alerts
@@ -48,8 +52,12 @@ func HandleGetAlerts(c *client.Client) func(ctx context.Context, req mcp.CallToo
 }
 
 // HandleGetAlertsSummary handles Prometheus alerts summary requests (optimized version).
-func HandleGetAlertsSummary(c *client.Client) func(ctx context.Context, req mcp.CallToolRequest) (*mcp.CallToolResult, error) {
+func HandleGetAlertsSummary() func(ctx context.Context, req mcp.CallToolRequest) (*mcp.CallToolResult, error) {
 	return func(ctx context.Context, req mcp.CallToolRequest) (*mcp.CallToolResult, error) {
+		c, err := client.FromContext(ctx)
+		if err != nil {
+			return mcp.NewToolResultError(err.Error()), nil
+		}
 		logrus.Debug("Executing Prometheus alerts summary handler")
 
 		alerts, err := c.GetAlerts(ctx)

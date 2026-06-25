@@ -15,8 +15,8 @@ import (
 )
 
 // Service implements the Argo CD MCP service.
+// The backend client is not stored — it is created per-request from HTTP headers.
 type Service struct {
-	client        *client.Client
 	enabled       bool
 	toolsCache    *cache.ToolsCache
 	initFramework *framework.CommonServiceInit
@@ -56,20 +56,20 @@ func (s *Service) Name() string {
 }
 
 // Initialize configures the Argo CD service.
+// The backend client is created per-request from HTTP headers (see client/config.go).
 func (s *Service) Initialize(cfg interface{}) error {
 	return s.initFramework.Initialize(cfg,
 		func(enabled bool) { s.enabled = enabled },
-		func(clientIface interface{}) {
-			if argocdClient, ok := clientIface.(*client.Client); ok {
-				s.client = argocdClient
-			}
+		func(_ interface{}) {
+			// Backend client is created per-request from HTTP headers.
+			// The backend auth handler was registered in client/config.go init().
 		},
 	)
 }
 
 // GetTools returns all Argo CD tools.
 func (s *Service) GetTools() []mcp.Tool {
-	if !s.enabled || s.client == nil {
+	if !s.enabled {
 		return nil
 	}
 
@@ -88,27 +88,22 @@ func (s *Service) GetTools() []mcp.Tool {
 
 // GetHandlers returns all Argo CD handlers.
 func (s *Service) GetHandlers() map[string]server.ToolHandlerFunc {
-	if !s.enabled || s.client == nil {
+	if !s.enabled {
 		return nil
 	}
 
 	return map[string]server.ToolHandlerFunc{
-		"argocd_test_connection":           handlers.HandleTestConnection(s),
-		"argocd_list_applications_summary": handlers.HandleListApplicationsSummary(s),
-		"argocd_get_application":           handlers.HandleGetApplication(s),
-		"argocd_get_application_manifests": handlers.HandleGetApplicationManifests(s),
-		"argocd_list_projects":             handlers.HandleListProjects(s),
-		"argocd_get_project":               handlers.HandleGetProject(s),
-		"argocd_list_clusters":             handlers.HandleListClusters(s),
+		"argocd_test_connection":           handlers.HandleTestConnection(),
+		"argocd_list_applications_summary": handlers.HandleListApplicationsSummary(),
+		"argocd_get_application":           handlers.HandleGetApplication(),
+		"argocd_get_application_manifests": handlers.HandleGetApplicationManifests(),
+		"argocd_list_projects":             handlers.HandleListProjects(),
+		"argocd_get_project":               handlers.HandleGetProject(),
+		"argocd_list_clusters":             handlers.HandleListClusters(),
 	}
 }
 
-// IsEnabled returns whether the service is enabled and ready.
+// IsEnabled returns whether the service is enabled.
 func (s *Service) IsEnabled() bool {
-	return s.enabled && s.client != nil
-}
-
-// GetClient exposes the underlying Argo CD client.
-func (s *Service) GetClient() *client.Client {
-	return s.client
+	return s.enabled
 }

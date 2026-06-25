@@ -14,13 +14,9 @@ import (
 	server "github.com/mark3labs/mcp-go/server"
 )
 
-// ServiceInterface defines the interface for Jaeger service.
-type ServiceInterface interface {
-	GetClient() *client.Client
-}
 
 // GetTracesHandler handles the jaeger_get_traces tool.
-func GetTracesHandler(service ServiceInterface) server.ToolHandlerFunc {
+func GetTracesHandler() server.ToolHandlerFunc {
 	return func(ctx context.Context, request mcp.CallToolRequest) (*mcp.CallToolResult, error) {
 		args := request.GetArguments()
 
@@ -42,7 +38,7 @@ func GetTracesHandler(service ServiceInterface) server.ToolHandlerFunc {
 			return nil, err
 		}
 
-		jaegerClient, err := getJaegerClient(service)
+		jaegerClient, err := client.FromContext(ctx)
 		if err != nil {
 			return nil, err
 		}
@@ -70,7 +66,7 @@ func GetTracesHandler(service ServiceInterface) server.ToolHandlerFunc {
 }
 
 // GetTraceHandler handles the jaeger_get_trace tool.
-func GetTraceHandler(service ServiceInterface) server.ToolHandlerFunc {
+func GetTraceHandler() server.ToolHandlerFunc {
 	return func(ctx context.Context, request mcp.CallToolRequest) (*mcp.CallToolResult, error) {
 		args := request.GetArguments()
 
@@ -79,7 +75,7 @@ func GetTraceHandler(service ServiceInterface) server.ToolHandlerFunc {
 			return nil, err
 		}
 
-		jaegerClient, err := getJaegerClient(service)
+		jaegerClient, err := client.FromContext(ctx)
 		if err != nil {
 			return nil, err
 		}
@@ -96,9 +92,9 @@ func GetTraceHandler(service ServiceInterface) server.ToolHandlerFunc {
 }
 
 // GetServicesHandler handles the jaeger_get_services tool.
-func GetServicesHandler(service ServiceInterface) server.ToolHandlerFunc {
+func GetServicesHandler() server.ToolHandlerFunc {
 	return func(ctx context.Context, request mcp.CallToolRequest) (*mcp.CallToolResult, error) {
-		jaegerClient, err := getJaegerClient(service)
+		jaegerClient, err := client.FromContext(ctx)
 		if err != nil {
 			return nil, err
 		}
@@ -116,7 +112,7 @@ func GetServicesHandler(service ServiceInterface) server.ToolHandlerFunc {
 }
 
 // GetServiceOperationsHandler handles the jaeger_get_service_ops tool.
-func GetServiceOperationsHandler(service ServiceInterface) server.ToolHandlerFunc {
+func GetServiceOperationsHandler() server.ToolHandlerFunc {
 	return func(ctx context.Context, request mcp.CallToolRequest) (*mcp.CallToolResult, error) {
 		args := request.GetArguments()
 
@@ -125,7 +121,7 @@ func GetServiceOperationsHandler(service ServiceInterface) server.ToolHandlerFun
 			return nil, err
 		}
 
-		jaegerClient, err := getJaegerClient(service)
+		jaegerClient, err := client.FromContext(ctx)
 		if err != nil {
 			return nil, err
 		}
@@ -144,7 +140,7 @@ func GetServiceOperationsHandler(service ServiceInterface) server.ToolHandlerFun
 }
 
 // SearchTracesHandler handles the jaeger_search_traces tool.
-func SearchTracesHandler(service ServiceInterface) server.ToolHandlerFunc {
+func SearchTracesHandler() server.ToolHandlerFunc {
 	return func(ctx context.Context, request mcp.CallToolRequest) (*mcp.CallToolResult, error) {
 		args := request.GetArguments()
 
@@ -167,7 +163,7 @@ func SearchTracesHandler(service ServiceInterface) server.ToolHandlerFunc {
 			return nil, err
 		}
 
-		jaegerClient, err := getJaegerClient(service)
+		jaegerClient, err := client.FromContext(ctx)
 		if err != nil {
 			return nil, err
 		}
@@ -196,7 +192,7 @@ func SearchTracesHandler(service ServiceInterface) server.ToolHandlerFunc {
 }
 
 // GetDependenciesHandler handles the jaeger_get_dependencies tool.
-func GetDependenciesHandler(service ServiceInterface) server.ToolHandlerFunc {
+func GetDependenciesHandler() server.ToolHandlerFunc {
 	return func(ctx context.Context, request mcp.CallToolRequest) (*mcp.CallToolResult, error) {
 		args := request.GetArguments()
 
@@ -210,7 +206,7 @@ func GetDependenciesHandler(service ServiceInterface) server.ToolHandlerFunc {
 			endTime = time.Now().Format(time.RFC3339)
 		}
 
-		jaegerClient, err := getJaegerClient(service)
+		jaegerClient, err := client.FromContext(ctx)
 		if err != nil {
 			return nil, err
 		}
@@ -228,7 +224,7 @@ func GetDependenciesHandler(service ServiceInterface) server.ToolHandlerFunc {
 }
 
 // GetTracesSummaryHandler handles the jaeger_get_traces_summary tool.
-func GetTracesSummaryHandler(service ServiceInterface) server.ToolHandlerFunc {
+func GetTracesSummaryHandler() server.ToolHandlerFunc {
 	return func(ctx context.Context, request mcp.CallToolRequest) (*mcp.CallToolResult, error) {
 		args := request.GetArguments()
 
@@ -249,7 +245,7 @@ func GetTracesSummaryHandler(service ServiceInterface) server.ToolHandlerFunc {
 			return nil, err
 		}
 
-		jaegerClient, err := getJaegerClient(service)
+		jaegerClient, err := client.FromContext(ctx)
 		if err != nil {
 			return nil, err
 		}
@@ -355,9 +351,9 @@ func primaryTraceService(trace client.Trace) string {
 }
 
 // GetServicesSummaryHandler handles the jaeger_get_services_summary tool.
-func GetServicesSummaryHandler(service ServiceInterface) server.ToolHandlerFunc {
+func GetServicesSummaryHandler() server.ToolHandlerFunc {
 	return func(ctx context.Context, request mcp.CallToolRequest) (*mcp.CallToolResult, error) {
-		jaegerClient, err := getJaegerClient(service)
+		jaegerClient, err := client.FromContext(ctx)
 		if err != nil {
 			return nil, err
 		}
@@ -380,14 +376,6 @@ func GetServicesSummaryHandler(service ServiceInterface) server.ToolHandlerFunc 
 			"services": summaries,
 		})
 	}
-}
-
-func getJaegerClient(service ServiceInterface) (*client.Client, error) {
-	jaegerClient := service.GetClient()
-	if jaegerClient == nil {
-		return nil, fmt.Errorf("jaeger client is not initialized")
-	}
-	return jaegerClient, nil
 }
 
 func getRequiredStringArg(args map[string]interface{}, key string) (string, error) {

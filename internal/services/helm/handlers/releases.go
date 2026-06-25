@@ -14,8 +14,12 @@ import (
 )
 
 // HandleListReleases returns a handler function for listing Helm releases.
-func HandleListReleases(c *client.Client) func(ctx context.Context, request mcp.CallToolRequest) (*mcp.CallToolResult, error) {
+func HandleListReleases() func(ctx context.Context, request mcp.CallToolRequest) (*mcp.CallToolResult, error) {
 	return func(ctx context.Context, request mcp.CallToolRequest) (*mcp.CallToolResult, error) {
+		c, err := client.FromContext(ctx)
+		if err != nil {
+			return mcp.NewToolResultError(err.Error()), nil
+		}
 		logrus.WithField("tool", "list_helm_releases").Debug("Handler invoked")
 
 		// Get optional parameters
@@ -40,8 +44,12 @@ func HandleListReleases(c *client.Client) func(ctx context.Context, request mcp.
 }
 
 // HandleGetRelease returns a handler function for getting a Helm release.
-func HandleGetRelease(c *client.Client) func(ctx context.Context, request mcp.CallToolRequest) (*mcp.CallToolResult, error) {
+func HandleGetRelease() func(ctx context.Context, request mcp.CallToolRequest) (*mcp.CallToolResult, error) {
 	return func(ctx context.Context, request mcp.CallToolRequest) (*mcp.CallToolResult, error) {
+		c, err := client.FromContext(ctx)
+		if err != nil {
+			return mcp.NewToolResultError(err.Error()), nil
+		}
 		logrus.WithField("tool", "get_helm_release").Debug("Handler invoked")
 
 		// Validate required parameters
@@ -74,8 +82,12 @@ func HandleGetRelease(c *client.Client) func(ctx context.Context, request mcp.Ca
 }
 
 // HandleInstallRelease installs a Helm release.
-func HandleInstallRelease(c *client.Client) func(ctx context.Context, request mcp.CallToolRequest) (*mcp.CallToolResult, error) {
+func HandleInstallRelease() func(ctx context.Context, request mcp.CallToolRequest) (*mcp.CallToolResult, error) {
 	return func(ctx context.Context, request mcp.CallToolRequest) (*mcp.CallToolResult, error) {
+		c, err := client.FromContext(ctx)
+		if err != nil {
+			return mcp.NewToolResultError(err.Error()), nil
+		}
 		logrus.WithField("tool", "install_helm_release").Debug("Handler invoked")
 
 		// Validate required parameters
@@ -144,8 +156,12 @@ func HandleInstallRelease(c *client.Client) func(ctx context.Context, request mc
 }
 
 // HandleUninstallRelease uninstalls a Helm release.
-func HandleUninstallRelease(c *client.Client) func(ctx context.Context, request mcp.CallToolRequest) (*mcp.CallToolResult, error) {
+func HandleUninstallRelease() func(ctx context.Context, request mcp.CallToolRequest) (*mcp.CallToolResult, error) {
 	return func(ctx context.Context, request mcp.CallToolRequest) (*mcp.CallToolResult, error) {
+		c, err := client.FromContext(ctx)
+		if err != nil {
+			return mcp.NewToolResultError(err.Error()), nil
+		}
 		logrus.WithField("tool", "uninstall_helm_release").Debug("Handler invoked")
 
 		// Validate required parameters
@@ -178,8 +194,12 @@ func HandleUninstallRelease(c *client.Client) func(ctx context.Context, request 
 }
 
 // HandleUpgradeRelease upgrades a Helm release.
-func HandleUpgradeRelease(c *client.Client) func(ctx context.Context, request mcp.CallToolRequest) (*mcp.CallToolResult, error) {
+func HandleUpgradeRelease() func(ctx context.Context, request mcp.CallToolRequest) (*mcp.CallToolResult, error) {
 	return func(ctx context.Context, request mcp.CallToolRequest) (*mcp.CallToolResult, error) {
+		c, err := client.FromContext(ctx)
+		if err != nil {
+			return mcp.NewToolResultError(err.Error()), nil
+		}
 		logrus.WithField("tool", "upgrade_helm_release").Debug("Handler invoked")
 
 		// Validate required parameters
@@ -225,8 +245,12 @@ func HandleUpgradeRelease(c *client.Client) func(ctx context.Context, request mc
 }
 
 // HandleRollbackRelease rolls back a Helm release.
-func HandleRollbackRelease(c *client.Client) func(ctx context.Context, request mcp.CallToolRequest) (*mcp.CallToolResult, error) {
+func HandleRollbackRelease() func(ctx context.Context, request mcp.CallToolRequest) (*mcp.CallToolResult, error) {
 	return func(ctx context.Context, request mcp.CallToolRequest) (*mcp.CallToolResult, error) {
+		c, err := client.FromContext(ctx)
+		if err != nil {
+			return mcp.NewToolResultError(err.Error()), nil
+		}
 		logrus.WithField("tool", "rollback_helm_release").Debug("Handler invoked")
 
 		// Validate required parameters
@@ -265,8 +289,12 @@ func HandleRollbackRelease(c *client.Client) func(ctx context.Context, request m
 }
 
 // HandleGetReleaseHistory returns a handler function for getting Helm release history.
-func HandleGetReleaseHistory(c *client.Client) func(ctx context.Context, request mcp.CallToolRequest) (*mcp.CallToolResult, error) {
+func HandleGetReleaseHistory() func(ctx context.Context, request mcp.CallToolRequest) (*mcp.CallToolResult, error) {
 	return func(ctx context.Context, request mcp.CallToolRequest) (*mcp.CallToolResult, error) {
+		c, err := client.FromContext(ctx)
+		if err != nil {
+			return mcp.NewToolResultError(err.Error()), nil
+		}
 		logrus.WithField("tool", "helm_get_release_history").Debug("Handler invoked")
 
 		// Validate required parameters
@@ -296,8 +324,12 @@ func HandleGetReleaseHistory(c *client.Client) func(ctx context.Context, request
 }
 
 // HandleGetReleaseStatus returns a handler function for getting Helm release status.
-func HandleGetReleaseStatus(c *client.Client) func(ctx context.Context, request mcp.CallToolRequest) (*mcp.CallToolResult, error) {
+func HandleGetReleaseStatus() func(ctx context.Context, request mcp.CallToolRequest) (*mcp.CallToolResult, error) {
 	return func(ctx context.Context, request mcp.CallToolRequest) (*mcp.CallToolResult, error) {
+		c, err := client.FromContext(ctx)
+		if err != nil {
+			return mcp.NewToolResultError(err.Error()), nil
+		}
 		logrus.WithField("tool", "helm_get_release_status").Debug("Handler invoked")
 
 		// Validate required parameters
@@ -326,8 +358,12 @@ func HandleGetReleaseStatus(c *client.Client) func(ctx context.Context, request 
 }
 
 // HandleGetReleaseManifest returns a handler function for getting Helm release manifest.
-func HandleGetReleaseManifest(c *client.Client) func(ctx context.Context, request mcp.CallToolRequest) (*mcp.CallToolResult, error) {
+func HandleGetReleaseManifest() func(ctx context.Context, request mcp.CallToolRequest) (*mcp.CallToolResult, error) {
 	return func(ctx context.Context, request mcp.CallToolRequest) (*mcp.CallToolResult, error) {
+		c, err := client.FromContext(ctx)
+		if err != nil {
+			return mcp.NewToolResultError(err.Error()), nil
+		}
 		logrus.WithField("tool", "helm_get_release_manifest").Debug("Handler invoked")
 
 		// Validate required parameters
@@ -352,8 +388,12 @@ func HandleGetReleaseManifest(c *client.Client) func(ctx context.Context, reques
 }
 
 // HandleCompareRevisions returns a handler function for comparing Helm release revisions.
-func HandleCompareRevisions(c *client.Client) func(ctx context.Context, request mcp.CallToolRequest) (*mcp.CallToolResult, error) {
+func HandleCompareRevisions() func(ctx context.Context, request mcp.CallToolRequest) (*mcp.CallToolResult, error) {
 	return func(ctx context.Context, request mcp.CallToolRequest) (*mcp.CallToolResult, error) {
+		c, err := client.FromContext(ctx)
+		if err != nil {
+			return mcp.NewToolResultError(err.Error()), nil
+		}
 		logrus.WithField("tool", "helm_compare_revisions").Debug("Handler invoked")
 
 		// Validate required parameters
@@ -404,8 +444,12 @@ func HandleCompareRevisions(c *client.Client) func(ctx context.Context, request 
 }
 
 // HandleListReleasesPaginated returns a handler function for listing Helm releases with pagination and optimization.
-func HandleListReleasesPaginated(c *client.Client) func(ctx context.Context, request mcp.CallToolRequest) (*mcp.CallToolResult, error) {
+func HandleListReleasesPaginated() func(ctx context.Context, request mcp.CallToolRequest) (*mcp.CallToolResult, error) {
 	return func(ctx context.Context, request mcp.CallToolRequest) (*mcp.CallToolResult, error) {
+		c, err := client.FromContext(ctx)
+		if err != nil {
+			return mcp.NewToolResultError(err.Error()), nil
+		}
 		logrus.WithField("tool", "helm_list_releases_paginated").Debug("Handler invoked")
 
 		// Get parameters with conservative defaults
@@ -455,8 +499,12 @@ func HandleListReleasesPaginated(c *client.Client) func(ctx context.Context, req
 }
 
 // HandleGetReleaseHistoryPaginated returns a handler function for getting release history with pagination.
-func HandleGetReleaseHistoryPaginated(c *client.Client) func(ctx context.Context, request mcp.CallToolRequest) (*mcp.CallToolResult, error) {
+func HandleGetReleaseHistoryPaginated() func(ctx context.Context, request mcp.CallToolRequest) (*mcp.CallToolResult, error) {
 	return func(ctx context.Context, request mcp.CallToolRequest) (*mcp.CallToolResult, error) {
+		c, err := client.FromContext(ctx)
+		if err != nil {
+			return mcp.NewToolResultError(err.Error()), nil
+		}
 		logrus.WithField("tool", "helm_get_release_history_paginated").Debug("Handler invoked")
 
 		// Validate required parameters
@@ -509,8 +557,12 @@ func HandleGetReleaseHistoryPaginated(c *client.Client) func(ctx context.Context
 }
 
 // HandleGetReleaseSummary returns a brief summary of a Helm release
-func HandleGetReleaseSummary(c *client.Client) func(ctx context.Context, request mcp.CallToolRequest) (*mcp.CallToolResult, error) {
+func HandleGetReleaseSummary() func(ctx context.Context, request mcp.CallToolRequest) (*mcp.CallToolResult, error) {
 	return func(ctx context.Context, request mcp.CallToolRequest) (*mcp.CallToolResult, error) {
+		c, err := client.FromContext(ctx)
+		if err != nil {
+			return mcp.NewToolResultError(err.Error()), nil
+		}
 		logrus.WithField("tool", "helm_get_release_summary").Debug("Handler invoked")
 
 		name, err := requireStringParam(request, "name")
@@ -537,8 +589,12 @@ func HandleGetReleaseSummary(c *client.Client) func(ctx context.Context, request
 }
 
 // HandleGetListReleasesSummary returns a list of release summaries
-func HandleGetListReleasesSummary(c *client.Client) func(ctx context.Context, request mcp.CallToolRequest) (*mcp.CallToolResult, error) {
+func HandleGetListReleasesSummary() func(ctx context.Context, request mcp.CallToolRequest) (*mcp.CallToolResult, error) {
 	return func(ctx context.Context, request mcp.CallToolRequest) (*mcp.CallToolResult, error) {
+		c, err := client.FromContext(ctx)
+		if err != nil {
+			return mcp.NewToolResultError(err.Error()), nil
+		}
 		logrus.WithField("tool", "helm_list_releases_summary").Debug("Handler invoked")
 
 		namespace := getOptionalStringParam(request, "namespace")
@@ -565,8 +621,12 @@ func HandleGetListReleasesSummary(c *client.Client) func(ctx context.Context, re
 }
 
 // HandleListReleasesByNamespace lists all releases in a specific namespace
-func HandleListReleasesByNamespace(c *client.Client) func(ctx context.Context, request mcp.CallToolRequest) (*mcp.CallToolResult, error) {
+func HandleListReleasesByNamespace() func(ctx context.Context, request mcp.CallToolRequest) (*mcp.CallToolResult, error) {
 	return func(ctx context.Context, request mcp.CallToolRequest) (*mcp.CallToolResult, error) {
+		c, err := client.FromContext(ctx)
+		if err != nil {
+			return mcp.NewToolResultError(err.Error()), nil
+		}
 		logrus.WithField("tool", "helm_list_releases_in_namespace").Debug("Handler invoked")
 
 		namespace, err := requireStringParam(request, "namespace")
@@ -595,8 +655,12 @@ func HandleListReleasesByNamespace(c *client.Client) func(ctx context.Context, r
 }
 
 // HandleFindReleasesByLabels returns a handler function for finding releases by labels.
-func HandleFindReleasesByLabels(c *client.Client) func(ctx context.Context, request mcp.CallToolRequest) (*mcp.CallToolResult, error) {
+func HandleFindReleasesByLabels() func(ctx context.Context, request mcp.CallToolRequest) (*mcp.CallToolResult, error) {
 	return func(ctx context.Context, request mcp.CallToolRequest) (*mcp.CallToolResult, error) {
+		c, err := client.FromContext(ctx)
+		if err != nil {
+			return mcp.NewToolResultError(err.Error()), nil
+		}
 		logrus.WithField("tool", "helm_find_releases_by_labels").Debug("Handler invoked")
 
 		// Validate required parameters
@@ -640,8 +704,12 @@ func HandleFindReleasesByLabels(c *client.Client) func(ctx context.Context, requ
 }
 
 // HandleFindReleasesByChart finds releases using a specific chart
-func HandleFindReleasesByChart(c *client.Client) func(ctx context.Context, request mcp.CallToolRequest) (*mcp.CallToolResult, error) {
+func HandleFindReleasesByChart() func(ctx context.Context, request mcp.CallToolRequest) (*mcp.CallToolResult, error) {
 	return func(ctx context.Context, request mcp.CallToolRequest) (*mcp.CallToolResult, error) {
+		c, err := client.FromContext(ctx)
+		if err != nil {
+			return mcp.NewToolResultError(err.Error()), nil
+		}
 		logrus.WithField("tool", "helm_find_releases_by_chart").Debug("Handler invoked")
 
 		chartName, err := requireStringParam(request, "chart_name")
@@ -677,8 +745,12 @@ func HandleFindReleasesByChart(c *client.Client) func(ctx context.Context, reque
 }
 
 // HandleFindBrokenReleases finds releases with failed or pending status
-func HandleFindBrokenReleases(c *client.Client) func(ctx context.Context, request mcp.CallToolRequest) (*mcp.CallToolResult, error) {
+func HandleFindBrokenReleases() func(ctx context.Context, request mcp.CallToolRequest) (*mcp.CallToolResult, error) {
 	return func(ctx context.Context, request mcp.CallToolRequest) (*mcp.CallToolResult, error) {
+		c, err := client.FromContext(ctx)
+		if err != nil {
+			return mcp.NewToolResultError(err.Error()), nil
+		}
 		logrus.WithField("tool", "helm_find_broken_releases").Debug("Handler invoked")
 
 		namespace := getOptionalStringParam(request, "namespace")
@@ -705,8 +777,12 @@ func HandleFindBrokenReleases(c *client.Client) func(ctx context.Context, reques
 }
 
 // HandleValidateRelease validates a release configuration
-func HandleValidateRelease(c *client.Client) func(ctx context.Context, request mcp.CallToolRequest) (*mcp.CallToolResult, error) {
+func HandleValidateRelease() func(ctx context.Context, request mcp.CallToolRequest) (*mcp.CallToolResult, error) {
 	return func(ctx context.Context, request mcp.CallToolRequest) (*mcp.CallToolResult, error) {
+		c, err := client.FromContext(ctx)
+		if err != nil {
+			return mcp.NewToolResultError(err.Error()), nil
+		}
 		logrus.WithField("tool", "helm_validate_release").Debug("Handler invoked")
 
 		name, err := requireStringParam(request, "name")
@@ -733,8 +809,12 @@ func HandleValidateRelease(c *client.Client) func(ctx context.Context, request m
 }
 
 // HandleGetRecentFailures returns a handler function for getting recent failed releases.
-func HandleGetRecentFailures(c *client.Client) func(ctx context.Context, request mcp.CallToolRequest) (*mcp.CallToolResult, error) {
+func HandleGetRecentFailures() func(ctx context.Context, request mcp.CallToolRequest) (*mcp.CallToolResult, error) {
 	return func(ctx context.Context, request mcp.CallToolRequest) (*mcp.CallToolResult, error) {
+		c, err := client.FromContext(ctx)
+		if err != nil {
+			return mcp.NewToolResultError(err.Error()), nil
+		}
 		logrus.WithField("tool", "helm_get_recent_failures").Debug("Handler invoked")
 
 		// Get parameters
@@ -772,8 +852,12 @@ func HandleGetRecentFailures(c *client.Client) func(ctx context.Context, request
 }
 
 // HandleGetClusterOverview returns a handler function for getting cluster-wide Helm overview.
-func HandleGetClusterOverview(c *client.Client) func(ctx context.Context, request mcp.CallToolRequest) (*mcp.CallToolResult, error) {
+func HandleGetClusterOverview() func(ctx context.Context, request mcp.CallToolRequest) (*mcp.CallToolResult, error) {
 	return func(ctx context.Context, request mcp.CallToolRequest) (*mcp.CallToolResult, error) {
+		c, err := client.FromContext(ctx)
+		if err != nil {
+			return mcp.NewToolResultError(err.Error()), nil
+		}
 		logrus.WithField("tool", "helm_cluster_overview").Debug("Handler invoked")
 
 		// Get parameters
@@ -797,8 +881,12 @@ func HandleGetClusterOverview(c *client.Client) func(ctx context.Context, reques
 }
 
 // HandleGetResourcesOfRelease returns a handler function for getting resources managed by a Helm release.
-func HandleGetResourcesOfRelease(c *client.Client) func(ctx context.Context, request mcp.CallToolRequest) (*mcp.CallToolResult, error) {
+func HandleGetResourcesOfRelease() func(ctx context.Context, request mcp.CallToolRequest) (*mcp.CallToolResult, error) {
 	return func(ctx context.Context, request mcp.CallToolRequest) (*mcp.CallToolResult, error) {
+		c, err := client.FromContext(ctx)
+		if err != nil {
+			return mcp.NewToolResultError(err.Error()), nil
+		}
 		logrus.WithField("tool", "helm_get_resources_of_release").Debug("Handler invoked")
 
 		// Validate required parameters
@@ -846,8 +934,12 @@ func HandleGetResourcesOfRelease(c *client.Client) func(ctx context.Context, req
 }
 
 // HandleGetQuickInfo returns a quick overview of all Helm releases
-func HandleGetQuickInfo(c *client.Client) func(ctx context.Context, request mcp.CallToolRequest) (*mcp.CallToolResult, error) {
+func HandleGetQuickInfo() func(ctx context.Context, request mcp.CallToolRequest) (*mcp.CallToolResult, error) {
 	return func(ctx context.Context, request mcp.CallToolRequest) (*mcp.CallToolResult, error) {
+		c, err := client.FromContext(ctx)
+		if err != nil {
+			return mcp.NewToolResultError(err.Error()), nil
+		}
 		logrus.WithField("tool", "helm_quick_info").Debug("Handler invoked")
 
 		info, err := c.GetQuickInfo()

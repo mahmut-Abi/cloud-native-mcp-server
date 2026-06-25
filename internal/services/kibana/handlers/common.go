@@ -132,8 +132,13 @@ func getStringFieldFromMap(m map[string]interface{}, key string) string {
 }
 
 // HandleTestConnection handles Kibana connection test requests.
-func HandleTestConnection(c *client.Client) func(ctx context.Context, req mcp.CallToolRequest) (*mcp.CallToolResult, error) {
+func HandleTestConnection() func(ctx context.Context, req mcp.CallToolRequest) (*mcp.CallToolResult, error) {
 	return func(ctx context.Context, req mcp.CallToolRequest) (*mcp.CallToolResult, error) {
+		c, cerr := client.FromContext(ctx)
+		if cerr != nil {
+			return mcp.NewToolResultError(cerr.Error()), nil
+		}
+
 		logrus.Debug("Testing Kibana connection")
 
 		// Test connection

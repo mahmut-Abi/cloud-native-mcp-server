@@ -15,8 +15,12 @@ import (
 )
 
 // HandleQuery handles Prometheus instant query requests.
-func HandleQuery(c *client.Client) func(ctx context.Context, req mcp.CallToolRequest) (*mcp.CallToolResult, error) {
+func HandleQuery() func(ctx context.Context, req mcp.CallToolRequest) (*mcp.CallToolResult, error) {
 	return func(ctx context.Context, req mcp.CallToolRequest) (*mcp.CallToolResult, error) {
+		c, err := client.FromContext(ctx)
+		if err != nil {
+			return mcp.NewToolResultError(err.Error()), nil
+		}
 		logrus.Debug("Executing Prometheus query handler")
 
 		// Extract parameters
@@ -78,8 +82,12 @@ func HandleQuery(c *client.Client) func(ctx context.Context, req mcp.CallToolReq
 }
 
 // HandleQueryRange handles Prometheus range query requests.
-func HandleQueryRange(c *client.Client) func(ctx context.Context, req mcp.CallToolRequest) (*mcp.CallToolResult, error) {
+func HandleQueryRange() func(ctx context.Context, req mcp.CallToolRequest) (*mcp.CallToolResult, error) {
 	return func(ctx context.Context, req mcp.CallToolRequest) (*mcp.CallToolResult, error) {
+		c, err := client.FromContext(ctx)
+		if err != nil {
+			return mcp.NewToolResultError(err.Error()), nil
+		}
 		logrus.Debug("Executing Prometheus range query handler")
 
 		// Extract parameters

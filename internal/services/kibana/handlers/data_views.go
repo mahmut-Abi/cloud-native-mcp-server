@@ -13,8 +13,13 @@ import (
 )
 
 // HandleGetDataViews handles listing data views.
-func HandleGetDataViews(c *client.Client) func(ctx context.Context, req mcp.CallToolRequest) (*mcp.CallToolResult, error) {
+func HandleGetDataViews() func(ctx context.Context, req mcp.CallToolRequest) (*mcp.CallToolResult, error) {
 	return func(ctx context.Context, req mcp.CallToolRequest) (*mcp.CallToolResult, error) {
+		c, cerr := client.FromContext(ctx)
+		if cerr != nil {
+			return mcp.NewToolResultError(cerr.Error()), nil
+		}
+
 		page := getOptionalIntParam(req, "page", 1)
 		perPage := getOptionalIntParam(req, "per_page", 20)
 
@@ -52,8 +57,13 @@ func HandleGetDataViews(c *client.Client) func(ctx context.Context, req mcp.Call
 }
 
 // HandleGetDataView handles getting a specific data view.
-func HandleGetDataView(c *client.Client) func(ctx context.Context, req mcp.CallToolRequest) (*mcp.CallToolResult, error) {
+func HandleGetDataView() func(ctx context.Context, req mcp.CallToolRequest) (*mcp.CallToolResult, error) {
 	return func(ctx context.Context, req mcp.CallToolRequest) (*mcp.CallToolResult, error) {
+		c, cerr := client.FromContext(ctx)
+		if cerr != nil {
+			return mcp.NewToolResultError(cerr.Error()), nil
+		}
+
 		dataViewID, err := requireStringParam(req, "data_view_id")
 		if err != nil {
 			return nil, err
@@ -90,8 +100,13 @@ func HandleGetDataView(c *client.Client) func(ctx context.Context, req mcp.CallT
 }
 
 // HandleCreateDataView handles creating a new data view.
-func HandleCreateDataView(c *client.Client) func(ctx context.Context, req mcp.CallToolRequest) (*mcp.CallToolResult, error) {
+func HandleCreateDataView() func(ctx context.Context, req mcp.CallToolRequest) (*mcp.CallToolResult, error) {
 	return func(ctx context.Context, req mcp.CallToolRequest) (*mcp.CallToolResult, error) {
+		c, cerr := client.FromContext(ctx)
+		if cerr != nil {
+			return mcp.NewToolResultError(cerr.Error()), nil
+		}
+
 		title := getOptionalStringParam(req, "title")
 		name := getOptionalStringParam(req, "name")
 		timeField := getOptionalStringParam(req, "timeField")
@@ -157,8 +172,13 @@ func HandleCreateDataView(c *client.Client) func(ctx context.Context, req mcp.Ca
 }
 
 // HandleUpdateDataView handles updating an existing data view.
-func HandleUpdateDataView(c *client.Client) func(ctx context.Context, req mcp.CallToolRequest) (*mcp.CallToolResult, error) {
+func HandleUpdateDataView() func(ctx context.Context, req mcp.CallToolRequest) (*mcp.CallToolResult, error) {
 	return func(ctx context.Context, req mcp.CallToolRequest) (*mcp.CallToolResult, error) {
+		c, cerr := client.FromContext(ctx)
+		if cerr != nil {
+			return mcp.NewToolResultError(cerr.Error()), nil
+		}
+
 		dataViewID, err := requireStringParam(req, "data_view_id")
 		if err != nil {
 			return nil, err
@@ -199,8 +219,13 @@ func HandleUpdateDataView(c *client.Client) func(ctx context.Context, req mcp.Ca
 }
 
 // HandleDeleteDataView handles deleting a data view.
-func HandleDeleteDataView(c *client.Client) func(ctx context.Context, req mcp.CallToolRequest) (*mcp.CallToolResult, error) {
+func HandleDeleteDataView() func(ctx context.Context, req mcp.CallToolRequest) (*mcp.CallToolResult, error) {
 	return func(ctx context.Context, req mcp.CallToolRequest) (*mcp.CallToolResult, error) {
+		c, cerr := client.FromContext(ctx)
+		if cerr != nil {
+			return mcp.NewToolResultError(cerr.Error()), nil
+		}
+
 		dataViewID, err := requireStringParam(req, "data_view_id")
 		if err != nil {
 			return nil, err

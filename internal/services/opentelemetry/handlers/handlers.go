@@ -14,8 +14,12 @@ import (
 )
 
 // HandleGetMetrics handles the opentelemetry_get_metrics tool.
-func HandleGetMetrics(c *client.Client) server.ToolHandlerFunc {
+func HandleGetMetrics() server.ToolHandlerFunc {
 	return func(ctx context.Context, request mcp.CallToolRequest) (*mcp.CallToolResult, error) {
+		c, err := client.FromContext(ctx)
+		if err != nil {
+			return mcp.NewToolResultError(err.Error()), nil
+		}
 		args := request.GetArguments()
 
 		var metricName *string
@@ -50,8 +54,12 @@ func HandleGetMetrics(c *client.Client) server.ToolHandlerFunc {
 }
 
 // HandleQueryMetrics handles the opentelemetry_query_metrics tool.
-func HandleQueryMetrics(c *client.Client) server.ToolHandlerFunc {
+func HandleQueryMetrics() server.ToolHandlerFunc {
 	return func(ctx context.Context, request mcp.CallToolRequest) (*mcp.CallToolResult, error) {
+		c, err := client.FromContext(ctx)
+		if err != nil {
+			return mcp.NewToolResultError(err.Error()), nil
+		}
 		args := request.GetArguments()
 
 		query, ok := args["query"].(string)
@@ -81,8 +89,12 @@ func HandleQueryMetrics(c *client.Client) server.ToolHandlerFunc {
 }
 
 // HandleGetTraces handles the opentelemetry_get_traces tool.
-func HandleGetTraces(c *client.Client) server.ToolHandlerFunc {
+func HandleGetTraces() server.ToolHandlerFunc {
 	return func(ctx context.Context, request mcp.CallToolRequest) (*mcp.CallToolResult, error) {
+		c, err := client.FromContext(ctx)
+		if err != nil {
+			return mcp.NewToolResultError(err.Error()), nil
+		}
 		args := request.GetArguments()
 
 		var traceID, service *string
@@ -126,8 +138,12 @@ func HandleGetTraces(c *client.Client) server.ToolHandlerFunc {
 }
 
 // HandleQueryTraces handles the opentelemetry_query_traces tool.
-func HandleQueryTraces(c *client.Client) server.ToolHandlerFunc {
+func HandleQueryTraces() server.ToolHandlerFunc {
 	return func(ctx context.Context, request mcp.CallToolRequest) (*mcp.CallToolResult, error) {
+		c, err := client.FromContext(ctx)
+		if err != nil {
+			return mcp.NewToolResultError(err.Error()), nil
+		}
 		args := request.GetArguments()
 
 		query, ok := args["query"].(string)
@@ -173,8 +189,12 @@ func HandleQueryTraces(c *client.Client) server.ToolHandlerFunc {
 }
 
 // HandleGetLogs handles the opentelemetry_get_logs tool.
-func HandleGetLogs(c *client.Client) server.ToolHandlerFunc {
+func HandleGetLogs() server.ToolHandlerFunc {
 	return func(ctx context.Context, request mcp.CallToolRequest) (*mcp.CallToolResult, error) {
+		c, err := client.FromContext(ctx)
+		if err != nil {
+			return mcp.NewToolResultError(err.Error()), nil
+		}
 		args := request.GetArguments()
 
 		var service, level *string
@@ -218,8 +238,12 @@ func HandleGetLogs(c *client.Client) server.ToolHandlerFunc {
 }
 
 // HandleQueryLogs handles the opentelemetry_query_logs tool.
-func HandleQueryLogs(c *client.Client) server.ToolHandlerFunc {
+func HandleQueryLogs() server.ToolHandlerFunc {
 	return func(ctx context.Context, request mcp.CallToolRequest) (*mcp.CallToolResult, error) {
+		c, err := client.FromContext(ctx)
+		if err != nil {
+			return mcp.NewToolResultError(err.Error()), nil
+		}
 		args := request.GetArguments()
 
 		query, ok := args["query"].(string)
@@ -268,8 +292,12 @@ func HandleQueryLogs(c *client.Client) server.ToolHandlerFunc {
 }
 
 // HandleGetHealth handles the opentelemetry_get_health tool.
-func HandleGetHealth(c *client.Client) server.ToolHandlerFunc {
+func HandleGetHealth() server.ToolHandlerFunc {
 	return func(ctx context.Context, request mcp.CallToolRequest) (*mcp.CallToolResult, error) {
+		c, err := client.FromContext(ctx)
+		if err != nil {
+			return mcp.NewToolResultError(err.Error()), nil
+		}
 		health, err := c.GetHealth(ctx)
 		if err != nil {
 			return mcp.NewToolResultError(fmt.Sprintf("Failed to retrieve health status: %v", err)), nil
@@ -285,8 +313,12 @@ func HandleGetHealth(c *client.Client) server.ToolHandlerFunc {
 }
 
 // HandleGetStatus handles the opentelemetry_get_status tool.
-func HandleGetStatus(c *client.Client) server.ToolHandlerFunc {
+func HandleGetStatus() server.ToolHandlerFunc {
 	return func(ctx context.Context, request mcp.CallToolRequest) (*mcp.CallToolResult, error) {
+		c, err := client.FromContext(ctx)
+		if err != nil {
+			return mcp.NewToolResultError(err.Error()), nil
+		}
 		status, err := c.GetStatus(ctx)
 		if err != nil {
 			return mcp.NewToolResultError(fmt.Sprintf("Failed to retrieve status: %v", err)), nil
@@ -302,8 +334,12 @@ func HandleGetStatus(c *client.Client) server.ToolHandlerFunc {
 }
 
 // HandleGetConfig handles the opentelemetry_get_config tool.
-func HandleGetConfig(c *client.Client) server.ToolHandlerFunc {
+func HandleGetConfig() server.ToolHandlerFunc {
 	return func(ctx context.Context, request mcp.CallToolRequest) (*mcp.CallToolResult, error) {
+		c, err := client.FromContext(ctx)
+		if err != nil {
+			return mcp.NewToolResultError(err.Error()), nil
+		}
 		config, err := c.GetConfig(ctx)
 		if err != nil {
 			return mcp.NewToolResultError(fmt.Sprintf("Failed to retrieve configuration: %v", err)), nil

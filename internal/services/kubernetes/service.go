@@ -6,15 +6,12 @@ package kubernetes
 import (
 	"context"
 	"fmt"
-	"time"
 
 	"github.com/mark3labs/mcp-go/mcp"
 	server "github.com/mark3labs/mcp-go/server"
 	"github.com/sirupsen/logrus"
 
-	"github.com/mahmut-Abi/cloud-native-mcp-server/internal/config"
 	"github.com/mahmut-Abi/cloud-native-mcp-server/internal/services/cache"
-	"github.com/mahmut-Abi/cloud-native-mcp-server/internal/services/framework"
 	"github.com/mahmut-Abi/cloud-native-mcp-server/internal/services/kubernetes/client"
 	"github.com/mahmut-Abi/cloud-native-mcp-server/internal/services/kubernetes/handlers"
 	"github.com/mahmut-Abi/cloud-native-mcp-server/internal/services/kubernetes/tools"
@@ -22,48 +19,18 @@ import (
 
 // Service implements the Kubernetes service for MCP server integration.
 // It provides tools and handlers for interacting with Kubernetes clusters.
+// The backend client is not stored — it is created per-request from HTTP headers.
 type Service struct {
-	client        *client.Client               // Kubernetes client for API operations
-	enabled       bool                         // Whether the service is enabled
-	toolsCache    *cache.ToolsCache            // Cached tools to avoid recreation
-	initFramework *framework.CommonServiceInit // Common initialization framework
+	enabled    bool              // Whether the service is enabled
+	toolsCache *cache.ToolsCache // Cached tools to avoid recreation
 }
 
 // NewService creates a new Kubernetes service instance.
 // The service is enabled by default and requires initialization before use.
 func NewService() *Service {
-	// Create service enable checker - Kubernetes is always enabled by default
-	checker := framework.NewServiceEnabled(
-		func(cfg *config.AppConfig) bool { return true }, // Always enabled
-		func(cfg *config.AppConfig) string { return cfg.Kubernetes.Kubeconfig },
-	)
-
-	// Create init configuration
-	initConfig := &framework.InitConfig{
-		Required:     false,
-		URLValidator: func(url string) bool { return true }, // Kubeconfig can be empty (use in-cluster config)
-		ClientBuilder: func(cfg *config.AppConfig) (interface{}, error) {
-			opts := client.DefaultClientOptions()
-			if cfg.Kubernetes.Kubeconfig != "" {
-				opts.KubeconfigPath = cfg.Kubernetes.Kubeconfig
-			}
-			if cfg.Kubernetes.TimeoutSec > 0 {
-				opts.Timeout = time.Duration(cfg.Kubernetes.TimeoutSec) * time.Second
-			}
-			if cfg.Kubernetes.QPS > 0 {
-				opts.QPS = cfg.Kubernetes.QPS
-			}
-			if cfg.Kubernetes.Burst > 0 {
-				opts.Burst = cfg.Kubernetes.Burst
-			}
-			return client.NewClientWithOptions(opts)
-		},
-	}
-
 	return &Service{
-		enabled:       true, // Default enabled
-		toolsCache:    cache.NewToolsCache(),
-		initFramework: framework.NewCommonServiceInit("Kubernetes", initConfig, checker),
+		enabled:    true, // Default enabled
+		toolsCache: cache.NewToolsCache(),
 	}
 }
 
@@ -73,24 +40,18 @@ func (s *Service) Name() string {
 }
 
 // Initialize configures the Kubernetes service with the provided application configuration.
-// It creates and configures the underlying Kubernetes client with appropriate timeouts,
-// rate limiting, and authentication settings.
 func (s *Service) Initialize(cfg interface{}) error {
-	return s.initFramework.Initialize(cfg,
-		func(enabled bool) { s.enabled = enabled },
-		func(clientIface interface{}) {
-			if k8sClient, ok := clientIface.(*client.Client); ok {
-				s.client = k8sClient
-			}
-		},
-	)
+	logrus.Debug("Initializing Kubernetes service")
+	// Kubernetes is always enabled by default; client is created per-request from headers.
+	_ = cfg
+	return nil
 }
 
 // GetTools returns all available Kubernetes MCP tools.
-// Tools are only returned if the service is enabled and properly initialized.
+// Tools are only returned if the service is enabled.
 // The tools include resource management, cluster interaction, and diagnostic capabilities.
 func (s *Service) GetTools() []mcp.Tool {
-	if !s.enabled || s.client == nil {
+	if !s.enabled {
 		return nil
 	}
 
@@ -157,68 +118,68 @@ func (s *Service) GetTools() []mcp.Tool {
 }
 
 // GetHandlers returns all tool handlers mapped to their respective tool names.
-// Handlers are only returned if the service is enabled and properly initialized.
+// Handlers are only returned if the service is enabled.
 func (s *Service) GetHandlers() map[string]server.ToolHandlerFunc {
-	if !s.enabled || s.client == nil {
+	if !s.enabled {
 		return nil
 	}
 
 	handlersMap := map[string]server.ToolHandlerFunc{
 		// Core resource operations (optimized for LLM efficiency)
-		"kubernetes_get_resource_summary":   s.wrapWithCache("kubernetes_get_resource_summary", handlers.HandleGetResourceSummary(s.client)),
-		"kubernetes_get_resource":           handlers.HandleGetResource(s.client),
-		"kubernetes_list_resources_summary": s.wrapWithCache("kubernetes_list_resources_summary", handlers.HandleListResourcesSummary(s.client)), // Summary-first with cache
-		"kubernetes_list_resources":         handlers.HandleListResources(s.client),
-		"kubernetes_get_resources_detail":   handlers.HandleGetResourcesDetail(s.client),
+		"kubernetes_get_resource_summary":   s.wrapWithCache("kubernetes_get_resource_summary", handlers.HandleGetResourceSummary()),
+		"kubernetes_get_resource":           handlers.HandleGetResource(),
+		"kubernetes_list_resources_summary": s.wrapWithCache("kubernetes_list_resources_summary", handlers.HandleListResourcesSummary()), // Summary-first with cache
+		"kubernetes_list_resources":         handlers.HandleListResources(),
+		"kubernetes_get_resources_detail":   handlers.HandleGetResourcesDetail(),
 
 		// Full detail tools (use sparingly)
-		"kubernetes_list_resources_full": handlers.HandleListResourcesFull(s.client),
+		"kubernetes_list_resources_full": handlers.HandleListResourcesFull(),
 
 		// Resource creation and management
-		"kubernetes_create_resource": handlers.HandleCreateResource(s.client),
-		"kubernetes_patch_resource":  handlers.HandlePatchResource(s.client),
-		"kubernetes_delete_resource": handlers.HandleDeleteResource(s.client),
+		"kubernetes_create_resource": handlers.HandleCreateResource(),
+		"kubernetes_patch_resource":  handlers.HandlePatchResource(),
+		"kubernetes_delete_resource": handlers.HandleDeleteResource(),
 
 		// Resource discovery and inspection
-		"kubernetes_describe_resource":            handlers.HandleDescribeResource(s.client),
-		"kubernetes_get_resource_details":         handlers.HandleGetResourceDetails(s.client),
-		"kubernetes_get_resource_detail_advanced": handlers.HandleGetResourceDetailAdvanced(s.client), // Advanced detail handler
-		"kubernetes_get_api_versions":             s.wrapWithCache("kubernetes_get_api_versions", handlers.HandleGetAPIVersions(s.client)),
-		"kubernetes_get_api_resources":            s.wrapWithCache("kubernetes_get_api_resources", handlers.HandleGetAPIResources(s.client)),
+		"kubernetes_describe_resource":            handlers.HandleDescribeResource(),
+		"kubernetes_get_resource_details":         handlers.HandleGetResourceDetails(),
+		"kubernetes_get_resource_detail_advanced": handlers.HandleGetResourceDetailAdvanced(), // Advanced detail handler
+		"kubernetes_get_api_versions":             s.wrapWithCache("kubernetes_get_api_versions", handlers.HandleGetAPIVersions()),
+		"kubernetes_get_api_resources":            s.wrapWithCache("kubernetes_get_api_resources", handlers.HandleGetAPIResources()),
 
 		// Cluster operations
-		"kubernetes_scale_resource":     handlers.HandleScaleResource(s.client),
-		"kubernetes_get_rollout_status": handlers.HandleGetRolloutStatus(s.client),
-		"kubernetes_cordon_node":        handlers.HandleCordonNode(s.client),
-		"kubernetes_uncordon_node":      handlers.HandleUncordonNode(s.client),
-		"kubernetes_drain_node":         handlers.HandleDrainNode(s.client),
-		"kubernetes_wait_for_resource":  handlers.HandleWaitForResource(s.client),
-		"kubernetes_restart_workload":   handlers.HandleRestartWorkload(s.client),
-		"kubernetes_port_forward":       handlers.HandlePortForward(s.client),
+		"kubernetes_scale_resource":     handlers.HandleScaleResource(),
+		"kubernetes_get_rollout_status": handlers.HandleGetRolloutStatus(),
+		"kubernetes_cordon_node":        handlers.HandleCordonNode(),
+		"kubernetes_uncordon_node":      handlers.HandleUncordonNode(),
+		"kubernetes_drain_node":         handlers.HandleDrainNode(),
+		"kubernetes_wait_for_resource":  handlers.HandleWaitForResource(),
+		"kubernetes_restart_workload":   handlers.HandleRestartWorkload(),
+		"kubernetes_port_forward":       handlers.HandlePortForward(),
 
 		// Container and pod operations
-		"kubernetes_get_pod_logs":      handlers.HandleContainerLogs(s.client),
-		"kubernetes_pod_exec":          handlers.HandleContainerExec(s.client),
-		"kubernetes_check_permissions": s.wrapWithCache("kubernetes_check_permissions", handlers.HandleCheckPermissions(s.client)),
+		"kubernetes_get_pod_logs":      handlers.HandleContainerLogs(),
+		"kubernetes_pod_exec":          handlers.HandleContainerExec(),
+		"kubernetes_check_permissions": s.wrapWithCache("kubernetes_check_permissions", handlers.HandleCheckPermissions()),
 
 		// Event monitoring (optimized vs detailed)
-		"kubernetes_get_recent_events": s.wrapWithCache("kubernetes_get_recent_events", handlers.HandleGetRecentEvents(s.client)), // Optimized for critical events with cache
-		"kubernetes_get_events":        handlers.HandleGetEvents(s.client),                                                        // Standard events
-		"kubernetes_get_events_detail": handlers.HandleGetEventsDetail(s.client),                                                  // Full detailed events
+		"kubernetes_get_recent_events": s.wrapWithCache("kubernetes_get_recent_events", handlers.HandleGetRecentEvents()), // Optimized for critical events with cache
+		"kubernetes_get_events":        handlers.HandleGetEvents(),                                                        // Standard events
+		"kubernetes_get_events_detail": handlers.HandleGetEventsDetail(),                                                  // Full detailed events
 
 		// Resource monitoring
-		"kubernetes_get_resource_usage": handlers.HandleGetResourceUsage(s.client),
+		"kubernetes_get_resource_usage": handlers.HandleGetResourceUsage(),
 
 		// Troubleshooting and diagnostics
-		"kubernetes_get_unhealthy_resources": handlers.HandleGetUnhealthyResources(s.client),
-		"kubernetes_get_node_conditions":     handlers.HandleGetNodeConditions(s.client),
-		"kubernetes_analyze_issue":           handlers.HandleAnalyzeIssue(s.client),
+		"kubernetes_get_unhealthy_resources": handlers.HandleGetUnhealthyResources(),
+		"kubernetes_get_node_conditions":     handlers.HandleGetNodeConditions(),
+		"kubernetes_analyze_issue":           handlers.HandleAnalyzeIssue(),
 
 		// Search and discovery
-		"kubernetes_search_resources": handlers.HandleSearchResources(s.client),
+		"kubernetes_search_resources": handlers.HandleSearchResources(),
 
 		// Testing and validation
-		"kubernetes_test_tool": handlers.HandleTest(s.client),
+		"kubernetes_test_tool": handlers.HandleTest(),
 	}
 
 	for name, handler := range handlersMap {
@@ -279,13 +240,12 @@ func (s *Service) wrapWithToolErrors(toolName string, handler server.ToolHandler
 }
 
 // IsEnabled returns whether the service is enabled and ready for use.
-// A service is considered enabled if it's marked as enabled and has a valid client.
 func (s *Service) IsEnabled() bool {
-	return s.enabled && s.client != nil
+	return s.enabled
 }
 
-// GetClient returns the underlying Kubernetes client for advanced operations.
-// This method is primarily used for testing and internal service communication.
+// GetClient returns the underlying Kubernetes client.
+// The client is no longer stored in the service — use client.FromContext instead.
 func (s *Service) GetClient() *client.Client {
-	return s.client
+	return nil
 }

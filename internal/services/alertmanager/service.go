@@ -18,8 +18,8 @@ import (
 
 // Service implements the Alertmanager service for MCP server integration.
 // It provides tools and handlers for interacting with Alertmanager instances.
+// The backend client is not stored — it is created per-request from HTTP headers.
 type Service struct {
-	client        *client.Client               // Alertmanager HTTP client for API operations
 	enabled       bool                         // Whether the service is enabled
 	toolsCache    *cache.ToolsCache            // Cached tools to avoid recreation
 	initFramework *framework.CommonServiceInit // Common initialization framework
@@ -86,13 +86,13 @@ func (s *Service) Name() string {
 
 // Initialize configures the Alertmanager service with the provided application configuration.
 // It uses the common service framework for standardized initialization.
+// The backend client is created per-request from HTTP headers (see client/config.go).
 func (s *Service) Initialize(cfg interface{}) error {
 	return s.initFramework.Initialize(cfg,
 		func(enabled bool) { s.enabled = enabled },
-		func(clientIface interface{}) {
-			if alertmanagerClient, ok := clientIface.(*client.Client); ok {
-				s.client = alertmanagerClient
-			}
+		func(_ interface{}) {
+			// Backend client is created per-request from HTTP headers.
+			// The backend auth handler was registered in client/config.go init().
 		},
 	)
 }
@@ -101,7 +101,7 @@ func (s *Service) Initialize(cfg interface{}) error {
 // Tools are only returned if the service is enabled and properly initialized.
 // The tools include alert management, silence operations, and receiver testing.
 func (s *Service) GetTools() []mcp.Tool {
-	if !s.enabled || s.client == nil {
+	if !s.enabled {
 		return nil
 	}
 
@@ -139,32 +139,32 @@ func (s *Service) GetTools() []mcp.Tool {
 // GetHandlers returns all tool handlers mapped to their respective tool names.
 // Handlers are only returned if the service is enabled and properly initialized.
 func (s *Service) GetHandlers() map[string]server.ToolHandlerFunc {
-	if !s.enabled || s.client == nil {
+	if !s.enabled {
 		return nil
 	}
 
 	// Legacy handlers (maintained for compatibility)
 	legacyHandlers := map[string]server.ToolHandlerFunc{
-		"alertmanager_get_status":       handlers.HandleGetStatus(s.client),
-		"alertmanager_get_alerts":       handlers.HandleGetAlerts(s.client),
-		"alertmanager_get_alert_groups": handlers.HandleGetAlertGroups(s.client),
-		"alertmanager_get_silences":     handlers.HandleGetSilences(s.client),
-		"alertmanager_create_silence":   handlers.HandleCreateSilence(s.client),
-		"alertmanager_delete_silence":   handlers.HandleDeleteSilence(s.client),
-		"alertmanager_get_receivers":    handlers.HandleGetReceivers(s.client),
-		"alertmanager_test_receiver":    handlers.HandleTestReceiver(s.client),
-		"alertmanager_query_alerts":     handlers.HandleQueryAlerts(s.client),
+		"alertmanager_get_status":       handlers.HandleGetStatus(),
+		"alertmanager_get_alerts":       handlers.HandleGetAlerts(),
+		"alertmanager_get_alert_groups": handlers.HandleGetAlertGroups(),
+		"alertmanager_get_silences":     handlers.HandleGetSilences(),
+		"alertmanager_create_silence":   handlers.HandleCreateSilence(),
+		"alertmanager_delete_silence":   handlers.HandleDeleteSilence(),
+		"alertmanager_get_receivers":    handlers.HandleGetReceivers(),
+		"alertmanager_test_receiver":    handlers.HandleTestReceiver(),
+		"alertmanager_query_alerts":     handlers.HandleQueryAlerts(),
 	}
 
 	// ⚠️ PRIORITY: New optimized handlers for LLM efficiency
 	optimizedHandlers := map[string]server.ToolHandlerFunc{
-		"alertmanager_alerts_summary":         handlers.HandleAlertsSummary(s.client),
-		"alertmanager_silences_summary":       handlers.HandleSilencesSummary(s.client),
-		"alertmanager_alert_groups_paginated": handlers.HandleAlertGroupsPaginated(s.client),
-		"alertmanager_silences_paginated":     handlers.HandleSilencesPaginated(s.client),
-		"alertmanager_receivers_summary":      handlers.HandleReceiversSummary(s.client),
-		"alertmanager_query_alerts_advanced":  handlers.HandleQueryAlertsAdvanced(s.client),
-		"alertmanager_health_summary":         handlers.HandleHealthSummary(s.client),
+		"alertmanager_alerts_summary":         handlers.HandleAlertsSummary(),
+		"alertmanager_silences_summary":       handlers.HandleSilencesSummary(),
+		"alertmanager_alert_groups_paginated": handlers.HandleAlertGroupsPaginated(),
+		"alertmanager_silences_paginated":     handlers.HandleSilencesPaginated(),
+		"alertmanager_receivers_summary":      handlers.HandleReceiversSummary(),
+		"alertmanager_query_alerts_advanced":  handlers.HandleQueryAlertsAdvanced(),
+		"alertmanager_health_summary":         handlers.HandleHealthSummary(),
 	}
 
 	// Combine all handlers
@@ -180,13 +180,11 @@ func (s *Service) GetHandlers() map[string]server.ToolHandlerFunc {
 }
 
 // IsEnabled returns whether the service is enabled and ready for use.
-// A service is considered enabled if it's marked as enabled and has a valid client.
 func (s *Service) IsEnabled() bool {
-	return s.enabled && s.client != nil
+	return s.enabled
 }
 
 // GetClient returns the underlying Alertmanager client for advanced operations.
-// This method is primarily used for testing and internal service communication.
 func (s *Service) GetClient() *client.Client {
-	return s.client
+	return nil
 }

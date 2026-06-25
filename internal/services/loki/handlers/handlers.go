@@ -21,13 +21,8 @@ const (
 	defaultQueryRangeWindow = time.Hour
 )
 
-// ServiceInterface defines the interface for the Loki service.
-type ServiceInterface interface {
-	GetClient() *client.Client
-}
-
 // QueryHandler handles loki_query.
-func QueryHandler(service ServiceInterface) server.ToolHandlerFunc {
+func QueryHandler() server.ToolHandlerFunc {
 	return func(ctx context.Context, request mcp.CallToolRequest) (*mcp.CallToolResult, error) {
 		args := getRequestArguments(request)
 
@@ -41,7 +36,7 @@ func QueryHandler(service ServiceInterface) server.ToolHandlerFunc {
 			return nil, err
 		}
 
-		lokiClient, err := getLokiClient(service)
+		lokiClient, err := client.FromContext(ctx)
 		if err != nil {
 			return nil, err
 		}
@@ -62,7 +57,7 @@ func QueryHandler(service ServiceInterface) server.ToolHandlerFunc {
 }
 
 // QueryRangeHandler handles loki_query_range.
-func QueryRangeHandler(service ServiceInterface) server.ToolHandlerFunc {
+func QueryRangeHandler() server.ToolHandlerFunc {
 	return func(ctx context.Context, request mcp.CallToolRequest) (*mcp.CallToolResult, error) {
 		args := getRequestArguments(request)
 
@@ -76,7 +71,7 @@ func QueryRangeHandler(service ServiceInterface) server.ToolHandlerFunc {
 			return nil, err
 		}
 
-		lokiClient, err := getLokiClient(service)
+		lokiClient, err := client.FromContext(ctx)
 		if err != nil {
 			return nil, err
 		}
@@ -99,7 +94,7 @@ func QueryRangeHandler(service ServiceInterface) server.ToolHandlerFunc {
 }
 
 // QueryLogsSummaryHandler handles loki_query_logs_summary.
-func QueryLogsSummaryHandler(service ServiceInterface) server.ToolHandlerFunc {
+func QueryLogsSummaryHandler() server.ToolHandlerFunc {
 	return func(ctx context.Context, request mcp.CallToolRequest) (*mcp.CallToolResult, error) {
 		args := getRequestArguments(request)
 
@@ -113,7 +108,7 @@ func QueryLogsSummaryHandler(service ServiceInterface) server.ToolHandlerFunc {
 			return nil, err
 		}
 
-		lokiClient, err := getLokiClient(service)
+		lokiClient, err := client.FromContext(ctx)
 		if err != nil {
 			return nil, err
 		}
@@ -140,7 +135,7 @@ func QueryLogsSummaryHandler(service ServiceInterface) server.ToolHandlerFunc {
 }
 
 // GetLabelNamesHandler handles loki_get_label_names.
-func GetLabelNamesHandler(service ServiceInterface) server.ToolHandlerFunc {
+func GetLabelNamesHandler() server.ToolHandlerFunc {
 	return func(ctx context.Context, request mcp.CallToolRequest) (*mcp.CallToolResult, error) {
 		args := getRequestArguments(request)
 
@@ -153,7 +148,7 @@ func GetLabelNamesHandler(service ServiceInterface) server.ToolHandlerFunc {
 			return nil, err
 		}
 
-		lokiClient, err := getLokiClient(service)
+		lokiClient, err := client.FromContext(ctx)
 		if err != nil {
 			return nil, err
 		}
@@ -171,7 +166,7 @@ func GetLabelNamesHandler(service ServiceInterface) server.ToolHandlerFunc {
 }
 
 // GetLabelValuesHandler handles loki_get_label_values.
-func GetLabelValuesHandler(service ServiceInterface) server.ToolHandlerFunc {
+func GetLabelValuesHandler() server.ToolHandlerFunc {
 	return func(ctx context.Context, request mcp.CallToolRequest) (*mcp.CallToolResult, error) {
 		args := getRequestArguments(request)
 
@@ -188,7 +183,7 @@ func GetLabelValuesHandler(service ServiceInterface) server.ToolHandlerFunc {
 			return nil, err
 		}
 
-		lokiClient, err := getLokiClient(service)
+		lokiClient, err := client.FromContext(ctx)
 		if err != nil {
 			return nil, err
 		}
@@ -207,7 +202,7 @@ func GetLabelValuesHandler(service ServiceInterface) server.ToolHandlerFunc {
 }
 
 // GetSeriesHandler handles loki_get_series.
-func GetSeriesHandler(service ServiceInterface) server.ToolHandlerFunc {
+func GetSeriesHandler() server.ToolHandlerFunc {
 	return func(ctx context.Context, request mcp.CallToolRequest) (*mcp.CallToolResult, error) {
 		args := getRequestArguments(request)
 
@@ -228,7 +223,7 @@ func GetSeriesHandler(service ServiceInterface) server.ToolHandlerFunc {
 			return nil, err
 		}
 
-		lokiClient, err := getLokiClient(service)
+		lokiClient, err := client.FromContext(ctx)
 		if err != nil {
 			return nil, err
 		}
@@ -247,9 +242,9 @@ func GetSeriesHandler(service ServiceInterface) server.ToolHandlerFunc {
 }
 
 // TestConnectionHandler handles loki_test_connection.
-func TestConnectionHandler(service ServiceInterface) server.ToolHandlerFunc {
+func TestConnectionHandler() server.ToolHandlerFunc {
 	return func(ctx context.Context, request mcp.CallToolRequest) (*mcp.CallToolResult, error) {
-		lokiClient, err := getLokiClient(service)
+		lokiClient, err := client.FromContext(ctx)
 		if err != nil {
 			return nil, err
 		}
@@ -263,14 +258,6 @@ func TestConnectionHandler(service ServiceInterface) server.ToolHandlerFunc {
 			"message": "Loki connection successful",
 		})
 	}
-}
-
-func getLokiClient(service ServiceInterface) (*client.Client, error) {
-	lokiClient := service.GetClient()
-	if lokiClient == nil {
-		return nil, fmt.Errorf("loki client is not initialized")
-	}
-	return lokiClient, nil
 }
 
 func getRequestArguments(request mcp.CallToolRequest) map[string]interface{} {

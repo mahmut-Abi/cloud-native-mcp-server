@@ -1633,6 +1633,9 @@ func (s *ServerConfig) SetupMultipleRoutes(mux *http.ServeMux, sseServers map[st
 				messageHandler = middleware.AuthMiddleware(authConfig)(messageHandler)
 			}
 
+			// Apply backend auth middleware to extract service credentials from HTTP headers
+			messageHandler = middleware.BackendAuthMiddleware(serviceName)(messageHandler)
+
 			// Apply shared rate limiting before outer logging/CORS/security wrappers.
 			messageHandler = rateLimitWrapper(messageHandler)
 
@@ -1675,11 +1678,14 @@ func (s *ServerConfig) SetupMultipleRoutes(mux *http.ServeMux, sseServers map[st
 						OIDCHTTPTimeoutSec:  appConfig.Auth.OIDCHTTPTimeoutSec,
 						OIDCJWKSCacheTTLSec: appConfig.Auth.OIDCJWKSCacheTTLSec,
 					}
-					sseHandler = middleware.AuthMiddleware(authConfig)(sseHandler)
-				}
+				sseHandler = middleware.AuthMiddleware(authConfig)(sseHandler)
+			}
 
-				// Apply shared rate limiting before outer logging/CORS/security wrappers.
-				sseHandler = rateLimitWrapper(sseHandler)
+			// Apply backend auth middleware to extract service credentials from HTTP headers
+			sseHandler = middleware.BackendAuthMiddleware(serviceName)(sseHandler)
+
+			// Apply shared rate limiting before outer logging/CORS/security wrappers.
+			sseHandler = rateLimitWrapper(sseHandler)
 
 				// Apply CORS and logging middleware
 				sseHandler = s.corsMiddleware(loggingMiddleware(sseHandler))
@@ -1832,6 +1838,9 @@ func (s *ServerConfig) SetupMultipleRoutes(mux *http.ServeMux, sseServers map[st
 				}
 				httpHandler = middleware.AuthMiddleware(authConfig)(httpHandler)
 			}
+
+			// Apply backend auth middleware to extract service credentials from HTTP headers
+			httpHandler = middleware.BackendAuthMiddleware(serviceName)(httpHandler)
 
 			// Apply shared rate limiting before outer logging/CORS/security wrappers.
 			httpHandler = rateLimitWrapper(httpHandler)

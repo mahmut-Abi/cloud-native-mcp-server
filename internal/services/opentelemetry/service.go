@@ -20,8 +20,8 @@ import (
 
 // Service implements the OpenTelemetry service for MCP server integration.
 // It provides tools and handlers for interacting with OpenTelemetry Collector instances.
+// The backend client is not stored — it is created per-request from HTTP headers.
 type Service struct {
-	client        *client.Client               // OpenTelemetry HTTP client for API operations
 	enabled       bool                         // Whether the service is enabled
 	toolsCache    *cache.ToolsCache            // Cached tools to avoid recreation
 	initFramework *framework.CommonServiceInit // Common initialization framework
@@ -78,10 +78,9 @@ func (s *Service) Name() string {
 func (s *Service) Initialize(cfg interface{}) error {
 	return s.initFramework.Initialize(cfg,
 		func(enabled bool) { s.enabled = enabled },
-		func(clientIface interface{}) {
-			if otelClient, ok := clientIface.(*client.Client); ok {
-				s.client = otelClient
-			}
+		func(_ interface{}) {
+			// Backend client is created per-request from HTTP headers.
+			// The backend auth handler was registered in client/config.go init().
 		},
 	)
 }
@@ -89,7 +88,7 @@ func (s *Service) Initialize(cfg interface{}) error {
 // GetTools returns all available OpenTelemetry MCP tools.
 // Tools are only returned if the service is enabled and properly initialized.
 func (s *Service) GetTools() []mcp.Tool {
-	if !s.enabled || s.client == nil {
+	if !s.enabled {
 		return nil
 	}
 
@@ -124,48 +123,48 @@ func (s *Service) GetTools() []mcp.Tool {
 // GetHandlers returns all tool handlers mapped to their respective tool names.
 // Handlers are only returned if the service is enabled and properly initialized.
 func (s *Service) GetHandlers() map[string]server.ToolHandlerFunc {
-	if !s.enabled || s.client == nil {
+	if !s.enabled {
 		return nil
 	}
 
 	return map[string]server.ToolHandlerFunc{
 		// Metrics operations
-		"opentelemetry_get_metrics":   handlers.HandleGetMetrics(s.client),
-		"opentelemetry_query_metrics": handlers.HandleQueryMetrics(s.client),
+		"opentelemetry_get_metrics":   handlers.HandleGetMetrics(),
+		"opentelemetry_query_metrics": handlers.HandleQueryMetrics(),
 
 		// Traces operations
-		"opentelemetry_get_traces":   handlers.HandleGetTraces(s.client),
-		"opentelemetry_query_traces": handlers.HandleQueryTraces(s.client),
+		"opentelemetry_get_traces":   handlers.HandleGetTraces(),
+		"opentelemetry_query_traces": handlers.HandleQueryTraces(),
 
 		// Logs operations
-		"opentelemetry_get_logs":   handlers.HandleGetLogs(s.client),
-		"opentelemetry_query_logs": handlers.HandleQueryLogs(s.client),
+		"opentelemetry_get_logs":   handlers.HandleGetLogs(),
+		"opentelemetry_query_logs": handlers.HandleQueryLogs(),
 
 		// Health and status
-		"opentelemetry_get_health": handlers.HandleGetHealth(s.client),
-		"opentelemetry_get_status": handlers.HandleGetStatus(s.client),
+		"opentelemetry_get_health": handlers.HandleGetHealth(),
+		"opentelemetry_get_status": handlers.HandleGetStatus(),
 
 		// Configuration
-		"opentelemetry_get_config":              handlers.HandleGetConfig(s.client),
-		"opentelemetry_get_config_summary":      handlers.HandleGetConfigSummary(s.client),
-		"opentelemetry_get_collector_summary":   handlers.HandleGetCollectorSummary(s.client),
-		"opentelemetry_analyze_pipeline_status": handlers.HandleAnalyzePipelineStatus(s.client),
+		"opentelemetry_get_config":              handlers.HandleGetConfig(),
+		"opentelemetry_get_config_summary":      handlers.HandleGetConfigSummary(),
+		"opentelemetry_get_collector_summary":   handlers.HandleGetCollectorSummary(),
+		"opentelemetry_analyze_pipeline_status": handlers.HandleAnalyzePipelineStatus(),
 	}
 }
 
 // IsEnabled returns whether the service is enabled and ready for use.
 func (s *Service) IsEnabled() bool {
-	return s.enabled && s.client != nil
+	return s.enabled
 }
 
 // GetClient returns the underlying OpenTelemetry client for advanced operations.
 func (s *Service) GetClient() *client.Client {
-	return s.client
+	return nil
 }
 
 // GetResources returns all available OpenTelemetry MCP resources.
 func (s *Service) GetResources() []mcp.Resource {
-	if !s.enabled || s.client == nil {
+	if !s.enabled {
 		return nil
 	}
 
@@ -199,7 +198,7 @@ func (s *Service) GetResources() []mcp.Resource {
 
 // GetResourceHandlers returns all resource handlers mapped to their respective resource URIs.
 func (s *Service) GetResourceHandlers() map[string]server.ResourceHandlerFunc {
-	if !s.enabled || s.client == nil {
+	if !s.enabled {
 		return nil
 	}
 
@@ -213,7 +212,16 @@ func (s *Service) GetResourceHandlers() map[string]server.ResourceHandlerFunc {
 
 // handleMetricsResource provides current metrics as a resource.
 func (s *Service) handleMetricsResource(ctx context.Context, request mcp.ReadResourceRequest) ([]mcp.ResourceContents, error) {
-	metrics, err := s.client.GetMetrics(ctx, nil, nil, nil)
+	c, err := client.FromContext(ctx)
+	if err != nil {
+		return []mcp.ResourceContents{
+			mcp.TextResourceContents{
+				URI:  request.Params.URI,
+				Text: "OpenTelemetry client not available: " + err.Error(),
+			},
+		}, nil
+	}
+	metrics, err := c.GetMetrics(ctx, nil, nil, nil)
 	if err != nil {
 		return []mcp.ResourceContents{
 			mcp.TextResourceContents{
@@ -243,7 +251,16 @@ func (s *Service) handleMetricsResource(ctx context.Context, request mcp.ReadRes
 
 // handleTracesResource provides recent traces as a resource.
 func (s *Service) handleTracesResource(ctx context.Context, request mcp.ReadResourceRequest) ([]mcp.ResourceContents, error) {
-	traces, err := s.client.GetTraces(ctx, nil, nil, nil, nil, nil)
+	c, err := client.FromContext(ctx)
+	if err != nil {
+		return []mcp.ResourceContents{
+			mcp.TextResourceContents{
+				URI:  request.Params.URI,
+				Text: "OpenTelemetry client not available: " + err.Error(),
+			},
+		}, nil
+	}
+	traces, err := c.GetTraces(ctx, nil, nil, nil, nil, nil)
 	if err != nil {
 		return []mcp.ResourceContents{
 			mcp.TextResourceContents{
@@ -273,7 +290,16 @@ func (s *Service) handleTracesResource(ctx context.Context, request mcp.ReadReso
 
 // handleLogsResource provides recent logs as a resource.
 func (s *Service) handleLogsResource(ctx context.Context, request mcp.ReadResourceRequest) ([]mcp.ResourceContents, error) {
-	logs, err := s.client.GetLogs(ctx, nil, nil, nil, nil, nil)
+	c, err := client.FromContext(ctx)
+	if err != nil {
+		return []mcp.ResourceContents{
+			mcp.TextResourceContents{
+				URI:  request.Params.URI,
+				Text: "OpenTelemetry client not available: " + err.Error(),
+			},
+		}, nil
+	}
+	logs, err := c.GetLogs(ctx, nil, nil, nil, nil, nil)
 	if err != nil {
 		return []mcp.ResourceContents{
 			mcp.TextResourceContents{
@@ -303,7 +329,16 @@ func (s *Service) handleLogsResource(ctx context.Context, request mcp.ReadResour
 
 // handleHealthResource provides health status as a resource.
 func (s *Service) handleHealthResource(ctx context.Context, request mcp.ReadResourceRequest) ([]mcp.ResourceContents, error) {
-	health, err := s.client.GetHealth(ctx)
+	c, err := client.FromContext(ctx)
+	if err != nil {
+		return []mcp.ResourceContents{
+			mcp.TextResourceContents{
+				URI:  request.Params.URI,
+				Text: "OpenTelemetry client not available: " + err.Error(),
+			},
+		}, nil
+	}
+	health, err := c.GetHealth(ctx)
 	if err != nil {
 		return []mcp.ResourceContents{
 			mcp.TextResourceContents{

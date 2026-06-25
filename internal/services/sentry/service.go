@@ -15,8 +15,8 @@ import (
 )
 
 // Service implements the Sentry MCP service.
+// The backend client is not stored — it is created per-request from HTTP headers.
 type Service struct {
-	client              *client.Client
 	enabled             bool
 	defaultOrganization string
 	defaultProject      string
@@ -56,6 +56,7 @@ func (s *Service) Name() string {
 }
 
 // Initialize configures the Sentry service.
+// The backend client is created per-request from HTTP headers (see client/config.go).
 func (s *Service) Initialize(cfg interface{}) error {
 	appConfig, _ := cfg.(*config.AppConfig)
 	if appConfig != nil {
@@ -65,17 +66,16 @@ func (s *Service) Initialize(cfg interface{}) error {
 
 	return s.initFramework.Initialize(cfg,
 		func(enabled bool) { s.enabled = enabled },
-		func(clientIface interface{}) {
-			if sentryClient, ok := clientIface.(*client.Client); ok {
-				s.client = sentryClient
-			}
+		func(_ interface{}) {
+			// Backend client is created per-request from HTTP headers.
+			// The backend auth handler was registered in client/config.go init().
 		},
 	)
 }
 
 // GetTools returns all Sentry tools.
 func (s *Service) GetTools() []mcp.Tool {
-	if !s.enabled || s.client == nil {
+	if !s.enabled {
 		return nil
 	}
 
@@ -96,7 +96,7 @@ func (s *Service) GetTools() []mcp.Tool {
 
 // GetHandlers returns all Sentry handlers.
 func (s *Service) GetHandlers() map[string]server.ToolHandlerFunc {
-	if !s.enabled || s.client == nil {
+	if !s.enabled {
 		return nil
 	}
 
@@ -113,14 +113,9 @@ func (s *Service) GetHandlers() map[string]server.ToolHandlerFunc {
 	}
 }
 
-// IsEnabled returns whether the service is enabled and ready.
+// IsEnabled returns whether the service is enabled.
 func (s *Service) IsEnabled() bool {
-	return s.enabled && s.client != nil
-}
-
-// GetClient exposes the underlying Sentry client.
-func (s *Service) GetClient() *client.Client {
-	return s.client
+	return s.enabled
 }
 
 // GetDefaultOrganization returns the configured default organization slug.

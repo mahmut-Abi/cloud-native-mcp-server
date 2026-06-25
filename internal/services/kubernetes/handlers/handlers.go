@@ -16,13 +16,13 @@ import (
 	"k8s.io/client-go/util/jsonpath"
 
 	"github.com/mahmut-Abi/cloud-native-mcp-server/internal/constants"
-	"github.com/mahmut-Abi/cloud-native-mcp-server/internal/services/kubernetes/client"
+	k8sclient "github.com/mahmut-Abi/cloud-native-mcp-server/internal/services/kubernetes/client"
 	optimize "github.com/mahmut-Abi/cloud-native-mcp-server/internal/util/performance"
 	"github.com/mahmut-Abi/cloud-native-mcp-server/internal/util/sanitize"
 )
 
 // Type alias for PaginationInfo from client package
-type PaginationInfo = client.PaginationInfo
+type PaginationInfo = k8sclient.PaginationInfo
 
 var (
 	ErrMissingRequiredParam = errors.New("missing required parameter")
@@ -425,8 +425,12 @@ func getNestedString(obj map[string]any, path string) string {
 }
 
 // HandleDescribeResource handles resource description requests (similar to kubectl describe).
-func HandleDescribeResource(client *client.Client) func(ctx context.Context, request mcp.CallToolRequest) (*mcp.CallToolResult, error) {
+func HandleDescribeResource() func(ctx context.Context, request mcp.CallToolRequest) (*mcp.CallToolResult, error) {
 	return func(ctx context.Context, request mcp.CallToolRequest) (*mcp.CallToolResult, error) {
+		c, err := k8sclient.FromContext(ctx)
+		if err != nil {
+			return mcp.NewToolResultError(err.Error()), nil
+		}
 		kind, err := requireStringParam(request, "kind")
 		if err != nil {
 			return nil, err
@@ -439,7 +443,7 @@ func HandleDescribeResource(client *client.Client) func(ctx context.Context, req
 		debug := getOptionalStringParam(request, "debug")
 		logrus.WithFields(logrus.Fields{"tool": "describe_resource", "kind": kind, "name": name, "ns": namespace, "debug": debug}).Debug("Handler invoked")
 
-		result, err := client.GetResource(ctx, kind, name, namespace)
+		result, err := c.GetResource(ctx, kind, name, namespace)
 		if err != nil {
 			return nil, err
 		}
@@ -449,8 +453,12 @@ func HandleDescribeResource(client *client.Client) func(ctx context.Context, req
 }
 
 // HandleGetResourceUsage handles resource usage information requests (CPU/Memory).
-func HandleGetResourceUsage(client *client.Client) func(ctx context.Context, request mcp.CallToolRequest) (*mcp.CallToolResult, error) {
+func HandleGetResourceUsage() func(ctx context.Context, request mcp.CallToolRequest) (*mcp.CallToolResult, error) {
 	return func(ctx context.Context, request mcp.CallToolRequest) (*mcp.CallToolResult, error) {
+		c, err := k8sclient.FromContext(ctx)
+		if err != nil {
+			return mcp.NewToolResultError(err.Error()), nil
+		}
 		resourceType, err := requireStringParam(request, "resourceType")
 		if err != nil {
 			return nil, err
@@ -461,7 +469,7 @@ func HandleGetResourceUsage(client *client.Client) func(ctx context.Context, req
 		logrus.WithFields(logrus.Fields{"tool": "get_resource_usage", "resourceType": resourceType, "name": name, "ns": namespace, "debug": debug}).Debug("Handler invoked")
 
 		// Use the new GetResourceUsage method to get actual metrics
-		result, err := client.GetResourceUsage(ctx, resourceType, name, namespace)
+		result, err := c.GetResourceUsage(ctx, resourceType, name, namespace)
 		if err != nil {
 			return nil, err
 		}
@@ -471,8 +479,12 @@ func HandleGetResourceUsage(client *client.Client) func(ctx context.Context, req
 }
 
 // HandleGetRecentEvents handles recent critical events retrieval with optimized output.
-func HandleGetRecentEvents(client *client.Client) func(ctx context.Context, request mcp.CallToolRequest) (*mcp.CallToolResult, error) {
+func HandleGetRecentEvents() func(ctx context.Context, request mcp.CallToolRequest) (*mcp.CallToolResult, error) {
 	return func(ctx context.Context, request mcp.CallToolRequest) (*mcp.CallToolResult, error) {
+		c, err := k8sclient.FromContext(ctx)
+		if err != nil {
+			return mcp.NewToolResultError(err.Error()), nil
+		}
 		namespace := getOptionalStringParam(request, "namespace")
 		fieldSelector := getOptionalStringParam(request, "fieldSelector")
 		debug := getOptionalStringParam(request, "debug")
@@ -494,7 +506,7 @@ func HandleGetRecentEvents(client *client.Client) func(ctx context.Context, requ
 		}
 
 		// Use paginated listing to prevent context overflow
-		resources, err := client.ListResourcesWithPagination(ctx, "Event", namespace, "", selector, "", limit)
+		resources, err := c.ListResourcesWithPagination(ctx, "Event", namespace, "", selector, "", limit)
 		if err != nil {
 			return nil, err
 		}
@@ -513,7 +525,7 @@ func HandleGetRecentEvents(client *client.Client) func(ctx context.Context, requ
 		}
 
 		// Get pagination info
-		paginationInfo, err := client.GetPaginationInfo(ctx, "Event", namespace, "", selector, "", limit)
+		paginationInfo, err := c.GetPaginationInfo(ctx, "Event", namespace, "", selector, "", limit)
 		if err != nil {
 			logrus.WithError(err).Warn("Failed to get pagination info for recent events")
 			paginationInfo = &PaginationInfo{ContinueToken: "", RemainingCount: 0, CurrentPageSize: 0, HasMore: false}
@@ -536,8 +548,12 @@ func HandleGetRecentEvents(client *client.Client) func(ctx context.Context, requ
 }
 
 // HandleGetEvents handles events retrieval requests for troubleshooting.
-func HandleGetEvents(client *client.Client) func(ctx context.Context, request mcp.CallToolRequest) (*mcp.CallToolResult, error) {
+func HandleGetEvents() func(ctx context.Context, request mcp.CallToolRequest) (*mcp.CallToolResult, error) {
 	return func(ctx context.Context, request mcp.CallToolRequest) (*mcp.CallToolResult, error) {
+		c, err := k8sclient.FromContext(ctx)
+		if err != nil {
+			return mcp.NewToolResultError(err.Error()), nil
+		}
 		namespace := getOptionalStringParam(request, "namespace")
 		fieldSelector := getOptionalStringParam(request, "fieldSelector")
 		debug := getOptionalStringParam(request, "debug")
@@ -558,13 +574,13 @@ func HandleGetEvents(client *client.Client) func(ctx context.Context, request mc
 		logrus.WithFields(logrus.Fields{"tool": "get_events", "ns": namespace, "fieldSelector": fieldSelector, "limit": limit, "debug": debug}).Debug("Handler invoked")
 
 		// Use paginated listing to prevent context overflow
-		resources, err := client.ListResourcesWithPagination(ctx, "Event", namespace, "", fieldSelector, "", limit)
+		resources, err := c.ListResourcesWithPagination(ctx, "Event", namespace, "", fieldSelector, "", limit)
 		if err != nil {
 			return nil, err
 		}
 
 		// Get pagination info
-		paginationInfo, err := client.GetPaginationInfo(ctx, "Event", namespace, "", fieldSelector, "", limit)
+		paginationInfo, err := c.GetPaginationInfo(ctx, "Event", namespace, "", fieldSelector, "", limit)
 		if err != nil {
 			logrus.WithError(err).Warn("Failed to get pagination info for events")
 			paginationInfo = &PaginationInfo{ContinueToken: "", RemainingCount: 0, CurrentPageSize: 0, HasMore: false}
@@ -588,8 +604,12 @@ func HandleGetEvents(client *client.Client) func(ctx context.Context, request mc
 }
 
 // HandleGetResourceDetails handles detailed resource information requests.
-func HandleGetResourceDetails(client *client.Client) func(ctx context.Context, request mcp.CallToolRequest) (*mcp.CallToolResult, error) {
+func HandleGetResourceDetails() func(ctx context.Context, request mcp.CallToolRequest) (*mcp.CallToolResult, error) {
 	return func(ctx context.Context, request mcp.CallToolRequest) (*mcp.CallToolResult, error) {
+		c, err := k8sclient.FromContext(ctx)
+		if err != nil {
+			return mcp.NewToolResultError(err.Error()), nil
+		}
 		kind, err := requireStringParam(request, "kind")
 		if err != nil {
 			return nil, err
@@ -602,7 +622,7 @@ func HandleGetResourceDetails(client *client.Client) func(ctx context.Context, r
 		debug := getOptionalStringParam(request, "debug")
 		logrus.WithFields(logrus.Fields{"tool": "get_resource_details", "kind": kind, "name": name, "ns": namespace, "debug": debug}).Debug("Handler invoked")
 
-		result, err := client.GetResource(ctx, kind, name, namespace)
+		result, err := c.GetResource(ctx, kind, name, namespace)
 		if err != nil {
 			return nil, err
 		}
@@ -612,8 +632,12 @@ func HandleGetResourceDetails(client *client.Client) func(ctx context.Context, r
 }
 
 // HandleContainerLogs handles log requests for a container and returns the log content.
-func HandleContainerLogs(client *client.Client) func(ctx context.Context, request mcp.CallToolRequest) (*mcp.CallToolResult, error) {
+func HandleContainerLogs() func(ctx context.Context, request mcp.CallToolRequest) (*mcp.CallToolResult, error) {
 	return func(ctx context.Context, request mcp.CallToolRequest) (*mcp.CallToolResult, error) {
+		c, err := k8sclient.FromContext(ctx)
+		if err != nil {
+			return mcp.NewToolResultError(err.Error()), nil
+		}
 		namespace := getOptionalStringParam(request, "namespace")
 		name, err := requireStringParam(request, "name")
 		if err != nil {
@@ -632,7 +656,7 @@ func HandleContainerLogs(client *client.Client) func(ctx context.Context, reques
 			}
 		}
 
-		result, err := client.GetContainerLog(ctx, name, namespace, container, tailLines)
+		result, err := c.GetContainerLog(ctx, name, namespace, container, tailLines)
 		if err != nil {
 			return nil, err
 		}
@@ -706,8 +730,12 @@ func HandleContainerLogs(client *client.Client) func(ctx context.Context, reques
 }
 
 // HandlePortForward handles port forwarding requests to a pod.
-func HandlePortForward(client *client.Client) func(ctx context.Context, request mcp.CallToolRequest) (*mcp.CallToolResult, error) {
+func HandlePortForward() func(ctx context.Context, request mcp.CallToolRequest) (*mcp.CallToolResult, error) {
 	return func(ctx context.Context, request mcp.CallToolRequest) (*mcp.CallToolResult, error) {
+		c, err := k8sclient.FromContext(ctx)
+		if err != nil {
+			return mcp.NewToolResultError(err.Error()), nil
+		}
 		podName, err := requireStringParam(request, "podName")
 		if err != nil {
 			return nil, err
@@ -735,7 +763,7 @@ func HandlePortForward(client *client.Client) func(ctx context.Context, request 
 
 		logrus.WithFields(logrus.Fields{"tool": "port_forward", "pod": podName, "ns": namespace, "localPort": localPort, "podPort": podPort, "address": address, "debug": debug}).Debug("Handler invoked")
 
-		err = client.PortForward(ctx, podName, namespace, localPort, podPort, address)
+		err = c.PortForward(ctx, podName, namespace, localPort, podPort, address)
 		if err != nil {
 			return nil, err
 		}
@@ -752,8 +780,12 @@ func HandlePortForward(client *client.Client) func(ctx context.Context, request 
 }
 
 // HandleCreateResource handles resource creation requests.
-func HandleCreateResource(client *client.Client) func(ctx context.Context, request mcp.CallToolRequest) (*mcp.CallToolResult, error) {
+func HandleCreateResource() func(ctx context.Context, request mcp.CallToolRequest) (*mcp.CallToolResult, error) {
 	return func(ctx context.Context, request mcp.CallToolRequest) (*mcp.CallToolResult, error) {
+		c, err := k8sclient.FromContext(ctx)
+		if err != nil {
+			return mcp.NewToolResultError(err.Error()), nil
+		}
 		kind, err := requireStringParam(request, "kind")
 		if err != nil {
 			return nil, err
@@ -788,7 +820,7 @@ func HandleCreateResource(client *client.Client) func(ctx context.Context, reque
 		}
 		logrus.WithFields(logrus.Fields{"tool": "create_resource", "kind": kind, "apiVersion": apiVersion}).Debug("Handler invoked")
 
-		result, err := client.CreateResource(ctx, kind, apiVersion, string(metadataJSON), specJSON)
+		result, err := c.CreateResource(ctx, kind, apiVersion, string(metadataJSON), specJSON)
 		if err != nil {
 			return nil, err
 		}
@@ -807,8 +839,12 @@ func hasCreateIdentity(metadata map[string]any) bool {
 }
 
 // HandleUpdateResource handles update requests for Kubernetes resources.
-func HandleUpdateResource(client *client.Client) func(ctx context.Context, request mcp.CallToolRequest) (*mcp.CallToolResult, error) {
+func HandleUpdateResource() func(ctx context.Context, request mcp.CallToolRequest) (*mcp.CallToolResult, error) {
 	return func(ctx context.Context, request mcp.CallToolRequest) (*mcp.CallToolResult, error) {
+		c, err := k8sclient.FromContext(ctx)
+		if err != nil {
+			return mcp.NewToolResultError(err.Error()), nil
+		}
 		kind, err := requireStringParam(request, "kind")
 		if err != nil {
 			return nil, err
@@ -821,7 +857,7 @@ func HandleUpdateResource(client *client.Client) func(ctx context.Context, reque
 		}
 		logrus.WithFields(logrus.Fields{"tool": "update_resource", "kind": kind, "name": name, "ns": namespace}).Debug("Handler invoked")
 
-		result, err := client.UpdateResource(ctx, kind, name, namespace, manifest)
+		result, err := c.UpdateResource(ctx, kind, name, namespace, manifest)
 		if err != nil {
 			return nil, err
 		}
@@ -831,8 +867,12 @@ func HandleUpdateResource(client *client.Client) func(ctx context.Context, reque
 }
 
 // HandlePatchResource handles patch requests for Kubernetes resources.
-func HandlePatchResource(client *client.Client) func(ctx context.Context, request mcp.CallToolRequest) (*mcp.CallToolResult, error) {
+func HandlePatchResource() func(ctx context.Context, request mcp.CallToolRequest) (*mcp.CallToolResult, error) {
 	return func(ctx context.Context, request mcp.CallToolRequest) (*mcp.CallToolResult, error) {
+		c, err := k8sclient.FromContext(ctx)
+		if err != nil {
+			return mcp.NewToolResultError(err.Error()), nil
+		}
 		kind, err := requireStringParam(request, "kind")
 		if err != nil {
 			return nil, err
@@ -852,7 +892,7 @@ func HandlePatchResource(client *client.Client) func(ctx context.Context, reques
 		}
 		logrus.WithFields(logrus.Fields{"tool": "patch_resource", "kind": kind, "name": name, "ns": namespace, "patchType": patchType}).Debug("Handler invoked")
 
-		result, err := client.PatchResource(ctx, kind, name, namespace, patchBytes, patchType)
+		result, err := c.PatchResource(ctx, kind, name, namespace, patchBytes, patchType)
 		if err != nil {
 			return nil, err
 		}
@@ -862,8 +902,12 @@ func HandlePatchResource(client *client.Client) func(ctx context.Context, reques
 }
 
 // HandleContainerExec handles command execution requests in containers.
-func HandleContainerExec(client *client.Client) func(ctx context.Context, request mcp.CallToolRequest) (*mcp.CallToolResult, error) {
+func HandleContainerExec() func(ctx context.Context, request mcp.CallToolRequest) (*mcp.CallToolResult, error) {
 	return func(ctx context.Context, request mcp.CallToolRequest) (*mcp.CallToolResult, error) {
+		c, err := k8sclient.FromContext(ctx)
+		if err != nil {
+			return mcp.NewToolResultError(err.Error()), nil
+		}
 		namespace, err := requireStringParam(request, "namespace")
 		if err != nil {
 			return nil, err
@@ -882,7 +926,7 @@ func HandleContainerExec(client *client.Client) func(ctx context.Context, reques
 		}
 		logrus.WithFields(logrus.Fields{"tool": "pod_exec", "pod": name, "ns": namespace, "container": container}).Debug("Handler invoked")
 
-		result, err := client.ExecCommand(ctx, name, namespace, container, commandArgs)
+		result, err := c.ExecCommand(ctx, name, namespace, container, commandArgs)
 		if err != nil {
 			return nil, fmt.Errorf("%w: %v", ErrCommandExecutionFail, err)
 		}
@@ -892,8 +936,12 @@ func HandleContainerExec(client *client.Client) func(ctx context.Context, reques
 }
 
 // HandleGetResourceSummary handles resource summary requests with minimal output.
-func HandleGetResourceSummary(client *client.Client) func(ctx context.Context, request mcp.CallToolRequest) (*mcp.CallToolResult, error) {
+func HandleGetResourceSummary() func(ctx context.Context, request mcp.CallToolRequest) (*mcp.CallToolResult, error) {
 	return func(ctx context.Context, request mcp.CallToolRequest) (*mcp.CallToolResult, error) {
+		c, err := k8sclient.FromContext(ctx)
+		if err != nil {
+			return mcp.NewToolResultError(err.Error()), nil
+		}
 		kind, err := requireStringParam(request, "kind")
 		if err != nil {
 			return nil, err
@@ -908,7 +956,7 @@ func HandleGetResourceSummary(client *client.Client) func(ctx context.Context, r
 		logrus.WithFields(logrus.Fields{"tool": "get_resource_summary", "kind": kind, "name": name, "ns": namespace, "debug": debug}).Debug("Handler invoked")
 
 		// Get the full resource first
-		resource, err := client.GetResource(ctx, kind, name, namespace)
+		resource, err := c.GetResource(ctx, kind, name, namespace)
 		if err != nil {
 			return nil, err
 		}
@@ -923,7 +971,7 @@ func HandleGetResourceSummary(client *client.Client) func(ctx context.Context, r
 		}
 
 		// Extract summary using the existing summary functionality
-		summaries := client.ExtractResourceSummaries([]map[string]interface{}{resource}, labelKeys)
+		summaries := c.ExtractResourceSummaries([]map[string]interface{}{resource}, labelKeys)
 		if len(summaries) == 0 {
 			return createErrorResponse("failed to extract resource summary"), nil
 		}
@@ -943,8 +991,12 @@ func HandleGetResourceSummary(client *client.Client) func(ctx context.Context, r
 }
 
 // HandleGetResource handles resource retrieval requests.
-func HandleGetResource(client *client.Client) func(ctx context.Context, request mcp.CallToolRequest) (*mcp.CallToolResult, error) {
+func HandleGetResource() func(ctx context.Context, request mcp.CallToolRequest) (*mcp.CallToolResult, error) {
 	return func(ctx context.Context, request mcp.CallToolRequest) (*mcp.CallToolResult, error) {
+		c, err := k8sclient.FromContext(ctx)
+		if err != nil {
+			return mcp.NewToolResultError(err.Error()), nil
+		}
 		kind, err := requireStringParam(request, "kind")
 		if err != nil {
 			return nil, err
@@ -958,7 +1010,7 @@ func HandleGetResource(client *client.Client) func(ctx context.Context, request 
 		debug := getOptionalStringParam(request, "debug")
 		logrus.WithFields(logrus.Fields{"tool": "get_resource", "kind": kind, "name": name, "ns": namespace, "jsonpath": jsonpath, "debug": debug}).Debug("Handler invoked")
 
-		resource, err := client.GetResource(ctx, kind, name, namespace)
+		resource, err := c.GetResource(ctx, kind, name, namespace)
 		if err != nil {
 			return nil, err
 		}
@@ -981,8 +1033,12 @@ func HandleGetResource(client *client.Client) func(ctx context.Context, request 
 }
 
 // HandleListResources handles listing resources requests with pagination support.
-func HandleListResources(client *client.Client) func(ctx context.Context, request mcp.CallToolRequest) (*mcp.CallToolResult, error) {
+func HandleListResources() func(ctx context.Context, request mcp.CallToolRequest) (*mcp.CallToolResult, error) {
 	return func(ctx context.Context, request mcp.CallToolRequest) (*mcp.CallToolResult, error) {
+		c, err := k8sclient.FromContext(ctx)
+		if err != nil {
+			return mcp.NewToolResultError(err.Error()), nil
+		}
 		kind, err := requireStringParam(request, "kind")
 		if err != nil {
 			return nil, err
@@ -1025,13 +1081,13 @@ func HandleListResources(client *client.Client) func(ctx context.Context, reques
 			"debug":     debug,
 		}).Debug("Handler invoked")
 
-		resources, err := client.ListResourcesWithPagination(ctx, kind, namespace, labelSelector, fieldSelector, continueToken, limit)
+		resources, err := c.ListResourcesWithPagination(ctx, kind, namespace, labelSelector, fieldSelector, continueToken, limit)
 		if err != nil {
 			return createErrorResponse(err.Error()), nil
 		}
 
 		// Get pagination info
-		paginationInfo, err := client.GetPaginationInfo(ctx, kind, namespace, labelSelector, fieldSelector, continueToken, limit)
+		paginationInfo, err := c.GetPaginationInfo(ctx, kind, namespace, labelSelector, fieldSelector, continueToken, limit)
 		if err != nil {
 			logrus.WithError(err).Warn("Failed to get pagination info")
 			paginationInfo = &PaginationInfo{ContinueToken: "", RemainingCount: 0, CurrentPageSize: 0, HasMore: false}
@@ -1107,8 +1163,12 @@ func HandleListResources(client *client.Client) func(ctx context.Context, reques
 }
 
 // HandleListResourcesSummary handles listing resources with summary output for LLM efficiency
-func HandleListResourcesSummary(client *client.Client) func(ctx context.Context, request mcp.CallToolRequest) (*mcp.CallToolResult, error) {
+func HandleListResourcesSummary() func(ctx context.Context, request mcp.CallToolRequest) (*mcp.CallToolResult, error) {
 	return func(ctx context.Context, request mcp.CallToolRequest) (*mcp.CallToolResult, error) {
+		c, err := k8sclient.FromContext(ctx)
+		if err != nil {
+			return mcp.NewToolResultError(err.Error()), nil
+		}
 		kind, err := requireStringParam(request, "kind")
 		if err != nil {
 			return nil, err
@@ -1144,13 +1204,13 @@ func HandleListResourcesSummary(client *client.Client) func(ctx context.Context,
 		}).Debug("Handler invoked")
 
 		// Use paginated listing to avoid loading too much data
-		resources, err := client.ListResourcesWithPagination(ctx, kind, namespace, labelSelector, "", continueToken, limit)
+		resources, err := c.ListResourcesWithPagination(ctx, kind, namespace, labelSelector, "", continueToken, limit)
 		if err != nil {
 			return createErrorResponse(err.Error()), nil
 		}
 
 		// Get pagination info
-		paginationInfo, err := client.GetPaginationInfo(ctx, kind, namespace, labelSelector, "", continueToken, limit)
+		paginationInfo, err := c.GetPaginationInfo(ctx, kind, namespace, labelSelector, "", continueToken, limit)
 		if err != nil {
 			logrus.WithError(err).Warn("Failed to get pagination info for summary")
 			paginationInfo = &PaginationInfo{ContinueToken: "", RemainingCount: 0, CurrentPageSize: 0, HasMore: false}
@@ -1166,7 +1226,7 @@ func HandleListResourcesSummary(client *client.Client) func(ctx context.Context,
 		}
 
 		// Extract summaries (already limited by pagination)
-		summaries := client.ExtractResourceSummaries(resources, labelKeys)
+		summaries := c.ExtractResourceSummaries(resources, labelKeys)
 
 		response := map[string]interface{}{
 			"items": summaries,
@@ -1205,8 +1265,12 @@ func HandleListResourcesSummary(client *client.Client) func(ctx context.Context,
 }
 
 // HandleDeleteResource handles resource deletion requests.
-func HandleDeleteResource(client *client.Client) func(ctx context.Context, request mcp.CallToolRequest) (*mcp.CallToolResult, error) {
+func HandleDeleteResource() func(ctx context.Context, request mcp.CallToolRequest) (*mcp.CallToolResult, error) {
 	return func(ctx context.Context, request mcp.CallToolRequest) (*mcp.CallToolResult, error) {
+		c, err := k8sclient.FromContext(ctx)
+		if err != nil {
+			return mcp.NewToolResultError(err.Error()), nil
+		}
 		kind, err := requireStringParam(request, "kind")
 		if err != nil {
 			return nil, err
@@ -1218,7 +1282,7 @@ func HandleDeleteResource(client *client.Client) func(ctx context.Context, reque
 		namespace := getOptionalStringParam(request, "namespace")
 		logrus.WithFields(logrus.Fields{"tool": "delete_resource", "kind": kind, "name": name, "ns": namespace}).Debug("Handler invoked")
 
-		err = client.DeleteResource(ctx, kind, name, namespace)
+		err = c.DeleteResource(ctx, kind, name, namespace)
 		if err != nil {
 			return nil, err
 		}
@@ -1234,8 +1298,12 @@ func HandleDeleteResource(client *client.Client) func(ctx context.Context, reque
 }
 
 // HandleCheckPermissions handles permission checking requests.
-func HandleCheckPermissions(client *client.Client) func(ctx context.Context, request mcp.CallToolRequest) (*mcp.CallToolResult, error) {
+func HandleCheckPermissions() func(ctx context.Context, request mcp.CallToolRequest) (*mcp.CallToolResult, error) {
 	return func(ctx context.Context, request mcp.CallToolRequest) (*mcp.CallToolResult, error) {
+		c, err := k8sclient.FromContext(ctx)
+		if err != nil {
+			return mcp.NewToolResultError(err.Error()), nil
+		}
 		verb, err := requireStringParam(request, "verb")
 		if err != nil {
 			return nil, err
@@ -1247,7 +1315,7 @@ func HandleCheckPermissions(client *client.Client) func(ctx context.Context, req
 		subresource := getOptionalStringParam(request, "subresource")
 		logrus.WithFields(logrus.Fields{"tool": "check_permissions", "verb": verb, "group": resourceGroup, "resource": resourceResource, "subresource": subresource, "name": resourceName, "ns": namespace}).Debug("Handler invoked")
 
-		result, err := client.CheckPermissions(ctx, verb, resourceName, resourceGroup, resourceResource, subresource, namespace)
+		result, err := c.CheckPermissions(ctx, verb, resourceName, resourceGroup, resourceResource, subresource, namespace)
 		if err != nil {
 			return nil, err
 		}
@@ -1270,7 +1338,7 @@ func HandleCheckPermissions(client *client.Client) func(ctx context.Context, req
 }
 
 // HandleTest handles test requests with confirmation.
-func HandleTest(client *client.Client) func(ctx context.Context, request mcp.CallToolRequest) (*mcp.CallToolResult, error) {
+func HandleTest() func(ctx context.Context, request mcp.CallToolRequest) (*mcp.CallToolResult, error) {
 	return func(ctx context.Context, request mcp.CallToolRequest) (*mcp.CallToolResult, error) {
 		logrus.WithField("tool", "test_tool").Debug("Handler invoked")
 		confirmed := getBoolParam(request, "confirmed", false)
@@ -1289,8 +1357,12 @@ func HandleTest(client *client.Client) func(ctx context.Context, request mcp.Cal
 }
 
 // HandleScaleResource scales a namespaced resource to target replicas.
-func HandleScaleResource(client *client.Client) func(ctx context.Context, request mcp.CallToolRequest) (*mcp.CallToolResult, error) {
+func HandleScaleResource() func(ctx context.Context, request mcp.CallToolRequest) (*mcp.CallToolResult, error) {
 	return func(ctx context.Context, request mcp.CallToolRequest) (*mcp.CallToolResult, error) {
+		c, err := k8sclient.FromContext(ctx)
+		if err != nil {
+			return mcp.NewToolResultError(err.Error()), nil
+		}
 		kind, err := requireStringParam(request, "kind")
 		if err != nil {
 			return nil, err
@@ -1309,7 +1381,7 @@ func HandleScaleResource(client *client.Client) func(ctx context.Context, reques
 		}
 		logrus.WithFields(logrus.Fields{"tool": "scale_resource", "kind": kind, "name": name, "ns": namespace, "replicas": replicas}).Debug("Handler invoked")
 
-		if err := client.ScaleResourceByKind(ctx, kind, name, namespace, replicas); err != nil {
+		if err := c.ScaleResourceByKind(ctx, kind, name, namespace, replicas); err != nil {
 			return nil, err
 		}
 		logrus.Debug("scale_resource succeeded")
@@ -1325,8 +1397,12 @@ func HandleScaleResource(client *client.Client) func(ctx context.Context, reques
 }
 
 // HandleGetRolloutStatus returns rollout status for a workload resource.
-func HandleGetRolloutStatus(client *client.Client) func(ctx context.Context, request mcp.CallToolRequest) (*mcp.CallToolResult, error) {
+func HandleGetRolloutStatus() func(ctx context.Context, request mcp.CallToolRequest) (*mcp.CallToolResult, error) {
 	return func(ctx context.Context, request mcp.CallToolRequest) (*mcp.CallToolResult, error) {
+		c, err := k8sclient.FromContext(ctx)
+		if err != nil {
+			return mcp.NewToolResultError(err.Error()), nil
+		}
 		kind, err := requireStringParam(request, "kind")
 		if err != nil {
 			return nil, err
@@ -1342,7 +1418,7 @@ func HandleGetRolloutStatus(client *client.Client) func(ctx context.Context, req
 
 		timeoutSeconds := int(getInt64Param(request, "timeoutSeconds", 120))
 
-		result, err := client.GetRolloutStatus(ctx, kind, name, namespace, timeoutSeconds)
+		result, err := c.GetRolloutStatus(ctx, kind, name, namespace, timeoutSeconds)
 		if err != nil {
 			return nil, err
 		}
@@ -1352,14 +1428,18 @@ func HandleGetRolloutStatus(client *client.Client) func(ctx context.Context, req
 }
 
 // HandleCordonNode marks a node unschedulable.
-func HandleCordonNode(client *client.Client) func(ctx context.Context, request mcp.CallToolRequest) (*mcp.CallToolResult, error) {
+func HandleCordonNode() func(ctx context.Context, request mcp.CallToolRequest) (*mcp.CallToolResult, error) {
 	return func(ctx context.Context, request mcp.CallToolRequest) (*mcp.CallToolResult, error) {
+		c, err := k8sclient.FromContext(ctx)
+		if err != nil {
+			return mcp.NewToolResultError(err.Error()), nil
+		}
 		nodeName, err := requireStringParam(request, "name")
 		if err != nil {
 			return nil, err
 		}
 
-		if err := client.CordonNode(ctx, nodeName); err != nil {
+		if err := c.CordonNode(ctx, nodeName); err != nil {
 			return nil, err
 		}
 
@@ -1372,14 +1452,18 @@ func HandleCordonNode(client *client.Client) func(ctx context.Context, request m
 }
 
 // HandleUncordonNode marks a node schedulable.
-func HandleUncordonNode(client *client.Client) func(ctx context.Context, request mcp.CallToolRequest) (*mcp.CallToolResult, error) {
+func HandleUncordonNode() func(ctx context.Context, request mcp.CallToolRequest) (*mcp.CallToolResult, error) {
 	return func(ctx context.Context, request mcp.CallToolRequest) (*mcp.CallToolResult, error) {
+		c, err := k8sclient.FromContext(ctx)
+		if err != nil {
+			return mcp.NewToolResultError(err.Error()), nil
+		}
 		nodeName, err := requireStringParam(request, "name")
 		if err != nil {
 			return nil, err
 		}
 
-		if err := client.UncordonNode(ctx, nodeName); err != nil {
+		if err := c.UncordonNode(ctx, nodeName); err != nil {
 			return nil, err
 		}
 
@@ -1392,8 +1476,12 @@ func HandleUncordonNode(client *client.Client) func(ctx context.Context, request
 }
 
 // HandleDrainNode cordons and drains a node.
-func HandleDrainNode(client *client.Client) func(ctx context.Context, request mcp.CallToolRequest) (*mcp.CallToolResult, error) {
+func HandleDrainNode() func(ctx context.Context, request mcp.CallToolRequest) (*mcp.CallToolResult, error) {
 	return func(ctx context.Context, request mcp.CallToolRequest) (*mcp.CallToolResult, error) {
+		c, err := k8sclient.FromContext(ctx)
+		if err != nil {
+			return mcp.NewToolResultError(err.Error()), nil
+		}
 		nodeName, err := requireStringParam(request, "name")
 		if err != nil {
 			return nil, err
@@ -1404,7 +1492,7 @@ func HandleDrainNode(client *client.Client) func(ctx context.Context, request mc
 		gracePeriodSeconds := getInt32Param(request, "gracePeriodSeconds", 30)
 		timeoutSeconds := getInt32Param(request, "timeoutSeconds", 120)
 
-		if err := client.DrainNode(ctx, nodeName, deleteEmptyDir, ignoreDaemonsets, gracePeriodSeconds, timeoutSeconds); err != nil {
+		if err := c.DrainNode(ctx, nodeName, deleteEmptyDir, ignoreDaemonsets, gracePeriodSeconds, timeoutSeconds); err != nil {
 			return nil, err
 		}
 
@@ -1421,8 +1509,12 @@ func HandleDrainNode(client *client.Client) func(ctx context.Context, request mc
 }
 
 // HandleWaitForResource waits until a resource reaches a condition.
-func HandleWaitForResource(client *client.Client) func(ctx context.Context, request mcp.CallToolRequest) (*mcp.CallToolResult, error) {
+func HandleWaitForResource() func(ctx context.Context, request mcp.CallToolRequest) (*mcp.CallToolResult, error) {
 	return func(ctx context.Context, request mcp.CallToolRequest) (*mcp.CallToolResult, error) {
+		c, err := k8sclient.FromContext(ctx)
+		if err != nil {
+			return mcp.NewToolResultError(err.Error()), nil
+		}
 		kind, err := requireStringParam(request, "kind")
 		if err != nil {
 			return nil, err
@@ -1441,7 +1533,7 @@ func HandleWaitForResource(client *client.Client) func(ctx context.Context, requ
 		timeoutSeconds := int(getInt64Param(request, "timeoutSeconds", 120))
 		pollIntervalSeconds := int(getInt64Param(request, "pollIntervalSeconds", 5))
 
-		result, err := client.WaitForResource(ctx, kind, name, namespace, condition, timeoutSeconds, pollIntervalSeconds)
+		result, err := c.WaitForResource(ctx, kind, name, namespace, condition, timeoutSeconds, pollIntervalSeconds)
 		if err != nil {
 			return nil, err
 		}
@@ -1450,8 +1542,12 @@ func HandleWaitForResource(client *client.Client) func(ctx context.Context, requ
 }
 
 // HandleRestartWorkload triggers a rollout restart for supported workload kinds.
-func HandleRestartWorkload(client *client.Client) func(ctx context.Context, request mcp.CallToolRequest) (*mcp.CallToolResult, error) {
+func HandleRestartWorkload() func(ctx context.Context, request mcp.CallToolRequest) (*mcp.CallToolResult, error) {
 	return func(ctx context.Context, request mcp.CallToolRequest) (*mcp.CallToolResult, error) {
+		c, err := k8sclient.FromContext(ctx)
+		if err != nil {
+			return mcp.NewToolResultError(err.Error()), nil
+		}
 		kind, err := requireStringParam(request, "kind")
 		if err != nil {
 			return nil, err
@@ -1468,7 +1564,7 @@ func HandleRestartWorkload(client *client.Client) func(ctx context.Context, requ
 		waitForReady := getBoolParam(request, "waitForReady", false)
 		timeoutSeconds := int(getInt64Param(request, "timeoutSeconds", 120))
 
-		resource, restartedAt, err := client.RestartWorkload(ctx, kind, name, namespace)
+		resource, restartedAt, err := c.RestartWorkload(ctx, kind, name, namespace)
 		if err != nil {
 			return nil, err
 		}
@@ -1488,7 +1584,7 @@ func HandleRestartWorkload(client *client.Client) func(ctx context.Context, requ
 			if strings.EqualFold(kind, "StatefulSet") {
 				waitCondition = "ready"
 			}
-			waitResult, err := client.WaitForResource(ctx, kind, name, namespace, waitCondition, timeoutSeconds, 5)
+			waitResult, err := c.WaitForResource(ctx, kind, name, namespace, waitCondition, timeoutSeconds, 5)
 			if err != nil {
 				return nil, err
 			}
@@ -1500,12 +1596,16 @@ func HandleRestartWorkload(client *client.Client) func(ctx context.Context, requ
 }
 
 // HandleGetAPIVersions handles API versions retrieval requests.
-func HandleGetAPIVersions(client *client.Client) func(ctx context.Context, request mcp.CallToolRequest) (*mcp.CallToolResult, error) {
+func HandleGetAPIVersions() func(ctx context.Context, request mcp.CallToolRequest) (*mcp.CallToolResult, error) {
 	return func(ctx context.Context, request mcp.CallToolRequest) (*mcp.CallToolResult, error) {
+		c, err := k8sclient.FromContext(ctx)
+		if err != nil {
+			return mcp.NewToolResultError(err.Error()), nil
+		}
 		debug := getOptionalStringParam(request, "debug")
 		logrus.WithFields(logrus.Fields{"tool": "get_api_versions", "debug": debug}).Debug("Handler invoked")
 
-		result, err := client.GetAPIVersions(ctx)
+		result, err := c.GetAPIVersions(ctx)
 		if err != nil {
 			return nil, err
 		}
@@ -1515,8 +1615,12 @@ func HandleGetAPIVersions(client *client.Client) func(ctx context.Context, reque
 }
 
 // HandleGetAPIResources handles API resources retrieval requests.
-func HandleGetAPIResources(client *client.Client) func(ctx context.Context, request mcp.CallToolRequest) (*mcp.CallToolResult, error) {
+func HandleGetAPIResources() func(ctx context.Context, request mcp.CallToolRequest) (*mcp.CallToolResult, error) {
 	return func(ctx context.Context, request mcp.CallToolRequest) (*mcp.CallToolResult, error) {
+		c, err := k8sclient.FromContext(ctx)
+		if err != nil {
+			return mcp.NewToolResultError(err.Error()), nil
+		}
 		apiGroup := getOptionalStringParam(request, "apiGroup")
 		debug := getOptionalStringParam(request, "debug")
 
@@ -1529,7 +1633,7 @@ func HandleGetAPIResources(client *client.Client) func(ctx context.Context, requ
 
 		logrus.WithFields(logrus.Fields{"tool": "get_api_resources", "apiGroup": apiGroup, "namespaced": namespaced, "debug": debug}).Debug("Handler invoked")
 
-		result, err := client.GetAPIResources(ctx, apiGroup, namespaced)
+		result, err := c.GetAPIResources(ctx, apiGroup, namespaced)
 		if err != nil {
 			return nil, err
 		}
@@ -1539,8 +1643,12 @@ func HandleGetAPIResources(client *client.Client) func(ctx context.Context, requ
 }
 
 // HandleGetResourcesDetail handles detailed resource retrieval for multiple resources
-func HandleGetResourcesDetail(client *client.Client) func(ctx context.Context, request mcp.CallToolRequest) (*mcp.CallToolResult, error) {
+func HandleGetResourcesDetail() func(ctx context.Context, request mcp.CallToolRequest) (*mcp.CallToolResult, error) {
 	return func(ctx context.Context, request mcp.CallToolRequest) (*mcp.CallToolResult, error) {
+		c, err := k8sclient.FromContext(ctx)
+		if err != nil {
+			return mcp.NewToolResultError(err.Error()), nil
+		}
 		kind, err := requireStringParam(request, "kind")
 		if err != nil {
 			return nil, err
@@ -1569,7 +1677,7 @@ func HandleGetResourcesDetail(client *client.Client) func(ctx context.Context, r
 			"debug":     debug,
 		}).Debug("Handler invoked")
 
-		resources, err := client.GetResourcesDetail(ctx, kind, names, namespace, includeEvents, includeStatus)
+		resources, err := c.GetResourcesDetail(ctx, kind, names, namespace, includeEvents, includeStatus)
 		if err != nil {
 			return createErrorResponse(err.Error()), nil
 		}
@@ -1599,8 +1707,12 @@ func HandleGetResourcesDetail(client *client.Client) func(ctx context.Context, r
 }
 
 // HandleGetEventsDetail handles detailed events retrieval
-func HandleGetEventsDetail(client *client.Client) func(ctx context.Context, request mcp.CallToolRequest) (*mcp.CallToolResult, error) {
+func HandleGetEventsDetail() func(ctx context.Context, request mcp.CallToolRequest) (*mcp.CallToolResult, error) {
 	return func(ctx context.Context, request mcp.CallToolRequest) (*mcp.CallToolResult, error) {
+		c, err := k8sclient.FromContext(ctx)
+		if err != nil {
+			return mcp.NewToolResultError(err.Error()), nil
+		}
 		namespace := getOptionalStringParam(request, "namespace")
 		fieldSelector := getOptionalStringParam(request, "fieldSelector")
 		includeNormalEvents := getBoolParam(request, "includeNormalEvents", false)
@@ -1643,13 +1755,13 @@ func HandleGetEventsDetail(client *client.Client) func(ctx context.Context, requ
 		}
 
 		// Use paginated listing
-		resources, err := client.ListResourcesWithPagination(ctx, "Event", namespace, "", selector, continueToken, limit)
+		resources, err := c.ListResourcesWithPagination(ctx, "Event", namespace, "", selector, continueToken, limit)
 		if err != nil {
 			return nil, err
 		}
 
 		// Get pagination info
-		paginationInfo, err := client.GetPaginationInfo(ctx, "Event", namespace, "", selector, continueToken, limit)
+		paginationInfo, err := c.GetPaginationInfo(ctx, "Event", namespace, "", selector, continueToken, limit)
 		if err != nil {
 			logrus.WithError(err).Warn("Failed to get pagination info for detailed events")
 			paginationInfo = &PaginationInfo{ContinueToken: "", RemainingCount: 0, CurrentPageSize: 0, HasMore: false}
@@ -1680,8 +1792,12 @@ func HandleGetEventsDetail(client *client.Client) func(ctx context.Context, requ
 }
 
 // HandleListResourcesFull handles full resource listing without optimization
-func HandleListResourcesFull(client *client.Client) func(ctx context.Context, request mcp.CallToolRequest) (*mcp.CallToolResult, error) {
+func HandleListResourcesFull() func(ctx context.Context, request mcp.CallToolRequest) (*mcp.CallToolResult, error) {
 	return func(ctx context.Context, request mcp.CallToolRequest) (*mcp.CallToolResult, error) {
+		c, err := k8sclient.FromContext(ctx)
+		if err != nil {
+			return mcp.NewToolResultError(err.Error()), nil
+		}
 		kind, err := requireStringParam(request, "kind")
 		if err != nil {
 			return nil, err
@@ -1719,7 +1835,7 @@ func HandleListResourcesFull(client *client.Client) func(ctx context.Context, re
 			"debug":         debug,
 		}).Debug("Handler invoked")
 
-		resources, err := client.ListResourcesWithPagination(ctx, kind, namespace, labelSelector, fieldSelector, continueToken, limit)
+		resources, err := c.ListResourcesWithPagination(ctx, kind, namespace, labelSelector, fieldSelector, continueToken, limit)
 		if err != nil {
 			return createErrorResponse(err.Error()), nil
 		}
@@ -1732,7 +1848,7 @@ func HandleListResourcesFull(client *client.Client) func(ctx context.Context, re
 		}
 
 		// Get pagination info
-		paginationInfo, err := client.GetPaginationInfo(ctx, kind, namespace, labelSelector, fieldSelector, continueToken, limit)
+		paginationInfo, err := c.GetPaginationInfo(ctx, kind, namespace, labelSelector, fieldSelector, continueToken, limit)
 		if err != nil {
 			logrus.WithError(err).Warn("Failed to get pagination info for full resources")
 			paginationInfo = &PaginationInfo{ContinueToken: "", RemainingCount: 0, CurrentPageSize: 0, HasMore: false}
@@ -1763,8 +1879,12 @@ func HandleListResourcesFull(client *client.Client) func(ctx context.Context, re
 }
 
 // HandleGetResourceDetailAdvanced handles advanced resource detail retrieval with enhanced formatting
-func HandleGetResourceDetailAdvanced(client *client.Client) func(ctx context.Context, request mcp.CallToolRequest) (*mcp.CallToolResult, error) {
+func HandleGetResourceDetailAdvanced() func(ctx context.Context, request mcp.CallToolRequest) (*mcp.CallToolResult, error) {
 	return func(ctx context.Context, request mcp.CallToolRequest) (*mcp.CallToolResult, error) {
+		c, err := k8sclient.FromContext(ctx)
+		if err != nil {
+			return mcp.NewToolResultError(err.Error()), nil
+		}
 		kind, err := requireStringParam(request, "kind")
 		if err != nil {
 			return nil, err
@@ -1800,7 +1920,7 @@ func HandleGetResourceDetailAdvanced(client *client.Client) func(ctx context.Con
 		}).Debug("Handler invoked")
 
 		// Get the base resource
-		resource, err := client.GetResource(ctx, kind, name, namespace)
+		resource, err := c.GetResource(ctx, kind, name, namespace)
 		if err != nil {
 			return nil, err
 		}
@@ -1837,7 +1957,7 @@ func HandleGetResourceDetailAdvanced(client *client.Client) func(ctx context.Con
 
 		// Add events if requested
 		if includeEvents {
-			events, err := client.ListResourcesWithPagination(ctx, "Event", namespace,
+			events, err := c.ListResourcesWithPagination(ctx, "Event", namespace,
 				fmt.Sprintf("involvedObject.name=%s,involvedObject.kind=%s", name, kind),
 				"", "", 20)
 			if err == nil {
@@ -1873,7 +1993,7 @@ func HandleGetResourceDetailAdvanced(client *client.Client) func(ctx context.Con
 						labelSelector := strings.Join(selectors, ",")
 						// Look for pods with same labels (common case)
 						if kind == "Deployment" || kind == "StatefulSet" || kind == "DaemonSet" {
-							pods, err := client.ListResourcesWithPagination(ctx, "Pod", namespace, labelSelector, "", "", 10)
+							pods, err := c.ListResourcesWithPagination(ctx, "Pod", namespace, labelSelector, "", "", 10)
 							if err == nil {
 								relationships["dependents"] = map[string]interface{}{
 									"pods":     pods,
@@ -1972,8 +2092,12 @@ func analyzeHealthConditions(conditions interface{}) string {
 // ============ Troubleshooting Handlers ============
 
 // HandleGetUnhealthyResources handles finding unhealthy resources
-func HandleGetUnhealthyResources(k8sClient *client.Client) func(ctx context.Context, request mcp.CallToolRequest) (*mcp.CallToolResult, error) {
+func HandleGetUnhealthyResources() func(ctx context.Context, request mcp.CallToolRequest) (*mcp.CallToolResult, error) {
 	return func(ctx context.Context, request mcp.CallToolRequest) (*mcp.CallToolResult, error) {
+		c, err := k8sclient.FromContext(ctx)
+		if err != nil {
+			return mcp.NewToolResultError(err.Error()), nil
+		}
 		namespace := getOptionalStringParam(request, "namespace")
 
 		resourceTypes, err := getOptionalStringArrayParam(request, "resourceTypes")
@@ -1983,7 +2107,7 @@ func HandleGetUnhealthyResources(k8sClient *client.Client) func(ctx context.Cont
 
 		logrus.WithField("namespace", namespace).Debug("Executing get_unhealthy_resources handler")
 
-		unhealthy, err := k8sClient.GetUnhealthyResources(ctx, namespace, resourceTypes)
+		unhealthy, err := c.GetUnhealthyResources(ctx, namespace, resourceTypes)
 		if err != nil {
 			return nil, fmt.Errorf("failed to get unhealthy resources: %w", err)
 		}
@@ -2003,8 +2127,12 @@ func HandleGetUnhealthyResources(k8sClient *client.Client) func(ctx context.Cont
 }
 
 // HandleGetNodeConditions handles retrieving node conditions
-func HandleGetNodeConditions(k8sClient *client.Client) func(ctx context.Context, request mcp.CallToolRequest) (*mcp.CallToolResult, error) {
+func HandleGetNodeConditions() func(ctx context.Context, request mcp.CallToolRequest) (*mcp.CallToolResult, error) {
 	return func(ctx context.Context, request mcp.CallToolRequest) (*mcp.CallToolResult, error) {
+		c, err := k8sclient.FromContext(ctx)
+		if err != nil {
+			return mcp.NewToolResultError(err.Error()), nil
+		}
 		nodeName, err := requireStringParam(request, "nodeName")
 		if err != nil {
 			return nil, err
@@ -2012,7 +2140,7 @@ func HandleGetNodeConditions(k8sClient *client.Client) func(ctx context.Context,
 
 		logrus.WithField("nodeName", nodeName).Debug("Executing get_node_conditions handler")
 
-		conditions, err := k8sClient.GetNodeConditions(ctx, nodeName)
+		conditions, err := c.GetNodeConditions(ctx, nodeName)
 		if err != nil {
 			return nil, fmt.Errorf("failed to get node conditions: %w", err)
 		}
@@ -2027,8 +2155,12 @@ func HandleGetNodeConditions(k8sClient *client.Client) func(ctx context.Context,
 }
 
 // HandleAnalyzeIssue handles AI-powered issue analysis
-func HandleAnalyzeIssue(k8sClient *client.Client) func(ctx context.Context, request mcp.CallToolRequest) (*mcp.CallToolResult, error) {
+func HandleAnalyzeIssue() func(ctx context.Context, request mcp.CallToolRequest) (*mcp.CallToolResult, error) {
 	return func(ctx context.Context, request mcp.CallToolRequest) (*mcp.CallToolResult, error) {
+		c, err := k8sclient.FromContext(ctx)
+		if err != nil {
+			return mcp.NewToolResultError(err.Error()), nil
+		}
 		issueType, err := requireStringParam(request, "issueType")
 		if err != nil {
 			return nil, err
@@ -2053,7 +2185,7 @@ func HandleAnalyzeIssue(k8sClient *client.Client) func(ctx context.Context, requ
 			"namespace":    namespace,
 		}).Debug("Executing analyze_issue handler")
 
-		analysis, err := k8sClient.AnalyzeIssue(ctx, issueType, resourceKind, resourceName, namespace)
+		analysis, err := c.AnalyzeIssue(ctx, issueType, resourceKind, resourceName, namespace)
 		if err != nil {
 			return nil, fmt.Errorf("failed to analyze issue: %w", err)
 		}
@@ -2070,8 +2202,12 @@ func HandleAnalyzeIssue(k8sClient *client.Client) func(ctx context.Context, requ
 // ============ Search Handlers ============
 
 // HandleSearchResources handles fuzzy search for resources by name
-func HandleSearchResources(k8sClient *client.Client) func(ctx context.Context, request mcp.CallToolRequest) (*mcp.CallToolResult, error) {
+func HandleSearchResources() func(ctx context.Context, request mcp.CallToolRequest) (*mcp.CallToolResult, error) {
 	return func(ctx context.Context, request mcp.CallToolRequest) (*mcp.CallToolResult, error) {
+		c, err := k8sclient.FromContext(ctx)
+		if err != nil {
+			return mcp.NewToolResultError(err.Error()), nil
+		}
 		kinds, err := getOptionalSearchKinds(request)
 		if err != nil {
 			return nil, err
@@ -2117,7 +2253,7 @@ func HandleSearchResources(k8sClient *client.Client) func(ctx context.Context, r
 		}
 
 		for _, kind := range kinds {
-			resources, err := k8sClient.ListResources(ctx, kind, namespace, labelSelector, "")
+			resources, err := c.ListResources(ctx, kind, namespace, labelSelector, "")
 			if err != nil {
 				return nil, fmt.Errorf("failed to list resources for kind %s: %w", kind, err)
 			}

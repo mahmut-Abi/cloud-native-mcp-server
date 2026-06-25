@@ -15,7 +15,6 @@ import (
 
 // ServiceInterface is the subset of service methods required by handlers.
 type ServiceInterface interface {
-	GetClient() *client.Client
 	GetDefaultOrganization() string
 	GetDefaultProject() string
 }
@@ -24,7 +23,7 @@ type ServiceInterface interface {
 func HandleTestConnection(service ServiceInterface) server.ToolHandlerFunc {
 	return func(ctx context.Context, request mcp.CallToolRequest) (*mcp.CallToolResult, error) {
 		args := request.GetArguments()
-		sentryClient, err := getClient(service)
+		sentryClient, err := client.FromContext(ctx)
 		if err != nil {
 			return nil, err
 		}
@@ -85,7 +84,7 @@ func HandleListOrganizations(service ServiceInterface) server.ToolHandlerFunc {
 			return nil, err
 		}
 
-		sentryClient, err := getClient(service)
+		sentryClient, err := client.FromContext(ctx)
 		if err != nil {
 			return nil, err
 		}
@@ -115,7 +114,7 @@ func HandleListProjects(service ServiceInterface) server.ToolHandlerFunc {
 			return nil, err
 		}
 
-		sentryClient, err := getClient(service)
+		sentryClient, err := client.FromContext(ctx)
 		if err != nil {
 			return nil, err
 		}
@@ -146,7 +145,7 @@ func HandleGetProject(service ServiceInterface) server.ToolHandlerFunc {
 			return nil, err
 		}
 
-		sentryClient, err := getClient(service)
+		sentryClient, err := client.FromContext(ctx)
 		if err != nil {
 			return nil, err
 		}
@@ -172,7 +171,7 @@ func HandleListIssuesSummary(service ServiceInterface) server.ToolHandlerFunc {
 			return nil, err
 		}
 
-		sentryClient, err := getClient(service)
+		sentryClient, err := client.FromContext(ctx)
 		if err != nil {
 			return nil, err
 		}
@@ -209,7 +208,7 @@ func HandleListIssues(service ServiceInterface) server.ToolHandlerFunc {
 			return nil, err
 		}
 
-		sentryClient, err := getClient(service)
+		sentryClient, err := client.FromContext(ctx)
 		if err != nil {
 			return nil, err
 		}
@@ -235,7 +234,7 @@ func HandleGetIssue(service ServiceInterface) server.ToolHandlerFunc {
 			return nil, err
 		}
 
-		sentryClient, err := getClient(service)
+		sentryClient, err := client.FromContext(ctx)
 		if err != nil {
 			return nil, err
 		}
@@ -261,7 +260,7 @@ func HandleListIssueEvents(service ServiceInterface) server.ToolHandlerFunc {
 			return nil, err
 		}
 
-		sentryClient, err := getClient(service)
+		sentryClient, err := client.FromContext(ctx)
 		if err != nil {
 			return nil, err
 		}
@@ -292,7 +291,7 @@ func HandleGetIssueEvent(service ServiceInterface) server.ToolHandlerFunc {
 			return nil, err
 		}
 
-		sentryClient, err := getClient(service)
+		sentryClient, err := client.FromContext(ctx)
 		if err != nil {
 			return nil, err
 		}
@@ -429,14 +428,6 @@ func compactIssue(issue map[string]interface{}) map[string]interface{} {
 		summary["project"] = value
 	}
 	return summary
-}
-
-func getClient(service ServiceInterface) (*client.Client, error) {
-	sentryClient := service.GetClient()
-	if sentryClient == nil {
-		return nil, fmt.Errorf("sentry client is not initialized")
-	}
-	return sentryClient, nil
 }
 
 func marshalResult(result interface{}) (*mcp.CallToolResult, error) {

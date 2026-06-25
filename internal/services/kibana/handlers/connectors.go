@@ -13,8 +13,13 @@ import (
 )
 
 // HandleGetConnectors handles listing connectors.
-func HandleGetConnectors(c *client.Client) func(ctx context.Context, req mcp.CallToolRequest) (*mcp.CallToolResult, error) {
+func HandleGetConnectors() func(ctx context.Context, req mcp.CallToolRequest) (*mcp.CallToolResult, error) {
 	return func(ctx context.Context, req mcp.CallToolRequest) (*mcp.CallToolResult, error) {
+		c, cerr := client.FromContext(ctx)
+		if cerr != nil {
+			return mcp.NewToolResultError(cerr.Error()), nil
+		}
+
 		page := getOptionalIntParam(req, "page", 1)
 		perPage := getOptionalIntParam(req, "per_page", 20)
 
@@ -52,8 +57,13 @@ func HandleGetConnectors(c *client.Client) func(ctx context.Context, req mcp.Cal
 }
 
 // HandleGetConnector handles getting a specific connector.
-func HandleGetConnector(c *client.Client) func(ctx context.Context, req mcp.CallToolRequest) (*mcp.CallToolResult, error) {
+func HandleGetConnector() func(ctx context.Context, req mcp.CallToolRequest) (*mcp.CallToolResult, error) {
 	return func(ctx context.Context, req mcp.CallToolRequest) (*mcp.CallToolResult, error) {
+		c, cerr := client.FromContext(ctx)
+		if cerr != nil {
+			return mcp.NewToolResultError(cerr.Error()), nil
+		}
+
 		connectorID, err := requireStringParam(req, "connector_id")
 		if err != nil {
 			return nil, err
@@ -90,8 +100,13 @@ func HandleGetConnector(c *client.Client) func(ctx context.Context, req mcp.Call
 }
 
 // HandleCreateConnector handles creating a new connector.
-func HandleCreateConnector(c *client.Client) func(ctx context.Context, req mcp.CallToolRequest) (*mcp.CallToolResult, error) {
+func HandleCreateConnector() func(ctx context.Context, req mcp.CallToolRequest) (*mcp.CallToolResult, error) {
 	return func(ctx context.Context, req mcp.CallToolRequest) (*mcp.CallToolResult, error) {
+		c, cerr := client.FromContext(ctx)
+		if cerr != nil {
+			return mcp.NewToolResultError(cerr.Error()), nil
+		}
+
 		name := getOptionalStringParam(req, "name")
 		connectorTypeID := getOptionalStringParam(req, "connectorTypeId")
 		config, err := getOptionalObjectParam(req, "config")
@@ -143,8 +158,13 @@ func HandleCreateConnector(c *client.Client) func(ctx context.Context, req mcp.C
 }
 
 // HandleUpdateConnector handles updating an existing connector.
-func HandleUpdateConnector(c *client.Client) func(ctx context.Context, req mcp.CallToolRequest) (*mcp.CallToolResult, error) {
+func HandleUpdateConnector() func(ctx context.Context, req mcp.CallToolRequest) (*mcp.CallToolResult, error) {
 	return func(ctx context.Context, req mcp.CallToolRequest) (*mcp.CallToolResult, error) {
+		c, cerr := client.FromContext(ctx)
+		if cerr != nil {
+			return mcp.NewToolResultError(cerr.Error()), nil
+		}
+
 		connectorID, err := requireStringParam(req, "connector_id")
 		if err != nil {
 			return nil, err
@@ -191,8 +211,13 @@ func HandleUpdateConnector(c *client.Client) func(ctx context.Context, req mcp.C
 }
 
 // HandleDeleteConnector handles deleting a connector.
-func HandleDeleteConnector(c *client.Client) func(ctx context.Context, req mcp.CallToolRequest) (*mcp.CallToolResult, error) {
+func HandleDeleteConnector() func(ctx context.Context, req mcp.CallToolRequest) (*mcp.CallToolResult, error) {
 	return func(ctx context.Context, req mcp.CallToolRequest) (*mcp.CallToolResult, error) {
+		c, cerr := client.FromContext(ctx)
+		if cerr != nil {
+			return mcp.NewToolResultError(cerr.Error()), nil
+		}
+
 		connectorID, err := requireStringParam(req, "connector_id")
 		if err != nil {
 			return nil, err
@@ -219,8 +244,13 @@ func HandleDeleteConnector(c *client.Client) func(ctx context.Context, req mcp.C
 }
 
 // HandleTestConnector handles testing a connector.
-func HandleTestConnector(c *client.Client) func(ctx context.Context, req mcp.CallToolRequest) (*mcp.CallToolResult, error) {
+func HandleTestConnector() func(ctx context.Context, req mcp.CallToolRequest) (*mcp.CallToolResult, error) {
 	return func(ctx context.Context, req mcp.CallToolRequest) (*mcp.CallToolResult, error) {
+		c, cerr := client.FromContext(ctx)
+		if cerr != nil {
+			return mcp.NewToolResultError(cerr.Error()), nil
+		}
+
 		connectorID, err := requireStringParam(req, "connector_id")
 		if err != nil {
 			return nil, err
@@ -252,8 +282,13 @@ func HandleTestConnector(c *client.Client) func(ctx context.Context, req mcp.Cal
 }
 
 // HandleGetConnectorTypes handles listing available connector types.
-func HandleGetConnectorTypes(c *client.Client) func(ctx context.Context, req mcp.CallToolRequest) (*mcp.CallToolResult, error) {
+func HandleGetConnectorTypes() func(ctx context.Context, req mcp.CallToolRequest) (*mcp.CallToolResult, error) {
 	return func(ctx context.Context, req mcp.CallToolRequest) (*mcp.CallToolResult, error) {
+		c, cerr := client.FromContext(ctx)
+		if cerr != nil {
+			return mcp.NewToolResultError(cerr.Error()), nil
+		}
+
 		logrus.Debug("Executing Kibana get connector types handler")
 
 		connectorTypes, err := c.GetConnectorTypes(ctx)

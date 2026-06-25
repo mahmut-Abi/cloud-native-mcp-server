@@ -13,8 +13,13 @@ import (
 )
 
 // HandleGetKibanaAlerts handles Kibana alerting rules retrieval requests.
-func HandleGetKibanaAlerts(c *client.Client) func(ctx context.Context, req mcp.CallToolRequest) (*mcp.CallToolResult, error) {
+func HandleGetKibanaAlerts() func(ctx context.Context, req mcp.CallToolRequest) (*mcp.CallToolResult, error) {
 	return func(ctx context.Context, req mcp.CallToolRequest) (*mcp.CallToolResult, error) {
+		c, cerr := client.FromContext(ctx)
+		if cerr != nil {
+			return mcp.NewToolResultError(cerr.Error()), nil
+		}
+
 		logrus.Debug("Executing Kibana get alerts handler")
 
 		alerts, err := c.GetAlerts(ctx)
@@ -46,8 +51,13 @@ func HandleGetKibanaAlerts(c *client.Client) func(ctx context.Context, req mcp.C
 }
 
 // HandleGetAlertRules handles listing alert rules.
-func HandleGetAlertRules(c *client.Client) func(ctx context.Context, req mcp.CallToolRequest) (*mcp.CallToolResult, error) {
+func HandleGetAlertRules() func(ctx context.Context, req mcp.CallToolRequest) (*mcp.CallToolResult, error) {
 	return func(ctx context.Context, req mcp.CallToolRequest) (*mcp.CallToolResult, error) {
+		c, cerr := client.FromContext(ctx)
+		if cerr != nil {
+			return mcp.NewToolResultError(cerr.Error()), nil
+		}
+
 		page := getOptionalIntParam(req, "page", 1)
 		perPage := getOptionalIntParam(req, "per_page", 20)
 		filter := getOptionalStringParam(req, "filter")
@@ -88,8 +98,13 @@ func HandleGetAlertRules(c *client.Client) func(ctx context.Context, req mcp.Cal
 }
 
 // HandleGetAlertRule handles getting a specific alert rule.
-func HandleGetAlertRule(c *client.Client) func(ctx context.Context, req mcp.CallToolRequest) (*mcp.CallToolResult, error) {
+func HandleGetAlertRule() func(ctx context.Context, req mcp.CallToolRequest) (*mcp.CallToolResult, error) {
 	return func(ctx context.Context, req mcp.CallToolRequest) (*mcp.CallToolResult, error) {
+		c, cerr := client.FromContext(ctx)
+		if cerr != nil {
+			return mcp.NewToolResultError(cerr.Error()), nil
+		}
+
 		ruleID, err := requireStringParam(req, "rule_id")
 		if err != nil {
 			return nil, err
@@ -126,8 +141,13 @@ func HandleGetAlertRule(c *client.Client) func(ctx context.Context, req mcp.Call
 }
 
 // HandleCreateAlertRule handles creating a new alert rule.
-func HandleCreateAlertRule(c *client.Client) func(ctx context.Context, req mcp.CallToolRequest) (*mcp.CallToolResult, error) {
+func HandleCreateAlertRule() func(ctx context.Context, req mcp.CallToolRequest) (*mcp.CallToolResult, error) {
 	return func(ctx context.Context, req mcp.CallToolRequest) (*mcp.CallToolResult, error) {
+		c, cerr := client.FromContext(ctx)
+		if cerr != nil {
+			return mcp.NewToolResultError(cerr.Error()), nil
+		}
+
 		name := getOptionalStringParam(req, "name")
 		alertTypeID := getOptionalStringParam(req, "alertTypeId")
 		schedule, err := getOptionalObjectParam(req, "schedule")
@@ -187,8 +207,13 @@ func HandleCreateAlertRule(c *client.Client) func(ctx context.Context, req mcp.C
 }
 
 // HandleUpdateAlertRule handles updating an existing alert rule.
-func HandleUpdateAlertRule(c *client.Client) func(ctx context.Context, req mcp.CallToolRequest) (*mcp.CallToolResult, error) {
+func HandleUpdateAlertRule() func(ctx context.Context, req mcp.CallToolRequest) (*mcp.CallToolResult, error) {
 	return func(ctx context.Context, req mcp.CallToolRequest) (*mcp.CallToolResult, error) {
+		c, cerr := client.FromContext(ctx)
+		if cerr != nil {
+			return mcp.NewToolResultError(cerr.Error()), nil
+		}
+
 		ruleID, err := requireStringParam(req, "rule_id")
 		if err != nil {
 			return nil, err
@@ -243,8 +268,13 @@ func HandleUpdateAlertRule(c *client.Client) func(ctx context.Context, req mcp.C
 }
 
 // HandleDeleteAlertRule handles deleting an alert rule.
-func HandleDeleteAlertRule(c *client.Client) func(ctx context.Context, req mcp.CallToolRequest) (*mcp.CallToolResult, error) {
+func HandleDeleteAlertRule() func(ctx context.Context, req mcp.CallToolRequest) (*mcp.CallToolResult, error) {
 	return func(ctx context.Context, req mcp.CallToolRequest) (*mcp.CallToolResult, error) {
+		c, cerr := client.FromContext(ctx)
+		if cerr != nil {
+			return mcp.NewToolResultError(cerr.Error()), nil
+		}
+
 		ruleID, err := requireStringParam(req, "rule_id")
 		if err != nil {
 			return nil, err
@@ -271,8 +301,13 @@ func HandleDeleteAlertRule(c *client.Client) func(ctx context.Context, req mcp.C
 }
 
 // HandleEnableAlertRule handles enabling an alert rule.
-func HandleEnableAlertRule(c *client.Client) func(ctx context.Context, req mcp.CallToolRequest) (*mcp.CallToolResult, error) {
+func HandleEnableAlertRule() func(ctx context.Context, req mcp.CallToolRequest) (*mcp.CallToolResult, error) {
 	return func(ctx context.Context, req mcp.CallToolRequest) (*mcp.CallToolResult, error) {
+		c, cerr := client.FromContext(ctx)
+		if cerr != nil {
+			return mcp.NewToolResultError(cerr.Error()), nil
+		}
+
 		ruleID, err := requireStringParam(req, "rule_id")
 		if err != nil {
 			return nil, err
@@ -299,8 +334,13 @@ func HandleEnableAlertRule(c *client.Client) func(ctx context.Context, req mcp.C
 }
 
 // HandleDisableAlertRule handles disabling an alert rule.
-func HandleDisableAlertRule(c *client.Client) func(ctx context.Context, req mcp.CallToolRequest) (*mcp.CallToolResult, error) {
+func HandleDisableAlertRule() func(ctx context.Context, req mcp.CallToolRequest) (*mcp.CallToolResult, error) {
 	return func(ctx context.Context, req mcp.CallToolRequest) (*mcp.CallToolResult, error) {
+		c, cerr := client.FromContext(ctx)
+		if cerr != nil {
+			return mcp.NewToolResultError(cerr.Error()), nil
+		}
+
 		ruleID, err := requireStringParam(req, "rule_id")
 		if err != nil {
 			return nil, err
@@ -327,8 +367,13 @@ func HandleDisableAlertRule(c *client.Client) func(ctx context.Context, req mcp.
 }
 
 // HandleMuteAlertRule handles muting an alert rule.
-func HandleMuteAlertRule(c *client.Client) func(ctx context.Context, req mcp.CallToolRequest) (*mcp.CallToolResult, error) {
+func HandleMuteAlertRule() func(ctx context.Context, req mcp.CallToolRequest) (*mcp.CallToolResult, error) {
 	return func(ctx context.Context, req mcp.CallToolRequest) (*mcp.CallToolResult, error) {
+		c, cerr := client.FromContext(ctx)
+		if cerr != nil {
+			return mcp.NewToolResultError(cerr.Error()), nil
+		}
+
 		ruleID, err := requireStringParam(req, "rule_id")
 		if err != nil {
 			return nil, err
@@ -368,8 +413,13 @@ func HandleMuteAlertRule(c *client.Client) func(ctx context.Context, req mcp.Cal
 }
 
 // HandleUnmuteAlertRule handles unmuting an alert rule.
-func HandleUnmuteAlertRule(c *client.Client) func(ctx context.Context, req mcp.CallToolRequest) (*mcp.CallToolResult, error) {
+func HandleUnmuteAlertRule() func(ctx context.Context, req mcp.CallToolRequest) (*mcp.CallToolResult, error) {
 	return func(ctx context.Context, req mcp.CallToolRequest) (*mcp.CallToolResult, error) {
+		c, cerr := client.FromContext(ctx)
+		if cerr != nil {
+			return mcp.NewToolResultError(cerr.Error()), nil
+		}
+
 		ruleID, err := requireStringParam(req, "rule_id")
 		if err != nil {
 			return nil, err
@@ -396,8 +446,13 @@ func HandleUnmuteAlertRule(c *client.Client) func(ctx context.Context, req mcp.C
 }
 
 // HandleGetAlertRuleTypes handles listing available alert rule types.
-func HandleGetAlertRuleTypes(c *client.Client) func(ctx context.Context, req mcp.CallToolRequest) (*mcp.CallToolResult, error) {
+func HandleGetAlertRuleTypes() func(ctx context.Context, req mcp.CallToolRequest) (*mcp.CallToolResult, error) {
 	return func(ctx context.Context, req mcp.CallToolRequest) (*mcp.CallToolResult, error) {
+		c, cerr := client.FromContext(ctx)
+		if cerr != nil {
+			return mcp.NewToolResultError(cerr.Error()), nil
+		}
+
 		logrus.Debug("Executing Kibana get alert rule types handler")
 
 		ruleTypes, err := c.GetAlertRuleTypes(ctx)
@@ -429,8 +484,13 @@ func HandleGetAlertRuleTypes(c *client.Client) func(ctx context.Context, req mcp
 }
 
 // HandleGetAlertRuleHistory handles getting alert rule execution history.
-func HandleGetAlertRuleHistory(c *client.Client) func(ctx context.Context, req mcp.CallToolRequest) (*mcp.CallToolResult, error) {
+func HandleGetAlertRuleHistory() func(ctx context.Context, req mcp.CallToolRequest) (*mcp.CallToolResult, error) {
 	return func(ctx context.Context, req mcp.CallToolRequest) (*mcp.CallToolResult, error) {
+		c, cerr := client.FromContext(ctx)
+		if cerr != nil {
+			return mcp.NewToolResultError(cerr.Error()), nil
+		}
+
 		ruleID, err := requireStringParam(req, "rule_id")
 		if err != nil {
 			return nil, err

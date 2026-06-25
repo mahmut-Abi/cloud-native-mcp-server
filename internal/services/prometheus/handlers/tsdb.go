@@ -13,8 +13,12 @@ import (
 )
 
 // HandleGetTSDBStats handles TSDB stats requests.
-func HandleGetTSDBStats(c *client.Client) func(ctx context.Context, req mcp.CallToolRequest) (*mcp.CallToolResult, error) {
+func HandleGetTSDBStats() func(ctx context.Context, req mcp.CallToolRequest) (*mcp.CallToolResult, error) {
 	return func(ctx context.Context, req mcp.CallToolRequest) (*mcp.CallToolResult, error) {
+		c, err := client.FromContext(ctx)
+		if err != nil {
+			return mcp.NewToolResultError(err.Error()), nil
+		}
 		logrus.Debug("Executing Prometheus TSDB stats handler")
 
 		stats, err := c.GetTSDBStats(ctx)
@@ -46,8 +50,12 @@ func HandleGetTSDBStats(c *client.Client) func(ctx context.Context, req mcp.Call
 }
 
 // HandleGetTSDBStatus handles TSDB status requests.
-func HandleGetTSDBStatus(c *client.Client) func(ctx context.Context, req mcp.CallToolRequest) (*mcp.CallToolResult, error) {
+func HandleGetTSDBStatus() func(ctx context.Context, req mcp.CallToolRequest) (*mcp.CallToolResult, error) {
 	return func(ctx context.Context, req mcp.CallToolRequest) (*mcp.CallToolResult, error) {
+		c, err := client.FromContext(ctx)
+		if err != nil {
+			return mcp.NewToolResultError(err.Error()), nil
+		}
 		logrus.Debug("Executing Prometheus TSDB status handler")
 
 		status, err := c.GetTSDBStatus(ctx)
@@ -79,8 +87,12 @@ func HandleGetTSDBStatus(c *client.Client) func(ctx context.Context, req mcp.Cal
 }
 
 // HandleCreateSnapshot handles TSDB snapshot creation requests.
-func HandleCreateSnapshot(c *client.Client) func(ctx context.Context, req mcp.CallToolRequest) (*mcp.CallToolResult, error) {
+func HandleCreateSnapshot() func(ctx context.Context, req mcp.CallToolRequest) (*mcp.CallToolResult, error) {
 	return func(ctx context.Context, req mcp.CallToolRequest) (*mcp.CallToolResult, error) {
+		c, err := client.FromContext(ctx)
+		if err != nil {
+			return mcp.NewToolResultError(err.Error()), nil
+		}
 		logrus.Debug("Executing Prometheus TSDB snapshot handler")
 
 		skipHead := false
@@ -119,8 +131,12 @@ func HandleCreateSnapshot(c *client.Client) func(ctx context.Context, req mcp.Ca
 }
 
 // HandleGetWALReplayStatus handles WAL replay status requests.
-func HandleGetWALReplayStatus(c *client.Client) func(ctx context.Context, req mcp.CallToolRequest) (*mcp.CallToolResult, error) {
+func HandleGetWALReplayStatus() func(ctx context.Context, req mcp.CallToolRequest) (*mcp.CallToolResult, error) {
 	return func(ctx context.Context, req mcp.CallToolRequest) (*mcp.CallToolResult, error) {
+		c, err := client.FromContext(ctx)
+		if err != nil {
+			return mcp.NewToolResultError(err.Error()), nil
+		}
 		logrus.Debug("Executing Prometheus WAL replay status handler")
 
 		status, err := c.GetWALReplayStatus(ctx)

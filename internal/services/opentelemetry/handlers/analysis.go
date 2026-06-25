@@ -38,8 +38,12 @@ type finding struct {
 }
 
 // HandleGetConfigSummary summarizes collector config into pipeline and component views.
-func HandleGetConfigSummary(c *client.Client) server.ToolHandlerFunc {
+func HandleGetConfigSummary() server.ToolHandlerFunc {
 	return func(ctx context.Context, request mcp.CallToolRequest) (*mcp.CallToolResult, error) {
+		c, err := client.FromContext(ctx)
+		if err != nil {
+			return mcp.NewToolResultError(err.Error()), nil
+		}
 		config, err := c.GetConfig(ctx)
 		if err != nil {
 			return mcp.NewToolResultError(fmt.Sprintf("Failed to retrieve collector configuration: %v", err)), nil
@@ -55,8 +59,12 @@ func HandleGetConfigSummary(c *client.Client) server.ToolHandlerFunc {
 }
 
 // HandleGetCollectorSummary combines health, status, and config into one compact overview.
-func HandleGetCollectorSummary(c *client.Client) server.ToolHandlerFunc {
+func HandleGetCollectorSummary() server.ToolHandlerFunc {
 	return func(ctx context.Context, request mcp.CallToolRequest) (*mcp.CallToolResult, error) {
+		c, err := client.FromContext(ctx)
+		if err != nil {
+			return mcp.NewToolResultError(err.Error()), nil
+		}
 		summary := map[string]interface{}{
 			"errors": []string{},
 		}
@@ -99,8 +107,12 @@ func HandleGetCollectorSummary(c *client.Client) server.ToolHandlerFunc {
 }
 
 // HandleAnalyzePipelineStatus analyzes collector pipelines for broken refs and common misconfigurations.
-func HandleAnalyzePipelineStatus(c *client.Client) server.ToolHandlerFunc {
+func HandleAnalyzePipelineStatus() server.ToolHandlerFunc {
 	return func(ctx context.Context, request mcp.CallToolRequest) (*mcp.CallToolResult, error) {
+		c, err := client.FromContext(ctx)
+		if err != nil {
+			return mcp.NewToolResultError(err.Error()), nil
+		}
 		args := request.GetArguments()
 		signalFilter, _ := args["signal"].(string)
 		pipelineFilter, _ := args["pipeline"].(string)

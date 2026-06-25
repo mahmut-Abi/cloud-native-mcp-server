@@ -18,8 +18,8 @@ import (
 
 // Service implements the Grafana service for MCP server integration.
 // It provides tools and handlers for interacting with Grafana instances.
+// The backend client is not stored — it is created per-request from HTTP headers.
 type Service struct {
-	client        *client.Client               // Grafana HTTP client for API operations
 	enabled       bool                         // Whether the service is enabled
 	toolsCache    *cache.ToolsCache            // Cached tools to avoid recreation
 	initFramework *framework.CommonServiceInit // Common initialization framework
@@ -66,10 +66,9 @@ func (s *Service) Name() string {
 func (s *Service) Initialize(cfg interface{}) error {
 	return s.initFramework.Initialize(cfg,
 		func(enabled bool) { s.enabled = enabled },
-		func(clientIface interface{}) {
-			if grafanaClient, ok := clientIface.(*client.Client); ok {
-				s.client = grafanaClient
-			}
+		func(_ interface{}) {
+			// Backend client is created per-request from HTTP headers.
+			// The backend auth handler was registered in client/config.go init().
 		},
 	)
 }
@@ -78,7 +77,7 @@ func (s *Service) Initialize(cfg interface{}) error {
 // Tools are only returned if the service is enabled and properly initialized.
 // Organized with summary tools first for better user experience.
 func (s *Service) GetTools() []mcp.Tool {
-	if !s.enabled || s.client == nil {
+	if !s.enabled {
 		return nil
 	}
 
@@ -173,102 +172,102 @@ func (s *Service) GetTools() []mcp.Tool {
 // Handlers are only returned if the service is enabled and properly initialized.
 // Organized with same order as GetTools for consistency.
 func (s *Service) GetHandlers() map[string]server.ToolHandlerFunc {
-	if !s.enabled || s.client == nil {
+	if !s.enabled {
 		return nil
 	}
 
 	return map[string]server.ToolHandlerFunc{
 		// 🎯 SUMMARY TOOLS - Recommended first (95% of use cases)
-		"grafana_dashboards_summary":  handlers.HandleGetDashboardsSummary(s.client),
-		"grafana_datasources_summary": handlers.HandleGetDataSourcesSummary(s.client),
-		"grafana_plugins_summary":     handlers.HandleGetPluginsSummary(s.client),
+		"grafana_dashboards_summary":  handlers.HandleGetDashboardsSummary(),
+		"grafana_datasources_summary": handlers.HandleGetDataSourcesSummary(),
+		"grafana_plugins_summary":     handlers.HandleGetPluginsSummary(),
 
 		// 📋 STANDARD TOOLS - For detailed information when needed
-		"grafana_dashboards":        handlers.HandleGetDashboards(s.client),
-		"grafana_datasources":       handlers.HandleGetDataSources(s.client),
-		"grafana_plugins":           handlers.HandleGetPlugins(s.client),
-		"grafana_folders":           handlers.HandleGetFolders(s.client),
-		"grafana_create_folder":     handlers.HandleCreateFolder(s.client),
-		"grafana_update_folder":     handlers.HandleUpdateFolder(s.client),
-		"grafana_delete_folder":     handlers.HandleDeleteFolder(s.client),
-		"grafana_search_dashboards": handlers.HandleSearchDashboards(s.client),
+		"grafana_dashboards":        handlers.HandleGetDashboards(),
+		"grafana_datasources":       handlers.HandleGetDataSources(),
+		"grafana_plugins":           handlers.HandleGetPlugins(),
+		"grafana_folders":           handlers.HandleGetFolders(),
+		"grafana_create_folder":     handlers.HandleCreateFolder(),
+		"grafana_update_folder":     handlers.HandleUpdateFolder(),
+		"grafana_delete_folder":     handlers.HandleDeleteFolder(),
+		"grafana_search_dashboards": handlers.HandleSearchDashboards(),
 
 		// 🔍 SPECIFIC RESOURCE TOOLS - For detailed inspection
-		"grafana_dashboard":              handlers.HandleGetDashboard(s.client),
-		"grafana_folder_detail":          handlers.HandleGetFolder(s.client),
-		"grafana_datasource_detail":      handlers.HandleGetDataSource(s.client),
-		"grafana_get_datasource_by_name": handlers.HandleGetDataSourceByName(s.client),
-		"grafana_plugin_detail":          handlers.HandleGetPlugin(s.client),
+		"grafana_dashboard":              handlers.HandleGetDashboard(),
+		"grafana_folder_detail":          handlers.HandleGetFolder(),
+		"grafana_datasource_detail":      handlers.HandleGetDataSource(),
+		"grafana_get_datasource_by_name": handlers.HandleGetDataSourceByName(),
+		"grafana_plugin_detail":          handlers.HandleGetPlugin(),
 
 		// 🚨 MONITORING TOOLS
-		"grafana_alerts":                handlers.HandleGetAlertRules(s.client),
-		"grafana_get_alert_rule_by_uid": handlers.HandleGetAlertRuleByUID(s.client),
-		"grafana_list_contact_points":   handlers.HandleListContactPoints(s.client),
+		"grafana_alerts":                handlers.HandleGetAlertRules(),
+		"grafana_get_alert_rule_by_uid": handlers.HandleGetAlertRuleByUID(),
+		"grafana_list_contact_points":   handlers.HandleListContactPoints(),
 
 		// 📝 ANNOTATION TOOLS
-		"grafana_get_annotations":     handlers.HandleGetAnnotations(s.client),
-		"grafana_create_annotation":   handlers.HandleCreateAnnotation(s.client),
-		"grafana_update_annotation":   handlers.HandleUpdateAnnotation(s.client),
-		"grafana_patch_annotation":    handlers.HandlePatchAnnotation(s.client),
-		"grafana_delete_annotation":   handlers.HandleDeleteAnnotation(s.client),
-		"grafana_get_annotation_tags": handlers.HandleGetAnnotationTags(s.client),
+		"grafana_get_annotations":     handlers.HandleGetAnnotations(),
+		"grafana_create_annotation":   handlers.HandleCreateAnnotation(),
+		"grafana_update_annotation":   handlers.HandleUpdateAnnotation(),
+		"grafana_patch_annotation":    handlers.HandlePatchAnnotation(),
+		"grafana_delete_annotation":   handlers.HandleDeleteAnnotation(),
+		"grafana_get_annotation_tags": handlers.HandleGetAnnotationTags(),
 
 		// 🔧 UTILITY TOOLS
-		"grafana_test_connection":         handlers.HandleTestConnection(s.client),
-		"grafana_current_user":            handlers.HandleGetCurrentUser(s.client),
-		"grafana_users":                   handlers.HandleGetUsers(s.client),
-		"grafana_organization":            handlers.HandleGetOrganization(s.client),
-		"grafana_check_datasource_health": handlers.HandleCheckDatasourceHealth(s.client),
+		"grafana_test_connection":         handlers.HandleTestConnection(),
+		"grafana_current_user":            handlers.HandleGetCurrentUser(),
+		"grafana_users":                   handlers.HandleGetUsers(),
+		"grafana_organization":            handlers.HandleGetOrganization(),
+		"grafana_check_datasource_health": handlers.HandleCheckDatasourceHealth(),
 
 		// 🔐 ADMIN TOOLS
-		"grafana_list_teams":               handlers.HandleListTeams(s.client),
-		"grafana_list_all_roles":           handlers.HandleListAllRoles(s.client),
-		"grafana_get_role_details":         handlers.HandleGetRoleDetails(s.client),
-		"grafana_get_role_assignments":     handlers.HandleGetRoleAssignments(s.client),
-		"grafana_list_user_roles":          handlers.HandleListUserRoles(s.client),
-		"grafana_list_team_roles":          handlers.HandleListTeamRoles(s.client),
-		"grafana_get_resource_permissions": handlers.HandleGetResourcePermissions(s.client),
-		"grafana_get_resource_description": handlers.HandleGetResourceDescription(s.client),
+		"grafana_list_teams":               handlers.HandleListTeams(),
+		"grafana_list_all_roles":           handlers.HandleListAllRoles(),
+		"grafana_get_role_details":         handlers.HandleGetRoleDetails(),
+		"grafana_get_role_assignments":     handlers.HandleGetRoleAssignments(),
+		"grafana_list_user_roles":          handlers.HandleListUserRoles(),
+		"grafana_list_team_roles":          handlers.HandleListTeamRoles(),
+		"grafana_get_resource_permissions": handlers.HandleGetResourcePermissions(),
+		"grafana_get_resource_description": handlers.HandleGetResourceDescription(),
 
 		// 📊 DASHBOARD MANAGEMENT TOOLS
-		"grafana_update_dashboard":            handlers.HandleUpdateDashboard(s.client),
-		"grafana_get_dashboard_versions":      handlers.HandleGetDashboardVersions(s.client),
-		"grafana_get_dashboard_version":       handlers.HandleGetDashboardVersion(s.client),
-		"grafana_restore_dashboard_version":   handlers.HandleRestoreDashboardVersion(s.client),
-		"grafana_delete_dashboard":            handlers.HandleDeleteDashboard(s.client),
-		"grafana_get_dashboard_panel_queries": handlers.HandleGetDashboardPanelQueries(s.client),
-		"grafana_get_dashboard_property":      handlers.HandleGetDashboardProperty(s.client),
+		"grafana_update_dashboard":            handlers.HandleUpdateDashboard(),
+		"grafana_get_dashboard_versions":      handlers.HandleGetDashboardVersions(),
+		"grafana_get_dashboard_version":       handlers.HandleGetDashboardVersion(),
+		"grafana_restore_dashboard_version":   handlers.HandleRestoreDashboardVersion(),
+		"grafana_delete_dashboard":            handlers.HandleDeleteDashboard(),
+		"grafana_get_dashboard_panel_queries": handlers.HandleGetDashboardPanelQueries(),
+		"grafana_get_dashboard_property":      handlers.HandleGetDashboardProperty(),
 
 		// 🚨 ALERTING TOOLS
-		"grafana_create_alert_rule": handlers.HandleCreateAlertRule(s.client),
-		"grafana_update_alert_rule": handlers.HandleUpdateAlertRule(s.client),
-		"grafana_delete_alert_rule": handlers.HandleDeleteAlertRule(s.client),
+		"grafana_create_alert_rule": handlers.HandleCreateAlertRule(),
+		"grafana_update_alert_rule": handlers.HandleUpdateAlertRule(),
+		"grafana_delete_alert_rule": handlers.HandleDeleteAlertRule(),
 
 		// 🔗 NAVIGATION TOOLS
-		"grafana_generate_deeplink":            handlers.HandleGenerateDeeplink(s.client),
-		"grafana_generate_logs_drilldown_link": handlers.HandleGenerateLogsDrilldownLink(s.client),
+		"grafana_generate_deeplink":            handlers.HandleGenerateDeeplink(),
+		"grafana_generate_logs_drilldown_link": handlers.HandleGenerateLogsDrilldownLink(),
 
 		// 🎨 RENDERING TOOLS
-		"grafana_render_panel_image": handlers.HandleRenderPanelImage(s.client),
+		"grafana_render_panel_image": handlers.HandleRenderPanelImage(),
 
 		// 📝 GRAPHITE ANNOTATION TOOLS
-		"grafana_create_graphite_annotation": handlers.HandleCreateGraphiteAnnotation(s.client),
+		"grafana_create_graphite_annotation": handlers.HandleCreateGraphiteAnnotation(),
 
 		// 🔧 DATASOURCE MANAGEMENT TOOLS
-		"grafana_create_datasource": handlers.HandleCreateDatasource(s.client),
-		"grafana_update_datasource": handlers.HandleUpdateDatasource(s.client),
-		"grafana_delete_datasource": handlers.HandleDeleteDatasource(s.client),
+		"grafana_create_datasource": handlers.HandleCreateDatasource(),
+		"grafana_update_datasource": handlers.HandleUpdateDatasource(),
+		"grafana_delete_datasource": handlers.HandleDeleteDatasource(),
 	}
 }
 
 // IsEnabled returns whether the service is enabled and ready for use.
 // A service is considered enabled if it's marked as enabled and has a valid client.
 func (s *Service) IsEnabled() bool {
-	return s.enabled && s.client != nil
+	return s.enabled
 }
 
 // GetClient returns the underlying Grafana client for advanced operations.
 // This method is primarily used for testing and internal service communication.
 func (s *Service) GetClient() *client.Client {
-	return s.client
+	return nil // Backend client is created per-request from HTTP headers
 }

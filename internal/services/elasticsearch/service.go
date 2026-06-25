@@ -14,8 +14,10 @@ import (
 	"github.com/mahmut-Abi/cloud-native-mcp-server/internal/services/framework"
 )
 
+// Service implements the Elasticsearch service for MCP server integration.
+// It provides tools and handlers for interacting with Elasticsearch instances.
+// The backend client is not stored — it is created per-request from HTTP headers.
 type Service struct {
-	client        *client.Client               // Elasticsearch HTTP client for API operations
 	enabled       bool                         // Whether the service is enabled
 	toolsCache    *cache.ToolsCache            // Cached tools to avoid recreation
 	initFramework *framework.CommonServiceInit // Common initialization framework
@@ -71,19 +73,20 @@ func (s *Service) Name() string {
 	return "elasticsearch"
 }
 
+// Initialize configures the Elasticsearch service with the provided application configuration.
+// The backend client is created per-request from HTTP headers (see client/config.go).
 func (s *Service) Initialize(cfg interface{}) error {
 	return s.initFramework.Initialize(cfg,
 		func(enabled bool) { s.enabled = enabled },
-		func(clientIface interface{}) {
-			if esClient, ok := clientIface.(*client.Client); ok {
-				s.client = esClient
-			}
+		func(_ interface{}) {
+			// Backend client is created per-request from HTTP headers.
+			// The backend auth handler was registered in client/config.go init().
 		},
 	)
 }
 
 func (s *Service) GetTools() []mcp.Tool {
-	if !s.enabled || s.client == nil {
+	if !s.enabled {
 		return nil
 	}
 
@@ -115,31 +118,31 @@ func (s *Service) GetTools() []mcp.Tool {
 }
 
 func (s *Service) GetHandlers() map[string]server.ToolHandlerFunc {
-	if !s.enabled || s.client == nil {
+	if !s.enabled {
 		return nil
 	}
 
 	// Legacy handlers (maintained for compatibility)
 	legacyHandlers := map[string]server.ToolHandlerFunc{
-		"elasticsearch_health":       handlers.HandleHealthCheck(s.client),
-		"elasticsearch_list_indices": handlers.HandleListIndices(s.client),
-		"elasticsearch_index_stats":  handlers.HandleIndexStats(s.client),
-		"elasticsearch_nodes":        handlers.HandleNodes(s.client),
-		"elasticsearch_info":         handlers.HandleInfo(s.client),
+		"elasticsearch_health":       handlers.HandleHealthCheck(),
+		"elasticsearch_list_indices": handlers.HandleListIndices(),
+		"elasticsearch_index_stats":  handlers.HandleIndexStats(),
+		"elasticsearch_nodes":        handlers.HandleNodes(),
+		"elasticsearch_info":         handlers.HandleInfo(),
 	}
 
-	// ⚠️ PRIORITY: New optimized handlers for LLM efficiency
+	// New optimized handlers for LLM efficiency
 	optimizedHandlers := map[string]server.ToolHandlerFunc{
 		// Summary tools
-		"elasticsearch_indices_summary":        handlers.HandleListIndicesPaginated(s.client), // Same handler for summary tool
-		"elasticsearch_nodes_summary":          handlers.HandleGetNodesSummary(s.client),
-		"elasticsearch_cluster_health_summary": handlers.HandleGetClusterHealthSummary(s.client),
+		"elasticsearch_indices_summary":        handlers.HandleListIndicesPaginated(),
+		"elasticsearch_nodes_summary":          handlers.HandleGetNodesSummary(),
+		"elasticsearch_cluster_health_summary": handlers.HandleGetClusterHealthSummary(),
 
 		// Advanced tools
-		"elasticsearch_list_indices_paginated":      handlers.HandleListIndicesPaginated(s.client),
-		"elasticsearch_get_index_detail_advanced":   handlers.HandleGetIndexDetailAdvanced(s.client),
-		"elasticsearch_get_cluster_detail_advanced": handlers.HandleGetClusterDetailAdvanced(s.client),
-		"elasticsearch_search_indices":              handlers.HandleSearchIndices(s.client),
+		"elasticsearch_list_indices_paginated":      handlers.HandleListIndicesPaginated(),
+		"elasticsearch_get_index_detail_advanced":   handlers.HandleGetIndexDetailAdvanced(),
+		"elasticsearch_get_cluster_detail_advanced": handlers.HandleGetClusterDetailAdvanced(),
+		"elasticsearch_search_indices":              handlers.HandleSearchIndices(),
 	}
 
 	// Combine all handlers
@@ -155,9 +158,9 @@ func (s *Service) GetHandlers() map[string]server.ToolHandlerFunc {
 }
 
 func (s *Service) IsEnabled() bool {
-	return s.enabled && s.client != nil
+	return s.enabled
 }
 
 func (s *Service) GetClient() *client.Client {
-	return s.client
+	return nil
 }

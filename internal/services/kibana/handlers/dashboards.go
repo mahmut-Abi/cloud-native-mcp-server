@@ -14,8 +14,13 @@ import (
 )
 
 // HandleGetDashboards handles Kibana dashboards retrieval requests.
-func HandleGetDashboards(c *client.Client) func(ctx context.Context, req mcp.CallToolRequest) (*mcp.CallToolResult, error) {
+func HandleGetDashboards() func(ctx context.Context, req mcp.CallToolRequest) (*mcp.CallToolResult, error) {
 	return func(ctx context.Context, req mcp.CallToolRequest) (*mcp.CallToolResult, error) {
+		c, cerr := client.FromContext(ctx)
+		if cerr != nil {
+			return mcp.NewToolResultError(cerr.Error()), nil
+		}
+
 		logrus.Debug("Executing Kibana get dashboards handler")
 
 		// Get dashboards
@@ -49,8 +54,13 @@ func HandleGetDashboards(c *client.Client) func(ctx context.Context, req mcp.Cal
 }
 
 // HandleGetDashboard handles specific Kibana dashboard retrieval requests.
-func HandleGetDashboard(c *client.Client) func(ctx context.Context, req mcp.CallToolRequest) (*mcp.CallToolResult, error) {
+func HandleGetDashboard() func(ctx context.Context, req mcp.CallToolRequest) (*mcp.CallToolResult, error) {
 	return func(ctx context.Context, req mcp.CallToolRequest) (*mcp.CallToolResult, error) {
+		c, cerr := client.FromContext(ctx)
+		if cerr != nil {
+			return mcp.NewToolResultError(cerr.Error()), nil
+		}
+
 		logrus.Debug("Executing Kibana get dashboard handler")
 
 		// Extract parameters
@@ -106,8 +116,13 @@ func HandleGetDashboard(c *client.Client) func(ctx context.Context, req mcp.Call
 }
 
 // HandleCreateDashboard handles creating a new dashboard
-func HandleCreateDashboard(c *client.Client) func(ctx context.Context, req mcp.CallToolRequest) (*mcp.CallToolResult, error) {
+func HandleCreateDashboard() func(ctx context.Context, req mcp.CallToolRequest) (*mcp.CallToolResult, error) {
 	return func(ctx context.Context, req mcp.CallToolRequest) (*mcp.CallToolResult, error) {
+		c, cerr := client.FromContext(ctx)
+		if cerr != nil {
+			return mcp.NewToolResultError(cerr.Error()), nil
+		}
+
 		logrus.Debug("Executing Kibana create dashboard handler")
 
 		title := getOptionalStringParam(req, "title")
@@ -164,8 +179,13 @@ func HandleCreateDashboard(c *client.Client) func(ctx context.Context, req mcp.C
 }
 
 // HandleUpdateDashboard handles updating a dashboard
-func HandleUpdateDashboard(c *client.Client) func(ctx context.Context, req mcp.CallToolRequest) (*mcp.CallToolResult, error) {
+func HandleUpdateDashboard() func(ctx context.Context, req mcp.CallToolRequest) (*mcp.CallToolResult, error) {
 	return func(ctx context.Context, req mcp.CallToolRequest) (*mcp.CallToolResult, error) {
+		c, cerr := client.FromContext(ctx)
+		if cerr != nil {
+			return mcp.NewToolResultError(cerr.Error()), nil
+		}
+
 		logrus.Debug("Executing Kibana update dashboard handler")
 
 		dashboardID := getOptionalStringParam(req, "dashboard_id")
@@ -218,8 +238,13 @@ func HandleUpdateDashboard(c *client.Client) func(ctx context.Context, req mcp.C
 }
 
 // HandleDeleteDashboard handles deleting a dashboard
-func HandleDeleteDashboard(c *client.Client) func(ctx context.Context, req mcp.CallToolRequest) (*mcp.CallToolResult, error) {
+func HandleDeleteDashboard() func(ctx context.Context, req mcp.CallToolRequest) (*mcp.CallToolResult, error) {
 	return func(ctx context.Context, req mcp.CallToolRequest) (*mcp.CallToolResult, error) {
+		c, cerr := client.FromContext(ctx)
+		if cerr != nil {
+			return mcp.NewToolResultError(cerr.Error()), nil
+		}
+
 		logrus.Debug("Executing Kibana delete dashboard handler")
 
 		dashboardID := getOptionalStringParam(req, "dashboard_id")
@@ -252,8 +277,13 @@ func HandleDeleteDashboard(c *client.Client) func(ctx context.Context, req mcp.C
 }
 
 // HandleCloneDashboard handles cloning a dashboard
-func HandleCloneDashboard(c *client.Client) func(ctx context.Context, req mcp.CallToolRequest) (*mcp.CallToolResult, error) {
+func HandleCloneDashboard() func(ctx context.Context, req mcp.CallToolRequest) (*mcp.CallToolResult, error) {
 	return func(ctx context.Context, req mcp.CallToolRequest) (*mcp.CallToolResult, error) {
+		c, cerr := client.FromContext(ctx)
+		if cerr != nil {
+			return mcp.NewToolResultError(cerr.Error()), nil
+		}
+
 		logrus.Debug("Executing Kibana clone dashboard handler")
 
 		dashboardID := getOptionalStringParam(req, "dashboard_id")
@@ -306,8 +336,13 @@ func HandleCloneDashboard(c *client.Client) func(ctx context.Context, req mcp.Ca
 }
 
 // HandleDashboardsPaginated handles paginated dashboards listing with LLM optimization
-func HandleDashboardsPaginated(c *client.Client) func(ctx context.Context, request mcp.CallToolRequest) (*mcp.CallToolResult, error) {
+func HandleDashboardsPaginated() func(ctx context.Context, request mcp.CallToolRequest) (*mcp.CallToolResult, error) {
 	return func(ctx context.Context, request mcp.CallToolRequest) (*mcp.CallToolResult, error) {
+		c, cerr := client.FromContext(ctx)
+		if cerr != nil {
+			return mcp.NewToolResultError(cerr.Error()), nil
+		}
+
 		page := getOptionalIntParam(request, "page", 1)
 		perPage := getOptionalIntParam(request, "per_page", 20)
 		search := getOptionalStringParam(request, "search")
@@ -349,8 +384,13 @@ func HandleDashboardsPaginated(c *client.Client) func(ctx context.Context, reque
 }
 
 // HandleGetDashboardDetailAdvanced handles getting advanced dashboard details
-func HandleGetDashboardDetailAdvanced(c *client.Client) func(ctx context.Context, request mcp.CallToolRequest) (*mcp.CallToolResult, error) {
+func HandleGetDashboardDetailAdvanced() func(ctx context.Context, request mcp.CallToolRequest) (*mcp.CallToolResult, error) {
 	return func(ctx context.Context, request mcp.CallToolRequest) (*mcp.CallToolResult, error) {
+		c, cerr := client.FromContext(ctx)
+		if cerr != nil {
+			return mcp.NewToolResultError(cerr.Error()), nil
+		}
+
 		dashboardID, err := requireStringParam(request, "dashboard_id")
 		if err != nil {
 			return nil, err

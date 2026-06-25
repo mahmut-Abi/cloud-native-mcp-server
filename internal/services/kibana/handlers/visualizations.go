@@ -14,8 +14,13 @@ import (
 )
 
 // HandleGetVisualizations handles Kibana visualizations retrieval requests.
-func HandleGetVisualizations(c *client.Client) func(ctx context.Context, req mcp.CallToolRequest) (*mcp.CallToolResult, error) {
+func HandleGetVisualizations() func(ctx context.Context, req mcp.CallToolRequest) (*mcp.CallToolResult, error) {
 	return func(ctx context.Context, req mcp.CallToolRequest) (*mcp.CallToolResult, error) {
+		c, cerr := client.FromContext(ctx)
+		if cerr != nil {
+			return mcp.NewToolResultError(cerr.Error()), nil
+		}
+
 		logrus.Debug("Executing Kibana get visualizations handler")
 
 		// Get visualizations
@@ -49,8 +54,13 @@ func HandleGetVisualizations(c *client.Client) func(ctx context.Context, req mcp
 }
 
 // HandleGetVisualization handles specific Kibana visualization retrieval requests.
-func HandleGetVisualization(c *client.Client) func(ctx context.Context, req mcp.CallToolRequest) (*mcp.CallToolResult, error) {
+func HandleGetVisualization() func(ctx context.Context, req mcp.CallToolRequest) (*mcp.CallToolResult, error) {
 	return func(ctx context.Context, req mcp.CallToolRequest) (*mcp.CallToolResult, error) {
+		c, cerr := client.FromContext(ctx)
+		if cerr != nil {
+			return mcp.NewToolResultError(cerr.Error()), nil
+		}
+
 		logrus.Debug("Executing Kibana get visualization handler")
 
 		// Extract parameters
@@ -106,8 +116,13 @@ func HandleGetVisualization(c *client.Client) func(ctx context.Context, req mcp.
 }
 
 // HandleCreateVisualization handles creating a new visualization
-func HandleCreateVisualization(c *client.Client) func(ctx context.Context, req mcp.CallToolRequest) (*mcp.CallToolResult, error) {
+func HandleCreateVisualization() func(ctx context.Context, req mcp.CallToolRequest) (*mcp.CallToolResult, error) {
 	return func(ctx context.Context, req mcp.CallToolRequest) (*mcp.CallToolResult, error) {
+		c, cerr := client.FromContext(ctx)
+		if cerr != nil {
+			return mcp.NewToolResultError(cerr.Error()), nil
+		}
+
 		logrus.Debug("Executing Kibana create visualization handler")
 
 		title := getOptionalStringParam(req, "title")
@@ -157,8 +172,13 @@ func HandleCreateVisualization(c *client.Client) func(ctx context.Context, req m
 }
 
 // HandleUpdateVisualization handles updating a visualization
-func HandleUpdateVisualization(c *client.Client) func(ctx context.Context, req mcp.CallToolRequest) (*mcp.CallToolResult, error) {
+func HandleUpdateVisualization() func(ctx context.Context, req mcp.CallToolRequest) (*mcp.CallToolResult, error) {
 	return func(ctx context.Context, req mcp.CallToolRequest) (*mcp.CallToolResult, error) {
+		c, cerr := client.FromContext(ctx)
+		if cerr != nil {
+			return mcp.NewToolResultError(cerr.Error()), nil
+		}
+
 		logrus.Debug("Executing Kibana update visualization handler")
 
 		visualizationID := getOptionalStringParam(req, "visualization_id")
@@ -210,8 +230,13 @@ func HandleUpdateVisualization(c *client.Client) func(ctx context.Context, req m
 }
 
 // HandleDeleteVisualization handles deleting a visualization
-func HandleDeleteVisualization(c *client.Client) func(ctx context.Context, req mcp.CallToolRequest) (*mcp.CallToolResult, error) {
+func HandleDeleteVisualization() func(ctx context.Context, req mcp.CallToolRequest) (*mcp.CallToolResult, error) {
 	return func(ctx context.Context, req mcp.CallToolRequest) (*mcp.CallToolResult, error) {
+		c, cerr := client.FromContext(ctx)
+		if cerr != nil {
+			return mcp.NewToolResultError(cerr.Error()), nil
+		}
+
 		logrus.Debug("Executing Kibana delete visualization handler")
 
 		visualizationID := getOptionalStringParam(req, "visualization_id")
@@ -244,8 +269,13 @@ func HandleDeleteVisualization(c *client.Client) func(ctx context.Context, req m
 }
 
 // HandleCloneVisualization handles cloning a visualization
-func HandleCloneVisualization(c *client.Client) func(ctx context.Context, req mcp.CallToolRequest) (*mcp.CallToolResult, error) {
+func HandleCloneVisualization() func(ctx context.Context, req mcp.CallToolRequest) (*mcp.CallToolResult, error) {
 	return func(ctx context.Context, req mcp.CallToolRequest) (*mcp.CallToolResult, error) {
+		c, cerr := client.FromContext(ctx)
+		if cerr != nil {
+			return mcp.NewToolResultError(cerr.Error()), nil
+		}
+
 		logrus.Debug("Executing Kibana clone visualization handler")
 
 		visualizationID := getOptionalStringParam(req, "visualization_id")
@@ -298,8 +328,13 @@ func HandleCloneVisualization(c *client.Client) func(ctx context.Context, req mc
 }
 
 // HandleVisualizationsPaginated handles paginated visualizations listing with LLM optimization
-func HandleVisualizationsPaginated(c *client.Client) func(ctx context.Context, request mcp.CallToolRequest) (*mcp.CallToolResult, error) {
+func HandleVisualizationsPaginated() func(ctx context.Context, request mcp.CallToolRequest) (*mcp.CallToolResult, error) {
 	return func(ctx context.Context, request mcp.CallToolRequest) (*mcp.CallToolResult, error) {
+		c, cerr := client.FromContext(ctx)
+		if cerr != nil {
+			return mcp.NewToolResultError(cerr.Error()), nil
+		}
+
 		page := getOptionalIntParam(request, "page", 1)
 		perPage := getOptionalIntParam(request, "per_page", 20)
 		search := getOptionalStringParam(request, "search")

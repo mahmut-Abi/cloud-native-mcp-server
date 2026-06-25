@@ -25,8 +25,12 @@ func resolveSearchChartsKeyword(request mcp.CallToolRequest) (string, error) {
 }
 
 // HandleSearchCharts returns a handler function for searching Helm charts.
-func HandleSearchCharts(c *client.Client) func(ctx context.Context, request mcp.CallToolRequest) (*mcp.CallToolResult, error) {
+func HandleSearchCharts() func(ctx context.Context, request mcp.CallToolRequest) (*mcp.CallToolResult, error) {
 	return func(ctx context.Context, request mcp.CallToolRequest) (*mcp.CallToolResult, error) {
+		c, err := client.FromContext(ctx)
+		if err != nil {
+			return mcp.NewToolResultError(err.Error()), nil
+		}
 		logrus.WithField("tool", "helm_search_charts").Debug("Handler invoked")
 		keyword, err := resolveSearchChartsKeyword(request)
 		if err != nil {
@@ -75,8 +79,12 @@ func HandleSearchCharts(c *client.Client) func(ctx context.Context, request mcp.
 }
 
 // HandleGetChartInfo returns a handler function for getting Helm chart info.
-func HandleGetChartInfo(c *client.Client) func(ctx context.Context, request mcp.CallToolRequest) (*mcp.CallToolResult, error) {
+func HandleGetChartInfo() func(ctx context.Context, request mcp.CallToolRequest) (*mcp.CallToolResult, error) {
 	return func(ctx context.Context, request mcp.CallToolRequest) (*mcp.CallToolResult, error) {
+		c, err := client.FromContext(ctx)
+		if err != nil {
+			return mcp.NewToolResultError(err.Error()), nil
+		}
 		logrus.WithField("tool", "helm_get_chart_info").Debug("Handler invoked")
 		chart, err := requireStringParam(request, "chart")
 		if err != nil {
@@ -96,8 +104,12 @@ func HandleGetChartInfo(c *client.Client) func(ctx context.Context, request mcp.
 }
 
 // HandleTemplateChart returns a handler function for templating a Helm chart.
-func HandleTemplateChart(c *client.Client) func(ctx context.Context, request mcp.CallToolRequest) (*mcp.CallToolResult, error) {
+func HandleTemplateChart() func(ctx context.Context, request mcp.CallToolRequest) (*mcp.CallToolResult, error) {
 	return func(ctx context.Context, request mcp.CallToolRequest) (*mcp.CallToolResult, error) {
+		c, err := client.FromContext(ctx)
+		if err != nil {
+			return mcp.NewToolResultError(err.Error()), nil
+		}
 		logrus.WithField("tool", "helm_template_chart").Debug("Handler invoked")
 
 		// Validate required parameters

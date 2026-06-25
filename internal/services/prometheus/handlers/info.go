@@ -13,12 +13,16 @@ import (
 )
 
 // HandleTestConnection handles Prometheus connection test requests.
-func HandleTestConnection(c *client.Client) func(ctx context.Context, req mcp.CallToolRequest) (*mcp.CallToolResult, error) {
+func HandleTestConnection() func(ctx context.Context, req mcp.CallToolRequest) (*mcp.CallToolResult, error) {
 	return func(ctx context.Context, req mcp.CallToolRequest) (*mcp.CallToolResult, error) {
+		c, err := client.FromContext(ctx)
+		if err != nil {
+			return mcp.NewToolResultError(err.Error()), nil
+		}
 		logrus.Debug("Testing Prometheus connection")
 
 		// Test connection
-		err := c.TestConnection(ctx)
+		err = c.TestConnection(ctx)
 		if err != nil {
 			return &mcp.CallToolResult{
 				IsError: true,
@@ -37,8 +41,12 @@ func HandleTestConnection(c *client.Client) func(ctx context.Context, req mcp.Ca
 }
 
 // HandleGetServerInfo handles Prometheus server info requests.
-func HandleGetServerInfo(c *client.Client) func(ctx context.Context, req mcp.CallToolRequest) (*mcp.CallToolResult, error) {
+func HandleGetServerInfo() func(ctx context.Context, req mcp.CallToolRequest) (*mcp.CallToolResult, error) {
 	return func(ctx context.Context, req mcp.CallToolRequest) (*mcp.CallToolResult, error) {
+		c, err := client.FromContext(ctx)
+		if err != nil {
+			return mcp.NewToolResultError(err.Error()), nil
+		}
 		logrus.Debug("Executing Prometheus server info handler")
 
 		info, err := c.GetServerInfo(ctx)
@@ -70,8 +78,12 @@ func HandleGetServerInfo(c *client.Client) func(ctx context.Context, req mcp.Cal
 }
 
 // HandleGetRuntimeInfo handles runtime info requests.
-func HandleGetRuntimeInfo(c *client.Client) func(ctx context.Context, req mcp.CallToolRequest) (*mcp.CallToolResult, error) {
+func HandleGetRuntimeInfo() func(ctx context.Context, req mcp.CallToolRequest) (*mcp.CallToolResult, error) {
 	return func(ctx context.Context, req mcp.CallToolRequest) (*mcp.CallToolResult, error) {
+		c, err := client.FromContext(ctx)
+		if err != nil {
+			return mcp.NewToolResultError(err.Error()), nil
+		}
 		logrus.Debug("Executing Prometheus runtime info handler")
 
 		info, err := c.GetRuntimeInfo(ctx)

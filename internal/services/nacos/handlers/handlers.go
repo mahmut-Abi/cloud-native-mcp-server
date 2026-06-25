@@ -16,14 +16,13 @@ import (
 
 // ServiceInterface is the subset of methods required by handlers.
 type ServiceInterface interface {
-	GetClient() *client.Client
 	GetDefaultNamespaceID() string
 	GetDefaultGroup() string
 }
 
 func HandleTestConnection(service ServiceInterface) server.ToolHandlerFunc {
 	return func(ctx context.Context, request mcp.CallToolRequest) (*mcp.CallToolResult, error) {
-		nacosClient, err := getClient(service)
+		nacosClient, err := client.FromContext(ctx)
 		if err != nil {
 			return nil, err
 		}
@@ -38,7 +37,7 @@ func HandleTestConnection(service ServiceInterface) server.ToolHandlerFunc {
 
 func HandleListNamespaces(service ServiceInterface) server.ToolHandlerFunc {
 	return func(ctx context.Context, request mcp.CallToolRequest) (*mcp.CallToolResult, error) {
-		nacosClient, err := getClient(service)
+		nacosClient, err := client.FromContext(ctx)
 		if err != nil {
 			return nil, err
 		}
@@ -72,7 +71,7 @@ func HandleListConfigsSummary(service ServiceInterface) server.ToolHandlerFunc {
 			params.Set("dataId", query)
 		}
 
-		nacosClient, err := getClient(service)
+		nacosClient, err := client.FromContext(ctx)
 		if err != nil {
 			return nil, err
 		}
@@ -114,7 +113,7 @@ func HandleGetConfig(service ServiceInterface) server.ToolHandlerFunc {
 			params.Set("tenant", namespaceID)
 		}
 
-		nacosClient, err := getClient(service)
+		nacosClient, err := client.FromContext(ctx)
 		if err != nil {
 			return nil, err
 		}
@@ -140,7 +139,7 @@ func HandleListServicesSummary(service ServiceInterface) server.ToolHandlerFunc 
 			params.Set("groupName", groupName)
 		}
 
-		nacosClient, err := getClient(service)
+		nacosClient, err := client.FromContext(ctx)
 		if err != nil {
 			return nil, err
 		}
@@ -189,7 +188,7 @@ func HandleGetService(service ServiceInterface) server.ToolHandlerFunc {
 			params.Set("groupName", groupName)
 		}
 
-		nacosClient, err := getClient(service)
+		nacosClient, err := client.FromContext(ctx)
 		if err != nil {
 			return nil, err
 		}
@@ -225,7 +224,7 @@ func HandleListInstances(service ServiceInterface) server.ToolHandlerFunc {
 			params.Set("healthyOnly", strconv.FormatBool(healthyOnly))
 		}
 
-		nacosClient, err := getClient(service)
+		nacosClient, err := client.FromContext(ctx)
 		if err != nil {
 			return nil, err
 		}
@@ -240,7 +239,7 @@ func HandleListInstances(service ServiceInterface) server.ToolHandlerFunc {
 
 func HandleListClusterNodes(service ServiceInterface) server.ToolHandlerFunc {
 	return func(ctx context.Context, request mcp.CallToolRequest) (*mcp.CallToolResult, error) {
-		nacosClient, err := getClient(service)
+		nacosClient, err := client.FromContext(ctx)
 		if err != nil {
 			return nil, err
 		}
@@ -255,7 +254,7 @@ func HandleListClusterNodes(service ServiceInterface) server.ToolHandlerFunc {
 
 func HandleGetSystemMetrics(service ServiceInterface) server.ToolHandlerFunc {
 	return func(ctx context.Context, request mcp.CallToolRequest) (*mcp.CallToolResult, error) {
-		nacosClient, err := getClient(service)
+		nacosClient, err := client.FromContext(ctx)
 		if err != nil {
 			return nil, err
 		}
@@ -274,14 +273,6 @@ func marshalResult(data interface{}) (*mcp.CallToolResult, error) {
 		return nil, fmt.Errorf("failed to marshal response: %w", err)
 	}
 	return mcp.NewToolResultText(string(body)), nil
-}
-
-func getClient(service ServiceInterface) (*client.Client, error) {
-	nacosClient := service.GetClient()
-	if nacosClient == nil {
-		return nil, fmt.Errorf("nacos client is not initialized")
-	}
-	return nacosClient, nil
 }
 
 func resolveNamespaceID(args map[string]interface{}, service ServiceInterface) string {

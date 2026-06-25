@@ -21,8 +21,8 @@ import (
 
 // Service implements the Prometheus service for MCP server integration.
 // It provides tools and handlers for interacting with Prometheus instances.
+// The backend client is not stored — it is created per-request from HTTP headers.
 type Service struct {
-	client        *client.Client               // Prometheus HTTP client for API operations
 	enabled       bool                         // Whether the service is enabled
 	toolsCache    *cache.ToolsCache            // Cached tools to avoid recreation
 	initFramework *framework.CommonServiceInit // Common initialization framework
@@ -75,14 +75,13 @@ func (s *Service) Name() string {
 }
 
 // Initialize configures the Prometheus service with the provided application configuration.
-// It uses the common service framework for standardized initialization.
+// The backend client is created per-request from HTTP headers (see client/config.go).
 func (s *Service) Initialize(cfg interface{}) error {
 	return s.initFramework.Initialize(cfg,
 		func(enabled bool) { s.enabled = enabled },
-		func(clientIface interface{}) {
-			if prometheusClient, ok := clientIface.(*client.Client); ok {
-				s.client = prometheusClient
-			}
+		func(_ interface{}) {
+			// Backend client is created per-request from HTTP headers.
+			// The backend auth handler was registered in client/config.go init().
 		},
 	)
 }
@@ -91,7 +90,7 @@ func (s *Service) Initialize(cfg interface{}) error {
 // Tools are only returned if the service is enabled and properly initialized.
 // The tools include query operations, target monitoring, and alert management capabilities.
 func (s *Service) GetTools() []mcp.Tool {
-	if !s.enabled || s.client == nil {
+	if !s.enabled {
 		return nil
 	}
 
@@ -136,42 +135,42 @@ func (s *Service) GetTools() []mcp.Tool {
 // GetHandlers returns all tool handlers mapped to their respective tool names.
 // Handlers are only returned if the service is enabled and properly initialized.
 func (s *Service) GetHandlers() map[string]server.ToolHandlerFunc {
-	if !s.enabled || s.client == nil {
+	if !s.enabled {
 		return nil
 	}
 
 	handlersMap := map[string]server.ToolHandlerFunc{
 		// Query operations
-		"prometheus_query":       handlers.HandleQuery(s.client),
-		"prometheus_query_range": handlers.HandleQueryRange(s.client),
+		"prometheus_query":       handlers.HandleQuery(),
+		"prometheus_query_range": handlers.HandleQueryRange(),
 
 		// Target and service discovery
-		"prometheus_targets_summary": handlers.HandleGetTargetsSummary(s.client),
-		"prometheus_get_targets":     handlers.HandleGetTargets(s.client),
+		"prometheus_targets_summary": handlers.HandleGetTargetsSummary(),
+		"prometheus_get_targets":     handlers.HandleGetTargets(),
 
 		// Alert and rule management
-		"prometheus_alerts_summary": handlers.HandleGetAlertsSummary(s.client),
-		"prometheus_get_alerts":     handlers.HandleGetAlerts(s.client),
-		"prometheus_rules_summary":  handlers.HandleGetRulesSummary(s.client),
-		"prometheus_get_rules":      handlers.HandleGetRules(s.client),
+		"prometheus_alerts_summary": handlers.HandleGetAlertsSummary(),
+		"prometheus_get_alerts":     handlers.HandleGetAlerts(),
+		"prometheus_rules_summary":  handlers.HandleGetRulesSummary(),
+		"prometheus_get_rules":      handlers.HandleGetRules(),
 
 		// Label and series operations
-		"prometheus_get_label_names":  handlers.HandleGetLabelNames(s.client),
-		"prometheus_get_label_values": handlers.HandleGetLabelValues(s.client),
-		"prometheus_get_series":       handlers.HandleGetSeries(s.client),
+		"prometheus_get_label_names":  handlers.HandleGetLabelNames(),
+		"prometheus_get_label_values": handlers.HandleGetLabelValues(),
+		"prometheus_get_series":       handlers.HandleGetSeries(),
 
 		// Metadata and diagnostics
-		"prometheus_get_metrics_metadata":  handlers.HandleGetMetricsMetadata(s.client),
-		"prometheus_get_target_metadata":   handlers.HandleGetTargetMetadata(s.client),
-		"prometheus_get_tsdb_stats":        handlers.HandleGetTSDBStats(s.client),
-		"prometheus_get_tsdb_status":       handlers.HandleGetTSDBStatus(s.client),
-		"prometheus_create_snapshot":       handlers.HandleCreateSnapshot(s.client),
-		"prometheus_get_wal_replay_status": handlers.HandleGetWALReplayStatus(s.client),
+		"prometheus_get_metrics_metadata":  handlers.HandleGetMetricsMetadata(),
+		"prometheus_get_target_metadata":   handlers.HandleGetTargetMetadata(),
+		"prometheus_get_tsdb_stats":        handlers.HandleGetTSDBStats(),
+		"prometheus_get_tsdb_status":       handlers.HandleGetTSDBStatus(),
+		"prometheus_create_snapshot":       handlers.HandleCreateSnapshot(),
+		"prometheus_get_wal_replay_status": handlers.HandleGetWALReplayStatus(),
 
 		// Connection and health
-		"prometheus_test_connection":  handlers.HandleTestConnection(s.client),
-		"prometheus_get_server_info":  handlers.HandleGetServerInfo(s.client),
-		"prometheus_get_runtime_info": handlers.HandleGetRuntimeInfo(s.client),
+		"prometheus_test_connection":  handlers.HandleTestConnection(),
+		"prometheus_get_server_info":  handlers.HandleGetServerInfo(),
+		"prometheus_get_runtime_info": handlers.HandleGetRuntimeInfo(),
 	}
 
 	for name, handler := range handlersMap {
@@ -181,16 +180,12 @@ func (s *Service) GetHandlers() map[string]server.ToolHandlerFunc {
 	return handlersMap
 }
 
-// IsEnabled returns whether the service is enabled and ready for use.
-// A service is considered enabled if it's marked as enabled and has a valid client.
 func (s *Service) IsEnabled() bool {
-	return s.enabled && s.client != nil
+	return s.enabled
 }
 
-// GetClient returns the underlying Prometheus client for advanced operations.
-// This method is primarily used for testing and internal service communication.
 func (s *Service) GetClient() *client.Client {
-	return s.client
+	return nil // Backend client is created per-request from HTTP headers
 }
 
 func (s *Service) wrapToolErrors(toolName string, handler server.ToolHandlerFunc) server.ToolHandlerFunc {
@@ -207,7 +202,7 @@ func (s *Service) wrapToolErrors(toolName string, handler server.ToolHandlerFunc
 // GetResources returns all available Prometheus MCP resources.
 // Resources provide static/semi-static data that gives context to AI models.
 func (s *Service) GetResources() []mcp.Resource {
-	if !s.enabled || s.client == nil {
+	if !s.enabled {
 		return nil
 	}
 
@@ -242,7 +237,7 @@ func (s *Service) GetResources() []mcp.Resource {
 // GetResourceHandlers returns all resource handlers mapped to their respective resource URIs.
 // Handlers are only returned if the service is enabled and properly initialized.
 func (s *Service) GetResourceHandlers() map[string]server.ResourceHandlerFunc {
-	if !s.enabled || s.client == nil {
+	if !s.enabled {
 		return nil
 	}
 
@@ -256,7 +251,16 @@ func (s *Service) GetResourceHandlers() map[string]server.ResourceHandlerFunc {
 
 // handleTargetsResource provides current Prometheus targets as a resource.
 func (s *Service) handleTargetsResource(ctx context.Context, request mcp.ReadResourceRequest) ([]mcp.ResourceContents, error) {
-	targets, err := s.client.GetTargets(ctx, "")
+	c, err := client.FromContext(ctx)
+	if err != nil {
+		return []mcp.ResourceContents{
+			mcp.TextResourceContents{
+				URI:  request.Params.URI,
+				Text: "Failed to create Prometheus client: " + err.Error(),
+			},
+		}, nil
+	}
+	targets, err := c.GetTargets(ctx, "")
 	if err != nil {
 		return []mcp.ResourceContents{
 			mcp.TextResourceContents{
@@ -286,7 +290,16 @@ func (s *Service) handleTargetsResource(ctx context.Context, request mcp.ReadRes
 
 // handleRulesResource provides current Prometheus rules as a resource.
 func (s *Service) handleRulesResource(ctx context.Context, request mcp.ReadResourceRequest) ([]mcp.ResourceContents, error) {
-	rules, err := s.client.GetRules(ctx, "")
+	c, err := client.FromContext(ctx)
+	if err != nil {
+		return []mcp.ResourceContents{
+			mcp.TextResourceContents{
+				URI:  request.Params.URI,
+				Text: "Failed to create Prometheus client: " + err.Error(),
+			},
+		}, nil
+	}
+	rules, err := c.GetRules(ctx, "")
 	if err != nil {
 		return []mcp.ResourceContents{
 			mcp.TextResourceContents{
@@ -316,7 +329,16 @@ func (s *Service) handleRulesResource(ctx context.Context, request mcp.ReadResou
 
 // handleAlertsResource provides current Prometheus alerts as a resource.
 func (s *Service) handleAlertsResource(ctx context.Context, request mcp.ReadResourceRequest) ([]mcp.ResourceContents, error) {
-	alerts, err := s.client.GetAlerts(ctx)
+	c, err := client.FromContext(ctx)
+	if err != nil {
+		return []mcp.ResourceContents{
+			mcp.TextResourceContents{
+				URI:  request.Params.URI,
+				Text: "Failed to create Prometheus client: " + err.Error(),
+			},
+		}, nil
+	}
+	alerts, err := c.GetAlerts(ctx)
 	if err != nil {
 		return []mcp.ResourceContents{
 			mcp.TextResourceContents{
@@ -346,7 +368,16 @@ func (s *Service) handleAlertsResource(ctx context.Context, request mcp.ReadReso
 
 // handleLabelNamesResource provides available label names as a resource.
 func (s *Service) handleLabelNamesResource(ctx context.Context, request mcp.ReadResourceRequest) ([]mcp.ResourceContents, error) {
-	labelNames, err := s.client.GetLabelNames(ctx, nil, nil)
+	c, err := client.FromContext(ctx)
+	if err != nil {
+		return []mcp.ResourceContents{
+			mcp.TextResourceContents{
+				URI:  request.Params.URI,
+				Text: "Failed to create Prometheus client: " + err.Error(),
+			},
+		}, nil
+	}
+	labelNames, err := c.GetLabelNames(ctx, nil, nil)
 	if err != nil {
 		return []mcp.ResourceContents{
 			mcp.TextResourceContents{

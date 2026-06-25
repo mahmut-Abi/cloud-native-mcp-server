@@ -97,8 +97,12 @@ func marshalOptimizedResponse(data any, toolName string) (*mcp.CallToolResult, e
 }
 
 // Existing handlers (unchanged for compatibility)
-func HandleHealthCheck(c *client.Client) func(ctx context.Context, request mcp.CallToolRequest) (*mcp.CallToolResult, error) {
+func HandleHealthCheck() func(ctx context.Context, request mcp.CallToolRequest) (*mcp.CallToolResult, error) {
 	return func(ctx context.Context, request mcp.CallToolRequest) (*mcp.CallToolResult, error) {
+		c, err := client.FromContext(ctx)
+		if err != nil {
+			return mcp.NewToolResultError(err.Error()), nil
+		}
 		logrus.Debug("Handling es_health tool")
 		health, err := c.Health(ctx)
 		if err != nil {
@@ -110,8 +114,12 @@ func HandleHealthCheck(c *client.Client) func(ctx context.Context, request mcp.C
 	}
 }
 
-func HandleListIndices(c *client.Client) func(ctx context.Context, request mcp.CallToolRequest) (*mcp.CallToolResult, error) {
+func HandleListIndices() func(ctx context.Context, request mcp.CallToolRequest) (*mcp.CallToolResult, error) {
 	return func(ctx context.Context, request mcp.CallToolRequest) (*mcp.CallToolResult, error) {
+		c, err := client.FromContext(ctx)
+		if err != nil {
+			return mcp.NewToolResultError(err.Error()), nil
+		}
 		logrus.Debug("Handling es_list_indices tool")
 		indices, err := c.Indices(ctx)
 		if err != nil {
@@ -123,8 +131,12 @@ func HandleListIndices(c *client.Client) func(ctx context.Context, request mcp.C
 	}
 }
 
-func HandleIndexStats(c *client.Client) func(ctx context.Context, request mcp.CallToolRequest) (*mcp.CallToolResult, error) {
+func HandleIndexStats() func(ctx context.Context, request mcp.CallToolRequest) (*mcp.CallToolResult, error) {
 	return func(ctx context.Context, request mcp.CallToolRequest) (*mcp.CallToolResult, error) {
+		c, err := client.FromContext(ctx)
+		if err != nil {
+			return mcp.NewToolResultError(err.Error()), nil
+		}
 		indexName, ok := request.GetArguments()["index"].(string)
 		if !ok || indexName == "" {
 			return mcp.NewToolResultError("index parameter is required"), nil
@@ -142,8 +154,12 @@ func HandleIndexStats(c *client.Client) func(ctx context.Context, request mcp.Ca
 	}
 }
 
-func HandleNodes(c *client.Client) func(ctx context.Context, request mcp.CallToolRequest) (*mcp.CallToolResult, error) {
+func HandleNodes() func(ctx context.Context, request mcp.CallToolRequest) (*mcp.CallToolResult, error) {
 	return func(ctx context.Context, request mcp.CallToolRequest) (*mcp.CallToolResult, error) {
+		c, err := client.FromContext(ctx)
+		if err != nil {
+			return mcp.NewToolResultError(err.Error()), nil
+		}
 		logrus.Debug("Handling es_nodes tool")
 		nodes, err := c.Nodes(ctx)
 		if err != nil {
@@ -155,8 +171,12 @@ func HandleNodes(c *client.Client) func(ctx context.Context, request mcp.CallToo
 	}
 }
 
-func HandleInfo(c *client.Client) func(ctx context.Context, request mcp.CallToolRequest) (*mcp.CallToolResult, error) {
+func HandleInfo() func(ctx context.Context, request mcp.CallToolRequest) (*mcp.CallToolResult, error) {
 	return func(ctx context.Context, request mcp.CallToolRequest) (*mcp.CallToolResult, error) {
+		c, err := client.FromContext(ctx)
+		if err != nil {
+			return mcp.NewToolResultError(err.Error()), nil
+		}
 		logrus.Debug("Handling es_info tool")
 		info, err := c.Info(ctx)
 		if err != nil {
@@ -171,8 +191,12 @@ func HandleInfo(c *client.Client) func(ctx context.Context, request mcp.CallTool
 // ⚠️ PRIORITY: Optimized handlers for LLM efficiency
 
 // HandleListIndicesPaginated handles paginated indices listing with LLM optimization
-func HandleListIndicesPaginated(c *client.Client) func(ctx context.Context, request mcp.CallToolRequest) (*mcp.CallToolResult, error) {
+func HandleListIndicesPaginated() func(ctx context.Context, request mcp.CallToolRequest) (*mcp.CallToolResult, error) {
 	return func(ctx context.Context, request mcp.CallToolRequest) (*mcp.CallToolResult, error) {
+		c, err := client.FromContext(ctx)
+		if err != nil {
+			return mcp.NewToolResultError(err.Error()), nil
+		}
 		continueToken := getOptionalStringParam(request, "continueToken")
 		limit := parseLimitWithWarnings(request, "elasticsearch_list_indices_paginated")
 		indexPattern := getOptionalStringParam(request, "indexPattern")
@@ -212,8 +236,12 @@ func HandleListIndicesPaginated(c *client.Client) func(ctx context.Context, requ
 }
 
 // HandleGetNodesSummary handles getting nodes summary with role filtering
-func HandleGetNodesSummary(c *client.Client) func(ctx context.Context, request mcp.CallToolRequest) (*mcp.CallToolResult, error) {
+func HandleGetNodesSummary() func(ctx context.Context, request mcp.CallToolRequest) (*mcp.CallToolResult, error) {
 	return func(ctx context.Context, request mcp.CallToolRequest) (*mcp.CallToolResult, error) {
+		c, err := client.FromContext(ctx)
+		if err != nil {
+			return mcp.NewToolResultError(err.Error()), nil
+		}
 		role := getOptionalStringParam(request, "role")
 		includeMetrics := getOptionalBoolParam(request, "includeMetrics")
 		if includeMetrics == nil {
@@ -256,8 +284,12 @@ func HandleGetNodesSummary(c *client.Client) func(ctx context.Context, request m
 }
 
 // HandleGetClusterHealthSummary handles getting cluster health summary
-func HandleGetClusterHealthSummary(c *client.Client) func(ctx context.Context, request mcp.CallToolRequest) (*mcp.CallToolResult, error) {
+func HandleGetClusterHealthSummary() func(ctx context.Context, request mcp.CallToolRequest) (*mcp.CallToolResult, error) {
 	return func(ctx context.Context, request mcp.CallToolRequest) (*mcp.CallToolResult, error) {
+		c, err := client.FromContext(ctx)
+		if err != nil {
+			return mcp.NewToolResultError(err.Error()), nil
+		}
 		level := getOptionalStringParam(request, "level")
 		if level == "" {
 			level = "basic"
@@ -294,8 +326,12 @@ func HandleGetClusterHealthSummary(c *client.Client) func(ctx context.Context, r
 }
 
 // HandleGetIndexDetailAdvanced handles getting advanced index details
-func HandleGetIndexDetailAdvanced(c *client.Client) func(ctx context.Context, request mcp.CallToolRequest) (*mcp.CallToolResult, error) {
+func HandleGetIndexDetailAdvanced() func(ctx context.Context, request mcp.CallToolRequest) (*mcp.CallToolResult, error) {
 	return func(ctx context.Context, request mcp.CallToolRequest) (*mcp.CallToolResult, error) {
+		c, err := client.FromContext(ctx)
+		if err != nil {
+			return mcp.NewToolResultError(err.Error()), nil
+		}
 		indexName, err := requireStringParam(request, "index")
 		if err != nil {
 			return nil, err
@@ -356,8 +392,12 @@ func HandleGetIndexDetailAdvanced(c *client.Client) func(ctx context.Context, re
 }
 
 // HandleGetClusterDetailAdvanced handles getting advanced cluster details
-func HandleGetClusterDetailAdvanced(c *client.Client) func(ctx context.Context, request mcp.CallToolRequest) (*mcp.CallToolResult, error) {
+func HandleGetClusterDetailAdvanced() func(ctx context.Context, request mcp.CallToolRequest) (*mcp.CallToolResult, error) {
 	return func(ctx context.Context, request mcp.CallToolRequest) (*mcp.CallToolResult, error) {
+		c, err := client.FromContext(ctx)
+		if err != nil {
+			return mcp.NewToolResultError(err.Error()), nil
+		}
 		includeNodes := getOptionalBoolParam(request, "includeNodes")
 		if includeNodes == nil {
 			defaultNodes := true
@@ -417,8 +457,12 @@ func HandleGetClusterDetailAdvanced(c *client.Client) func(ctx context.Context, 
 }
 
 // HandleSearchIndices handles searching indices with filters and pagination
-func HandleSearchIndices(c *client.Client) func(ctx context.Context, request mcp.CallToolRequest) (*mcp.CallToolResult, error) {
+func HandleSearchIndices() func(ctx context.Context, request mcp.CallToolRequest) (*mcp.CallToolResult, error) {
 	return func(ctx context.Context, request mcp.CallToolRequest) (*mcp.CallToolResult, error) {
+		c, err := client.FromContext(ctx)
+		if err != nil {
+			return mcp.NewToolResultError(err.Error()), nil
+		}
 		query := getOptionalStringParam(request, "query")
 		healthStatus := getOptionalStringParam(request, "healthStatus")
 		indexStatus := getOptionalStringParam(request, "indexStatus")

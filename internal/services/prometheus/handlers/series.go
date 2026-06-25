@@ -14,8 +14,12 @@ import (
 )
 
 // HandleGetSeries handles Prometheus series retrieval requests.
-func HandleGetSeries(c *client.Client) func(ctx context.Context, req mcp.CallToolRequest) (*mcp.CallToolResult, error) {
+func HandleGetSeries() func(ctx context.Context, req mcp.CallToolRequest) (*mcp.CallToolResult, error) {
 	return func(ctx context.Context, req mcp.CallToolRequest) (*mcp.CallToolResult, error) {
+		c, err := client.FromContext(ctx)
+		if err != nil {
+			return mcp.NewToolResultError(err.Error()), nil
+		}
 		logrus.Debug("Executing Prometheus get series handler")
 
 		// Extract parameters

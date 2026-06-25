@@ -34,11 +34,15 @@ func marshalIndentJSON(data interface{}) ([]byte, error) {
 }
 
 // HandleGetStatus handles the alertmanager_get_status tool
-func HandleGetStatus(client *client.Client) func(ctx context.Context, request mcp.CallToolRequest) (*mcp.CallToolResult, error) {
+func HandleGetStatus() func(ctx context.Context, request mcp.CallToolRequest) (*mcp.CallToolResult, error) {
 	return func(ctx context.Context, request mcp.CallToolRequest) (*mcp.CallToolResult, error) {
+		c, err := client.FromContext(ctx)
+		if err != nil {
+			return nil, fmt.Errorf("failed to get alertmanager client: %w", err)
+		}
 		logger.WithField("tool", "alertmanager_get_status").Debug("Handling get status request")
 
-		status, err := client.GetStatus(ctx)
+		status, err := c.GetStatus(ctx)
 		if err != nil {
 			logger.WithError(err).Error("Failed to get Alertmanager status")
 			return nil, fmt.Errorf("failed to get Alertmanager status: %w", err)
@@ -58,8 +62,12 @@ func HandleGetStatus(client *client.Client) func(ctx context.Context, request mc
 }
 
 // HandleGetAlerts handles the alertmanager_get_alerts tool
-func HandleGetAlerts(client *client.Client) func(ctx context.Context, request mcp.CallToolRequest) (*mcp.CallToolResult, error) {
+func HandleGetAlerts() func(ctx context.Context, request mcp.CallToolRequest) (*mcp.CallToolResult, error) {
 	return func(ctx context.Context, request mcp.CallToolRequest) (*mcp.CallToolResult, error) {
+		c, err := client.FromContext(ctx)
+		if err != nil {
+			return nil, fmt.Errorf("failed to get alertmanager client: %w", err)
+		}
 		logger.WithField("tool", "alertmanager_get_alerts").Debug("Handling get alerts request")
 
 		// Parse filters from arguments
@@ -76,7 +84,7 @@ func HandleGetAlerts(client *client.Client) func(ctx context.Context, request mc
 			}
 		}
 
-		alerts, err := client.GetAlerts(ctx, filters)
+		alerts, err := c.GetAlerts(ctx, filters)
 		if err != nil {
 			logger.WithError(err).Error("Failed to get alerts")
 			return nil, fmt.Errorf("failed to get alerts: %w", err)
@@ -96,11 +104,15 @@ func HandleGetAlerts(client *client.Client) func(ctx context.Context, request mc
 }
 
 // HandleGetAlertGroups handles the alertmanager_get_alert_groups tool
-func HandleGetAlertGroups(client *client.Client) func(ctx context.Context, request mcp.CallToolRequest) (*mcp.CallToolResult, error) {
+func HandleGetAlertGroups() func(ctx context.Context, request mcp.CallToolRequest) (*mcp.CallToolResult, error) {
 	return func(ctx context.Context, request mcp.CallToolRequest) (*mcp.CallToolResult, error) {
+		c, err := client.FromContext(ctx)
+		if err != nil {
+			return nil, fmt.Errorf("failed to get alertmanager client: %w", err)
+		}
 		logger.WithField("tool", "alertmanager_get_alert_groups").Debug("Handling get alert groups request")
 
-		groups, err := client.GetAlertGroups(ctx)
+		groups, err := c.GetAlertGroups(ctx)
 		if err != nil {
 			logger.WithError(err).Error("Failed to get alert groups")
 			return nil, fmt.Errorf("failed to get alert groups: %w", err)
@@ -120,11 +132,15 @@ func HandleGetAlertGroups(client *client.Client) func(ctx context.Context, reque
 }
 
 // HandleGetSilences handles the alertmanager_get_silences tool
-func HandleGetSilences(client *client.Client) func(ctx context.Context, request mcp.CallToolRequest) (*mcp.CallToolResult, error) {
+func HandleGetSilences() func(ctx context.Context, request mcp.CallToolRequest) (*mcp.CallToolResult, error) {
 	return func(ctx context.Context, request mcp.CallToolRequest) (*mcp.CallToolResult, error) {
+		c, err := client.FromContext(ctx)
+		if err != nil {
+			return nil, fmt.Errorf("failed to get alertmanager client: %w", err)
+		}
 		logger.WithField("tool", "alertmanager_get_silences").Debug("Handling get silences request")
 
-		silences, err := client.GetSilences(ctx)
+		silences, err := c.GetSilences(ctx)
 		if err != nil {
 			logger.WithError(err).Error("Failed to get silences")
 			return nil, fmt.Errorf("failed to get silences: %w", err)
@@ -144,8 +160,12 @@ func HandleGetSilences(client *client.Client) func(ctx context.Context, request 
 }
 
 // HandleCreateSilence handles the alertmanager_create_silence tool
-func HandleCreateSilence(client *client.Client) func(ctx context.Context, request mcp.CallToolRequest) (*mcp.CallToolResult, error) {
+func HandleCreateSilence() func(ctx context.Context, request mcp.CallToolRequest) (*mcp.CallToolResult, error) {
 	return func(ctx context.Context, request mcp.CallToolRequest) (*mcp.CallToolResult, error) {
+		c, err := client.FromContext(ctx)
+		if err != nil {
+			return nil, fmt.Errorf("failed to get alertmanager client: %w", err)
+		}
 		logger.WithField("tool", "alertmanager_create_silence").Debug("Handling create silence request")
 
 		// Parse silence configuration
@@ -185,7 +205,7 @@ func HandleCreateSilence(client *client.Client) func(ctx context.Context, reques
 			return nil, fmt.Errorf("createdBy is required")
 		}
 
-		result, err := client.CreateSilence(ctx, silence)
+		result, err := c.CreateSilence(ctx, silence)
 		if err != nil {
 			logger.WithError(err).Error("Failed to create silence")
 			return nil, fmt.Errorf("failed to create silence: %w", err)
@@ -205,8 +225,12 @@ func HandleCreateSilence(client *client.Client) func(ctx context.Context, reques
 }
 
 // HandleDeleteSilence handles the alertmanager_delete_silence tool
-func HandleDeleteSilence(client *client.Client) func(ctx context.Context, request mcp.CallToolRequest) (*mcp.CallToolResult, error) {
+func HandleDeleteSilence() func(ctx context.Context, request mcp.CallToolRequest) (*mcp.CallToolResult, error) {
 	return func(ctx context.Context, request mcp.CallToolRequest) (*mcp.CallToolResult, error) {
+		c, err := client.FromContext(ctx)
+		if err != nil {
+			return nil, fmt.Errorf("failed to get alertmanager client: %w", err)
+		}
 		logger.WithField("tool", "alertmanager_delete_silence").Debug("Handling delete silence request")
 
 		// Parse silence ID
@@ -215,7 +239,7 @@ func HandleDeleteSilence(client *client.Client) func(ctx context.Context, reques
 			return nil, fmt.Errorf("silenceId is required")
 		}
 
-		err := client.DeleteSilence(ctx, silenceID)
+		err = c.DeleteSilence(ctx, silenceID)
 		if err != nil {
 			logger.WithError(err).WithField("silenceId", silenceID).Error("Failed to delete silence")
 			return nil, fmt.Errorf("failed to delete silence: %w", err)
@@ -230,11 +254,15 @@ func HandleDeleteSilence(client *client.Client) func(ctx context.Context, reques
 }
 
 // HandleGetReceivers handles the alertmanager_get_receivers tool
-func HandleGetReceivers(client *client.Client) func(ctx context.Context, request mcp.CallToolRequest) (*mcp.CallToolResult, error) {
+func HandleGetReceivers() func(ctx context.Context, request mcp.CallToolRequest) (*mcp.CallToolResult, error) {
 	return func(ctx context.Context, request mcp.CallToolRequest) (*mcp.CallToolResult, error) {
+		c, err := client.FromContext(ctx)
+		if err != nil {
+			return nil, fmt.Errorf("failed to get alertmanager client: %w", err)
+		}
 		logger.WithField("tool", "alertmanager_get_receivers").Debug("Handling get receivers request")
 
-		receivers, err := client.GetReceivers(ctx)
+		receivers, err := c.GetReceivers(ctx)
 		if err != nil {
 			logger.WithError(err).Error("Failed to get receivers")
 			return nil, fmt.Errorf("failed to get receivers: %w", err)
@@ -254,8 +282,12 @@ func HandleGetReceivers(client *client.Client) func(ctx context.Context, request
 }
 
 // HandleTestReceiver handles the alertmanager_test_receiver tool
-func HandleTestReceiver(client *client.Client) func(ctx context.Context, request mcp.CallToolRequest) (*mcp.CallToolResult, error) {
+func HandleTestReceiver() func(ctx context.Context, request mcp.CallToolRequest) (*mcp.CallToolResult, error) {
 	return func(ctx context.Context, request mcp.CallToolRequest) (*mcp.CallToolResult, error) {
+		c, err := client.FromContext(ctx)
+		if err != nil {
+			return nil, fmt.Errorf("failed to get alertmanager client: %w", err)
+		}
 		logger.WithField("tool", "alertmanager_test_receiver").Debug("Handling test receiver request")
 
 		// Parse receiver configuration
@@ -273,7 +305,7 @@ func HandleTestReceiver(client *client.Client) func(ctx context.Context, request
 			testData["alerts"] = alertsArg
 		}
 
-		result, err := client.TestReceiver(ctx, testData)
+		result, err := c.TestReceiver(ctx, testData)
 		if err != nil {
 			logger.WithError(err).Error("Failed to test receiver")
 			return nil, fmt.Errorf("failed to test receiver: %w", err)
@@ -293,8 +325,12 @@ func HandleTestReceiver(client *client.Client) func(ctx context.Context, request
 }
 
 // HandleQueryAlerts handles the alertmanager_query_alerts tool
-func HandleQueryAlerts(client *client.Client) func(ctx context.Context, request mcp.CallToolRequest) (*mcp.CallToolResult, error) {
+func HandleQueryAlerts() func(ctx context.Context, request mcp.CallToolRequest) (*mcp.CallToolResult, error) {
 	return func(ctx context.Context, request mcp.CallToolRequest) (*mcp.CallToolResult, error) {
+		c, err := client.FromContext(ctx)
+		if err != nil {
+			return nil, fmt.Errorf("failed to get alertmanager client: %w", err)
+		}
 		logger.WithField("tool", "alertmanager_query_alerts").Debug("Handling query alerts request")
 
 		// Build filters from arguments
@@ -325,7 +361,7 @@ func HandleQueryAlerts(client *client.Client) func(ctx context.Context, request 
 			filters["filter"] = filter
 		}
 
-		alerts, err := client.GetAlerts(ctx, filters)
+		alerts, err := c.GetAlerts(ctx, filters)
 		if err != nil {
 			logger.WithError(err).Error("Failed to query alerts")
 			return nil, fmt.Errorf("failed to query alerts: %w", err)
@@ -529,8 +565,12 @@ func marshalOptimizedResponse(data any, toolName string) (*mcp.CallToolResult, e
 // ⚠️ PRIORITY: Optimized handlers for LLM efficiency
 
 // HandleAlertsSummary handles getting alerts summary with LLM optimization
-func HandleAlertsSummary(client *client.Client) func(ctx context.Context, request mcp.CallToolRequest) (*mcp.CallToolResult, error) {
+func HandleAlertsSummary() func(ctx context.Context, request mcp.CallToolRequest) (*mcp.CallToolResult, error) {
 	return func(ctx context.Context, request mcp.CallToolRequest) (*mcp.CallToolResult, error) {
+		c, err := client.FromContext(ctx)
+		if err != nil {
+			return nil, fmt.Errorf("failed to get alertmanager client: %w", err)
+		}
 		filter := getOptionalStringParam(request, "filter")
 		receiver := getOptionalStringParam(request, "receiver")
 		silenced := getOptionalBoolParam(request, "silenced")
@@ -546,7 +586,7 @@ func HandleAlertsSummary(client *client.Client) func(ctx context.Context, reques
 			"limit":      limit,
 		}).Debug("Handler invoked")
 
-		alerts, err := client.AlertsSummary(ctx, filter, receiver, silenced, activeOnly, limit)
+		alerts, err := c.AlertsSummary(ctx, filter, receiver, silenced, activeOnly, limit)
 		if err != nil {
 			return nil, fmt.Errorf("failed to get alerts summary: %w", err)
 		}
@@ -565,8 +605,12 @@ func HandleAlertsSummary(client *client.Client) func(ctx context.Context, reques
 }
 
 // HandleSilencesSummary handles getting silences summary with LLM optimization
-func HandleSilencesSummary(client *client.Client) func(ctx context.Context, request mcp.CallToolRequest) (*mcp.CallToolResult, error) {
+func HandleSilencesSummary() func(ctx context.Context, request mcp.CallToolRequest) (*mcp.CallToolResult, error) {
 	return func(ctx context.Context, request mcp.CallToolRequest) (*mcp.CallToolResult, error) {
+		c, err := client.FromContext(ctx)
+		if err != nil {
+			return nil, fmt.Errorf("failed to get alertmanager client: %w", err)
+		}
 		status := getOptionalStringParam(request, "status")
 		limit := parseLimitWithWarnings(request, "alertmanager_silences_summary")
 
@@ -576,7 +620,7 @@ func HandleSilencesSummary(client *client.Client) func(ctx context.Context, requ
 			"limit":  limit,
 		}).Debug("Handler invoked")
 
-		silences, err := client.SilencesSummary(ctx, status, limit)
+		silences, err := c.SilencesSummary(ctx, status, limit)
 		if err != nil {
 			return nil, fmt.Errorf("failed to get silences summary: %w", err)
 		}
@@ -595,8 +639,12 @@ func HandleSilencesSummary(client *client.Client) func(ctx context.Context, requ
 }
 
 // HandleAlertGroupsPaginated handles paginated alert groups listing with LLM optimization
-func HandleAlertGroupsPaginated(client *client.Client) func(ctx context.Context, request mcp.CallToolRequest) (*mcp.CallToolResult, error) {
+func HandleAlertGroupsPaginated() func(ctx context.Context, request mcp.CallToolRequest) (*mcp.CallToolResult, error) {
 	return func(ctx context.Context, request mcp.CallToolRequest) (*mcp.CallToolResult, error) {
+		c, err := client.FromContext(ctx)
+		if err != nil {
+			return nil, fmt.Errorf("failed to get alertmanager client: %w", err)
+		}
 		page := getOptionalIntParam(request, "page", 1)
 		perPage := getOptionalIntParam(request, "per_page", 20)
 		receiver := getOptionalStringParam(request, "receiver")
@@ -612,7 +660,7 @@ func HandleAlertGroupsPaginated(client *client.Client) func(ctx context.Context,
 			"sortBy":     sortBy,
 		}).Debug("Handler invoked")
 
-		groups, pagination, err := client.AlertGroupsPaginated(ctx, page, perPage, receiver, activeOnly, sortBy)
+		groups, pagination, err := c.AlertGroupsPaginated(ctx, page, perPage, receiver, activeOnly, sortBy)
 		if err != nil {
 			return nil, fmt.Errorf("failed to list alert groups paginated: %w", err)
 		}
@@ -637,8 +685,12 @@ func HandleAlertGroupsPaginated(client *client.Client) func(ctx context.Context,
 }
 
 // HandleSilencesPaginated handles paginated silences listing with LLM optimization
-func HandleSilencesPaginated(client *client.Client) func(ctx context.Context, request mcp.CallToolRequest) (*mcp.CallToolResult, error) {
+func HandleSilencesPaginated() func(ctx context.Context, request mcp.CallToolRequest) (*mcp.CallToolResult, error) {
 	return func(ctx context.Context, request mcp.CallToolRequest) (*mcp.CallToolResult, error) {
+		c, err := client.FromContext(ctx)
+		if err != nil {
+			return nil, fmt.Errorf("failed to get alertmanager client: %w", err)
+		}
 		page := getOptionalIntParam(request, "page", 1)
 		perPage := getOptionalIntParam(request, "per_page", 20)
 		status := getOptionalStringParam(request, "status")
@@ -654,7 +706,7 @@ func HandleSilencesPaginated(client *client.Client) func(ctx context.Context, re
 			"commentFilter": commentFilter,
 		}).Debug("Handler invoked")
 
-		silences, pagination, err := client.SilencesPaginated(ctx, page, perPage, status, createdBy, commentFilter)
+		silences, pagination, err := c.SilencesPaginated(ctx, page, perPage, status, createdBy, commentFilter)
 		if err != nil {
 			return nil, fmt.Errorf("failed to list silences paginated: %w", err)
 		}
@@ -679,8 +731,12 @@ func HandleSilencesPaginated(client *client.Client) func(ctx context.Context, re
 }
 
 // HandleReceiversSummary handles getting receivers summary with LLM optimization
-func HandleReceiversSummary(client *client.Client) func(ctx context.Context, request mcp.CallToolRequest) (*mcp.CallToolResult, error) {
+func HandleReceiversSummary() func(ctx context.Context, request mcp.CallToolRequest) (*mcp.CallToolResult, error) {
 	return func(ctx context.Context, request mcp.CallToolRequest) (*mcp.CallToolResult, error) {
+		c, err := client.FromContext(ctx)
+		if err != nil {
+			return nil, fmt.Errorf("failed to get alertmanager client: %w", err)
+		}
 		testInfo := getOptionalBoolParam(request, "test_info")
 
 		logger.WithFields(logrus.Fields{
@@ -688,7 +744,7 @@ func HandleReceiversSummary(client *client.Client) func(ctx context.Context, req
 			"testInfo": testInfo,
 		}).Debug("Handler invoked")
 
-		receivers, err := client.ReceiversSummary(ctx, testInfo)
+		receivers, err := c.ReceiversSummary(ctx, testInfo)
 		if err != nil {
 			return nil, fmt.Errorf("failed to get receivers summary: %w", err)
 		}
@@ -707,8 +763,12 @@ func HandleReceiversSummary(client *client.Client) func(ctx context.Context, req
 }
 
 // HandleQueryAlertsAdvanced handles advanced alert querying with enhanced filters
-func HandleQueryAlertsAdvanced(client *client.Client) func(ctx context.Context, request mcp.CallToolRequest) (*mcp.CallToolResult, error) {
+func HandleQueryAlertsAdvanced() func(ctx context.Context, request mcp.CallToolRequest) (*mcp.CallToolResult, error) {
 	return func(ctx context.Context, request mcp.CallToolRequest) (*mcp.CallToolResult, error) {
+		c, err := client.FromContext(ctx)
+		if err != nil {
+			return nil, fmt.Errorf("failed to get alertmanager client: %w", err)
+		}
 		filter := getOptionalStringParam(request, "filter")
 		receiver := getOptionalStringParam(request, "receiver")
 		silenced := getOptionalBoolParam(request, "silenced")
@@ -736,7 +796,7 @@ func HandleQueryAlertsAdvanced(client *client.Client) func(ctx context.Context, 
 			"includeLabels": includeLabels,
 		}).Debug("Handler invoked")
 
-		alerts, pagination, err := client.QueryAlertsAdvanced(ctx, filter, receiver, silenced, active, inhibited, timeRange, page, perPage, sortBy, sortOrder, includeLabels)
+		alerts, pagination, err := c.QueryAlertsAdvanced(ctx, filter, receiver, silenced, active, inhibited, timeRange, page, perPage, sortBy, sortOrder, includeLabels)
 		if err != nil {
 			return nil, fmt.Errorf("failed to query alerts advanced: %w", err)
 		}
@@ -767,8 +827,12 @@ func HandleQueryAlertsAdvanced(client *client.Client) func(ctx context.Context, 
 }
 
 // HandleHealthSummary handles getting Alertmanager health summary
-func HandleHealthSummary(client *client.Client) func(ctx context.Context, request mcp.CallToolRequest) (*mcp.CallToolResult, error) {
+func HandleHealthSummary() func(ctx context.Context, request mcp.CallToolRequest) (*mcp.CallToolResult, error) {
 	return func(ctx context.Context, request mcp.CallToolRequest) (*mcp.CallToolResult, error) {
+		c, err := client.FromContext(ctx)
+		if err != nil {
+			return nil, fmt.Errorf("failed to get alertmanager client: %w", err)
+		}
 		level := getOptionalStringParam(request, "level")
 		if level == "" {
 			level = "basic"
@@ -782,7 +846,7 @@ func HandleHealthSummary(client *client.Client) func(ctx context.Context, reques
 			"includeCluster": includeCluster,
 		}).Debug("Handler invoked")
 
-		health, err := client.GetHealthSummary(ctx, level, includeCluster)
+		health, err := c.GetHealthSummary(ctx, level, includeCluster)
 		if err != nil {
 			return nil, fmt.Errorf("failed to get health summary: %w", err)
 		}

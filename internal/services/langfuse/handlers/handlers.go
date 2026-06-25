@@ -14,15 +14,11 @@ import (
 	server "github.com/mark3labs/mcp-go/server"
 )
 
-// ServiceInterface is the subset of service methods required by handlers.
-type ServiceInterface interface {
-	GetClient() *client.Client
-}
 
 // HandleCheckHealth handles Langfuse health checks.
-func HandleCheckHealth(service ServiceInterface) server.ToolHandlerFunc {
+func HandleCheckHealth() server.ToolHandlerFunc {
 	return func(ctx context.Context, request mcp.CallToolRequest) (*mcp.CallToolResult, error) {
-		langfuseClient, err := getClient(service)
+		langfuseClient, err := client.FromContext(ctx)
 		if err != nil {
 			return nil, err
 		}
@@ -36,14 +32,14 @@ func HandleCheckHealth(service ServiceInterface) server.ToolHandlerFunc {
 }
 
 // HandleListTracesSummary returns compact trace summaries.
-func HandleListTracesSummary(service ServiceInterface) server.ToolHandlerFunc {
+func HandleListTracesSummary() server.ToolHandlerFunc {
 	return func(ctx context.Context, request mcp.CallToolRequest) (*mcp.CallToolResult, error) {
 		params, err := buildTraceListParams(request.GetArguments())
 		if err != nil {
 			return nil, err
 		}
 
-		langfuseClient, err := getClient(service)
+		langfuseClient, err := client.FromContext(ctx)
 		if err != nil {
 			return nil, err
 		}
@@ -72,14 +68,14 @@ func HandleListTracesSummary(service ServiceInterface) server.ToolHandlerFunc {
 }
 
 // HandleListTraces handles Langfuse trace listing.
-func HandleListTraces(service ServiceInterface) server.ToolHandlerFunc {
+func HandleListTraces() server.ToolHandlerFunc {
 	return func(ctx context.Context, request mcp.CallToolRequest) (*mcp.CallToolResult, error) {
 		params, err := buildTraceListParams(request.GetArguments())
 		if err != nil {
 			return nil, err
 		}
 
-		langfuseClient, err := getClient(service)
+		langfuseClient, err := client.FromContext(ctx)
 		if err != nil {
 			return nil, err
 		}
@@ -93,7 +89,7 @@ func HandleListTraces(service ServiceInterface) server.ToolHandlerFunc {
 }
 
 // HandleGetTrace handles Langfuse trace detail lookups.
-func HandleGetTrace(service ServiceInterface) server.ToolHandlerFunc {
+func HandleGetTrace() server.ToolHandlerFunc {
 	return func(ctx context.Context, request mcp.CallToolRequest) (*mcp.CallToolResult, error) {
 		args := request.GetArguments()
 		traceID, err := svccommon.RequireStringArg(args, "trace_id")
@@ -103,7 +99,7 @@ func HandleGetTrace(service ServiceInterface) server.ToolHandlerFunc {
 
 		fields, _ := svccommon.GetStringArg(args, "fields")
 
-		langfuseClient, err := getClient(service)
+		langfuseClient, err := client.FromContext(ctx)
 		if err != nil {
 			return nil, err
 		}
@@ -117,14 +113,14 @@ func HandleGetTrace(service ServiceInterface) server.ToolHandlerFunc {
 }
 
 // HandleListSessions handles Langfuse session listing.
-func HandleListSessions(service ServiceInterface) server.ToolHandlerFunc {
+func HandleListSessions() server.ToolHandlerFunc {
 	return func(ctx context.Context, request mcp.CallToolRequest) (*mcp.CallToolResult, error) {
 		params, err := buildSessionListParams(request.GetArguments())
 		if err != nil {
 			return nil, err
 		}
 
-		langfuseClient, err := getClient(service)
+		langfuseClient, err := client.FromContext(ctx)
 		if err != nil {
 			return nil, err
 		}
@@ -138,14 +134,14 @@ func HandleListSessions(service ServiceInterface) server.ToolHandlerFunc {
 }
 
 // HandleGetSession handles Langfuse session detail lookups.
-func HandleGetSession(service ServiceInterface) server.ToolHandlerFunc {
+func HandleGetSession() server.ToolHandlerFunc {
 	return func(ctx context.Context, request mcp.CallToolRequest) (*mcp.CallToolResult, error) {
 		sessionID, err := svccommon.RequireStringArg(request.GetArguments(), "session_id")
 		if err != nil {
 			return nil, err
 		}
 
-		langfuseClient, err := getClient(service)
+		langfuseClient, err := client.FromContext(ctx)
 		if err != nil {
 			return nil, err
 		}
@@ -159,14 +155,14 @@ func HandleGetSession(service ServiceInterface) server.ToolHandlerFunc {
 }
 
 // HandleListObservations handles Langfuse observation listing.
-func HandleListObservations(service ServiceInterface) server.ToolHandlerFunc {
+func HandleListObservations() server.ToolHandlerFunc {
 	return func(ctx context.Context, request mcp.CallToolRequest) (*mcp.CallToolResult, error) {
 		params, err := buildObservationListParams(request.GetArguments())
 		if err != nil {
 			return nil, err
 		}
 
-		langfuseClient, err := getClient(service)
+		langfuseClient, err := client.FromContext(ctx)
 		if err != nil {
 			return nil, err
 		}
@@ -180,14 +176,14 @@ func HandleListObservations(service ServiceInterface) server.ToolHandlerFunc {
 }
 
 // HandleGetObservation handles Langfuse observation detail lookups.
-func HandleGetObservation(service ServiceInterface) server.ToolHandlerFunc {
+func HandleGetObservation() server.ToolHandlerFunc {
 	return func(ctx context.Context, request mcp.CallToolRequest) (*mcp.CallToolResult, error) {
 		observationID, err := svccommon.RequireStringArg(request.GetArguments(), "observation_id")
 		if err != nil {
 			return nil, err
 		}
 
-		langfuseClient, err := getClient(service)
+		langfuseClient, err := client.FromContext(ctx)
 		if err != nil {
 			return nil, err
 		}
@@ -201,14 +197,14 @@ func HandleGetObservation(service ServiceInterface) server.ToolHandlerFunc {
 }
 
 // HandleListPrompts handles Langfuse prompt metadata listing.
-func HandleListPrompts(service ServiceInterface) server.ToolHandlerFunc {
+func HandleListPrompts() server.ToolHandlerFunc {
 	return func(ctx context.Context, request mcp.CallToolRequest) (*mcp.CallToolResult, error) {
 		params, err := buildPromptListParams(request.GetArguments())
 		if err != nil {
 			return nil, err
 		}
 
-		langfuseClient, err := getClient(service)
+		langfuseClient, err := client.FromContext(ctx)
 		if err != nil {
 			return nil, err
 		}
@@ -222,14 +218,14 @@ func HandleListPrompts(service ServiceInterface) server.ToolHandlerFunc {
 }
 
 // HandleListAnnotationQueues handles annotation queue listing.
-func HandleListAnnotationQueues(service ServiceInterface) server.ToolHandlerFunc {
+func HandleListAnnotationQueues() server.ToolHandlerFunc {
 	return func(ctx context.Context, request mcp.CallToolRequest) (*mcp.CallToolResult, error) {
 		params, err := buildPaginationParams(request.GetArguments())
 		if err != nil {
 			return nil, err
 		}
 
-		langfuseClient, err := getClient(service)
+		langfuseClient, err := client.FromContext(ctx)
 		if err != nil {
 			return nil, err
 		}
@@ -243,14 +239,14 @@ func HandleListAnnotationQueues(service ServiceInterface) server.ToolHandlerFunc
 }
 
 // HandleGetAnnotationQueue handles annotation queue detail lookups.
-func HandleGetAnnotationQueue(service ServiceInterface) server.ToolHandlerFunc {
+func HandleGetAnnotationQueue() server.ToolHandlerFunc {
 	return func(ctx context.Context, request mcp.CallToolRequest) (*mcp.CallToolResult, error) {
 		queueID, err := svccommon.RequireStringArg(request.GetArguments(), "queue_id")
 		if err != nil {
 			return nil, err
 		}
 
-		langfuseClient, err := getClient(service)
+		langfuseClient, err := client.FromContext(ctx)
 		if err != nil {
 			return nil, err
 		}
@@ -264,7 +260,7 @@ func HandleGetAnnotationQueue(service ServiceInterface) server.ToolHandlerFunc {
 }
 
 // HandleListAnnotationQueueItems handles queue item listing.
-func HandleListAnnotationQueueItems(service ServiceInterface) server.ToolHandlerFunc {
+func HandleListAnnotationQueueItems() server.ToolHandlerFunc {
 	return func(ctx context.Context, request mcp.CallToolRequest) (*mcp.CallToolResult, error) {
 		args := request.GetArguments()
 		queueID, err := svccommon.RequireStringArg(args, "queue_id")
@@ -277,7 +273,7 @@ func HandleListAnnotationQueueItems(service ServiceInterface) server.ToolHandler
 		}
 		addStringParam(params, args, "status", "status")
 
-		langfuseClient, err := getClient(service)
+		langfuseClient, err := client.FromContext(ctx)
 		if err != nil {
 			return nil, err
 		}
@@ -291,14 +287,14 @@ func HandleListAnnotationQueueItems(service ServiceInterface) server.ToolHandler
 }
 
 // HandleListDatasets handles dataset listing.
-func HandleListDatasets(service ServiceInterface) server.ToolHandlerFunc {
+func HandleListDatasets() server.ToolHandlerFunc {
 	return func(ctx context.Context, request mcp.CallToolRequest) (*mcp.CallToolResult, error) {
 		params, err := buildPaginationParams(request.GetArguments())
 		if err != nil {
 			return nil, err
 		}
 
-		langfuseClient, err := getClient(service)
+		langfuseClient, err := client.FromContext(ctx)
 		if err != nil {
 			return nil, err
 		}
@@ -312,14 +308,14 @@ func HandleListDatasets(service ServiceInterface) server.ToolHandlerFunc {
 }
 
 // HandleGetDataset handles dataset detail lookups.
-func HandleGetDataset(service ServiceInterface) server.ToolHandlerFunc {
+func HandleGetDataset() server.ToolHandlerFunc {
 	return func(ctx context.Context, request mcp.CallToolRequest) (*mcp.CallToolResult, error) {
 		datasetName, err := svccommon.RequireStringArg(request.GetArguments(), "dataset_name")
 		if err != nil {
 			return nil, err
 		}
 
-		langfuseClient, err := getClient(service)
+		langfuseClient, err := client.FromContext(ctx)
 		if err != nil {
 			return nil, err
 		}
@@ -333,7 +329,7 @@ func HandleGetDataset(service ServiceInterface) server.ToolHandlerFunc {
 }
 
 // HandleListDatasetRuns handles dataset run listing.
-func HandleListDatasetRuns(service ServiceInterface) server.ToolHandlerFunc {
+func HandleListDatasetRuns() server.ToolHandlerFunc {
 	return func(ctx context.Context, request mcp.CallToolRequest) (*mcp.CallToolResult, error) {
 		args := request.GetArguments()
 		datasetName, err := svccommon.RequireStringArg(args, "dataset_name")
@@ -345,7 +341,7 @@ func HandleListDatasetRuns(service ServiceInterface) server.ToolHandlerFunc {
 			return nil, err
 		}
 
-		langfuseClient, err := getClient(service)
+		langfuseClient, err := client.FromContext(ctx)
 		if err != nil {
 			return nil, err
 		}
@@ -359,7 +355,7 @@ func HandleListDatasetRuns(service ServiceInterface) server.ToolHandlerFunc {
 }
 
 // HandleGetDatasetRun handles dataset run detail lookups.
-func HandleGetDatasetRun(service ServiceInterface) server.ToolHandlerFunc {
+func HandleGetDatasetRun() server.ToolHandlerFunc {
 	return func(ctx context.Context, request mcp.CallToolRequest) (*mcp.CallToolResult, error) {
 		args := request.GetArguments()
 		datasetName, err := svccommon.RequireStringArg(args, "dataset_name")
@@ -371,7 +367,7 @@ func HandleGetDatasetRun(service ServiceInterface) server.ToolHandlerFunc {
 			return nil, err
 		}
 
-		langfuseClient, err := getClient(service)
+		langfuseClient, err := client.FromContext(ctx)
 		if err != nil {
 			return nil, err
 		}
@@ -385,14 +381,14 @@ func HandleGetDatasetRun(service ServiceInterface) server.ToolHandlerFunc {
 }
 
 // HandleListLLMConnections handles LLM connection listing.
-func HandleListLLMConnections(service ServiceInterface) server.ToolHandlerFunc {
+func HandleListLLMConnections() server.ToolHandlerFunc {
 	return func(ctx context.Context, request mcp.CallToolRequest) (*mcp.CallToolResult, error) {
 		params, err := buildPaginationParams(request.GetArguments())
 		if err != nil {
 			return nil, err
 		}
 
-		langfuseClient, err := getClient(service)
+		langfuseClient, err := client.FromContext(ctx)
 		if err != nil {
 			return nil, err
 		}
@@ -406,14 +402,14 @@ func HandleListLLMConnections(service ServiceInterface) server.ToolHandlerFunc {
 }
 
 // HandleListModels handles model listing.
-func HandleListModels(service ServiceInterface) server.ToolHandlerFunc {
+func HandleListModels() server.ToolHandlerFunc {
 	return func(ctx context.Context, request mcp.CallToolRequest) (*mcp.CallToolResult, error) {
 		params, err := buildPaginationParams(request.GetArguments())
 		if err != nil {
 			return nil, err
 		}
 
-		langfuseClient, err := getClient(service)
+		langfuseClient, err := client.FromContext(ctx)
 		if err != nil {
 			return nil, err
 		}
@@ -427,14 +423,14 @@ func HandleListModels(service ServiceInterface) server.ToolHandlerFunc {
 }
 
 // HandleGetModel handles model detail lookups.
-func HandleGetModel(service ServiceInterface) server.ToolHandlerFunc {
+func HandleGetModel() server.ToolHandlerFunc {
 	return func(ctx context.Context, request mcp.CallToolRequest) (*mcp.CallToolResult, error) {
 		modelID, err := svccommon.RequireStringArg(request.GetArguments(), "model_id")
 		if err != nil {
 			return nil, err
 		}
 
-		langfuseClient, err := getClient(service)
+		langfuseClient, err := client.FromContext(ctx)
 		if err != nil {
 			return nil, err
 		}
@@ -448,14 +444,14 @@ func HandleGetModel(service ServiceInterface) server.ToolHandlerFunc {
 }
 
 // HandleListScoreConfigs handles score configuration listing.
-func HandleListScoreConfigs(service ServiceInterface) server.ToolHandlerFunc {
+func HandleListScoreConfigs() server.ToolHandlerFunc {
 	return func(ctx context.Context, request mcp.CallToolRequest) (*mcp.CallToolResult, error) {
 		params, err := buildPaginationParams(request.GetArguments())
 		if err != nil {
 			return nil, err
 		}
 
-		langfuseClient, err := getClient(service)
+		langfuseClient, err := client.FromContext(ctx)
 		if err != nil {
 			return nil, err
 		}
@@ -469,14 +465,14 @@ func HandleListScoreConfigs(service ServiceInterface) server.ToolHandlerFunc {
 }
 
 // HandleGetScoreConfig handles score configuration detail lookups.
-func HandleGetScoreConfig(service ServiceInterface) server.ToolHandlerFunc {
+func HandleGetScoreConfig() server.ToolHandlerFunc {
 	return func(ctx context.Context, request mcp.CallToolRequest) (*mcp.CallToolResult, error) {
 		configID, err := svccommon.RequireStringArg(request.GetArguments(), "config_id")
 		if err != nil {
 			return nil, err
 		}
 
-		langfuseClient, err := getClient(service)
+		langfuseClient, err := client.FromContext(ctx)
 		if err != nil {
 			return nil, err
 		}
@@ -490,7 +486,7 @@ func HandleGetScoreConfig(service ServiceInterface) server.ToolHandlerFunc {
 }
 
 // HandleGetPrompt handles Langfuse prompt detail lookups.
-func HandleGetPrompt(service ServiceInterface) server.ToolHandlerFunc {
+func HandleGetPrompt() server.ToolHandlerFunc {
 	return func(ctx context.Context, request mcp.CallToolRequest) (*mcp.CallToolResult, error) {
 		args := request.GetArguments()
 		promptName, err := svccommon.RequireStringArg(args, "prompt_name")
@@ -513,7 +509,7 @@ func HandleGetPrompt(service ServiceInterface) server.ToolHandlerFunc {
 			params.Set("resolve", fmt.Sprintf("%t", *resolve))
 		}
 
-		langfuseClient, err := getClient(service)
+		langfuseClient, err := client.FromContext(ctx)
 		if err != nil {
 			return nil, err
 		}
@@ -527,14 +523,14 @@ func HandleGetPrompt(service ServiceInterface) server.ToolHandlerFunc {
 }
 
 // HandleListScores handles Langfuse score listing.
-func HandleListScores(service ServiceInterface) server.ToolHandlerFunc {
+func HandleListScores() server.ToolHandlerFunc {
 	return func(ctx context.Context, request mcp.CallToolRequest) (*mcp.CallToolResult, error) {
 		params, err := buildScoreListParams(request.GetArguments())
 		if err != nil {
 			return nil, err
 		}
 
-		langfuseClient, err := getClient(service)
+		langfuseClient, err := client.FromContext(ctx)
 		if err != nil {
 			return nil, err
 		}
@@ -548,14 +544,14 @@ func HandleListScores(service ServiceInterface) server.ToolHandlerFunc {
 }
 
 // HandleGetScore handles Langfuse score detail lookups.
-func HandleGetScore(service ServiceInterface) server.ToolHandlerFunc {
+func HandleGetScore() server.ToolHandlerFunc {
 	return func(ctx context.Context, request mcp.CallToolRequest) (*mcp.CallToolResult, error) {
 		scoreID, err := svccommon.RequireStringArg(request.GetArguments(), "score_id")
 		if err != nil {
 			return nil, err
 		}
 
-		langfuseClient, err := getClient(service)
+		langfuseClient, err := client.FromContext(ctx)
 		if err != nil {
 			return nil, err
 		}
@@ -569,7 +565,7 @@ func HandleGetScore(service ServiceInterface) server.ToolHandlerFunc {
 }
 
 // HandleGetMetrics handles Langfuse metrics queries.
-func HandleGetMetrics(service ServiceInterface) server.ToolHandlerFunc {
+func HandleGetMetrics() server.ToolHandlerFunc {
 	return func(ctx context.Context, request mcp.CallToolRequest) (*mcp.CallToolResult, error) {
 		rawQuery, ok, err := svccommon.GetObjectArg(request.GetArguments(), "query")
 		if err != nil {
@@ -588,7 +584,7 @@ func HandleGetMetrics(service ServiceInterface) server.ToolHandlerFunc {
 			return nil, fmt.Errorf("failed to serialize normalized metrics query: %w", err)
 		}
 
-		langfuseClient, err := getClient(service)
+		langfuseClient, err := client.FromContext(ctx)
 		if err != nil {
 			return nil, err
 		}
@@ -602,9 +598,9 @@ func HandleGetMetrics(service ServiceInterface) server.ToolHandlerFunc {
 }
 
 // HandleGetProject handles current project lookup.
-func HandleGetProject(service ServiceInterface) server.ToolHandlerFunc {
+func HandleGetProject() server.ToolHandlerFunc {
 	return func(ctx context.Context, request mcp.CallToolRequest) (*mcp.CallToolResult, error) {
-		langfuseClient, err := getClient(service)
+		langfuseClient, err := client.FromContext(ctx)
 		if err != nil {
 			return nil, err
 		}
@@ -618,9 +614,9 @@ func HandleGetProject(service ServiceInterface) server.ToolHandlerFunc {
 }
 
 // HandleListOrganizationProjects handles organization project listing.
-func HandleListOrganizationProjects(service ServiceInterface) server.ToolHandlerFunc {
+func HandleListOrganizationProjects() server.ToolHandlerFunc {
 	return func(ctx context.Context, request mcp.CallToolRequest) (*mcp.CallToolResult, error) {
-		langfuseClient, err := getClient(service)
+		langfuseClient, err := client.FromContext(ctx)
 		if err != nil {
 			return nil, err
 		}
@@ -634,7 +630,7 @@ func HandleListOrganizationProjects(service ServiceInterface) server.ToolHandler
 }
 
 // HandleCreateProject handles project creation.
-func HandleCreateProject(service ServiceInterface) server.ToolHandlerFunc {
+func HandleCreateProject() server.ToolHandlerFunc {
 	return func(ctx context.Context, request mcp.CallToolRequest) (*mcp.CallToolResult, error) {
 		args := request.GetArguments()
 		name, err := svccommon.RequireStringArg(args, "name")
@@ -650,7 +646,7 @@ func HandleCreateProject(service ServiceInterface) server.ToolHandlerFunc {
 		}
 		retentionDays := normalizeNonNegativeInt(svccommon.GetIntArg(args, 0, "retention_days", "retentionDays", "retention"))
 
-		langfuseClient, err := getClient(service)
+		langfuseClient, err := client.FromContext(ctx)
 		if err != nil {
 			return nil, err
 		}
@@ -664,7 +660,7 @@ func HandleCreateProject(service ServiceInterface) server.ToolHandlerFunc {
 }
 
 // HandleUpdateProject handles project updates.
-func HandleUpdateProject(service ServiceInterface) server.ToolHandlerFunc {
+func HandleUpdateProject() server.ToolHandlerFunc {
 	return func(ctx context.Context, request mcp.CallToolRequest) (*mcp.CallToolResult, error) {
 		args := request.GetArguments()
 		projectID, err := svccommon.RequireStringArg(args, "project_id", "projectId")
@@ -689,7 +685,7 @@ func HandleUpdateProject(service ServiceInterface) server.ToolHandlerFunc {
 			retentionDays = &value
 		}
 
-		langfuseClient, err := getClient(service)
+		langfuseClient, err := client.FromContext(ctx)
 		if err != nil {
 			return nil, err
 		}
@@ -703,14 +699,14 @@ func HandleUpdateProject(service ServiceInterface) server.ToolHandlerFunc {
 }
 
 // HandleDeleteProject handles project deletion.
-func HandleDeleteProject(service ServiceInterface) server.ToolHandlerFunc {
+func HandleDeleteProject() server.ToolHandlerFunc {
 	return func(ctx context.Context, request mcp.CallToolRequest) (*mcp.CallToolResult, error) {
 		projectID, err := svccommon.RequireStringArg(request.GetArguments(), "project_id", "projectId")
 		if err != nil {
 			return nil, err
 		}
 
-		langfuseClient, err := getClient(service)
+		langfuseClient, err := client.FromContext(ctx)
 		if err != nil {
 			return nil, err
 		}
@@ -724,14 +720,14 @@ func HandleDeleteProject(service ServiceInterface) server.ToolHandlerFunc {
 }
 
 // HandleListProjectMemberships handles project membership listing.
-func HandleListProjectMemberships(service ServiceInterface) server.ToolHandlerFunc {
+func HandleListProjectMemberships() server.ToolHandlerFunc {
 	return func(ctx context.Context, request mcp.CallToolRequest) (*mcp.CallToolResult, error) {
 		projectID, err := svccommon.RequireStringArg(request.GetArguments(), "project_id", "projectId")
 		if err != nil {
 			return nil, err
 		}
 
-		langfuseClient, err := getClient(service)
+		langfuseClient, err := client.FromContext(ctx)
 		if err != nil {
 			return nil, err
 		}
@@ -745,7 +741,7 @@ func HandleListProjectMemberships(service ServiceInterface) server.ToolHandlerFu
 }
 
 // HandleUpsertProjectMembership handles project membership creation or update.
-func HandleUpsertProjectMembership(service ServiceInterface) server.ToolHandlerFunc {
+func HandleUpsertProjectMembership() server.ToolHandlerFunc {
 	return func(ctx context.Context, request mcp.CallToolRequest) (*mcp.CallToolResult, error) {
 		args := request.GetArguments()
 		projectID, err := svccommon.RequireStringArg(args, "project_id", "projectId")
@@ -765,7 +761,7 @@ func HandleUpsertProjectMembership(service ServiceInterface) server.ToolHandlerF
 			return nil, err
 		}
 
-		langfuseClient, err := getClient(service)
+		langfuseClient, err := client.FromContext(ctx)
 		if err != nil {
 			return nil, err
 		}
@@ -779,7 +775,7 @@ func HandleUpsertProjectMembership(service ServiceInterface) server.ToolHandlerF
 }
 
 // HandleDeleteProjectMembership handles project membership deletion.
-func HandleDeleteProjectMembership(service ServiceInterface) server.ToolHandlerFunc {
+func HandleDeleteProjectMembership() server.ToolHandlerFunc {
 	return func(ctx context.Context, request mcp.CallToolRequest) (*mcp.CallToolResult, error) {
 		args := request.GetArguments()
 		projectID, err := svccommon.RequireStringArg(args, "project_id", "projectId")
@@ -791,7 +787,7 @@ func HandleDeleteProjectMembership(service ServiceInterface) server.ToolHandlerF
 			return nil, err
 		}
 
-		langfuseClient, err := getClient(service)
+		langfuseClient, err := client.FromContext(ctx)
 		if err != nil {
 			return nil, err
 		}
@@ -805,9 +801,9 @@ func HandleDeleteProjectMembership(service ServiceInterface) server.ToolHandlerF
 }
 
 // HandleListOrganizationAPIKeys handles organization API key listing.
-func HandleListOrganizationAPIKeys(service ServiceInterface) server.ToolHandlerFunc {
+func HandleListOrganizationAPIKeys() server.ToolHandlerFunc {
 	return func(ctx context.Context, request mcp.CallToolRequest) (*mcp.CallToolResult, error) {
-		langfuseClient, err := getClient(service)
+		langfuseClient, err := client.FromContext(ctx)
 		if err != nil {
 			return nil, err
 		}
@@ -821,14 +817,14 @@ func HandleListOrganizationAPIKeys(service ServiceInterface) server.ToolHandlerF
 }
 
 // HandleListProjectAPIKeys handles project API key listing.
-func HandleListProjectAPIKeys(service ServiceInterface) server.ToolHandlerFunc {
+func HandleListProjectAPIKeys() server.ToolHandlerFunc {
 	return func(ctx context.Context, request mcp.CallToolRequest) (*mcp.CallToolResult, error) {
 		projectID, err := svccommon.RequireStringArg(request.GetArguments(), "project_id", "projectId")
 		if err != nil {
 			return nil, err
 		}
 
-		langfuseClient, err := getClient(service)
+		langfuseClient, err := client.FromContext(ctx)
 		if err != nil {
 			return nil, err
 		}
@@ -842,7 +838,7 @@ func HandleListProjectAPIKeys(service ServiceInterface) server.ToolHandlerFunc {
 }
 
 // HandleCreateProjectAPIKey handles project API key creation.
-func HandleCreateProjectAPIKey(service ServiceInterface) server.ToolHandlerFunc {
+func HandleCreateProjectAPIKey() server.ToolHandlerFunc {
 	return func(ctx context.Context, request mcp.CallToolRequest) (*mcp.CallToolResult, error) {
 		args := request.GetArguments()
 		projectID, err := svccommon.RequireStringArg(args, "project_id", "projectId")
@@ -853,7 +849,7 @@ func HandleCreateProjectAPIKey(service ServiceInterface) server.ToolHandlerFunc 
 		publicKey, _ := svccommon.GetStringArg(args, "public_key", "publicKey")
 		secretKey, _ := svccommon.GetStringArg(args, "secret_key", "secretKey")
 
-		langfuseClient, err := getClient(service)
+		langfuseClient, err := client.FromContext(ctx)
 		if err != nil {
 			return nil, err
 		}
@@ -867,7 +863,7 @@ func HandleCreateProjectAPIKey(service ServiceInterface) server.ToolHandlerFunc 
 }
 
 // HandleDeleteProjectAPIKey handles project API key deletion.
-func HandleDeleteProjectAPIKey(service ServiceInterface) server.ToolHandlerFunc {
+func HandleDeleteProjectAPIKey() server.ToolHandlerFunc {
 	return func(ctx context.Context, request mcp.CallToolRequest) (*mcp.CallToolResult, error) {
 		args := request.GetArguments()
 		projectID, err := svccommon.RequireStringArg(args, "project_id", "projectId")
@@ -879,7 +875,7 @@ func HandleDeleteProjectAPIKey(service ServiceInterface) server.ToolHandlerFunc 
 			return nil, err
 		}
 
-		langfuseClient, err := getClient(service)
+		langfuseClient, err := client.FromContext(ctx)
 		if err != nil {
 			return nil, err
 		}
@@ -1208,14 +1204,6 @@ func normalizePositiveInt(value int) int {
 		return 0
 	}
 	return value
-}
-
-func getClient(service ServiceInterface) (*client.Client, error) {
-	langfuseClient := service.GetClient()
-	if langfuseClient == nil {
-		return nil, fmt.Errorf("langfuse client is not initialized")
-	}
-	return langfuseClient, nil
 }
 
 func marshalResult(result interface{}) (*mcp.CallToolResult, error) {

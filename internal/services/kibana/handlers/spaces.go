@@ -14,8 +14,13 @@ import (
 )
 
 // HandleGetSpaces handles Kibana spaces retrieval requests.
-func HandleGetSpaces(c *client.Client) func(ctx context.Context, req mcp.CallToolRequest) (*mcp.CallToolResult, error) {
+func HandleGetSpaces() func(ctx context.Context, req mcp.CallToolRequest) (*mcp.CallToolResult, error) {
 	return func(ctx context.Context, req mcp.CallToolRequest) (*mcp.CallToolResult, error) {
+		c, cerr := client.FromContext(ctx)
+		if cerr != nil {
+			return mcp.NewToolResultError(cerr.Error()), nil
+		}
+
 		logrus.Debug("Executing Kibana get spaces handler")
 
 		// Get spaces
@@ -49,8 +54,13 @@ func HandleGetSpaces(c *client.Client) func(ctx context.Context, req mcp.CallToo
 }
 
 // HandleGetSpace handles specific Kibana space retrieval requests.
-func HandleGetSpace(c *client.Client) func(ctx context.Context, req mcp.CallToolRequest) (*mcp.CallToolResult, error) {
+func HandleGetSpace() func(ctx context.Context, req mcp.CallToolRequest) (*mcp.CallToolResult, error) {
 	return func(ctx context.Context, req mcp.CallToolRequest) (*mcp.CallToolResult, error) {
+		c, cerr := client.FromContext(ctx)
+		if cerr != nil {
+			return mcp.NewToolResultError(cerr.Error()), nil
+		}
+
 		logrus.Debug("Executing Kibana get space handler")
 
 		// Extract parameters
@@ -106,8 +116,13 @@ func HandleGetSpace(c *client.Client) func(ctx context.Context, req mcp.CallTool
 }
 
 // HandleCreateSpace handles creating a new Kibana space
-func HandleCreateSpace(c *client.Client) func(ctx context.Context, req mcp.CallToolRequest) (*mcp.CallToolResult, error) {
+func HandleCreateSpace() func(ctx context.Context, req mcp.CallToolRequest) (*mcp.CallToolResult, error) {
 	return func(ctx context.Context, req mcp.CallToolRequest) (*mcp.CallToolResult, error) {
+		c, cerr := client.FromContext(ctx)
+		if cerr != nil {
+			return mcp.NewToolResultError(cerr.Error()), nil
+		}
+
 		logrus.Debug("Executing Kibana create space handler")
 
 		spaceID := getOptionalStringParam(req, "id")
@@ -163,8 +178,13 @@ func HandleCreateSpace(c *client.Client) func(ctx context.Context, req mcp.CallT
 }
 
 // HandleUpdateSpace handles updating an existing Kibana space
-func HandleUpdateSpace(c *client.Client) func(ctx context.Context, req mcp.CallToolRequest) (*mcp.CallToolResult, error) {
+func HandleUpdateSpace() func(ctx context.Context, req mcp.CallToolRequest) (*mcp.CallToolResult, error) {
 	return func(ctx context.Context, req mcp.CallToolRequest) (*mcp.CallToolResult, error) {
+		c, cerr := client.FromContext(ctx)
+		if cerr != nil {
+			return mcp.NewToolResultError(cerr.Error()), nil
+		}
+
 		logrus.Debug("Executing Kibana update space handler")
 
 		spaceID := getOptionalStringParam(req, "space_id")
@@ -219,8 +239,13 @@ func HandleUpdateSpace(c *client.Client) func(ctx context.Context, req mcp.CallT
 }
 
 // HandleDeleteSpace handles deleting a Kibana space
-func HandleDeleteSpace(c *client.Client) func(ctx context.Context, req mcp.CallToolRequest) (*mcp.CallToolResult, error) {
+func HandleDeleteSpace() func(ctx context.Context, req mcp.CallToolRequest) (*mcp.CallToolResult, error) {
 	return func(ctx context.Context, req mcp.CallToolRequest) (*mcp.CallToolResult, error) {
+		c, cerr := client.FromContext(ctx)
+		if cerr != nil {
+			return mcp.NewToolResultError(cerr.Error()), nil
+		}
+
 		logrus.Debug("Executing Kibana delete space handler")
 
 		spaceID := getOptionalStringParam(req, "space_id")
@@ -257,8 +282,13 @@ func HandleDeleteSpace(c *client.Client) func(ctx context.Context, req mcp.CallT
 }
 
 // HandleSpacesSummary handles getting spaces summary with LLM optimization
-func HandleSpacesSummary(c *client.Client) func(ctx context.Context, request mcp.CallToolRequest) (*mcp.CallToolResult, error) {
+func HandleSpacesSummary() func(ctx context.Context, request mcp.CallToolRequest) (*mcp.CallToolResult, error) {
 	return func(ctx context.Context, request mcp.CallToolRequest) (*mcp.CallToolResult, error) {
+		c, cerr := client.FromContext(ctx)
+		if cerr != nil {
+			return mcp.NewToolResultError(cerr.Error()), nil
+		}
+
 		limit := parseLimitWithWarnings(request, "kibana_spaces_summary")
 
 		logrus.WithFields(logrus.Fields{

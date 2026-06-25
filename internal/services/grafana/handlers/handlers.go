@@ -97,8 +97,13 @@ func marshalOptimizedResponse(data any, toolName string) (*mcp.CallToolResult, e
 }
 
 // HandleGetDashboards handles dashboard listing requests with intelligent limits.
-func HandleGetDashboards(grafanaClient *client.Client) func(ctx context.Context, request mcp.CallToolRequest) (*mcp.CallToolResult, error) {
+func HandleGetDashboards() func(ctx context.Context, request mcp.CallToolRequest) (*mcp.CallToolResult, error) {
 	return func(ctx context.Context, request mcp.CallToolRequest) (*mcp.CallToolResult, error) {
+		c, cerr := client.FromContext(ctx)
+		if cerr != nil {
+			return mcp.NewToolResultError(cerr.Error()), nil
+		}
+
 		debug := getOptionalStringParam(request, "debug")
 		limit := parseLimitWithWarnings(request, "grafana_dashboards")
 
@@ -109,7 +114,7 @@ func HandleGetDashboards(grafanaClient *client.Client) func(ctx context.Context,
 		}).Debug("Handler invoked")
 
 		// Get all dashboards (Grafana API doesn't support pagination for dashboards)
-		dashboards, err := grafanaClient.GetDashboards(ctx)
+		dashboards, err := c.GetDashboards(ctx)
 		if err != nil {
 			return nil, fmt.Errorf("failed to get dashboards: %w", err)
 		}
@@ -162,8 +167,13 @@ func HandleGetDashboards(grafanaClient *client.Client) func(ctx context.Context,
 }
 
 // HandleGetDashboardsSummary handles getting dashboards with minimal output
-func HandleGetDashboardsSummary(client *client.Client) func(ctx context.Context, request mcp.CallToolRequest) (*mcp.CallToolResult, error) {
+func HandleGetDashboardsSummary() func(ctx context.Context, request mcp.CallToolRequest) (*mcp.CallToolResult, error) {
 	return func(ctx context.Context, request mcp.CallToolRequest) (*mcp.CallToolResult, error) {
+		c, cerr := client.FromContext(ctx)
+		if cerr != nil {
+			return mcp.NewToolResultError(cerr.Error()), nil
+		}
+
 		limit := parseLimitWithWarnings(request, "grafana_dashboards_summary")
 		offsetStr := getOptionalStringParam(request, "offset")
 
@@ -175,7 +185,7 @@ func HandleGetDashboardsSummary(client *client.Client) func(ctx context.Context,
 		}
 
 		// Get all dashboards
-		dashboards, err := client.GetDashboards(ctx)
+		dashboards, err := c.GetDashboards(ctx)
 		if err != nil {
 			return &mcp.CallToolResult{
 				Content: []mcp.Content{
@@ -229,8 +239,13 @@ func HandleGetDashboardsSummary(client *client.Client) func(ctx context.Context,
 }
 
 // HandleGetDashboard handles specific dashboard retrieval requests.
-func HandleGetDashboard(grafanaClient *client.Client) func(ctx context.Context, request mcp.CallToolRequest) (*mcp.CallToolResult, error) {
+func HandleGetDashboard() func(ctx context.Context, request mcp.CallToolRequest) (*mcp.CallToolResult, error) {
 	return func(ctx context.Context, request mcp.CallToolRequest) (*mcp.CallToolResult, error) {
+		c, cerr := client.FromContext(ctx)
+		if cerr != nil {
+			return mcp.NewToolResultError(cerr.Error()), nil
+		}
+
 		uid, err := requireStringParam(request, "uid")
 		if err != nil {
 			return nil, err
@@ -242,7 +257,7 @@ func HandleGetDashboard(grafanaClient *client.Client) func(ctx context.Context, 
 			"debug": debug,
 		}).Debug("Handler invoked")
 
-		dashboard, err := grafanaClient.GetDashboard(ctx, uid)
+		dashboard, err := c.GetDashboard(ctx, uid)
 		if err != nil {
 			return nil, fmt.Errorf("failed to get dashboard: %w", err)
 		}
@@ -282,8 +297,13 @@ func HandleGetDashboard(grafanaClient *client.Client) func(ctx context.Context, 
 }
 
 // HandleGetDataSources handles data source listing requests with smart limits.
-func HandleGetDataSources(grafanaClient *client.Client) func(ctx context.Context, request mcp.CallToolRequest) (*mcp.CallToolResult, error) {
+func HandleGetDataSources() func(ctx context.Context, request mcp.CallToolRequest) (*mcp.CallToolResult, error) {
 	return func(ctx context.Context, request mcp.CallToolRequest) (*mcp.CallToolResult, error) {
+		c, cerr := client.FromContext(ctx)
+		if cerr != nil {
+			return mcp.NewToolResultError(cerr.Error()), nil
+		}
+
 		debug := getOptionalStringParam(request, "debug")
 		limit := parseLimitWithWarnings(request, "grafana_datasources")
 
@@ -299,7 +319,7 @@ func HandleGetDataSources(grafanaClient *client.Client) func(ctx context.Context
 			"limit": limit,
 		}).Debug("Handler invoked")
 
-		dataSources, err := grafanaClient.GetDataSources(ctx)
+		dataSources, err := c.GetDataSources(ctx)
 		if err != nil {
 			return nil, fmt.Errorf("failed to get data sources: %w", err)
 		}
@@ -352,8 +372,13 @@ func HandleGetDataSources(grafanaClient *client.Client) func(ctx context.Context
 }
 
 // HandleGetDataSourcesSummary handles getting data sources with minimal output
-func HandleGetDataSourcesSummary(client *client.Client) func(ctx context.Context, request mcp.CallToolRequest) (*mcp.CallToolResult, error) {
+func HandleGetDataSourcesSummary() func(ctx context.Context, request mcp.CallToolRequest) (*mcp.CallToolResult, error) {
 	return func(ctx context.Context, request mcp.CallToolRequest) (*mcp.CallToolResult, error) {
+		c, cerr := client.FromContext(ctx)
+		if cerr != nil {
+			return mcp.NewToolResultError(cerr.Error()), nil
+		}
+
 		limit := parseLimitWithWarnings(request, "grafana_datasources_summary")
 
 		// Use even more conservative limit for summary
@@ -361,7 +386,7 @@ func HandleGetDataSourcesSummary(client *client.Client) func(ctx context.Context
 			limit = datasourceLimit
 		}
 
-		datasources, err := client.GetDataSources(ctx)
+		datasources, err := c.GetDataSources(ctx)
 		if err != nil {
 			return &mcp.CallToolResult{
 				Content: []mcp.Content{
@@ -401,11 +426,16 @@ func HandleGetDataSourcesSummary(client *client.Client) func(ctx context.Context
 }
 
 // HandleGetPluginsSummary handles plugin summary requests.
-func HandleGetPluginsSummary(grafanaClient *client.Client) func(ctx context.Context, request mcp.CallToolRequest) (*mcp.CallToolResult, error) {
+func HandleGetPluginsSummary() func(ctx context.Context, request mcp.CallToolRequest) (*mcp.CallToolResult, error) {
 	return func(ctx context.Context, request mcp.CallToolRequest) (*mcp.CallToolResult, error) {
+		c, cerr := client.FromContext(ctx)
+		if cerr != nil {
+			return mcp.NewToolResultError(cerr.Error()), nil
+		}
+
 		limit := parseLimitWithWarnings(request, "grafana_plugins_summary")
 
-		plugins, err := grafanaClient.GetPlugins(ctx)
+		plugins, err := c.GetPlugins(ctx)
 		if err != nil {
 			return nil, fmt.Errorf("failed to get plugins: %w", err)
 		}
@@ -438,8 +468,13 @@ func HandleGetPluginsSummary(grafanaClient *client.Client) func(ctx context.Cont
 }
 
 // HandleGetFolders handles folder listing requests with limits.
-func HandleGetFolders(grafanaClient *client.Client) func(ctx context.Context, request mcp.CallToolRequest) (*mcp.CallToolResult, error) {
+func HandleGetFolders() func(ctx context.Context, request mcp.CallToolRequest) (*mcp.CallToolResult, error) {
 	return func(ctx context.Context, request mcp.CallToolRequest) (*mcp.CallToolResult, error) {
+		c, cerr := client.FromContext(ctx)
+		if cerr != nil {
+			return mcp.NewToolResultError(cerr.Error()), nil
+		}
+
 		debug := getOptionalStringParam(request, "debug")
 		limit := parseLimitWithWarnings(request, "grafana_folders")
 
@@ -449,7 +484,7 @@ func HandleGetFolders(grafanaClient *client.Client) func(ctx context.Context, re
 			"limit": limit,
 		}).Debug("Handler invoked")
 
-		folders, err := grafanaClient.GetFolders(ctx)
+		folders, err := c.GetFolders(ctx)
 		if err != nil {
 			return nil, fmt.Errorf("failed to get folders: %w", err)
 		}
@@ -487,8 +522,13 @@ func HandleGetFolders(grafanaClient *client.Client) func(ctx context.Context, re
 }
 
 // HandleGetFolder handles single folder retrieval requests.
-func HandleGetFolder(grafanaClient *client.Client) func(ctx context.Context, request mcp.CallToolRequest) (*mcp.CallToolResult, error) {
+func HandleGetFolder() func(ctx context.Context, request mcp.CallToolRequest) (*mcp.CallToolResult, error) {
 	return func(ctx context.Context, request mcp.CallToolRequest) (*mcp.CallToolResult, error) {
+		c, cerr := client.FromContext(ctx)
+		if cerr != nil {
+			return mcp.NewToolResultError(cerr.Error()), nil
+		}
+
 		uid, err := requireStringParam(request, "uid")
 		if err != nil {
 			return nil, err
@@ -496,7 +536,7 @@ func HandleGetFolder(grafanaClient *client.Client) func(ctx context.Context, req
 
 		logrus.WithField("uid", uid).Debug("Handler invoked: grafana_folder_detail")
 
-		folder, err := grafanaClient.GetFolder(ctx, uid)
+		folder, err := c.GetFolder(ctx, uid)
 		if err != nil {
 			return nil, fmt.Errorf("failed to get folder: %w", err)
 		}
@@ -508,8 +548,13 @@ func HandleGetFolder(grafanaClient *client.Client) func(ctx context.Context, req
 }
 
 // HandleCreateFolder handles creating a folder.
-func HandleCreateFolder(grafanaClient *client.Client) func(ctx context.Context, request mcp.CallToolRequest) (*mcp.CallToolResult, error) {
+func HandleCreateFolder() func(ctx context.Context, request mcp.CallToolRequest) (*mcp.CallToolResult, error) {
 	return func(ctx context.Context, request mcp.CallToolRequest) (*mcp.CallToolResult, error) {
+		c, cerr := client.FromContext(ctx)
+		if cerr != nil {
+			return mcp.NewToolResultError(cerr.Error()), nil
+		}
+
 		title, err := requireStringParam(request, "title")
 		if err != nil {
 			return nil, err
@@ -525,7 +570,7 @@ func HandleCreateFolder(grafanaClient *client.Client) func(ctx context.Context, 
 			"uid":   req.UID,
 		}).Debug("Handler invoked: grafana_create_folder")
 
-		folder, err := grafanaClient.CreateFolder(ctx, req)
+		folder, err := c.CreateFolder(ctx, req)
 		if err != nil {
 			return nil, fmt.Errorf("failed to create folder: %w", err)
 		}
@@ -538,8 +583,13 @@ func HandleCreateFolder(grafanaClient *client.Client) func(ctx context.Context, 
 }
 
 // HandleUpdateFolder handles updating a folder.
-func HandleUpdateFolder(grafanaClient *client.Client) func(ctx context.Context, request mcp.CallToolRequest) (*mcp.CallToolResult, error) {
+func HandleUpdateFolder() func(ctx context.Context, request mcp.CallToolRequest) (*mcp.CallToolResult, error) {
 	return func(ctx context.Context, request mcp.CallToolRequest) (*mcp.CallToolResult, error) {
+		c, cerr := client.FromContext(ctx)
+		if cerr != nil {
+			return mcp.NewToolResultError(cerr.Error()), nil
+		}
+
 		uid, err := requireStringParam(request, "uid")
 		if err != nil {
 			return nil, err
@@ -568,7 +618,7 @@ func HandleUpdateFolder(grafanaClient *client.Client) func(ctx context.Context, 
 			"overwrite": req.Overwrite,
 		}).Debug("Handler invoked: grafana_update_folder")
 
-		folder, err := grafanaClient.UpdateFolder(ctx, req)
+		folder, err := c.UpdateFolder(ctx, req)
 		if err != nil {
 			return nil, fmt.Errorf("failed to update folder: %w", err)
 		}
@@ -581,8 +631,13 @@ func HandleUpdateFolder(grafanaClient *client.Client) func(ctx context.Context, 
 }
 
 // HandleDeleteFolder handles deleting a folder.
-func HandleDeleteFolder(grafanaClient *client.Client) func(ctx context.Context, request mcp.CallToolRequest) (*mcp.CallToolResult, error) {
+func HandleDeleteFolder() func(ctx context.Context, request mcp.CallToolRequest) (*mcp.CallToolResult, error) {
 	return func(ctx context.Context, request mcp.CallToolRequest) (*mcp.CallToolResult, error) {
+		c, cerr := client.FromContext(ctx)
+		if cerr != nil {
+			return mcp.NewToolResultError(cerr.Error()), nil
+		}
+
 		uid, err := requireStringParam(request, "uid")
 		if err != nil {
 			return nil, err
@@ -598,7 +653,7 @@ func HandleDeleteFolder(grafanaClient *client.Client) func(ctx context.Context, 
 			"forceDeleteRules": forceDeleteRules,
 		}).Debug("Handler invoked: grafana_delete_folder")
 
-		result, err := grafanaClient.DeleteFolder(ctx, uid, forceDeleteRules)
+		result, err := c.DeleteFolder(ctx, uid, forceDeleteRules)
 		if err != nil {
 			return nil, fmt.Errorf("failed to delete folder: %w", err)
 		}
@@ -608,8 +663,13 @@ func HandleDeleteFolder(grafanaClient *client.Client) func(ctx context.Context, 
 }
 
 // HandleGetDataSource handles single datasource retrieval requests.
-func HandleGetDataSource(grafanaClient *client.Client) func(ctx context.Context, request mcp.CallToolRequest) (*mcp.CallToolResult, error) {
+func HandleGetDataSource() func(ctx context.Context, request mcp.CallToolRequest) (*mcp.CallToolResult, error) {
 	return func(ctx context.Context, request mcp.CallToolRequest) (*mcp.CallToolResult, error) {
+		c, cerr := client.FromContext(ctx)
+		if cerr != nil {
+			return mcp.NewToolResultError(cerr.Error()), nil
+		}
+
 		uid, err := requireStringParam(request, "uid")
 		if err != nil {
 			return nil, err
@@ -617,7 +677,7 @@ func HandleGetDataSource(grafanaClient *client.Client) func(ctx context.Context,
 
 		logrus.WithField("uid", uid).Debug("Handler invoked: grafana_datasource_detail")
 
-		dataSource, err := grafanaClient.GetDataSource(ctx, uid)
+		dataSource, err := c.GetDataSource(ctx, uid)
 		if err != nil {
 			return nil, fmt.Errorf("failed to get datasource: %w", err)
 		}
@@ -629,11 +689,16 @@ func HandleGetDataSource(grafanaClient *client.Client) func(ctx context.Context,
 }
 
 // HandleGetPlugins handles plugin enumeration requests.
-func HandleGetPlugins(grafanaClient *client.Client) func(ctx context.Context, request mcp.CallToolRequest) (*mcp.CallToolResult, error) {
+func HandleGetPlugins() func(ctx context.Context, request mcp.CallToolRequest) (*mcp.CallToolResult, error) {
 	return func(ctx context.Context, request mcp.CallToolRequest) (*mcp.CallToolResult, error) {
+		c, cerr := client.FromContext(ctx)
+		if cerr != nil {
+			return mcp.NewToolResultError(cerr.Error()), nil
+		}
+
 		limit := parseLimitWithWarnings(request, "grafana_plugins")
 
-		plugins, err := grafanaClient.GetPlugins(ctx)
+		plugins, err := c.GetPlugins(ctx)
 		if err != nil {
 			return nil, fmt.Errorf("failed to get plugins: %w", err)
 		}
@@ -650,14 +715,19 @@ func HandleGetPlugins(grafanaClient *client.Client) func(ctx context.Context, re
 }
 
 // HandleGetPlugin handles plugin detail requests.
-func HandleGetPlugin(grafanaClient *client.Client) func(ctx context.Context, request mcp.CallToolRequest) (*mcp.CallToolResult, error) {
+func HandleGetPlugin() func(ctx context.Context, request mcp.CallToolRequest) (*mcp.CallToolResult, error) {
 	return func(ctx context.Context, request mcp.CallToolRequest) (*mcp.CallToolResult, error) {
+		c, cerr := client.FromContext(ctx)
+		if cerr != nil {
+			return mcp.NewToolResultError(cerr.Error()), nil
+		}
+
 		pluginID, err := requireStringParam(request, "pluginID")
 		if err != nil {
 			return nil, err
 		}
 
-		plugin, err := grafanaClient.GetPlugin(ctx, pluginID)
+		plugin, err := c.GetPlugin(ctx, pluginID)
 		if err != nil {
 			return nil, fmt.Errorf("failed to get plugin: %w", err)
 		}
@@ -669,11 +739,16 @@ func HandleGetPlugin(grafanaClient *client.Client) func(ctx context.Context, req
 }
 
 // HandleGetCurrentUser handles current user retrieval requests.
-func HandleGetCurrentUser(grafanaClient *client.Client) func(ctx context.Context, request mcp.CallToolRequest) (*mcp.CallToolResult, error) {
+func HandleGetCurrentUser() func(ctx context.Context, request mcp.CallToolRequest) (*mcp.CallToolResult, error) {
 	return func(ctx context.Context, request mcp.CallToolRequest) (*mcp.CallToolResult, error) {
+		c, cerr := client.FromContext(ctx)
+		if cerr != nil {
+			return mcp.NewToolResultError(cerr.Error()), nil
+		}
+
 		logrus.Debug("Handler invoked: grafana_current_user")
 
-		user, err := grafanaClient.GetCurrentUser(ctx)
+		user, err := c.GetCurrentUser(ctx)
 		if err != nil {
 			return nil, fmt.Errorf("failed to get current user: %w", err)
 		}
@@ -685,11 +760,16 @@ func HandleGetCurrentUser(grafanaClient *client.Client) func(ctx context.Context
 }
 
 // HandleGetUsers handles users listing requests.
-func HandleGetUsers(grafanaClient *client.Client) func(ctx context.Context, request mcp.CallToolRequest) (*mcp.CallToolResult, error) {
+func HandleGetUsers() func(ctx context.Context, request mcp.CallToolRequest) (*mcp.CallToolResult, error) {
 	return func(ctx context.Context, request mcp.CallToolRequest) (*mcp.CallToolResult, error) {
+		c, cerr := client.FromContext(ctx)
+		if cerr != nil {
+			return mcp.NewToolResultError(cerr.Error()), nil
+		}
+
 		logrus.Debug("Handler invoked: grafana_users")
 
-		users, err := grafanaClient.GetUsers(ctx)
+		users, err := c.GetUsers(ctx)
 		if err != nil {
 			return nil, fmt.Errorf("failed to get users: %w", err)
 		}
@@ -704,11 +784,16 @@ func HandleGetUsers(grafanaClient *client.Client) func(ctx context.Context, requ
 }
 
 // HandleGetOrganization handles organization retrieval requests.
-func HandleGetOrganization(grafanaClient *client.Client) func(ctx context.Context, request mcp.CallToolRequest) (*mcp.CallToolResult, error) {
+func HandleGetOrganization() func(ctx context.Context, request mcp.CallToolRequest) (*mcp.CallToolResult, error) {
 	return func(ctx context.Context, request mcp.CallToolRequest) (*mcp.CallToolResult, error) {
+		c, cerr := client.FromContext(ctx)
+		if cerr != nil {
+			return mcp.NewToolResultError(cerr.Error()), nil
+		}
+
 		logrus.Debug("Handler invoked: grafana_organization")
 
-		org, err := grafanaClient.GetOrganization(ctx)
+		org, err := c.GetOrganization(ctx)
 		if err != nil {
 			return nil, fmt.Errorf("failed to get organization: %w", err)
 		}
@@ -720,8 +805,13 @@ func HandleGetOrganization(grafanaClient *client.Client) func(ctx context.Contex
 }
 
 // HandleCheckDatasourceHealth handles datasource health check requests.
-func HandleCheckDatasourceHealth(grafanaClient *client.Client) func(ctx context.Context, request mcp.CallToolRequest) (*mcp.CallToolResult, error) {
+func HandleCheckDatasourceHealth() func(ctx context.Context, request mcp.CallToolRequest) (*mcp.CallToolResult, error) {
 	return func(ctx context.Context, request mcp.CallToolRequest) (*mcp.CallToolResult, error) {
+		c, cerr := client.FromContext(ctx)
+		if cerr != nil {
+			return mcp.NewToolResultError(cerr.Error()), nil
+		}
+
 		uid, err := requireStringParam(request, "uid")
 		if err != nil {
 			return nil, err
@@ -729,7 +819,7 @@ func HandleCheckDatasourceHealth(grafanaClient *client.Client) func(ctx context.
 
 		logrus.WithField("uid", uid).Debug("Handler invoked: grafana_check_datasource_health")
 
-		health, err := grafanaClient.CheckDatasourceHealth(ctx, uid)
+		health, err := c.CheckDatasourceHealth(ctx, uid)
 		if err != nil {
 			return nil, fmt.Errorf("failed to check datasource health: %w", err)
 		}
@@ -742,8 +832,13 @@ func HandleCheckDatasourceHealth(grafanaClient *client.Client) func(ctx context.
 }
 
 // HandleGetAlertRules handles alert rules retrieval requests with limits.
-func HandleGetAlertRules(grafanaClient *client.Client) func(ctx context.Context, request mcp.CallToolRequest) (*mcp.CallToolResult, error) {
+func HandleGetAlertRules() func(ctx context.Context, request mcp.CallToolRequest) (*mcp.CallToolResult, error) {
 	return func(ctx context.Context, request mcp.CallToolRequest) (*mcp.CallToolResult, error) {
+		c, cerr := client.FromContext(ctx)
+		if cerr != nil {
+			return mcp.NewToolResultError(cerr.Error()), nil
+		}
+
 		debug := getOptionalStringParam(request, "debug")
 		limit := parseLimitWithWarnings(request, "grafana_alerts")
 
@@ -753,7 +848,7 @@ func HandleGetAlertRules(grafanaClient *client.Client) func(ctx context.Context,
 			"limit": limit,
 		}).Debug("Handler invoked")
 
-		alertRules, err := grafanaClient.GetAlertRules(ctx)
+		alertRules, err := c.GetAlertRules(ctx)
 		if err != nil {
 			return nil, fmt.Errorf("failed to get alert rules: %w", err)
 		}
@@ -791,15 +886,20 @@ func HandleGetAlertRules(grafanaClient *client.Client) func(ctx context.Context,
 }
 
 // HandleTestConnection handles connection testing requests.
-func HandleTestConnection(grafanaClient *client.Client) func(ctx context.Context, request mcp.CallToolRequest) (*mcp.CallToolResult, error) {
+func HandleTestConnection() func(ctx context.Context, request mcp.CallToolRequest) (*mcp.CallToolResult, error) {
 	return func(ctx context.Context, request mcp.CallToolRequest) (*mcp.CallToolResult, error) {
+		c, cerr := client.FromContext(ctx)
+		if cerr != nil {
+			return mcp.NewToolResultError(cerr.Error()), nil
+		}
+
 		debug := getOptionalStringParam(request, "debug")
 		logrus.WithFields(logrus.Fields{
 			"tool":  "grafana_test_connection",
 			"debug": debug,
 		}).Debug("Handler invoked")
 
-		err := grafanaClient.TestConnection(ctx)
+		err := c.TestConnection(ctx)
 		if err != nil {
 			return nil, fmt.Errorf("connection test failed: %w", err)
 		}
@@ -815,8 +915,13 @@ func HandleTestConnection(grafanaClient *client.Client) func(ctx context.Context
 }
 
 // HandleSearchDashboards handles dashboard search requests with results limiting.
-func HandleSearchDashboards(grafanaClient *client.Client) func(ctx context.Context, request mcp.CallToolRequest) (*mcp.CallToolResult, error) {
+func HandleSearchDashboards() func(ctx context.Context, request mcp.CallToolRequest) (*mcp.CallToolResult, error) {
 	return func(ctx context.Context, request mcp.CallToolRequest) (*mcp.CallToolResult, error) {
+		c, cerr := client.FromContext(ctx)
+		if cerr != nil {
+			return mcp.NewToolResultError(cerr.Error()), nil
+		}
+
 		query := getOptionalStringParam(request, "query")
 		tag := getOptionalStringParam(request, "tag")
 		folderUID := getOptionalStringParam(request, "folderUID")
@@ -836,7 +941,7 @@ func HandleSearchDashboards(grafanaClient *client.Client) func(ctx context.Conte
 		}).Debug("Handler invoked")
 
 		// Get all dashboards and filter
-		dashboards, err := grafanaClient.GetDashboards(ctx)
+		dashboards, err := c.GetDashboards(ctx)
 		if err != nil {
 			return nil, fmt.Errorf("failed to search dashboards: %w", err)
 		}
@@ -916,11 +1021,16 @@ func HandleSearchDashboards(grafanaClient *client.Client) func(ctx context.Conte
 // ============ Admin Handlers ============
 
 // HandleListTeams handles listing teams.
-func HandleListTeams(grafanaClient *client.Client) func(ctx context.Context, request mcp.CallToolRequest) (*mcp.CallToolResult, error) {
+func HandleListTeams() func(ctx context.Context, request mcp.CallToolRequest) (*mcp.CallToolResult, error) {
 	return func(ctx context.Context, request mcp.CallToolRequest) (*mcp.CallToolResult, error) {
+		c, cerr := client.FromContext(ctx)
+		if cerr != nil {
+			return mcp.NewToolResultError(cerr.Error()), nil
+		}
+
 		logrus.Debug("Handler invoked: grafana_list_teams")
 
-		teams, err := grafanaClient.GetTeams(ctx)
+		teams, err := c.GetTeams(ctx)
 		if err != nil {
 			return nil, fmt.Errorf("failed to list teams: %w", err)
 		}
@@ -935,11 +1045,16 @@ func HandleListTeams(grafanaClient *client.Client) func(ctx context.Context, req
 }
 
 // HandleListAllRoles handles listing all roles.
-func HandleListAllRoles(grafanaClient *client.Client) func(ctx context.Context, request mcp.CallToolRequest) (*mcp.CallToolResult, error) {
+func HandleListAllRoles() func(ctx context.Context, request mcp.CallToolRequest) (*mcp.CallToolResult, error) {
 	return func(ctx context.Context, request mcp.CallToolRequest) (*mcp.CallToolResult, error) {
+		c, cerr := client.FromContext(ctx)
+		if cerr != nil {
+			return mcp.NewToolResultError(cerr.Error()), nil
+		}
+
 		logrus.Debug("Handler invoked: grafana_list_all_roles")
 
-		roles, err := grafanaClient.GetRoles(ctx)
+		roles, err := c.GetRoles(ctx)
 		if err != nil {
 			return nil, fmt.Errorf("failed to list roles: %w", err)
 		}
@@ -954,8 +1069,13 @@ func HandleListAllRoles(grafanaClient *client.Client) func(ctx context.Context, 
 }
 
 // HandleGetRoleDetails handles getting role details.
-func HandleGetRoleDetails(grafanaClient *client.Client) func(ctx context.Context, request mcp.CallToolRequest) (*mcp.CallToolResult, error) {
+func HandleGetRoleDetails() func(ctx context.Context, request mcp.CallToolRequest) (*mcp.CallToolResult, error) {
 	return func(ctx context.Context, request mcp.CallToolRequest) (*mcp.CallToolResult, error) {
+		c, cerr := client.FromContext(ctx)
+		if cerr != nil {
+			return mcp.NewToolResultError(cerr.Error()), nil
+		}
+
 		roleUID, err := requireStringParam(request, "roleUID")
 		if err != nil {
 			return nil, err
@@ -963,7 +1083,7 @@ func HandleGetRoleDetails(grafanaClient *client.Client) func(ctx context.Context
 
 		logrus.WithField("roleUID", roleUID).Debug("Handler invoked: grafana_get_role_details")
 
-		role, err := grafanaClient.GetRoleDetails(ctx, roleUID)
+		role, err := c.GetRoleDetails(ctx, roleUID)
 		if err != nil {
 			return nil, fmt.Errorf("failed to get role details: %w", err)
 		}
@@ -975,8 +1095,13 @@ func HandleGetRoleDetails(grafanaClient *client.Client) func(ctx context.Context
 }
 
 // HandleGetRoleAssignments handles getting role assignments.
-func HandleGetRoleAssignments(grafanaClient *client.Client) func(ctx context.Context, request mcp.CallToolRequest) (*mcp.CallToolResult, error) {
+func HandleGetRoleAssignments() func(ctx context.Context, request mcp.CallToolRequest) (*mcp.CallToolResult, error) {
 	return func(ctx context.Context, request mcp.CallToolRequest) (*mcp.CallToolResult, error) {
+		c, cerr := client.FromContext(ctx)
+		if cerr != nil {
+			return mcp.NewToolResultError(cerr.Error()), nil
+		}
+
 		roleUID, err := requireStringParam(request, "roleUID")
 		if err != nil {
 			return nil, err
@@ -984,7 +1109,7 @@ func HandleGetRoleAssignments(grafanaClient *client.Client) func(ctx context.Con
 
 		logrus.WithField("roleUID", roleUID).Debug("Handler invoked: grafana_get_role_assignments")
 
-		assignments, err := grafanaClient.GetRoleAssignments(ctx, roleUID)
+		assignments, err := c.GetRoleAssignments(ctx, roleUID)
 		if err != nil {
 			return nil, fmt.Errorf("failed to get role assignments: %w", err)
 		}
@@ -999,8 +1124,13 @@ func HandleGetRoleAssignments(grafanaClient *client.Client) func(ctx context.Con
 }
 
 // HandleListUserRoles handles listing roles for a user.
-func HandleListUserRoles(grafanaClient *client.Client) func(ctx context.Context, request mcp.CallToolRequest) (*mcp.CallToolResult, error) {
+func HandleListUserRoles() func(ctx context.Context, request mcp.CallToolRequest) (*mcp.CallToolResult, error) {
 	return func(ctx context.Context, request mcp.CallToolRequest) (*mcp.CallToolResult, error) {
+		c, cerr := client.FromContext(ctx)
+		if cerr != nil {
+			return mcp.NewToolResultError(cerr.Error()), nil
+		}
+
 		userIDStr, err := requireStringParam(request, "userID")
 		if err != nil {
 			return nil, err
@@ -1013,7 +1143,7 @@ func HandleListUserRoles(grafanaClient *client.Client) func(ctx context.Context,
 
 		logrus.WithField("userID", userID).Debug("Handler invoked: grafana_list_user_roles")
 
-		roles, err := grafanaClient.GetUserRoles(ctx, userID)
+		roles, err := c.GetUserRoles(ctx, userID)
 		if err != nil {
 			return nil, fmt.Errorf("failed to list user roles: %w", err)
 		}
@@ -1029,8 +1159,13 @@ func HandleListUserRoles(grafanaClient *client.Client) func(ctx context.Context,
 }
 
 // HandleListTeamRoles handles listing roles for a team.
-func HandleListTeamRoles(grafanaClient *client.Client) func(ctx context.Context, request mcp.CallToolRequest) (*mcp.CallToolResult, error) {
+func HandleListTeamRoles() func(ctx context.Context, request mcp.CallToolRequest) (*mcp.CallToolResult, error) {
 	return func(ctx context.Context, request mcp.CallToolRequest) (*mcp.CallToolResult, error) {
+		c, cerr := client.FromContext(ctx)
+		if cerr != nil {
+			return mcp.NewToolResultError(cerr.Error()), nil
+		}
+
 		teamIDStr, err := requireStringParam(request, "teamID")
 		if err != nil {
 			return nil, err
@@ -1043,7 +1178,7 @@ func HandleListTeamRoles(grafanaClient *client.Client) func(ctx context.Context,
 
 		logrus.WithField("teamID", teamID).Debug("Handler invoked: grafana_list_team_roles")
 
-		roles, err := grafanaClient.GetTeamRoles(ctx, teamID)
+		roles, err := c.GetTeamRoles(ctx, teamID)
 		if err != nil {
 			return nil, fmt.Errorf("failed to list team roles: %w", err)
 		}
@@ -1059,8 +1194,13 @@ func HandleListTeamRoles(grafanaClient *client.Client) func(ctx context.Context,
 }
 
 // HandleGetResourcePermissions handles getting permissions for a resource.
-func HandleGetResourcePermissions(grafanaClient *client.Client) func(ctx context.Context, request mcp.CallToolRequest) (*mcp.CallToolResult, error) {
+func HandleGetResourcePermissions() func(ctx context.Context, request mcp.CallToolRequest) (*mcp.CallToolResult, error) {
 	return func(ctx context.Context, request mcp.CallToolRequest) (*mcp.CallToolResult, error) {
+		c, cerr := client.FromContext(ctx)
+		if cerr != nil {
+			return mcp.NewToolResultError(cerr.Error()), nil
+		}
+
 		resourceType, err := requireStringParam(request, "resourceType")
 		if err != nil {
 			return nil, err
@@ -1072,7 +1212,7 @@ func HandleGetResourcePermissions(grafanaClient *client.Client) func(ctx context
 			"resourceUID":  resourceUID,
 		}).Debug("Handler invoked: grafana_get_resource_permissions")
 
-		permissions, err := grafanaClient.GetResourcePermissions(ctx, resourceType, resourceUID)
+		permissions, err := c.GetResourcePermissions(ctx, resourceType, resourceUID)
 		if err != nil {
 			return nil, fmt.Errorf("failed to get resource permissions: %w", err)
 		}
@@ -1089,8 +1229,13 @@ func HandleGetResourcePermissions(grafanaClient *client.Client) func(ctx context
 }
 
 // HandleGetResourceDescription handles getting resource description.
-func HandleGetResourceDescription(grafanaClient *client.Client) func(ctx context.Context, request mcp.CallToolRequest) (*mcp.CallToolResult, error) {
+func HandleGetResourceDescription() func(ctx context.Context, request mcp.CallToolRequest) (*mcp.CallToolResult, error) {
 	return func(ctx context.Context, request mcp.CallToolRequest) (*mcp.CallToolResult, error) {
+		c, cerr := client.FromContext(ctx)
+		if cerr != nil {
+			return mcp.NewToolResultError(cerr.Error()), nil
+		}
+
 		resourceType, err := requireStringParam(request, "resourceType")
 		if err != nil {
 			return nil, err
@@ -1098,7 +1243,7 @@ func HandleGetResourceDescription(grafanaClient *client.Client) func(ctx context
 
 		logrus.WithField("resourceType", resourceType).Debug("Handler invoked: grafana_get_resource_description")
 
-		desc, err := grafanaClient.GetResourceDescription(ctx, resourceType)
+		desc, err := c.GetResourceDescription(ctx, resourceType)
 		if err != nil {
 			return nil, fmt.Errorf("failed to get resource description: %w", err)
 		}
@@ -1112,8 +1257,13 @@ func HandleGetResourceDescription(grafanaClient *client.Client) func(ctx context
 // ============ Dashboard Update Handlers ============
 
 // HandleUpdateDashboard handles creating or updating a dashboard.
-func HandleUpdateDashboard(grafanaClient *client.Client) func(ctx context.Context, request mcp.CallToolRequest) (*mcp.CallToolResult, error) {
+func HandleUpdateDashboard() func(ctx context.Context, request mcp.CallToolRequest) (*mcp.CallToolResult, error) {
 	return func(ctx context.Context, request mcp.CallToolRequest) (*mcp.CallToolResult, error) {
+		c, cerr := client.FromContext(ctx)
+		if cerr != nil {
+			return mcp.NewToolResultError(cerr.Error()), nil
+		}
+
 		dashboardJSON, ok := request.GetArguments()["dashboard"].(map[string]interface{})
 		if !ok {
 			return nil, fmt.Errorf("%w: dashboard is required", ErrMissingRequiredParam)
@@ -1138,7 +1288,7 @@ func HandleUpdateDashboard(grafanaClient *client.Client) func(ctx context.Contex
 			Message:   message,
 		}
 
-		dashboard, err := grafanaClient.UpdateDashboard(ctx, req)
+		dashboard, err := c.UpdateDashboard(ctx, req)
 		if err != nil {
 			return nil, fmt.Errorf("failed to update dashboard: %w", err)
 		}
@@ -1151,8 +1301,13 @@ func HandleUpdateDashboard(grafanaClient *client.Client) func(ctx context.Contex
 }
 
 // HandleGetDashboardVersions handles retrieving dashboard version history.
-func HandleGetDashboardVersions(grafanaClient *client.Client) func(ctx context.Context, request mcp.CallToolRequest) (*mcp.CallToolResult, error) {
+func HandleGetDashboardVersions() func(ctx context.Context, request mcp.CallToolRequest) (*mcp.CallToolResult, error) {
 	return func(ctx context.Context, request mcp.CallToolRequest) (*mcp.CallToolResult, error) {
+		c, cerr := client.FromContext(ctx)
+		if cerr != nil {
+			return mcp.NewToolResultError(cerr.Error()), nil
+		}
+
 		dashboardUID, err := requireStringParam(request, "dashboardUID")
 		if err != nil {
 			return nil, err
@@ -1173,7 +1328,7 @@ func HandleGetDashboardVersions(grafanaClient *client.Client) func(ctx context.C
 			"start":        start,
 		}).Debug("Handler invoked: grafana_get_dashboard_versions")
 
-		versions, err := grafanaClient.GetDashboardVersions(ctx, dashboardUID, limit, start)
+		versions, err := c.GetDashboardVersions(ctx, dashboardUID, limit, start)
 		if err != nil {
 			return nil, fmt.Errorf("failed to get dashboard versions: %w", err)
 		}
@@ -1187,8 +1342,13 @@ func HandleGetDashboardVersions(grafanaClient *client.Client) func(ctx context.C
 }
 
 // HandleGetDashboardVersion handles retrieving a specific dashboard version.
-func HandleGetDashboardVersion(grafanaClient *client.Client) func(ctx context.Context, request mcp.CallToolRequest) (*mcp.CallToolResult, error) {
+func HandleGetDashboardVersion() func(ctx context.Context, request mcp.CallToolRequest) (*mcp.CallToolResult, error) {
 	return func(ctx context.Context, request mcp.CallToolRequest) (*mcp.CallToolResult, error) {
+		c, cerr := client.FromContext(ctx)
+		if cerr != nil {
+			return mcp.NewToolResultError(cerr.Error()), nil
+		}
+
 		dashboardUID, err := requireStringParam(request, "dashboardUID")
 		if err != nil {
 			return nil, err
@@ -1204,7 +1364,7 @@ func HandleGetDashboardVersion(grafanaClient *client.Client) func(ctx context.Co
 			"version":      version,
 		}).Debug("Handler invoked: grafana_get_dashboard_version")
 
-		dashboardVersion, err := grafanaClient.GetDashboardVersion(ctx, dashboardUID, version)
+		dashboardVersion, err := c.GetDashboardVersion(ctx, dashboardUID, version)
 		if err != nil {
 			return nil, fmt.Errorf("failed to get dashboard version: %w", err)
 		}
@@ -1217,8 +1377,13 @@ func HandleGetDashboardVersion(grafanaClient *client.Client) func(ctx context.Co
 }
 
 // HandleRestoreDashboardVersion handles restoring a dashboard version.
-func HandleRestoreDashboardVersion(grafanaClient *client.Client) func(ctx context.Context, request mcp.CallToolRequest) (*mcp.CallToolResult, error) {
+func HandleRestoreDashboardVersion() func(ctx context.Context, request mcp.CallToolRequest) (*mcp.CallToolResult, error) {
 	return func(ctx context.Context, request mcp.CallToolRequest) (*mcp.CallToolResult, error) {
+		c, cerr := client.FromContext(ctx)
+		if cerr != nil {
+			return mcp.NewToolResultError(cerr.Error()), nil
+		}
+
 		dashboardUID, err := requireStringParam(request, "dashboardUID")
 		if err != nil {
 			return nil, err
@@ -1234,7 +1399,7 @@ func HandleRestoreDashboardVersion(grafanaClient *client.Client) func(ctx contex
 			"version":      version,
 		}).Debug("Handler invoked: grafana_restore_dashboard_version")
 
-		result, err := grafanaClient.RestoreDashboardVersion(ctx, dashboardUID, version)
+		result, err := c.RestoreDashboardVersion(ctx, dashboardUID, version)
 		if err != nil {
 			return nil, fmt.Errorf("failed to restore dashboard version: %w", err)
 		}
@@ -1244,8 +1409,13 @@ func HandleRestoreDashboardVersion(grafanaClient *client.Client) func(ctx contex
 }
 
 // HandleDeleteDashboard handles deleting a dashboard by UID.
-func HandleDeleteDashboard(grafanaClient *client.Client) func(ctx context.Context, request mcp.CallToolRequest) (*mcp.CallToolResult, error) {
+func HandleDeleteDashboard() func(ctx context.Context, request mcp.CallToolRequest) (*mcp.CallToolResult, error) {
 	return func(ctx context.Context, request mcp.CallToolRequest) (*mcp.CallToolResult, error) {
+		c, cerr := client.FromContext(ctx)
+		if cerr != nil {
+			return mcp.NewToolResultError(cerr.Error()), nil
+		}
+
 		uid, err := requireStringParam(request, "uid")
 		if err != nil {
 			return nil, err
@@ -1253,7 +1423,7 @@ func HandleDeleteDashboard(grafanaClient *client.Client) func(ctx context.Contex
 
 		logrus.WithField("uid", uid).Debug("Handler invoked: grafana_delete_dashboard")
 
-		result, err := grafanaClient.DeleteDashboard(ctx, uid)
+		result, err := c.DeleteDashboard(ctx, uid)
 		if err != nil {
 			return nil, fmt.Errorf("failed to delete dashboard: %w", err)
 		}
@@ -1263,8 +1433,13 @@ func HandleDeleteDashboard(grafanaClient *client.Client) func(ctx context.Contex
 }
 
 // HandleGetDashboardPanelQueries handles getting panel queries from a dashboard.
-func HandleGetDashboardPanelQueries(grafanaClient *client.Client) func(ctx context.Context, request mcp.CallToolRequest) (*mcp.CallToolResult, error) {
+func HandleGetDashboardPanelQueries() func(ctx context.Context, request mcp.CallToolRequest) (*mcp.CallToolResult, error) {
 	return func(ctx context.Context, request mcp.CallToolRequest) (*mcp.CallToolResult, error) {
+		c, cerr := client.FromContext(ctx)
+		if cerr != nil {
+			return mcp.NewToolResultError(cerr.Error()), nil
+		}
+
 		dashboardUID, err := requireStringParam(request, "dashboardUID")
 		if err != nil {
 			return nil, err
@@ -1272,7 +1447,7 @@ func HandleGetDashboardPanelQueries(grafanaClient *client.Client) func(ctx conte
 
 		logrus.WithField("dashboardUID", dashboardUID).Debug("Handler invoked: grafana_get_dashboard_panel_queries")
 
-		panels, err := grafanaClient.GetDashboardPanelQueries(ctx, dashboardUID)
+		panels, err := c.GetDashboardPanelQueries(ctx, dashboardUID)
 		if err != nil {
 			return nil, fmt.Errorf("failed to get dashboard panel queries: %w", err)
 		}
@@ -1288,8 +1463,13 @@ func HandleGetDashboardPanelQueries(grafanaClient *client.Client) func(ctx conte
 }
 
 // HandleGetDashboardProperty handles extracting specific dashboard properties.
-func HandleGetDashboardProperty(grafanaClient *client.Client) func(ctx context.Context, request mcp.CallToolRequest) (*mcp.CallToolResult, error) {
+func HandleGetDashboardProperty() func(ctx context.Context, request mcp.CallToolRequest) (*mcp.CallToolResult, error) {
 	return func(ctx context.Context, request mcp.CallToolRequest) (*mcp.CallToolResult, error) {
+		c, cerr := client.FromContext(ctx)
+		if cerr != nil {
+			return mcp.NewToolResultError(cerr.Error()), nil
+		}
+
 		dashboardUID, err := requireStringParam(request, "dashboardUID")
 		if err != nil {
 			return nil, err
@@ -1305,7 +1485,7 @@ func HandleGetDashboardProperty(grafanaClient *client.Client) func(ctx context.C
 			"propertyPath": propertyPath,
 		}).Debug("Handler invoked: grafana_get_dashboard_property")
 
-		value, err := grafanaClient.GetDashboardProperty(ctx, dashboardUID, propertyPath)
+		value, err := c.GetDashboardProperty(ctx, dashboardUID, propertyPath)
 		if err != nil {
 			return nil, fmt.Errorf("failed to get dashboard property: %w", err)
 		}
@@ -1321,8 +1501,13 @@ func HandleGetDashboardProperty(grafanaClient *client.Client) func(ctx context.C
 // ============ Alerting Handlers ============
 
 // HandleGetAlertRuleByUID handles getting a specific alert rule.
-func HandleGetAlertRuleByUID(grafanaClient *client.Client) func(ctx context.Context, request mcp.CallToolRequest) (*mcp.CallToolResult, error) {
+func HandleGetAlertRuleByUID() func(ctx context.Context, request mcp.CallToolRequest) (*mcp.CallToolResult, error) {
 	return func(ctx context.Context, request mcp.CallToolRequest) (*mcp.CallToolResult, error) {
+		c, cerr := client.FromContext(ctx)
+		if cerr != nil {
+			return mcp.NewToolResultError(cerr.Error()), nil
+		}
+
 		ruleUID, err := requireStringParam(request, "ruleUID")
 		if err != nil {
 			return nil, err
@@ -1330,7 +1515,7 @@ func HandleGetAlertRuleByUID(grafanaClient *client.Client) func(ctx context.Cont
 
 		logrus.WithField("ruleUID", ruleUID).Debug("Handler invoked: grafana_get_alert_rule_by_uid")
 
-		rule, err := grafanaClient.GetAlertRuleByUID(ctx, ruleUID)
+		rule, err := c.GetAlertRuleByUID(ctx, ruleUID)
 		if err != nil {
 			return nil, fmt.Errorf("failed to get alert rule: %w", err)
 		}
@@ -1342,8 +1527,13 @@ func HandleGetAlertRuleByUID(grafanaClient *client.Client) func(ctx context.Cont
 }
 
 // HandleCreateAlertRule handles creating a new alert rule.
-func HandleCreateAlertRule(grafanaClient *client.Client) func(ctx context.Context, request mcp.CallToolRequest) (*mcp.CallToolResult, error) {
+func HandleCreateAlertRule() func(ctx context.Context, request mcp.CallToolRequest) (*mcp.CallToolResult, error) {
 	return func(ctx context.Context, request mcp.CallToolRequest) (*mcp.CallToolResult, error) {
+		c, cerr := client.FromContext(ctx)
+		if cerr != nil {
+			return mcp.NewToolResultError(cerr.Error()), nil
+		}
+
 		title, err := requireStringParam(request, "title")
 		if err != nil {
 			return nil, err
@@ -1414,7 +1604,7 @@ func HandleCreateAlertRule(grafanaClient *client.Client) func(ctx context.Contex
 			Labels:          labels,
 		}
 
-		rule, err := grafanaClient.CreateAlertRule(ctx, req)
+		rule, err := c.CreateAlertRule(ctx, req)
 		if err != nil {
 			return nil, fmt.Errorf("failed to create alert rule: %w", err)
 		}
@@ -1427,8 +1617,13 @@ func HandleCreateAlertRule(grafanaClient *client.Client) func(ctx context.Contex
 }
 
 // HandleUpdateAlertRule handles updating an existing alert rule.
-func HandleUpdateAlertRule(grafanaClient *client.Client) func(ctx context.Context, request mcp.CallToolRequest) (*mcp.CallToolResult, error) {
+func HandleUpdateAlertRule() func(ctx context.Context, request mcp.CallToolRequest) (*mcp.CallToolResult, error) {
 	return func(ctx context.Context, request mcp.CallToolRequest) (*mcp.CallToolResult, error) {
+		c, cerr := client.FromContext(ctx)
+		if cerr != nil {
+			return mcp.NewToolResultError(cerr.Error()), nil
+		}
+
 		ruleUID, err := requireStringParam(request, "ruleUID")
 		if err != nil {
 			return nil, err
@@ -1446,7 +1641,7 @@ func HandleUpdateAlertRule(grafanaClient *client.Client) func(ctx context.Contex
 			FolderUID: folderUID,
 		}
 
-		rule, err := grafanaClient.UpdateAlertRule(ctx, ruleUID, req)
+		rule, err := c.UpdateAlertRule(ctx, ruleUID, req)
 		if err != nil {
 			return nil, fmt.Errorf("failed to update alert rule: %w", err)
 		}
@@ -1459,8 +1654,13 @@ func HandleUpdateAlertRule(grafanaClient *client.Client) func(ctx context.Contex
 }
 
 // HandleDeleteAlertRule handles deleting an alert rule.
-func HandleDeleteAlertRule(grafanaClient *client.Client) func(ctx context.Context, request mcp.CallToolRequest) (*mcp.CallToolResult, error) {
+func HandleDeleteAlertRule() func(ctx context.Context, request mcp.CallToolRequest) (*mcp.CallToolResult, error) {
 	return func(ctx context.Context, request mcp.CallToolRequest) (*mcp.CallToolResult, error) {
+		c, cerr := client.FromContext(ctx)
+		if cerr != nil {
+			return mcp.NewToolResultError(cerr.Error()), nil
+		}
+
 		ruleUID, err := requireStringParam(request, "ruleUID")
 		if err != nil {
 			return nil, err
@@ -1468,7 +1668,7 @@ func HandleDeleteAlertRule(grafanaClient *client.Client) func(ctx context.Contex
 
 		logrus.WithField("ruleUID", ruleUID).Debug("Handler invoked: grafana_delete_alert_rule")
 
-		if err := grafanaClient.DeleteAlertRule(ctx, ruleUID); err != nil {
+		if err := c.DeleteAlertRule(ctx, ruleUID); err != nil {
 			return nil, fmt.Errorf("failed to delete alert rule: %w", err)
 		}
 
@@ -1480,11 +1680,16 @@ func HandleDeleteAlertRule(grafanaClient *client.Client) func(ctx context.Contex
 }
 
 // HandleListContactPoints handles listing contact points.
-func HandleListContactPoints(grafanaClient *client.Client) func(ctx context.Context, request mcp.CallToolRequest) (*mcp.CallToolResult, error) {
+func HandleListContactPoints() func(ctx context.Context, request mcp.CallToolRequest) (*mcp.CallToolResult, error) {
 	return func(ctx context.Context, request mcp.CallToolRequest) (*mcp.CallToolResult, error) {
+		c, cerr := client.FromContext(ctx)
+		if cerr != nil {
+			return mcp.NewToolResultError(cerr.Error()), nil
+		}
+
 		logrus.Debug("Handler invoked: grafana_list_contact_points")
 
-		contactPoints, err := grafanaClient.GetContactPoints(ctx)
+		contactPoints, err := c.GetContactPoints(ctx)
 		if err != nil {
 			return nil, fmt.Errorf("failed to list contact points: %w", err)
 		}
@@ -1501,8 +1706,13 @@ func HandleListContactPoints(grafanaClient *client.Client) func(ctx context.Cont
 // ============ Annotation Handlers ============
 
 // HandleGetAnnotations handles getting annotations.
-func HandleGetAnnotations(grafanaClient *client.Client) func(ctx context.Context, request mcp.CallToolRequest) (*mcp.CallToolResult, error) {
+func HandleGetAnnotations() func(ctx context.Context, request mcp.CallToolRequest) (*mcp.CallToolResult, error) {
 	return func(ctx context.Context, request mcp.CallToolRequest) (*mcp.CallToolResult, error) {
+		c, cerr := client.FromContext(ctx)
+		if cerr != nil {
+			return mcp.NewToolResultError(cerr.Error()), nil
+		}
+
 		params := make(map[string]string)
 
 		if v := getOptionalStringParam(request, "dashboardUID"); v != "" {
@@ -1523,7 +1733,7 @@ func HandleGetAnnotations(grafanaClient *client.Client) func(ctx context.Context
 
 		logrus.WithField("params", params).Debug("Handler invoked: grafana_get_annotations")
 
-		annotations, err := grafanaClient.GetAnnotations(ctx, params)
+		annotations, err := c.GetAnnotations(ctx, params)
 		if err != nil {
 			return nil, fmt.Errorf("failed to get annotations: %w", err)
 		}
@@ -1538,8 +1748,13 @@ func HandleGetAnnotations(grafanaClient *client.Client) func(ctx context.Context
 }
 
 // HandleCreateAnnotation handles creating an annotation.
-func HandleCreateAnnotation(grafanaClient *client.Client) func(ctx context.Context, request mcp.CallToolRequest) (*mcp.CallToolResult, error) {
+func HandleCreateAnnotation() func(ctx context.Context, request mcp.CallToolRequest) (*mcp.CallToolResult, error) {
 	return func(ctx context.Context, request mcp.CallToolRequest) (*mcp.CallToolResult, error) {
+		c, cerr := client.FromContext(ctx)
+		if cerr != nil {
+			return mcp.NewToolResultError(cerr.Error()), nil
+		}
+
 		text, err := requireStringParam(request, "text")
 		if err != nil {
 			return nil, err
@@ -1583,7 +1798,7 @@ func HandleCreateAnnotation(grafanaClient *client.Client) func(ctx context.Conte
 			Tags:         tags,
 		}
 
-		annotation, err := grafanaClient.CreateAnnotation(ctx, req)
+		annotation, err := c.CreateAnnotation(ctx, req)
 		if err != nil {
 			return nil, fmt.Errorf("failed to create annotation: %w", err)
 		}
@@ -1596,8 +1811,13 @@ func HandleCreateAnnotation(grafanaClient *client.Client) func(ctx context.Conte
 }
 
 // HandleUpdateAnnotation handles updating an annotation.
-func HandleUpdateAnnotation(grafanaClient *client.Client) func(ctx context.Context, request mcp.CallToolRequest) (*mcp.CallToolResult, error) {
+func HandleUpdateAnnotation() func(ctx context.Context, request mcp.CallToolRequest) (*mcp.CallToolResult, error) {
 	return func(ctx context.Context, request mcp.CallToolRequest) (*mcp.CallToolResult, error) {
+		c, cerr := client.FromContext(ctx)
+		if cerr != nil {
+			return mcp.NewToolResultError(cerr.Error()), nil
+		}
+
 		annotationIDStr, err := requireStringParam(request, "annotationID")
 		if err != nil {
 			return nil, err
@@ -1621,7 +1841,7 @@ func HandleUpdateAnnotation(grafanaClient *client.Client) func(ctx context.Conte
 
 		logrus.WithField("annotationID", annotationID).Debug("Handler invoked: grafana_update_annotation")
 
-		annotation, err := grafanaClient.UpdateAnnotation(ctx, annotationID, req)
+		annotation, err := c.UpdateAnnotation(ctx, annotationID, req)
 		if err != nil {
 			return nil, fmt.Errorf("failed to update annotation: %w", err)
 		}
@@ -1634,8 +1854,13 @@ func HandleUpdateAnnotation(grafanaClient *client.Client) func(ctx context.Conte
 }
 
 // HandlePatchAnnotation handles patching an annotation.
-func HandlePatchAnnotation(grafanaClient *client.Client) func(ctx context.Context, request mcp.CallToolRequest) (*mcp.CallToolResult, error) {
+func HandlePatchAnnotation() func(ctx context.Context, request mcp.CallToolRequest) (*mcp.CallToolResult, error) {
 	return func(ctx context.Context, request mcp.CallToolRequest) (*mcp.CallToolResult, error) {
+		c, cerr := client.FromContext(ctx)
+		if cerr != nil {
+			return mcp.NewToolResultError(cerr.Error()), nil
+		}
+
 		annotationIDStr, err := requireStringParam(request, "annotationID")
 		if err != nil {
 			return nil, err
@@ -1650,7 +1875,7 @@ func HandlePatchAnnotation(grafanaClient *client.Client) func(ctx context.Contex
 
 		logrus.WithField("annotationID", annotationID).Debug("Handler invoked: grafana_patch_annotation")
 
-		annotation, err := grafanaClient.PatchAnnotation(ctx, annotationID, req)
+		annotation, err := c.PatchAnnotation(ctx, annotationID, req)
 		if err != nil {
 			return nil, fmt.Errorf("failed to patch annotation: %w", err)
 		}
@@ -1663,8 +1888,13 @@ func HandlePatchAnnotation(grafanaClient *client.Client) func(ctx context.Contex
 }
 
 // HandleDeleteAnnotation handles deleting an annotation.
-func HandleDeleteAnnotation(grafanaClient *client.Client) func(ctx context.Context, request mcp.CallToolRequest) (*mcp.CallToolResult, error) {
+func HandleDeleteAnnotation() func(ctx context.Context, request mcp.CallToolRequest) (*mcp.CallToolResult, error) {
 	return func(ctx context.Context, request mcp.CallToolRequest) (*mcp.CallToolResult, error) {
+		c, cerr := client.FromContext(ctx)
+		if cerr != nil {
+			return mcp.NewToolResultError(cerr.Error()), nil
+		}
+
 		annotationIDStr, err := requireStringParam(request, "annotationID")
 		if err != nil {
 			return nil, err
@@ -1677,7 +1907,7 @@ func HandleDeleteAnnotation(grafanaClient *client.Client) func(ctx context.Conte
 
 		logrus.WithField("annotationID", annotationID).Debug("Handler invoked: grafana_delete_annotation")
 
-		if err := grafanaClient.DeleteAnnotation(ctx, annotationID); err != nil {
+		if err := c.DeleteAnnotation(ctx, annotationID); err != nil {
 			return nil, fmt.Errorf("failed to delete annotation: %w", err)
 		}
 
@@ -1689,13 +1919,18 @@ func HandleDeleteAnnotation(grafanaClient *client.Client) func(ctx context.Conte
 }
 
 // HandleGetAnnotationTags handles getting annotation tags.
-func HandleGetAnnotationTags(grafanaClient *client.Client) func(ctx context.Context, request mcp.CallToolRequest) (*mcp.CallToolResult, error) {
+func HandleGetAnnotationTags() func(ctx context.Context, request mcp.CallToolRequest) (*mcp.CallToolResult, error) {
 	return func(ctx context.Context, request mcp.CallToolRequest) (*mcp.CallToolResult, error) {
+		c, cerr := client.FromContext(ctx)
+		if cerr != nil {
+			return mcp.NewToolResultError(cerr.Error()), nil
+		}
+
 		tag := getOptionalStringParam(request, "tag")
 
 		logrus.WithField("tag", tag).Debug("Handler invoked: grafana_get_annotation_tags")
 
-		tags, err := grafanaClient.GetAnnotationTags(ctx, tag)
+		tags, err := c.GetAnnotationTags(ctx, tag)
 		if err != nil {
 			return nil, fmt.Errorf("failed to get annotation tags: %w", err)
 		}
@@ -1710,8 +1945,13 @@ func HandleGetAnnotationTags(grafanaClient *client.Client) func(ctx context.Cont
 }
 
 // HandleGenerateDeeplink handles generating deeplink URLs.
-func HandleGenerateDeeplink(grafanaClient *client.Client) func(ctx context.Context, request mcp.CallToolRequest) (*mcp.CallToolResult, error) {
+func HandleGenerateDeeplink() func(ctx context.Context, request mcp.CallToolRequest) (*mcp.CallToolResult, error) {
 	return func(ctx context.Context, request mcp.CallToolRequest) (*mcp.CallToolResult, error) {
+		c, cerr := client.FromContext(ctx)
+		if cerr != nil {
+			return mcp.NewToolResultError(cerr.Error()), nil
+		}
+
 		resourceType, err := requireStringParam(request, "resourceType")
 		if err != nil {
 			return nil, err
@@ -1741,7 +1981,7 @@ func HandleGenerateDeeplink(grafanaClient *client.Client) func(ctx context.Conte
 			"resourceUID":  resourceUID,
 		}).Debug("Handler invoked: grafana_generate_deeplink")
 
-		deeplink, err := grafanaClient.GenerateDeeplink(ctx, resourceType, resourceUID, params)
+		deeplink, err := c.GenerateDeeplink(ctx, resourceType, resourceUID, params)
 		if err != nil {
 			return nil, fmt.Errorf("failed to generate deeplink: %w", err)
 		}
@@ -1753,8 +1993,13 @@ func HandleGenerateDeeplink(grafanaClient *client.Client) func(ctx context.Conte
 }
 
 // HandleGenerateLogsDrilldownLink handles generating Logs Drilldown deeplink URLs.
-func HandleGenerateLogsDrilldownLink(grafanaClient *client.Client) func(ctx context.Context, request mcp.CallToolRequest) (*mcp.CallToolResult, error) {
+func HandleGenerateLogsDrilldownLink() func(ctx context.Context, request mcp.CallToolRequest) (*mcp.CallToolResult, error) {
 	return func(ctx context.Context, request mcp.CallToolRequest) (*mcp.CallToolResult, error) {
+		c, cerr := client.FromContext(ctx)
+		if cerr != nil {
+			return mcp.NewToolResultError(cerr.Error()), nil
+		}
+
 		params := map[string]string{}
 		if from := getOptionalStringParam(request, "from"); from != "" {
 			params["from"] = from
@@ -1772,7 +2017,7 @@ func HandleGenerateLogsDrilldownLink(grafanaClient *client.Client) func(ctx cont
 			params["orgId"] = orgID
 		}
 
-		deeplink, err := grafanaClient.GenerateLogsDrilldownLink(ctx, params)
+		deeplink, err := c.GenerateLogsDrilldownLink(ctx, params)
 		if err != nil {
 			return nil, fmt.Errorf("failed to generate logs drilldown link: %w", err)
 		}
@@ -1784,8 +2029,13 @@ func HandleGenerateLogsDrilldownLink(grafanaClient *client.Client) func(ctx cont
 }
 
 // HandleGetDataSourceByName handles getting a datasource by name.
-func HandleGetDataSourceByName(grafanaClient *client.Client) func(ctx context.Context, request mcp.CallToolRequest) (*mcp.CallToolResult, error) {
+func HandleGetDataSourceByName() func(ctx context.Context, request mcp.CallToolRequest) (*mcp.CallToolResult, error) {
 	return func(ctx context.Context, request mcp.CallToolRequest) (*mcp.CallToolResult, error) {
+		c, cerr := client.FromContext(ctx)
+		if cerr != nil {
+			return mcp.NewToolResultError(cerr.Error()), nil
+		}
+
 		name, err := requireStringParam(request, "name")
 		if err != nil {
 			return nil, err
@@ -1793,7 +2043,7 @@ func HandleGetDataSourceByName(grafanaClient *client.Client) func(ctx context.Co
 
 		logrus.WithField("name", name).Debug("Handler invoked: grafana_get_datasource_by_name")
 
-		dataSource, err := grafanaClient.GetDataSourceByName(ctx, name)
+		dataSource, err := c.GetDataSourceByName(ctx, name)
 		if err != nil {
 			return nil, fmt.Errorf("failed to get datasource by name: %w", err)
 		}
@@ -1807,8 +2057,13 @@ func HandleGetDataSourceByName(grafanaClient *client.Client) func(ctx context.Co
 // ============ Panel Image Rendering Handler ============
 
 // HandleRenderPanelImage handles rendering a dashboard panel to an image.
-func HandleRenderPanelImage(grafanaClient *client.Client) func(ctx context.Context, request mcp.CallToolRequest) (*mcp.CallToolResult, error) {
+func HandleRenderPanelImage() func(ctx context.Context, request mcp.CallToolRequest) (*mcp.CallToolResult, error) {
 	return func(ctx context.Context, request mcp.CallToolRequest) (*mcp.CallToolResult, error) {
+		c, cerr := client.FromContext(ctx)
+		if cerr != nil {
+			return mcp.NewToolResultError(cerr.Error()), nil
+		}
+
 		dashboardUID, err := requireStringParam(request, "dashboardUID")
 		if err != nil {
 			return nil, err
@@ -1844,7 +2099,7 @@ func HandleRenderPanelImage(grafanaClient *client.Client) func(ctx context.Conte
 			"panelID":      panelID,
 		}).Debug("Handler invoked: grafana_render_panel_image")
 
-		image, err := grafanaClient.RenderDashboardPanel(ctx, dashboardUID, panelID, params)
+		image, err := c.RenderDashboardPanel(ctx, dashboardUID, panelID, params)
 		if err != nil {
 			return nil, fmt.Errorf("failed to render panel: %w", err)
 		}
@@ -1867,8 +2122,13 @@ func HandleRenderPanelImage(grafanaClient *client.Client) func(ctx context.Conte
 // ============ Graphite Annotation Handler ============
 
 // HandleCreateGraphiteAnnotation handles creating a Graphite annotation.
-func HandleCreateGraphiteAnnotation(grafanaClient *client.Client) func(ctx context.Context, request mcp.CallToolRequest) (*mcp.CallToolResult, error) {
+func HandleCreateGraphiteAnnotation() func(ctx context.Context, request mcp.CallToolRequest) (*mcp.CallToolResult, error) {
 	return func(ctx context.Context, request mcp.CallToolRequest) (*mcp.CallToolResult, error) {
+		c, cerr := client.FromContext(ctx)
+		if cerr != nil {
+			return mcp.NewToolResultError(cerr.Error()), nil
+		}
+
 		what, err := requireStringParam(request, "what")
 		if err != nil {
 			return nil, err
@@ -1886,7 +2146,7 @@ func HandleCreateGraphiteAnnotation(grafanaClient *client.Client) func(ctx conte
 
 		logrus.WithField("what", what).Debug("Handler invoked: grafana_create_graphite_annotation")
 
-		annotation, err := grafanaClient.CreateGraphiteAnnotation(ctx, what, data, timestamp, tags)
+		annotation, err := c.CreateGraphiteAnnotation(ctx, what, data, timestamp, tags)
 		if err != nil {
 			return nil, fmt.Errorf("failed to create Graphite annotation: %w", err)
 		}
@@ -1901,8 +2161,13 @@ func HandleCreateGraphiteAnnotation(grafanaClient *client.Client) func(ctx conte
 // ============ Datasource Management Handlers ============
 
 // HandleCreateDatasource handles creating a new datasource.
-func HandleCreateDatasource(grafanaClient *client.Client) func(ctx context.Context, request mcp.CallToolRequest) (*mcp.CallToolResult, error) {
+func HandleCreateDatasource() func(ctx context.Context, request mcp.CallToolRequest) (*mcp.CallToolResult, error) {
 	return func(ctx context.Context, request mcp.CallToolRequest) (*mcp.CallToolResult, error) {
+		c, cerr := client.FromContext(ctx)
+		if cerr != nil {
+			return mcp.NewToolResultError(cerr.Error()), nil
+		}
+
 		name, err := requireStringParam(request, "name")
 		if err != nil {
 			return nil, err
@@ -1957,7 +2222,7 @@ func HandleCreateDatasource(grafanaClient *client.Client) func(ctx context.Conte
 
 		logrus.WithField("name", name).Debug("Handler invoked: grafana_create_datasource")
 
-		dataSource, err := grafanaClient.CreateDatasource(ctx, req)
+		dataSource, err := c.CreateDatasource(ctx, req)
 		if err != nil {
 			return nil, fmt.Errorf("failed to create datasource: %w", err)
 		}
@@ -1970,8 +2235,13 @@ func HandleCreateDatasource(grafanaClient *client.Client) func(ctx context.Conte
 }
 
 // HandleUpdateDatasource handles updating an existing datasource.
-func HandleUpdateDatasource(grafanaClient *client.Client) func(ctx context.Context, request mcp.CallToolRequest) (*mcp.CallToolResult, error) {
+func HandleUpdateDatasource() func(ctx context.Context, request mcp.CallToolRequest) (*mcp.CallToolResult, error) {
 	return func(ctx context.Context, request mcp.CallToolRequest) (*mcp.CallToolResult, error) {
+		c, cerr := client.FromContext(ctx)
+		if cerr != nil {
+			return mcp.NewToolResultError(cerr.Error()), nil
+		}
+
 		uid, err := requireStringParam(request, "uid")
 		if err != nil {
 			return nil, err
@@ -2030,7 +2300,7 @@ func HandleUpdateDatasource(grafanaClient *client.Client) func(ctx context.Conte
 
 		logrus.WithField("uid", uid).Debug("Handler invoked: grafana_update_datasource")
 
-		dataSource, err := grafanaClient.UpdateDatasource(ctx, req)
+		dataSource, err := c.UpdateDatasource(ctx, req)
 		if err != nil {
 			return nil, fmt.Errorf("failed to update datasource: %w", err)
 		}
@@ -2043,8 +2313,13 @@ func HandleUpdateDatasource(grafanaClient *client.Client) func(ctx context.Conte
 }
 
 // HandleDeleteDatasource handles deleting a datasource.
-func HandleDeleteDatasource(grafanaClient *client.Client) func(ctx context.Context, request mcp.CallToolRequest) (*mcp.CallToolResult, error) {
+func HandleDeleteDatasource() func(ctx context.Context, request mcp.CallToolRequest) (*mcp.CallToolResult, error) {
 	return func(ctx context.Context, request mcp.CallToolRequest) (*mcp.CallToolResult, error) {
+		c, cerr := client.FromContext(ctx)
+		if cerr != nil {
+			return mcp.NewToolResultError(cerr.Error()), nil
+		}
+
 		uid, err := requireStringParam(request, "uid")
 		if err != nil {
 			return nil, err
@@ -2052,7 +2327,7 @@ func HandleDeleteDatasource(grafanaClient *client.Client) func(ctx context.Conte
 
 		logrus.WithField("uid", uid).Debug("Handler invoked: grafana_delete_datasource")
 
-		if err := grafanaClient.DeleteDatasource(ctx, uid); err != nil {
+		if err := c.DeleteDatasource(ctx, uid); err != nil {
 			return nil, fmt.Errorf("failed to delete datasource: %w", err)
 		}
 

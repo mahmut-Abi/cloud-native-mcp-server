@@ -16,8 +16,8 @@ import (
 )
 
 // Service implements the Loki service for MCP server integration.
+// The backend client is not stored — it is created per-request from HTTP headers.
 type Service struct {
-	client        *client.Client
 	enabled       bool
 	toolsCache    *cache.ToolsCache
 	initFramework *framework.CommonServiceInit
@@ -65,20 +65,20 @@ func (s *Service) Name() string {
 }
 
 // Initialize configures the Loki service.
+// The backend client is created per-request from HTTP headers (see client/config.go).
 func (s *Service) Initialize(cfg interface{}) error {
 	return s.initFramework.Initialize(cfg,
 		func(enabled bool) { s.enabled = enabled },
-		func(clientIface interface{}) {
-			if lokiClient, ok := clientIface.(*client.Client); ok {
-				s.client = lokiClient
-			}
+		func(_ interface{}) {
+			// Backend client is created per-request from HTTP headers.
+			// The backend auth handler was registered in client/config.go init().
 		},
 	)
 }
 
 // GetTools returns all available Loki tools.
 func (s *Service) GetTools() []mcp.Tool {
-	if !s.enabled || s.client == nil {
+	if !s.enabled {
 		return nil
 	}
 
@@ -97,18 +97,18 @@ func (s *Service) GetTools() []mcp.Tool {
 
 // GetHandlers returns all Loki tool handlers.
 func (s *Service) GetHandlers() map[string]server.ToolHandlerFunc {
-	if !s.enabled || s.client == nil {
+	if !s.enabled {
 		return nil
 	}
 
 	handlersMap := map[string]server.ToolHandlerFunc{
-		"loki_query_logs_summary": handlers.QueryLogsSummaryHandler(s),
-		"loki_query":              handlers.QueryHandler(s),
-		"loki_query_range":        handlers.QueryRangeHandler(s),
-		"loki_get_label_names":    handlers.GetLabelNamesHandler(s),
-		"loki_get_label_values":   handlers.GetLabelValuesHandler(s),
-		"loki_get_series":         handlers.GetSeriesHandler(s),
-		"loki_test_connection":    handlers.TestConnectionHandler(s),
+		"loki_query_logs_summary": handlers.QueryLogsSummaryHandler(),
+		"loki_query":              handlers.QueryHandler(),
+		"loki_query_range":        handlers.QueryRangeHandler(),
+		"loki_get_label_names":    handlers.GetLabelNamesHandler(),
+		"loki_get_label_values":   handlers.GetLabelValuesHandler(),
+		"loki_get_series":         handlers.GetSeriesHandler(),
+		"loki_test_connection":    handlers.TestConnectionHandler(),
 	}
 
 	for name, handler := range handlersMap {
@@ -120,12 +120,12 @@ func (s *Service) GetHandlers() map[string]server.ToolHandlerFunc {
 
 // IsEnabled returns whether the Loki service is enabled and ready.
 func (s *Service) IsEnabled() bool {
-	return s.enabled && s.client != nil
+	return s.enabled
 }
 
 // GetClient returns the underlying Loki client.
 func (s *Service) GetClient() *client.Client {
-	return s.client
+	return nil
 }
 
 func (s *Service) wrapToolErrors(toolName string, handler server.ToolHandlerFunc) server.ToolHandlerFunc {

@@ -14,8 +14,13 @@ import (
 )
 
 // HandleSearchSavedObjects handles Kibana saved objects search requests.
-func HandleSearchSavedObjects(c *client.Client) func(ctx context.Context, req mcp.CallToolRequest) (*mcp.CallToolResult, error) {
+func HandleSearchSavedObjects() func(ctx context.Context, req mcp.CallToolRequest) (*mcp.CallToolResult, error) {
 	return func(ctx context.Context, req mcp.CallToolRequest) (*mcp.CallToolResult, error) {
+		c, cerr := client.FromContext(ctx)
+		if cerr != nil {
+			return mcp.NewToolResultError(cerr.Error()), nil
+		}
+
 		logrus.Debug("Executing Kibana search saved objects handler")
 
 		// Get optional parameters
@@ -55,8 +60,13 @@ func HandleSearchSavedObjects(c *client.Client) func(ctx context.Context, req mc
 }
 
 // HandleGetSavedSearches handles Kibana saved searches retrieval requests.
-func HandleGetSavedSearches(c *client.Client) func(ctx context.Context, req mcp.CallToolRequest) (*mcp.CallToolResult, error) {
+func HandleGetSavedSearches() func(ctx context.Context, req mcp.CallToolRequest) (*mcp.CallToolResult, error) {
 	return func(ctx context.Context, req mcp.CallToolRequest) (*mcp.CallToolResult, error) {
+		c, cerr := client.FromContext(ctx)
+		if cerr != nil {
+			return mcp.NewToolResultError(cerr.Error()), nil
+		}
+
 		logrus.Debug("Executing Kibana get saved searches handler")
 
 		// Get saved searches
@@ -90,8 +100,13 @@ func HandleGetSavedSearches(c *client.Client) func(ctx context.Context, req mcp.
 }
 
 // HandleGetSavedSearch handles specific Kibana saved search retrieval requests.
-func HandleGetSavedSearch(c *client.Client) func(ctx context.Context, req mcp.CallToolRequest) (*mcp.CallToolResult, error) {
+func HandleGetSavedSearch() func(ctx context.Context, req mcp.CallToolRequest) (*mcp.CallToolResult, error) {
 	return func(ctx context.Context, req mcp.CallToolRequest) (*mcp.CallToolResult, error) {
+		c, cerr := client.FromContext(ctx)
+		if cerr != nil {
+			return mcp.NewToolResultError(cerr.Error()), nil
+		}
+
 		logrus.Debug("Executing Kibana get saved search handler")
 
 		// Extract parameters
@@ -147,8 +162,13 @@ func HandleGetSavedSearch(c *client.Client) func(ctx context.Context, req mcp.Ca
 }
 
 // HandleCreateSavedObject handles creating a generic saved object
-func HandleCreateSavedObject(c *client.Client) func(ctx context.Context, req mcp.CallToolRequest) (*mcp.CallToolResult, error) {
+func HandleCreateSavedObject() func(ctx context.Context, req mcp.CallToolRequest) (*mcp.CallToolResult, error) {
 	return func(ctx context.Context, req mcp.CallToolRequest) (*mcp.CallToolResult, error) {
+		c, cerr := client.FromContext(ctx)
+		if cerr != nil {
+			return mcp.NewToolResultError(cerr.Error()), nil
+		}
+
 		logrus.Debug("Executing Kibana create saved object handler")
 
 		objectType := getOptionalStringParam(req, "type")
@@ -208,8 +228,13 @@ func HandleCreateSavedObject(c *client.Client) func(ctx context.Context, req mcp
 }
 
 // HandleUpdateSavedObject handles updating a saved object
-func HandleUpdateSavedObject(c *client.Client) func(ctx context.Context, req mcp.CallToolRequest) (*mcp.CallToolResult, error) {
+func HandleUpdateSavedObject() func(ctx context.Context, req mcp.CallToolRequest) (*mcp.CallToolResult, error) {
 	return func(ctx context.Context, req mcp.CallToolRequest) (*mcp.CallToolResult, error) {
+		c, cerr := client.FromContext(ctx)
+		if cerr != nil {
+			return mcp.NewToolResultError(cerr.Error()), nil
+		}
+
 		logrus.Debug("Executing Kibana update saved object handler")
 
 		objectType := getOptionalStringParam(req, "type")
@@ -270,8 +295,13 @@ func HandleUpdateSavedObject(c *client.Client) func(ctx context.Context, req mcp
 }
 
 // HandleDeleteSavedObject handles deleting a saved object
-func HandleDeleteSavedObject(c *client.Client) func(ctx context.Context, req mcp.CallToolRequest) (*mcp.CallToolResult, error) {
+func HandleDeleteSavedObject() func(ctx context.Context, req mcp.CallToolRequest) (*mcp.CallToolResult, error) {
 	return func(ctx context.Context, req mcp.CallToolRequest) (*mcp.CallToolResult, error) {
+		c, cerr := client.FromContext(ctx)
+		if cerr != nil {
+			return mcp.NewToolResultError(cerr.Error()), nil
+		}
+
 		logrus.Debug("Executing Kibana delete saved object handler")
 
 		objectType := getOptionalStringParam(req, "type")
@@ -310,8 +340,13 @@ func HandleDeleteSavedObject(c *client.Client) func(ctx context.Context, req mcp
 }
 
 // HandleBulkDeleteSavedObjects handles bulk deleting saved objects
-func HandleBulkDeleteSavedObjects(c *client.Client) func(ctx context.Context, req mcp.CallToolRequest) (*mcp.CallToolResult, error) {
+func HandleBulkDeleteSavedObjects() func(ctx context.Context, req mcp.CallToolRequest) (*mcp.CallToolResult, error) {
 	return func(ctx context.Context, req mcp.CallToolRequest) (*mcp.CallToolResult, error) {
+		c, cerr := client.FromContext(ctx)
+		if cerr != nil {
+			return mcp.NewToolResultError(cerr.Error()), nil
+		}
+
 		logrus.Debug("Executing Kibana bulk delete saved objects handler")
 
 		objectMaps, err := getOptionalObjectArrayParam(req, "objects")
@@ -354,8 +389,13 @@ func HandleBulkDeleteSavedObjects(c *client.Client) func(ctx context.Context, re
 }
 
 // HandleExportSavedObjects handles exporting saved objects
-func HandleExportSavedObjects(c *client.Client) func(ctx context.Context, req mcp.CallToolRequest) (*mcp.CallToolResult, error) {
+func HandleExportSavedObjects() func(ctx context.Context, req mcp.CallToolRequest) (*mcp.CallToolResult, error) {
 	return func(ctx context.Context, req mcp.CallToolRequest) (*mcp.CallToolResult, error) {
+		c, cerr := client.FromContext(ctx)
+		if cerr != nil {
+			return mcp.NewToolResultError(cerr.Error()), nil
+		}
+
 		logrus.Debug("Executing Kibana export saved objects handler")
 
 		objectMaps, err := getOptionalObjectArrayParam(req, "objects")
@@ -403,8 +443,13 @@ func HandleExportSavedObjects(c *client.Client) func(ctx context.Context, req mc
 }
 
 // HandleImportSavedObjects handles importing saved objects
-func HandleImportSavedObjects(c *client.Client) func(ctx context.Context, req mcp.CallToolRequest) (*mcp.CallToolResult, error) {
+func HandleImportSavedObjects() func(ctx context.Context, req mcp.CallToolRequest) (*mcp.CallToolResult, error) {
 	return func(ctx context.Context, req mcp.CallToolRequest) (*mcp.CallToolResult, error) {
+		c, cerr := client.FromContext(ctx)
+		if cerr != nil {
+			return mcp.NewToolResultError(cerr.Error()), nil
+		}
+
 		logrus.Debug("Executing Kibana import saved objects handler")
 
 		fileContent := getOptionalStringParam(req, "file")
@@ -442,8 +487,13 @@ func HandleImportSavedObjects(c *client.Client) func(ctx context.Context, req mc
 }
 
 // HandleSearchSavedObjectsAdvanced handles advanced saved objects search with enhanced filters
-func HandleSearchSavedObjectsAdvanced(c *client.Client) func(ctx context.Context, request mcp.CallToolRequest) (*mcp.CallToolResult, error) {
+func HandleSearchSavedObjectsAdvanced() func(ctx context.Context, request mcp.CallToolRequest) (*mcp.CallToolResult, error) {
 	return func(ctx context.Context, request mcp.CallToolRequest) (*mcp.CallToolResult, error) {
+		c, cerr := client.FromContext(ctx)
+		if cerr != nil {
+			return mcp.NewToolResultError(cerr.Error()), nil
+		}
+
 		objectType := getOptionalStringParam(request, "type")
 		search := getOptionalStringParam(request, "search")
 		page := getOptionalIntParam(request, "page", 1)

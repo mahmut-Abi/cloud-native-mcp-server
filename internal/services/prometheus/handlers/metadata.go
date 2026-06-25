@@ -14,8 +14,12 @@ import (
 )
 
 // HandleGetMetricsMetadata handles metrics metadata requests.
-func HandleGetMetricsMetadata(c *client.Client) func(ctx context.Context, req mcp.CallToolRequest) (*mcp.CallToolResult, error) {
+func HandleGetMetricsMetadata() func(ctx context.Context, req mcp.CallToolRequest) (*mcp.CallToolResult, error) {
 	return func(ctx context.Context, req mcp.CallToolRequest) (*mcp.CallToolResult, error) {
+		c, err := client.FromContext(ctx)
+		if err != nil {
+			return mcp.NewToolResultError(err.Error()), nil
+		}
 		logrus.Debug("Executing Prometheus metrics metadata handler")
 
 		metric, _ := svccommon.GetStringArg(req.GetArguments(), "metric")
@@ -49,8 +53,12 @@ func HandleGetMetricsMetadata(c *client.Client) func(ctx context.Context, req mc
 }
 
 // HandleGetTargetMetadata handles target metadata requests.
-func HandleGetTargetMetadata(c *client.Client) func(ctx context.Context, req mcp.CallToolRequest) (*mcp.CallToolResult, error) {
+func HandleGetTargetMetadata() func(ctx context.Context, req mcp.CallToolRequest) (*mcp.CallToolResult, error) {
 	return func(ctx context.Context, req mcp.CallToolRequest) (*mcp.CallToolResult, error) {
+		c, err := client.FromContext(ctx)
+		if err != nil {
+			return mcp.NewToolResultError(err.Error()), nil
+		}
 		logrus.Debug("Executing Prometheus target metadata handler")
 
 		metric, _ := svccommon.GetStringArg(req.GetArguments(), "metric")

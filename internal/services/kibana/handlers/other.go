@@ -13,8 +13,13 @@ import (
 )
 
 // HandleGetKibanaStatus handles Kibana status retrieval requests.
-func HandleGetKibanaStatus(c *client.Client) func(ctx context.Context, req mcp.CallToolRequest) (*mcp.CallToolResult, error) {
+func HandleGetKibanaStatus() func(ctx context.Context, req mcp.CallToolRequest) (*mcp.CallToolResult, error) {
 	return func(ctx context.Context, req mcp.CallToolRequest) (*mcp.CallToolResult, error) {
+		c, cerr := client.FromContext(ctx)
+		if cerr != nil {
+			return mcp.NewToolResultError(cerr.Error()), nil
+		}
+
 		logrus.Debug("Executing Kibana get status handler")
 
 		// Get Kibana status
@@ -48,8 +53,13 @@ func HandleGetKibanaStatus(c *client.Client) func(ctx context.Context, req mcp.C
 }
 
 // HandleQueryLogs handles log search requests.
-func HandleQueryLogs(c *client.Client) func(ctx context.Context, req mcp.CallToolRequest) (*mcp.CallToolResult, error) {
+func HandleQueryLogs() func(ctx context.Context, req mcp.CallToolRequest) (*mcp.CallToolResult, error) {
 	return func(ctx context.Context, req mcp.CallToolRequest) (*mcp.CallToolResult, error) {
+		c, cerr := client.FromContext(ctx)
+		if cerr != nil {
+			return mcp.NewToolResultError(cerr.Error()), nil
+		}
+
 		indexPattern := ""
 		if v, ok := req.GetArguments()["indexPattern"]; ok {
 			if s, ok := v.(string); ok {
@@ -120,8 +130,13 @@ func HandleQueryLogs(c *client.Client) func(ctx context.Context, req mcp.CallToo
 }
 
 // HandleGetCanvasWorkpads handles Canvas workpad retrieval requests.
-func HandleGetCanvasWorkpads(c *client.Client) func(ctx context.Context, req mcp.CallToolRequest) (*mcp.CallToolResult, error) {
+func HandleGetCanvasWorkpads() func(ctx context.Context, req mcp.CallToolRequest) (*mcp.CallToolResult, error) {
 	return func(ctx context.Context, req mcp.CallToolRequest) (*mcp.CallToolResult, error) {
+		c, cerr := client.FromContext(ctx)
+		if cerr != nil {
+			return mcp.NewToolResultError(cerr.Error()), nil
+		}
+
 		logrus.Debug("Executing Kibana get Canvas workpads handler")
 
 		workpads, err := c.GetCanvasWorkpads(ctx)
@@ -153,8 +168,13 @@ func HandleGetCanvasWorkpads(c *client.Client) func(ctx context.Context, req mcp
 }
 
 // HandleGetLensObjects handles Lens visualization retrieval requests.
-func HandleGetLensObjects(c *client.Client) func(ctx context.Context, req mcp.CallToolRequest) (*mcp.CallToolResult, error) {
+func HandleGetLensObjects() func(ctx context.Context, req mcp.CallToolRequest) (*mcp.CallToolResult, error) {
 	return func(ctx context.Context, req mcp.CallToolRequest) (*mcp.CallToolResult, error) {
+		c, cerr := client.FromContext(ctx)
+		if cerr != nil {
+			return mcp.NewToolResultError(cerr.Error()), nil
+		}
+
 		logrus.Debug("Executing Kibana get Lens objects handler")
 
 		lenses, err := c.GetLensObjects(ctx)
@@ -186,8 +206,13 @@ func HandleGetLensObjects(c *client.Client) func(ctx context.Context, req mcp.Ca
 }
 
 // HandleGetMaps handles Kibana Maps retrieval requests.
-func HandleGetMaps(c *client.Client) func(ctx context.Context, req mcp.CallToolRequest) (*mcp.CallToolResult, error) {
+func HandleGetMaps() func(ctx context.Context, req mcp.CallToolRequest) (*mcp.CallToolResult, error) {
 	return func(ctx context.Context, req mcp.CallToolRequest) (*mcp.CallToolResult, error) {
+		c, cerr := client.FromContext(ctx)
+		if cerr != nil {
+			return mcp.NewToolResultError(cerr.Error()), nil
+		}
+
 		logrus.Debug("Executing Kibana get Maps handler")
 
 		maps, err := c.GetMaps(ctx)
@@ -219,8 +244,13 @@ func HandleGetMaps(c *client.Client) func(ctx context.Context, req mcp.CallToolR
 }
 
 // HandleGetHealthSummary handles getting Kibana health summary
-func HandleGetHealthSummary(c *client.Client) func(ctx context.Context, request mcp.CallToolRequest) (*mcp.CallToolResult, error) {
+func HandleGetHealthSummary() func(ctx context.Context, request mcp.CallToolRequest) (*mcp.CallToolResult, error) {
 	return func(ctx context.Context, request mcp.CallToolRequest) (*mcp.CallToolResult, error) {
+		c, cerr := client.FromContext(ctx)
+		if cerr != nil {
+			return mcp.NewToolResultError(cerr.Error()), nil
+		}
+
 		level := getOptionalStringParam(request, "level")
 		if level == "" {
 			level = "basic"

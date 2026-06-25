@@ -15,8 +15,8 @@ import (
 )
 
 // Service implements the Langfuse MCP service.
+// The backend client is not stored — it is created per-request from HTTP headers.
 type Service struct {
-	client        *client.Client
 	enabled       bool
 	toolsCache    *cache.ToolsCache
 	initFramework *framework.CommonServiceInit
@@ -55,20 +55,20 @@ func (s *Service) Name() string {
 }
 
 // Initialize configures the Langfuse service.
+// The backend client is created per-request from HTTP headers (see client/config.go).
 func (s *Service) Initialize(cfg interface{}) error {
 	return s.initFramework.Initialize(cfg,
 		func(enabled bool) { s.enabled = enabled },
-		func(clientIface interface{}) {
-			if langfuseClient, ok := clientIface.(*client.Client); ok {
-				s.client = langfuseClient
-			}
+		func(_ interface{}) {
+			// Backend client is created per-request from HTTP headers.
+			// The backend auth handler was registered in client/config.go init().
 		},
 	)
 }
 
 // GetTools returns all Langfuse tools.
 func (s *Service) GetTools() []mcp.Tool {
-	if !s.enabled || s.client == nil {
+	if !s.enabled {
 		return nil
 	}
 
@@ -117,57 +117,52 @@ func (s *Service) GetTools() []mcp.Tool {
 
 // GetHandlers returns all Langfuse handlers.
 func (s *Service) GetHandlers() map[string]server.ToolHandlerFunc {
-	if !s.enabled || s.client == nil {
+	if !s.enabled {
 		return nil
 	}
 
 	return map[string]server.ToolHandlerFunc{
-		"langfuse_check_health":                handlers.HandleCheckHealth(s),
-		"langfuse_list_traces_summary":         handlers.HandleListTracesSummary(s),
-		"langfuse_list_traces":                 handlers.HandleListTraces(s),
-		"langfuse_get_trace":                   handlers.HandleGetTrace(s),
-		"langfuse_list_annotation_queues":      handlers.HandleListAnnotationQueues(s),
-		"langfuse_get_annotation_queue":        handlers.HandleGetAnnotationQueue(s),
-		"langfuse_list_annotation_queue_items": handlers.HandleListAnnotationQueueItems(s),
-		"langfuse_list_datasets":               handlers.HandleListDatasets(s),
-		"langfuse_get_dataset":                 handlers.HandleGetDataset(s),
-		"langfuse_list_dataset_runs":           handlers.HandleListDatasetRuns(s),
-		"langfuse_get_dataset_run":             handlers.HandleGetDatasetRun(s),
-		"langfuse_list_llm_connections":        handlers.HandleListLLMConnections(s),
-		"langfuse_list_models":                 handlers.HandleListModels(s),
-		"langfuse_get_model":                   handlers.HandleGetModel(s),
-		"langfuse_list_sessions":               handlers.HandleListSessions(s),
-		"langfuse_get_session":                 handlers.HandleGetSession(s),
-		"langfuse_list_observations":           handlers.HandleListObservations(s),
-		"langfuse_get_observation":             handlers.HandleGetObservation(s),
-		"langfuse_list_prompts":                handlers.HandleListPrompts(s),
-		"langfuse_get_prompt":                  handlers.HandleGetPrompt(s),
-		"langfuse_list_score_configs":          handlers.HandleListScoreConfigs(s),
-		"langfuse_get_score_config":            handlers.HandleGetScoreConfig(s),
-		"langfuse_list_scores":                 handlers.HandleListScores(s),
-		"langfuse_get_score":                   handlers.HandleGetScore(s),
-		"langfuse_get_metrics":                 handlers.HandleGetMetrics(s),
-		"langfuse_get_project":                 handlers.HandleGetProject(s),
-		"langfuse_list_organization_projects":  handlers.HandleListOrganizationProjects(s),
-		"langfuse_create_project":              handlers.HandleCreateProject(s),
-		"langfuse_update_project":              handlers.HandleUpdateProject(s),
-		"langfuse_delete_project":              handlers.HandleDeleteProject(s),
-		"langfuse_list_project_memberships":    handlers.HandleListProjectMemberships(s),
-		"langfuse_upsert_project_membership":   handlers.HandleUpsertProjectMembership(s),
-		"langfuse_delete_project_membership":   handlers.HandleDeleteProjectMembership(s),
-		"langfuse_list_organization_api_keys":  handlers.HandleListOrganizationAPIKeys(s),
-		"langfuse_list_project_api_keys":       handlers.HandleListProjectAPIKeys(s),
-		"langfuse_create_project_api_key":      handlers.HandleCreateProjectAPIKey(s),
-		"langfuse_delete_project_api_key":      handlers.HandleDeleteProjectAPIKey(s),
+		"langfuse_check_health":                handlers.HandleCheckHealth(),
+		"langfuse_list_traces_summary":         handlers.HandleListTracesSummary(),
+		"langfuse_list_traces":                 handlers.HandleListTraces(),
+		"langfuse_get_trace":                   handlers.HandleGetTrace(),
+		"langfuse_list_annotation_queues":      handlers.HandleListAnnotationQueues(),
+		"langfuse_get_annotation_queue":        handlers.HandleGetAnnotationQueue(),
+		"langfuse_list_annotation_queue_items": handlers.HandleListAnnotationQueueItems(),
+		"langfuse_list_datasets":               handlers.HandleListDatasets(),
+		"langfuse_get_dataset":                 handlers.HandleGetDataset(),
+		"langfuse_list_dataset_runs":           handlers.HandleListDatasetRuns(),
+		"langfuse_get_dataset_run":             handlers.HandleGetDatasetRun(),
+		"langfuse_list_llm_connections":        handlers.HandleListLLMConnections(),
+		"langfuse_list_models":                 handlers.HandleListModels(),
+		"langfuse_get_model":                   handlers.HandleGetModel(),
+		"langfuse_list_sessions":               handlers.HandleListSessions(),
+		"langfuse_get_session":                 handlers.HandleGetSession(),
+		"langfuse_list_observations":           handlers.HandleListObservations(),
+		"langfuse_get_observation":             handlers.HandleGetObservation(),
+		"langfuse_list_prompts":                handlers.HandleListPrompts(),
+		"langfuse_get_prompt":                  handlers.HandleGetPrompt(),
+		"langfuse_list_score_configs":          handlers.HandleListScoreConfigs(),
+		"langfuse_get_score_config":            handlers.HandleGetScoreConfig(),
+		"langfuse_list_scores":                 handlers.HandleListScores(),
+		"langfuse_get_score":                   handlers.HandleGetScore(),
+		"langfuse_get_metrics":                 handlers.HandleGetMetrics(),
+		"langfuse_get_project":                 handlers.HandleGetProject(),
+		"langfuse_list_organization_projects":  handlers.HandleListOrganizationProjects(),
+		"langfuse_create_project":              handlers.HandleCreateProject(),
+		"langfuse_update_project":              handlers.HandleUpdateProject(),
+		"langfuse_delete_project":              handlers.HandleDeleteProject(),
+		"langfuse_list_project_memberships":    handlers.HandleListProjectMemberships(),
+		"langfuse_upsert_project_membership":   handlers.HandleUpsertProjectMembership(),
+		"langfuse_delete_project_membership":   handlers.HandleDeleteProjectMembership(),
+		"langfuse_list_organization_api_keys":  handlers.HandleListOrganizationAPIKeys(),
+		"langfuse_list_project_api_keys":       handlers.HandleListProjectAPIKeys(),
+		"langfuse_create_project_api_key":      handlers.HandleCreateProjectAPIKey(),
+		"langfuse_delete_project_api_key":      handlers.HandleDeleteProjectAPIKey(),
 	}
 }
 
-// IsEnabled returns whether the service is enabled and ready.
+// IsEnabled returns whether the service is enabled.
 func (s *Service) IsEnabled() bool {
-	return s.enabled && s.client != nil
-}
-
-// GetClient exposes the underlying Langfuse client.
-func (s *Service) GetClient() *client.Client {
-	return s.client
+	return s.enabled
 }

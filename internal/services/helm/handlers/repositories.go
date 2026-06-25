@@ -12,7 +12,7 @@ import (
 )
 
 // HandleListRepositories returns a handler function for listing Helm repositories.
-func HandleListRepositories(c *client.Client) func(ctx context.Context, request mcp.CallToolRequest) (*mcp.CallToolResult, error) {
+func HandleListRepositories() func(ctx context.Context, request mcp.CallToolRequest) (*mcp.CallToolResult, error) {
 	return func(ctx context.Context, request mcp.CallToolRequest) (*mcp.CallToolResult, error) {
 		logrus.WithField("tool", "list_helm_repos").Debug("Handler invoked")
 
@@ -28,6 +28,14 @@ func HandleListRepositories(c *client.Client) func(ctx context.Context, request 
 
 		// Run the list operation in a goroutine
 		go func() {
+			c, err := client.FromContext(ctx)
+			if err != nil {
+				resultChan <- struct {
+					repos []*client.Repository
+					err   error
+				}{nil, err}
+				return
+			}
 			repos, err := c.ListRepositories()
 			resultChan <- struct {
 				repos []*client.Repository
@@ -70,8 +78,12 @@ func HandleListRepositories(c *client.Client) func(ctx context.Context, request 
 }
 
 // HandleAddRepository returns a handler function for adding a Helm repository.
-func HandleAddRepository(c *client.Client) func(ctx context.Context, request mcp.CallToolRequest) (*mcp.CallToolResult, error) {
+func HandleAddRepository() func(ctx context.Context, request mcp.CallToolRequest) (*mcp.CallToolResult, error) {
 	return func(ctx context.Context, request mcp.CallToolRequest) (*mcp.CallToolResult, error) {
+		c, err := client.FromContext(ctx)
+		if err != nil {
+			return mcp.NewToolResultError(err.Error()), nil
+		}
 		logrus.WithField("tool", "helm_add_repository").Debug("Handler invoked")
 		name, err := requireStringParam(request, "name")
 		if err != nil {
@@ -111,8 +123,12 @@ func HandleAddRepository(c *client.Client) func(ctx context.Context, request mcp
 }
 
 // HandleRemoveRepository returns a handler function for removing a Helm repository.
-func HandleRemoveRepository(c *client.Client) func(ctx context.Context, request mcp.CallToolRequest) (*mcp.CallToolResult, error) {
+func HandleRemoveRepository() func(ctx context.Context, request mcp.CallToolRequest) (*mcp.CallToolResult, error) {
 	return func(ctx context.Context, request mcp.CallToolRequest) (*mcp.CallToolResult, error) {
+		c, err := client.FromContext(ctx)
+		if err != nil {
+			return mcp.NewToolResultError(err.Error()), nil
+		}
 		logrus.WithField("tool", "helm_remove_repository").Debug("Handler invoked")
 		name, err := requireStringParam(request, "name")
 		if err != nil {
@@ -148,8 +164,12 @@ func HandleRemoveRepository(c *client.Client) func(ctx context.Context, request 
 }
 
 // HandleUpdateRepositories returns a handler function for updating Helm repositories.
-func HandleUpdateRepositories(c *client.Client) func(ctx context.Context, request mcp.CallToolRequest) (*mcp.CallToolResult, error) {
+func HandleUpdateRepositories() func(ctx context.Context, request mcp.CallToolRequest) (*mcp.CallToolResult, error) {
 	return func(ctx context.Context, request mcp.CallToolRequest) (*mcp.CallToolResult, error) {
+		c, err := client.FromContext(ctx)
+		if err != nil {
+			return mcp.NewToolResultError(err.Error()), nil
+		}
 		logrus.WithField("tool", "helm_update_repositories").Debug("Handler invoked")
 
 		// Create a context with 5 minute timeout for repository updates

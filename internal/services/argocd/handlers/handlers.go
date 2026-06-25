@@ -12,14 +12,10 @@ import (
 	server "github.com/mark3labs/mcp-go/server"
 )
 
-// ServiceInterface is the subset of methods required by handlers.
-type ServiceInterface interface {
-	GetClient() *client.Client
-}
 
-func HandleTestConnection(service ServiceInterface) server.ToolHandlerFunc {
+func HandleTestConnection() server.ToolHandlerFunc {
 	return func(ctx context.Context, request mcp.CallToolRequest) (*mcp.CallToolResult, error) {
-		argocdClient, err := getClient(service)
+		argocdClient, err := client.FromContext(ctx)
 		if err != nil {
 			return nil, err
 		}
@@ -31,7 +27,7 @@ func HandleTestConnection(service ServiceInterface) server.ToolHandlerFunc {
 	}
 }
 
-func HandleListApplicationsSummary(service ServiceInterface) server.ToolHandlerFunc {
+func HandleListApplicationsSummary() server.ToolHandlerFunc {
 	return func(ctx context.Context, request mcp.CallToolRequest) (*mcp.CallToolResult, error) {
 		args := request.GetArguments()
 		params := url.Values{}
@@ -45,7 +41,7 @@ func HandleListApplicationsSummary(service ServiceInterface) server.ToolHandlerF
 			params.Set("repo", repo)
 		}
 
-		argocdClient, err := getClient(service)
+		argocdClient, err := client.FromContext(ctx)
 		if err != nil {
 			return nil, err
 		}
@@ -66,7 +62,7 @@ func HandleListApplicationsSummary(service ServiceInterface) server.ToolHandlerF
 	}
 }
 
-func HandleGetApplication(service ServiceInterface) server.ToolHandlerFunc {
+func HandleGetApplication() server.ToolHandlerFunc {
 	return func(ctx context.Context, request mcp.CallToolRequest) (*mcp.CallToolResult, error) {
 		args := request.GetArguments()
 		name, err := svccommon.RequireStringArg(args, "name")
@@ -79,7 +75,7 @@ func HandleGetApplication(service ServiceInterface) server.ToolHandlerFunc {
 			params.Set("appNamespace", appNamespace)
 		}
 
-		argocdClient, err := getClient(service)
+		argocdClient, err := client.FromContext(ctx)
 		if err != nil {
 			return nil, err
 		}
@@ -91,7 +87,7 @@ func HandleGetApplication(service ServiceInterface) server.ToolHandlerFunc {
 	}
 }
 
-func HandleGetApplicationManifests(service ServiceInterface) server.ToolHandlerFunc {
+func HandleGetApplicationManifests() server.ToolHandlerFunc {
 	return func(ctx context.Context, request mcp.CallToolRequest) (*mcp.CallToolResult, error) {
 		args := request.GetArguments()
 		name, err := svccommon.RequireStringArg(args, "name")
@@ -110,7 +106,7 @@ func HandleGetApplicationManifests(service ServiceInterface) server.ToolHandlerF
 			params.Set("namespace", namespace)
 		}
 
-		argocdClient, err := getClient(service)
+		argocdClient, err := client.FromContext(ctx)
 		if err != nil {
 			return nil, err
 		}
@@ -122,9 +118,9 @@ func HandleGetApplicationManifests(service ServiceInterface) server.ToolHandlerF
 	}
 }
 
-func HandleListProjects(service ServiceInterface) server.ToolHandlerFunc {
+func HandleListProjects() server.ToolHandlerFunc {
 	return func(ctx context.Context, request mcp.CallToolRequest) (*mcp.CallToolResult, error) {
-		argocdClient, err := getClient(service)
+		argocdClient, err := client.FromContext(ctx)
 		if err != nil {
 			return nil, err
 		}
@@ -140,13 +136,13 @@ func HandleListProjects(service ServiceInterface) server.ToolHandlerFunc {
 	}
 }
 
-func HandleGetProject(service ServiceInterface) server.ToolHandlerFunc {
+func HandleGetProject() server.ToolHandlerFunc {
 	return func(ctx context.Context, request mcp.CallToolRequest) (*mcp.CallToolResult, error) {
 		name, err := svccommon.RequireStringArg(request.GetArguments(), "name")
 		if err != nil {
 			return nil, err
 		}
-		argocdClient, err := getClient(service)
+		argocdClient, err := client.FromContext(ctx)
 		if err != nil {
 			return nil, err
 		}
@@ -158,9 +154,9 @@ func HandleGetProject(service ServiceInterface) server.ToolHandlerFunc {
 	}
 }
 
-func HandleListClusters(service ServiceInterface) server.ToolHandlerFunc {
+func HandleListClusters() server.ToolHandlerFunc {
 	return func(ctx context.Context, request mcp.CallToolRequest) (*mcp.CallToolResult, error) {
-		argocdClient, err := getClient(service)
+		argocdClient, err := client.FromContext(ctx)
 		if err != nil {
 			return nil, err
 		}
@@ -182,14 +178,6 @@ func marshalResult(data interface{}) (*mcp.CallToolResult, error) {
 		return nil, fmt.Errorf("failed to marshal response: %w", err)
 	}
 	return mcp.NewToolResultText(string(body)), nil
-}
-
-func getClient(service ServiceInterface) (*client.Client, error) {
-	argocdClient := service.GetClient()
-	if argocdClient == nil {
-		return nil, fmt.Errorf("argocd client is not initialized")
-	}
-	return argocdClient, nil
 }
 
 func compactApplication(item map[string]interface{}) map[string]interface{} {

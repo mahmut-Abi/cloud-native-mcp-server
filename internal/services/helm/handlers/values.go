@@ -11,8 +11,12 @@ import (
 )
 
 // HandleGetReleaseValues returns a handler function for getting Helm release values.
-func HandleGetReleaseValues(c *client.Client) func(ctx context.Context, request mcp.CallToolRequest) (*mcp.CallToolResult, error) {
+func HandleGetReleaseValues() func(ctx context.Context, request mcp.CallToolRequest) (*mcp.CallToolResult, error) {
 	return func(ctx context.Context, request mcp.CallToolRequest) (*mcp.CallToolResult, error) {
+		c, err := client.FromContext(ctx)
+		if err != nil {
+			return mcp.NewToolResultError(err.Error()), nil
+		}
 		logrus.WithField("tool", "helm_get_release_values").Debug("Handler invoked")
 
 		// Validate required parameters

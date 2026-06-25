@@ -14,8 +14,12 @@ import (
 )
 
 // HandleGetTargets handles Prometheus targets retrieval requests.
-func HandleGetTargets(c *client.Client) func(ctx context.Context, req mcp.CallToolRequest) (*mcp.CallToolResult, error) {
+func HandleGetTargets() func(ctx context.Context, req mcp.CallToolRequest) (*mcp.CallToolResult, error) {
 	return func(ctx context.Context, req mcp.CallToolRequest) (*mcp.CallToolResult, error) {
+		c, err := client.FromContext(ctx)
+		if err != nil {
+			return mcp.NewToolResultError(err.Error()), nil
+		}
 		logrus.Debug("Executing Prometheus get targets handler")
 
 		// Extract optional state filter
@@ -52,8 +56,12 @@ func HandleGetTargets(c *client.Client) func(ctx context.Context, req mcp.CallTo
 }
 
 // HandleGetTargetsSummary handles Prometheus targets summary requests (optimized version).
-func HandleGetTargetsSummary(c *client.Client) func(ctx context.Context, req mcp.CallToolRequest) (*mcp.CallToolResult, error) {
+func HandleGetTargetsSummary() func(ctx context.Context, req mcp.CallToolRequest) (*mcp.CallToolResult, error) {
 	return func(ctx context.Context, req mcp.CallToolRequest) (*mcp.CallToolResult, error) {
+		c, err := client.FromContext(ctx)
+		if err != nil {
+			return mcp.NewToolResultError(err.Error()), nil
+		}
 		state := "any"
 		if s, ok := svccommon.GetStringArg(req.GetArguments(), "state"); ok {
 			state = s

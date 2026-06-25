@@ -15,8 +15,8 @@ import (
 )
 
 // Service implements the Nacos MCP service.
+// The backend client is not stored — it is created per-request from HTTP headers.
 type Service struct {
-	client             *client.Client
 	enabled            bool
 	defaultNamespaceID string
 	defaultGroup       string
@@ -58,6 +58,7 @@ func (s *Service) Name() string {
 }
 
 // Initialize configures the Nacos service.
+// The backend client is created per-request from HTTP headers (see client/config.go).
 func (s *Service) Initialize(cfg interface{}) error {
 	appConfig, _ := cfg.(*config.AppConfig)
 	if appConfig != nil {
@@ -67,17 +68,16 @@ func (s *Service) Initialize(cfg interface{}) error {
 
 	return s.initFramework.Initialize(cfg,
 		func(enabled bool) { s.enabled = enabled },
-		func(clientIface interface{}) {
-			if nacosClient, ok := clientIface.(*client.Client); ok {
-				s.client = nacosClient
-			}
+		func(_ interface{}) {
+			// Backend client is created per-request from HTTP headers.
+			// The backend auth handler was registered in client/config.go init().
 		},
 	)
 }
 
 // GetTools returns all Nacos tools.
 func (s *Service) GetTools() []mcp.Tool {
-	if !s.enabled || s.client == nil {
+	if !s.enabled {
 		return nil
 	}
 
@@ -98,7 +98,7 @@ func (s *Service) GetTools() []mcp.Tool {
 
 // GetHandlers returns all Nacos handlers.
 func (s *Service) GetHandlers() map[string]server.ToolHandlerFunc {
-	if !s.enabled || s.client == nil {
+	if !s.enabled {
 		return nil
 	}
 
@@ -115,14 +115,9 @@ func (s *Service) GetHandlers() map[string]server.ToolHandlerFunc {
 	}
 }
 
-// IsEnabled returns whether the service is enabled and ready.
+// IsEnabled returns whether the service is enabled.
 func (s *Service) IsEnabled() bool {
-	return s.enabled && s.client != nil
-}
-
-// GetClient exposes the underlying Nacos client.
-func (s *Service) GetClient() *client.Client {
-	return s.client
+	return s.enabled
 }
 
 // GetDefaultNamespaceID returns the configured default namespace ID.

@@ -14,8 +14,12 @@ import (
 )
 
 // HandleGetLabelNames handles Prometheus label names retrieval requests.
-func HandleGetLabelNames(c *client.Client) func(ctx context.Context, req mcp.CallToolRequest) (*mcp.CallToolResult, error) {
+func HandleGetLabelNames() func(ctx context.Context, req mcp.CallToolRequest) (*mcp.CallToolResult, error) {
 	return func(ctx context.Context, req mcp.CallToolRequest) (*mcp.CallToolResult, error) {
+		c, err := client.FromContext(ctx)
+		if err != nil {
+			return mcp.NewToolResultError(err.Error()), nil
+		}
 		logrus.Debug("Executing Prometheus get label names handler")
 
 		// Parse optional time range
@@ -59,8 +63,12 @@ func HandleGetLabelNames(c *client.Client) func(ctx context.Context, req mcp.Cal
 }
 
 // HandleGetLabelValues handles Prometheus label values retrieval requests.
-func HandleGetLabelValues(c *client.Client) func(ctx context.Context, req mcp.CallToolRequest) (*mcp.CallToolResult, error) {
+func HandleGetLabelValues() func(ctx context.Context, req mcp.CallToolRequest) (*mcp.CallToolResult, error) {
 	return func(ctx context.Context, req mcp.CallToolRequest) (*mcp.CallToolResult, error) {
+		c, err := client.FromContext(ctx)
+		if err != nil {
+			return mcp.NewToolResultError(err.Error()), nil
+		}
 		logrus.Debug("Executing Prometheus get label values handler")
 
 		// Extract parameters

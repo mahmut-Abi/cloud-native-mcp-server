@@ -14,8 +14,12 @@ import (
 )
 
 // HandleGetRules handles Prometheus rules retrieval requests.
-func HandleGetRules(c *client.Client) func(ctx context.Context, req mcp.CallToolRequest) (*mcp.CallToolResult, error) {
+func HandleGetRules() func(ctx context.Context, req mcp.CallToolRequest) (*mcp.CallToolResult, error) {
 	return func(ctx context.Context, req mcp.CallToolRequest) (*mcp.CallToolResult, error) {
+		c, err := client.FromContext(ctx)
+		if err != nil {
+			return mcp.NewToolResultError(err.Error()), nil
+		}
 		logrus.Debug("Executing Prometheus get rules handler")
 
 		// Extract optional rule type filter
@@ -52,8 +56,12 @@ func HandleGetRules(c *client.Client) func(ctx context.Context, req mcp.CallTool
 }
 
 // HandleGetRulesSummary handles Prometheus rules summary requests (optimized version).
-func HandleGetRulesSummary(c *client.Client) func(ctx context.Context, req mcp.CallToolRequest) (*mcp.CallToolResult, error) {
+func HandleGetRulesSummary() func(ctx context.Context, req mcp.CallToolRequest) (*mcp.CallToolResult, error) {
 	return func(ctx context.Context, req mcp.CallToolRequest) (*mcp.CallToolResult, error) {
+		c, err := client.FromContext(ctx)
+		if err != nil {
+			return mcp.NewToolResultError(err.Error()), nil
+		}
 		ruleType, _ := svccommon.GetStringArg(req.GetArguments(), "type")
 
 		logrus.WithField("type", ruleType).Debug("Executing Prometheus rules summary handler")

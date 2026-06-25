@@ -163,9 +163,120 @@ logging:
   json: false
 
 ################################################################################
+# Backend Service Authentication (Header-Based)
+################################################################################
+# Backend service URLs, tokens, API keys, and other credentials are passed
+# per-request via HTTP headers instead of being configured in this file.
+#
+# Each service parses only its own X-Mcp-Backend-<Service>-* headers.
+# This enables multi-tenancy: different MCP clients connect to different
+# backend instances simultaneously by sending different headers.
+#
+# === Complete Header Reference ===
+#
+# Kubernetes:
+#   X-Mcp-Backend-Kubernetes-Kubeconfig        kubeconfig file path or content
+#   X-Mcp-Backend-Kubernetes-Qps               API queries per second
+#   X-Mcp-Backend-Kubernetes-Burst             API burst rate
+#   X-Mcp-Backend-Kubernetes-Timeout-Sec       request timeout in seconds
+#
+# Prometheus:
+#   X-Mcp-Backend-Prometheus-Url               server address (required)
+#   X-Mcp-Backend-Prometheus-Token             bearer token
+#   X-Mcp-Backend-Prometheus-Username          basic auth username
+#   X-Mcp-Backend-Prometheus-Password          basic auth password
+#   X-Mcp-Backend-Prometheus-Tls-Skip-Verify   skip TLS (true/false)
+#
+# Loki:
+#   X-Mcp-Backend-Loki-Url                     server address (required)
+#   X-Mcp-Backend-Loki-Token                   bearer token
+#   X-Mcp-Backend-Loki-Username                basic auth username
+#   X-Mcp-Backend-Loki-Password                basic auth password
+#   X-Mcp-Backend-Loki-Tls-Skip-Verify         skip TLS (true/false)
+#
+# Grafana:
+#   X-Mcp-Backend-Grafana-Url                  server URL (required)
+#   X-Mcp-Backend-Grafana-Api-Key              API key
+#   X-Mcp-Backend-Grafana-Username             basic auth username
+#   X-Mcp-Backend-Grafana-Password             basic auth password
+#
+# Kibana:
+#   X-Mcp-Backend-Kibana-Url                   server URL (required)
+#   X-Mcp-Backend-Kibana-Api-Key               API key
+#   X-Mcp-Backend-Kibana-Username              basic auth username
+#   X-Mcp-Backend-Kibana-Password              basic auth password
+#   X-Mcp-Backend-Kibana-Space                 Kibana space
+#   X-Mcp-Backend-Kibana-Skip-Verify           skip TLS (true/false)
+#
+# Elasticsearch:
+#   X-Mcp-Backend-Elasticsearch-Addresses      comma-separated addresses (required)
+#   X-Mcp-Backend-Elasticsearch-Api-Key        API key (highest priority)
+#   X-Mcp-Backend-Elasticsearch-Bearer-Token   bearer token
+#   X-Mcp-Backend-Elasticsearch-Username       basic auth username
+#   X-Mcp-Backend-Elasticsearch-Password       basic auth password
+#   X-Mcp-Backend-Elasticsearch-Tls-Skip-Verify skip TLS (true/false)
+#
+# Alertmanager:
+#   X-Mcp-Backend-Alertmanager-Url             server address (required)
+#   X-Mcp-Backend-Alertmanager-Token           bearer token
+#   X-Mcp-Backend-Alertmanager-Username        basic auth username
+#   X-Mcp-Backend-Alertmanager-Password        basic auth password
+#   X-Mcp-Backend-Alertmanager-Tls-Skip-Verify skip TLS (true/false)
+#
+# Jaeger:
+#   X-Mcp-Backend-Jaeger-Address               server address (required)
+#   X-Mcp-Backend-Jaeger-Timeout-Sec           request timeout
+#
+# Helm:
+#   X-Mcp-Backend-Helm-Kubeconfig-Path         kubeconfig file path
+#   X-Mcp-Backend-Helm-Namespace               default namespace
+#   X-Mcp-Backend-Helm-Debug                   debug mode (true/false)
+#   X-Mcp-Backend-Helm-Http-Proxy              HTTP proxy for chart repos
+#   X-Mcp-Backend-Helm-Timeout-Sec             repository update timeout
+#
+# ArgoCD:
+#   X-Mcp-Backend-Argocd-Url                   server base URL (required)
+#   X-Mcp-Backend-Argocd-Auth-Token            pre-issued bearer token
+#   X-Mcp-Backend-Argocd-Username              username
+#   X-Mcp-Backend-Argocd-Password              password
+#
+# Nacos:
+#   X-Mcp-Backend-Nacos-Url                    server base URL (required)
+#   X-Mcp-Backend-Nacos-Access-Token           pre-issued access token
+#   X-Mcp-Backend-Nacos-Username               username
+#   X-Mcp-Backend-Nacos-Password               password
+#   X-Mcp-Backend-Nacos-Namespace-Id           default namespace ID
+#   X-Mcp-Backend-Nacos-Group                  default config group
+#
+# OpenTelemetry:
+#   X-Mcp-Backend-Opentelmetry-Url             collector address (required)
+#   X-Mcp-Backend-Opentelmetry-Token           bearer token
+#   X-Mcp-Backend-Opentelmetry-Username        basic auth username
+#   X-Mcp-Backend-Opentelmetry-Password        basic auth password
+#   X-Mcp-Backend-Opentelmetry-Tls-Skip-Verify skip TLS (true/false)
+#
+# Langfuse:
+#   X-Mcp-Backend-Langfuse-Url                 base URL (required)
+#   X-Mcp-Backend-Langfuse-Username            API username
+#   X-Mcp-Backend-Langfuse-Password            API password
+#
+# Sentry:
+#   X-Mcp-Backend-Sentry-Url                   base URL (required)
+#   X-Mcp-Backend-Sentry-Auth-Token            auth token
+#   X-Mcp-Backend-Sentry-Organization          default organization slug
+#   X-Mcp-Backend-Sentry-Project               default project slug
+#
+# The credential fields in each service config section below (address, url,
+# apiKey, bearerToken, username, password, kubeconfig, authToken, accessToken)
+# are now passed via headers instead. They remain in the config for backward
+# compatibility. Non-credential fields (enabled, timeoutSec, qps, burst,
+# tlsSkipVerify, etc.) continue to work via config.
+
+################################################################################
 # Kubernetes Client Configuration
 ################################################################################
 kubernetes:
+  # DEPRECATED: Use X-Mcp-Backend-Kubernetes-Kubeconfig header instead
   # kubeconfig file path
   # If empty, uses default: $KUBECONFIG → ~/.kube/config → service account
   # Environment variable: MCP_KUBECONFIG
@@ -191,6 +302,7 @@ prometheus:
   # Environment variable: MCP_PROM_ENABLED (1, true, yes, on)
   enabled: false
 
+  # DEPRECATED: Use X-Mcp-Backend-Prometheus-Url header instead
   # Prometheus server address
   # Format: http://host:port or https://host:port
   # Environment variable: MCP_PROM_ADDRESS
@@ -237,11 +349,13 @@ grafana:
   # Environment variable: MCP_GRAFANA_ENABLED (1, true, yes, on)
   enabled: false
 
+  # DEPRECATED: Use X-Mcp-Backend-Grafana-Url header instead
   # Grafana server URL
   # Format: http://host:port or https://host:port
   # Environment variable: MCP_GRAFANA_URL
   url: "http://localhost:3000"
 
+  # DEPRECATED: Use X-Mcp-Backend-Grafana-Api-Key header instead
   # Grafana API Key (recommended)
   # Create in Grafana: Administration → API Keys
   # Environment variable: MCP_GRAFANA_API_KEY
@@ -267,11 +381,13 @@ kibana:
   # Environment variable: MCP_KIBANA_ENABLED (1, true, yes, on)
   enabled: false
 
+  # DEPRECATED: Use X-Mcp-Backend-Kibana-Url header instead
   # Kibana server URL
   # Format: http://host:port or https://host:port
   # Environment variable: MCP_KIBANA_URL
   url: "https://localhost:5601"
 
+  # DEPRECATED: Use X-Mcp-Backend-Kibana-Api-Key header instead
   # Kibana API Key (recommended)
   # Create in Kibana: Stack Management → API Keys
   # Environment variable: MCP_KIBANA_API_KEY
@@ -307,6 +423,7 @@ helm:
   # Environment variable: MCP_HELM_ENABLED (1, true, yes, on)
   enabled: false
 
+  # DEPRECATED: Use X-Mcp-Backend-Helm-Kubeconfig-Path header instead
   # Helm operation kubeconfig path
   # If empty, uses same kubeconfig as Kubernetes client
   # Environment variable: MCP_HELM_KUBECONFIG
@@ -346,6 +463,7 @@ elasticsearch:
   # Environment variable: MCP_ELASTICSEARCH_ENABLED (1, true, yes, on)
   enabled: false
 
+  # DEPRECATED: Use X-Mcp-Backend-Elasticsearch-Addresses header instead
   # Elasticsearch server addresses (supports multiple nodes for HA)
   # Environment variable: MCP_ELASTICSEARCH_ADDRESSES (comma-separated)
   addresses:
@@ -402,6 +520,7 @@ alertmanager:
   # Environment variable: MCP_ALERTMANAGER_ENABLED (1, true, yes, on)
   enabled: false
 
+  # DEPRECATED: Use X-Mcp-Backend-Alertmanager-Url header instead
   # Alertmanager server address
   # Format: http://host:port or https://host:port
   # Environment variable: MCP_ALERTMANAGER_ADDRESS
@@ -448,6 +567,7 @@ argocd:
   # Environment variable: MCP_ARGOCD_ENABLED (1, true, yes, on)
   enabled: false
 
+  # DEPRECATED: Use X-Mcp-Backend-Argocd-Url header instead
   # Argo CD base URL
   # Format: https://argocd.example.com or your self-hosted Argo CD URL
   # Environment variable: MCP_ARGOCD_URL
@@ -477,6 +597,7 @@ nacos:
   # Environment variable: MCP_NACOS_ENABLED (1, true, yes, on)
   enabled: false
 
+  # DEPRECATED: Use X-Mcp-Backend-Nacos-Url header instead
   # Nacos base URL
   # Format: http://localhost:8848/nacos
   # Environment variable: MCP_NACOS_URL
@@ -514,6 +635,7 @@ opentelemetry:
   # Environment variable: MCP_OPENTELEMETRY_ENABLED (1, true, yes, on)
   enabled: false
 
+  # DEPRECATED: Use X-Mcp-Backend-Opentelmetry-Url header instead
   # OpenTelemetry Collector address
   # Format: http://host:port or https://host:port
   # Environment variable: MCP_OPENTELEMETRY_ADDRESS
@@ -560,6 +682,7 @@ langfuse:
   # Environment variable: MCP_LANGFUSE_ENABLED (1, true, yes, on)
   enabled: false
 
+  # DEPRECATED: Use X-Mcp-Backend-Langfuse-Url header instead
   # Langfuse base URL
   # Format: https://cloud.langfuse.com or your self-hosted Langfuse URL
   # Environment variable: MCP_LANGFUSE_URL
@@ -588,6 +711,7 @@ sentry:
   # Environment variable: MCP_SENTRY_ENABLED (1, true, yes, on)
   enabled: false
 
+  # DEPRECATED: Use X-Mcp-Backend-Sentry-Url header instead
   # Sentry base URL
   # Format: https://sentry.io or your self-hosted Sentry URL
   # Environment variable: MCP_SENTRY_URL

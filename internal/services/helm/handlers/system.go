@@ -12,8 +12,12 @@ import (
 )
 
 // HandleClearCache clears the Helm cache
-func HandleClearCache(c *client.Client) func(ctx context.Context, request mcp.CallToolRequest) (*mcp.CallToolResult, error) {
+func HandleClearCache() func(ctx context.Context, request mcp.CallToolRequest) (*mcp.CallToolResult, error) {
 	return func(ctx context.Context, request mcp.CallToolRequest) (*mcp.CallToolResult, error) {
+		c, err := client.FromContext(ctx)
+		if err != nil {
+			return mcp.NewToolResultError(err.Error()), nil
+		}
 		logrus.WithField("tool", "helm_clear_cache").Debug("Handler invoked")
 
 		if err := c.ClearCache(); err != nil {
@@ -26,8 +30,12 @@ func HandleClearCache(c *client.Client) func(ctx context.Context, request mcp.Ca
 }
 
 // HandleGetCacheStats returns cache statistics
-func HandleGetCacheStats(c *client.Client) func(ctx context.Context, request mcp.CallToolRequest) (*mcp.CallToolResult, error) {
+func HandleGetCacheStats() func(ctx context.Context, request mcp.CallToolRequest) (*mcp.CallToolResult, error) {
 	return func(ctx context.Context, request mcp.CallToolRequest) (*mcp.CallToolResult, error) {
+		c, err := client.FromContext(ctx)
+		if err != nil {
+			return mcp.NewToolResultError(err.Error()), nil
+		}
 		logrus.WithField("tool", "helm_cache_stats").Debug("Handler invoked")
 
 		stats, err := c.GetCacheStats()
@@ -45,8 +53,12 @@ func HandleGetCacheStats(c *client.Client) func(ctx context.Context, request mcp
 }
 
 // HandleHelmHealthCheck handles Helm service health diagnostics
-func HandleHelmHealthCheck(c *client.Client) func(ctx context.Context, request mcp.CallToolRequest) (*mcp.CallToolResult, error) {
+func HandleHelmHealthCheck() func(ctx context.Context, request mcp.CallToolRequest) (*mcp.CallToolResult, error) {
 	return func(ctx context.Context, request mcp.CallToolRequest) (*mcp.CallToolResult, error) {
+		c, err := client.FromContext(ctx)
+		if err != nil {
+			return mcp.NewToolResultError(err.Error()), nil
+		}
 		logrus.WithField("tool", "helm_health_check").Debug("Handler invoked")
 
 		checkClient := getOptionalBoolParam(request, "checkClient")
