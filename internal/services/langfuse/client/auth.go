@@ -174,21 +174,33 @@ func (a *ConsoleAuthenticator) GetProjects() []Project {
 	return a.Projects
 }
 
-// CreateAPIKey creates a new project-level API key via TRPC batch mutation.
+// CreateAPIKey creates a new project-level API key via TRPC mutation.
 func (a *ConsoleAuthenticator) CreateAPIKey(projectID string) (*APIKey, error) {
-	input := map[string]interface{}{
-		"0": map[string]interface{}{
-			"projectId": projectID,
-			"note":      "mcp-server-auto",
-		},
-	}
+	return a.trpcCreate("projectApiKeys.create", map[string]interface{}{
+		"projectId": projectID,
+		"note":      "mcp-server-auto",
+	})
+}
 
+// CreateOrgAPIKey creates a new organization-level API key via TRPC mutation.
+func (a *ConsoleAuthenticator) CreateOrgAPIKey(orgID string) (*APIKey, error) {
+	return a.trpcCreate("organizationApiKeys.create", map[string]interface{}{
+		"orgId": orgID,
+		"note":  "mcp-server-auto-org",
+	})
+}
+
+func (a *ConsoleAuthenticator) trpcCreate(procedure string, params map[string]interface{}) (*APIKey, error) {
+	// TRPC v10 non-batch mutation format: input as URL query parameter
+	input := map[string]interface{}{
+		"json": params,
+	}
 	inputJSON, _ := json.Marshal(input)
 	encoded := url.QueryEscape(string(inputJSON))
 
-	reqURL := a.base("/api/trpc/projectApiKeys.create") + "?batch=1&input=" + encoded
+	reqURL := a.base("/api/trpc/" + procedure) + "?input=" + encoded
 
-	req, err := http.NewRequest("POST", reqURL, strings.NewReader("{}"))
+	req, err := http.NewRequest("POST", reqURL, nil)
 	if err != nil {
 		return nil, fmt.Errorf("creating TRPC request: %w", err)
 	}
@@ -199,12 +211,14 @@ func (a *ConsoleAuthenticator) CreateAPIKey(projectID string) (*APIKey, error) {
 		return nil, fmt.Errorf("TRPC request failed: %w", err)
 	}
 	defer func() { _ = resp.Body.Close() }()
+
 	body, err := io.ReadAll(resp.Body)
 	if err != nil {
 		return nil, fmt.Errorf("reading TRPC response: %w", err)
 	}
 
-	var batchResult []struct {
+	// Non-batch mutation response: {"result":{"data":{"json":{...}}}}
+	var singleResult struct {
 		Result struct {
 			Data struct {
 				JSON APIKey `json:"json"`
@@ -218,22 +232,48 @@ func (a *ConsoleAuthenticator) CreateAPIKey(projectID string) (*APIKey, error) {
 		} `json:"error"`
 	}
 
-	if err := json.Unmarshal(body, &batchResult); err != nil {
-		return nil, fmt.Errorf("parsing TRPC response: %w (body: %s)", err, string(body))
+	if err := json.Unmarshal(body, &singleResult); err != nil {
+		// Try batch response format as fallback
+		var batchResult []struct {
+			Result struct {
+				Data struct {
+					JSON APIKey `json:"json"`
+				} `json:"data"`
+			} `json:"result"`
+			Error struct {
+				JSON struct {
+					Message string `json:"message"`
+					Code    int    `json:"code"`
+				} `json:"json"`
+			} `json:"error"`
+		}
+		if err2 := json.Unmarshal(body, &batchResult); err2 != nil {
+			return nil, fmt.Errorf("parsing TRPC response: %w (body: %s)", err, string(body))
+		}
+		if len(batchResult) == 0 {
+			return nil, fmt.Errorf("empty TRPC batch response")
+		}
+		if batchResult[0].Error.JSON.Message != "" {
+			return nil, &AuthError{
+				Step:    "trpc_create",
+				Message: batchResult[0].Error.JSON.Message,
+			}
+		}
+		key := &batchResult[0].Result.Data.JSON
+		if key.PublicKey == "" || key.SecretKey == "" {
+			return nil, fmt.Errorf("empty key data in TRPC response: %s", string(body))
+		}
+		return key, nil
 	}
 
-	if len(batchResult) == 0 {
-		return nil, fmt.Errorf("empty TRPC batch response")
-	}
-
-	if batchResult[0].Error.JSON.Message != "" {
+	if singleResult.Error.JSON.Message != "" {
 		return nil, &AuthError{
 			Step:    "trpc_create",
-			Message: batchResult[0].Error.JSON.Message,
+			Message: singleResult.Error.JSON.Message,
 		}
 	}
 
-	key := &batchResult[0].Result.Data.JSON
+	key := &singleResult.Result.Data.JSON
 	if key.PublicKey == "" || key.SecretKey == "" {
 		return nil, fmt.Errorf("empty key data in TRPC response: %s", string(body))
 	}
@@ -242,6 +282,7 @@ func (a *ConsoleAuthenticator) CreateAPIKey(projectID string) (*APIKey, error) {
 }
 
 // TryConsoleAuth attempts to authenticate with console credentials and create an API key.
+// Tries organization-level key first, falls back to project-level key.
 // Returns the API key (pk:sk) or an error.
 func TryConsoleAuth(baseURL, username, password string) (*APIKey, string, error) {
 	auth, err := NewConsoleAuthenticator(baseURL)
@@ -259,17 +300,29 @@ func TryConsoleAuth(baseURL, username, password string) (*APIKey, string, error)
 		auth.Projects = append(auth.Projects, org.Projects...)
 	}
 
+	if len(session.User.Organizations) == 0 {
+		return nil, "", fmt.Errorf("no organizations found for user %s", username)
+	}
 	if len(auth.Projects) == 0 {
 		return nil, "", fmt.Errorf("no projects found for user %s", username)
 	}
 
-	// Try to create API key for the first project
-	key, err := auth.CreateAPIKey(auth.Projects[0].ID)
-	if err != nil {
-		return nil, "", fmt.Errorf("creating API key: %w", err)
+	// Try org-level API key first (best scope for global access)
+	orgID := session.User.Organizations[0].ID
+	orgName := session.User.Organizations[0].Name
+	key, err := auth.CreateOrgAPIKey(orgID)
+	if err == nil {
+		return key, orgName + " (org-level)", nil
+	}
+	orgErr := err.Error()
+
+	// Fall back to project-level key
+	key, err = auth.CreateAPIKey(auth.Projects[0].ID)
+	if err == nil {
+		return key, auth.Projects[0].Name + " (project-level)", nil
 	}
 
-	return key, auth.Projects[0].Name, nil
+	return nil, "", fmt.Errorf("creating API key failed: org(%s), project: %s", orgErr, err.Error())
 }
 
 // IsConsoleCredential returns true if the username is NOT a pk-lf-* API key.
