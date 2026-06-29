@@ -3,9 +3,12 @@ package client
 
 import (
 	"context"
+	"encoding/base64"
 	"fmt"
 	"net/http"
+	"os"
 	"strconv"
+	"strings"
 
 	"github.com/mahmut-Abi/cloud-native-mcp-server/internal/middleware"
 )
@@ -39,7 +42,13 @@ func parseRequestHeaders(h http.Header) *ClientOptions {
 	timeoutSec := 300 // default
 
 	if v := h.Get(hdrKubeconfigPath); v != "" {
-		opts.KubeconfigPath = v
+		if content, isBase64 := tryDecodeKubeconfig(v); isBase64 {
+			opts.KubeconfigPath = writeTempKubeconfig(content)
+		} else if _, err := os.Stat(v); err == nil {
+			opts.KubeconfigPath = v
+		} else {
+			opts.KubeconfigPath = writeTempKubeconfig(v)
+		}
 	}
 	if v := h.Get(hdrNamespace); v != "" {
 		opts.Namespace = v
@@ -56,9 +65,34 @@ func parseRequestHeaders(h http.Header) *ClientOptions {
 		}
 	}
 
-	// Create optimizer from header values
 	opts.Optimizer = NewRepositoryOptimizer(timeoutSec, 3, opts.HTTPProxy)
 	return opts
+}
+
+func tryDecodeKubeconfig(v string) (string, bool) {
+	decoded, err := base64.StdEncoding.DecodeString(v)
+	if err != nil {
+		return "", false
+	}
+	result := string(decoded)
+	if strings.Contains(result, "apiVersion") || strings.Contains(result, "kind:") {
+		return result, true
+	}
+	return "", false
+}
+
+func writeTempKubeconfig(content string) string {
+	tmpFile, err := os.CreateTemp("", "mcp-helm-kubeconfig-*.yaml")
+	if err != nil {
+		return ""
+	}
+	if _, err := tmpFile.WriteString(content); err != nil {
+		_ = tmpFile.Close()
+		_ = os.Remove(tmpFile.Name())
+		return ""
+	}
+	_ = tmpFile.Close()
+	return tmpFile.Name()
 }
 
 // FromContext extracts the Helm client from the request context.

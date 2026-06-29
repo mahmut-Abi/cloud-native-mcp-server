@@ -27,7 +27,8 @@ type AppConfig struct {
 			Nacos         string `yaml:"nacos"`         // SSE path for Nacos service
 			OpenTelemetry string `yaml:"opentelemetry"` // SSE path for OpenTelemetry service
 			Langfuse      string `yaml:"langfuse"`      // SSE path for Langfuse service
-			Sentry        string `yaml:"sentry"`        // SSE path for Sentry service
+		Sentry        string `yaml:"sentry"`        // SSE path for Sentry service
+			Dify          string `yaml:"dify"`          // SSE path for Dify service
 			Aggregate     string `yaml:"aggregate"`     // SSE path for aggregated service
 			Utilities     string `yaml:"utilities"`     // SSE path for Utilities service
 		} `yaml:"ssePaths"`
@@ -45,7 +46,8 @@ type AppConfig struct {
 			Nacos         string `yaml:"nacos"`         // Streamable-HTTP path for Nacos service
 			OpenTelemetry string `yaml:"opentelemetry"` // Streamable-HTTP path for OpenTelemetry service
 			Langfuse      string `yaml:"langfuse"`      // Streamable-HTTP path for Langfuse service
-			Sentry        string `yaml:"sentry"`        // Streamable-HTTP path for Sentry service
+		Sentry        string `yaml:"sentry"`        // Streamable-HTTP path for Sentry service
+			Dify          string `yaml:"dify"`          // Streamable-HTTP path for Dify service
 			Aggregate     string `yaml:"aggregate"`     // Streamable-HTTP path for aggregated service
 			Utilities     string `yaml:"utilities"`     // Streamable-HTTP path for Utilities service
 		} `yaml:"streamableHttpPaths"`
@@ -199,6 +201,15 @@ type AppConfig struct {
 		Project      string `yaml:"project"`      // Default Sentry project slug
 		TimeoutSec   int    `yaml:"timeoutSec"`   // Request timeout in seconds
 	} `yaml:"sentry"`
+
+	Dify struct {
+		Enabled       bool   `yaml:"enabled"`       // Enable Dify service
+		ConsoleURL    string `yaml:"consoleUrl"`     // Dify Console base URL for admin operations
+		ConsoleEmail  string `yaml:"consoleEmail"`   // Dify Console email for login
+		ConsolePassword string `yaml:"consolePassword"`  // Dify Console password for login
+		ServiceURL    string `yaml:"serviceUrl"`      // Dify Service API base URL
+		TimeoutSec    int    `yaml:"timeoutSec"`      // Request timeout in seconds
+	} `yaml:"dify"`
 
 	// OTEL configuration for server's own observability
 	OTEL struct {

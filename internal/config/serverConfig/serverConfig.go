@@ -288,6 +288,7 @@ func (s *ServerConfig) InitSSEServers(mcpServer *server.MCPServer, addr string, 
 	nacosPath := "/api/nacos/sse"
 	langfusePath := "/api/langfuse/sse"
 	sentryPath := "/api/sentry/sse"
+	difyPath := "/api/dify/sse"
 	aggregatePath := "/api/aggregate/sse"
 	utilitiesPath := "/api/utilities/sse"
 
@@ -332,6 +333,9 @@ func (s *ServerConfig) InitSSEServers(mcpServer *server.MCPServer, addr string, 
 		if appConfig.Server.SSEPaths.Sentry != "" {
 			sentryPath = appConfig.Server.SSEPaths.Sentry
 		}
+		if appConfig.Server.SSEPaths.Dify != "" {
+			difyPath = appConfig.Server.SSEPaths.Dify
+		}
 		// Check for aggregate SSE path in config
 		if appConfig.Server.SSEPaths.Aggregate != "" {
 			aggregatePath = appConfig.Server.SSEPaths.Aggregate
@@ -356,6 +360,7 @@ func (s *ServerConfig) InitSSEServers(mcpServer *server.MCPServer, addr string, 
 	nacosServer := s.createServiceMCPServer("nacos")
 	langfuseServer := s.createServiceMCPServer("langfuse")
 	sentryServer := s.createServiceMCPServer("sentry")
+	difyServer := s.createServiceMCPServer("dify")
 	opentelemetryServer := s.createServiceMCPServer("opentelemetry")
 
 	// Create aggregated MCP server with all services
@@ -505,6 +510,17 @@ func (s *ServerConfig) InitSSEServers(mcpServer *server.MCPServer, addr string, 
 		server.WithUseFullURLForMessageEndpoint(true),
 	)
 
+	// Create dify SSE server
+	sseServers["dify"] = server.NewSSEServer(difyServer,
+		server.WithStaticBasePath(""),
+		server.WithSSEEndpoint(difyPath),
+		server.WithMessageEndpoint(difyPath+"/message"),
+		server.WithKeepAlive(true),
+		server.WithKeepAliveInterval(30*time.Second),
+		server.WithAppendQueryToMessageEndpoint(),
+		server.WithUseFullURLForMessageEndpoint(true),
+	)
+
 	// Create opentelemetry SSE server
 	opentelemetryPath := "/api/opentelemetry/sse"
 	if appConfig != nil && appConfig.Server.SSEPaths.OpenTelemetry != "" {
@@ -546,6 +562,7 @@ func (s *ServerConfig) InitSSEServers(mcpServer *server.MCPServer, addr string, 
 		"nacos_path":         nacosPath,
 		"langfuse_path":      langfusePath,
 		"sentry_path":        sentryPath,
+		"dify_path":          difyPath,
 		"aggregate_path":     aggregatePath,
 		"utilities_path":     utilitiesPath,
 	}).Info("Multiple SSE servers initialized successfully")
@@ -572,10 +589,11 @@ func (s *ServerConfig) InitStreamableHTTPServers(mcpServer *server.MCPServer, ad
 	nacosPath := "/api/nacos/streamable-http"
 	langfusePath := "/api/langfuse/streamable-http"
 	sentryPath := "/api/sentry/streamable-http"
+	difyPath := "/api/dify/streamable-http"
 	aggregatePath := "/api/aggregate/streamable-http"
 	utilitiesPath := "/api/utilities/streamable-http"
 
-	// Override with config if provided
+	// Override with config if provided (InitStreamableHTTP)
 	if appConfig != nil {
 		if appConfig.Server.StreamableHTTPPaths.Kubernetes != "" {
 			kubernetesPath = appConfig.Server.StreamableHTTPPaths.Kubernetes
@@ -616,6 +634,9 @@ func (s *ServerConfig) InitStreamableHTTPServers(mcpServer *server.MCPServer, ad
 		if appConfig.Server.StreamableHTTPPaths.Sentry != "" {
 			sentryPath = appConfig.Server.StreamableHTTPPaths.Sentry
 		}
+		if appConfig.Server.StreamableHTTPPaths.Dify != "" {
+			difyPath = appConfig.Server.StreamableHTTPPaths.Dify
+		}
 		if appConfig.Server.StreamableHTTPPaths.Aggregate != "" {
 			aggregatePath = appConfig.Server.StreamableHTTPPaths.Aggregate
 		}
@@ -638,6 +659,7 @@ func (s *ServerConfig) InitStreamableHTTPServers(mcpServer *server.MCPServer, ad
 	nacosServer := s.createServiceMCPServer("nacos")
 	langfuseServer := s.createServiceMCPServer("langfuse")
 	sentryServer := s.createServiceMCPServer("sentry")
+	difyServer := s.createServiceMCPServer("dify")
 	opentelemetryServer := s.createServiceMCPServer("opentelemetry")
 
 	// Create aggregated MCP server with all services
@@ -731,6 +753,13 @@ func (s *ServerConfig) InitStreamableHTTPServers(mcpServer *server.MCPServer, ad
 		server.WithStateLess(true),
 	)
 
+	// Create dify StreamableHTTP server
+	streamableHTTPServers["dify"] = server.NewStreamableHTTPServer(difyServer,
+		server.WithEndpointPath(difyPath),
+		server.WithHeartbeatInterval(60*time.Second),
+		server.WithStateLess(true),
+	)
+
 	// Create opentelemetry StreamableHTTP server
 	opentelemetryPath := "/api/opentelemetry/streamable-http"
 	if appConfig != nil && appConfig.Server.StreamableHTTPPaths.OpenTelemetry != "" {
@@ -762,6 +791,7 @@ func (s *ServerConfig) InitStreamableHTTPServers(mcpServer *server.MCPServer, ad
 		"nacos_path":         nacosPath,
 		"langfuse_path":      langfusePath,
 		"sentry_path":        sentryPath,
+		"dify_path":          difyPath,
 		"opentelemetry_path": opentelemetryPath,
 		"aggregate_path":     aggregatePath,
 		"utilities_path":     utilitiesPath,

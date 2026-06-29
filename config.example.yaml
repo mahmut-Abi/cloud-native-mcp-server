@@ -88,6 +88,10 @@ server:
     # Environment variable: MCP_SSE_PATH_SENTRY
     sentry: "/api/sentry/sse"
 
+    # Dify SSE endpoint
+    # Environment variable: MCP_SSE_PATH_DIFY
+    dify: "/api/dify/sse"
+
     # Utilities SSE endpoint
     # Environment variable: MCP_SSE_PATH_UTILITIES
     utilities: "/api/utilities/sse"
@@ -142,6 +146,9 @@ server:
 
     # Sentry Streamable-HTTP endpoint
     sentry: "/api/sentry/streamable-http"
+
+    # Dify Streamable-HTTP endpoint
+    dify: "/api/dify/streamable-http"
 
     # Utilities Streamable-HTTP endpoint
     utilities: "/api/utilities/streamable-http"
@@ -749,6 +756,36 @@ sentry:
 
   # Request timeout (seconds)
   # Environment variable: MCP_SENTRY_TIMEOUT
+  timeoutSec: 30
+
+################################################################################
+# Dify Configuration
+################################################################################
+dify:
+  # Enable/disable Dify service
+  # Environment variable: MCP_DIFY_ENABLED (1, true, yes, on)
+  enabled: false
+
+  # Dify Console base URL for admin operations (creating apps, managing datasets)
+  # Format: https://your-dify-instance.example.com
+  # Environment variable: MCP_DIFY_CONSOLE_URL
+  consoleUrl: ""
+
+  # Dify Console email for admin login
+  # Environment variable: MCP_DIFY_CONSOLE_EMAIL
+  consoleEmail: ""
+
+  # Dify Console password for admin login
+  # Environment variable: MCP_DIFY_CONSOLE_PASSWORD
+  consolePassword: ""
+
+  # Dify Service API base URL for API key-based operations
+  # Format: https://your-dify-instance.example.com
+  # Environment variable: MCP_DIFY_SERVICE_URL
+  serviceUrl: ""
+
+  # Request timeout (seconds)
+  # Environment variable: MCP_DIFY_TIMEOUT
   timeoutSec: 30
 
 ################################################################################

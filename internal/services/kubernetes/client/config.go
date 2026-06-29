@@ -3,10 +3,12 @@ package client
 
 import (
 	"context"
+	"encoding/base64"
 	"fmt"
 	"net/http"
 	"os"
 	"strconv"
+	"strings"
 	"time"
 
 	"github.com/mahmut-Abi/cloud-native-mcp-server/internal/middleware"
@@ -42,21 +44,12 @@ func parseHeadersAndInjectClient(r *http.Request) (*http.Request, error) {
 func parseRequestHeaders(h http.Header) *ClientOptions {
 	opts := DefaultClientOptions()
 	if v := h.Get(hdrKubeconfig); v != "" {
-		if _, err := os.Stat(v); err == nil {
-			// Value is a valid file path
+		if content, isBase64 := tryDecode(v); isBase64 {
+			opts.KubeconfigPath = writeTempKubeconfig(content)
+		} else if _, err := os.Stat(v); err == nil {
 			opts.KubeconfigPath = v
 		} else {
-			// Value is kubeconfig content - write to temp file
-			tmpFile, err := os.CreateTemp("", "mcp-kubeconfig-*.yaml")
-			if err == nil {
-				if _, writeErr := tmpFile.WriteString(v); writeErr == nil {
-					_ = tmpFile.Close()
-					opts.KubeconfigPath = tmpFile.Name()
-				} else {
-					_ = tmpFile.Close()
-					_ = os.Remove(tmpFile.Name())
-				}
-			}
+			opts.KubeconfigPath = writeTempKubeconfig(v)
 		}
 	}
 	if v := h.Get(hdrQPS); v != "" {
@@ -75,6 +68,32 @@ func parseRequestHeaders(h http.Header) *ClientOptions {
 		}
 	}
 	return opts
+}
+
+func tryDecode(v string) (string, bool) {
+	decoded, err := base64.StdEncoding.DecodeString(v)
+	if err != nil {
+		return "", false
+	}
+	result := string(decoded)
+	if strings.Contains(result, "apiVersion") || strings.Contains(result, "kind:") {
+		return result, true
+	}
+	return "", false
+}
+
+func writeTempKubeconfig(content string) string {
+	tmpFile, err := os.CreateTemp("", "mcp-kubeconfig-*.yaml")
+	if err != nil {
+		return ""
+	}
+	if _, err := tmpFile.WriteString(content); err != nil {
+		_ = tmpFile.Close()
+		_ = os.Remove(tmpFile.Name())
+		return ""
+	}
+	_ = tmpFile.Close()
+	return tmpFile.Name()
 }
 
 // FromContext extracts the Kubernetes client from the request context.
