@@ -111,8 +111,9 @@ func TestBackendAuthMiddlewareHandlerErrorPassthrough(t *testing.T) {
 }
 
 func TestBackendAuthMiddlewareConcurrent(t *testing.T) {
+	key := testContextKey("concurrent")
 	RegisterBackendAuthHandler("concurrent-service", func(r *http.Request) (*http.Request, error) {
-		return r.WithContext(context.WithValue(r.Context(), "concurrent", true)), nil
+		return r.WithContext(context.WithValue(r.Context(), key, true)), nil
 	})
 
 	mw := BackendAuthMiddleware("concurrent-service")
@@ -121,7 +122,7 @@ func TestBackendAuthMiddlewareConcurrent(t *testing.T) {
 	for i := 0; i < 10; i++ {
 		go func() {
 			handler := mw(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-				if r.Context().Value("concurrent") != true {
+				if r.Context().Value(key) != true {
 					t.Error("expected concurrent context value")
 				}
 				w.WriteHeader(http.StatusOK)
