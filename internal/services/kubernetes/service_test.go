@@ -6,7 +6,6 @@ import (
 	"testing"
 
 	"github.com/mahmut-Abi/cloud-native-mcp-server/internal/config"
-	"github.com/mahmut-Abi/cloud-native-mcp-server/internal/services/kubernetes/client"
 	"github.com/mark3labs/mcp-go/mcp"
 )
 
@@ -21,13 +20,11 @@ func TestNewService(t *testing.T) {
 		t.Errorf("Expected service name 'kubernetes', got '%s'", service.Name())
 	}
 
-	if service.IsEnabled() {
-		t.Error("Service should not be enabled before initialization")
+	if !service.IsEnabled() {
+		t.Error("Service should be enabled by default (always-on)")
 	}
 
-	if service.client != nil {
-		t.Error("Client should be nil before initialization")
-	}
+	// client is per-request from HTTP headers; client field removed from Service struct
 }
 
 func TestServiceInitializeWithNilConfig(t *testing.T) {
@@ -81,7 +78,7 @@ func TestServiceInitializeWithValidConfig(t *testing.T) {
 
 func TestServiceGetToolsWhenDisabled(t *testing.T) {
 	service := NewService()
-	// Service is disabled by default
+	service.enabled = false // Explicitly disable
 
 	tools := service.GetTools()
 
@@ -92,18 +89,18 @@ func TestServiceGetToolsWhenDisabled(t *testing.T) {
 
 func TestServiceGetToolsWhenClientIsNil(t *testing.T) {
 	service := NewService()
-	service.enabled = true // Enable service but keep client nil
+	service.enabled = true // Client is per-request from HTTP headers
 
 	tools := service.GetTools()
 
-	if tools != nil {
-		t.Error("GetTools() should return nil when client is nil")
+	if tools == nil {
+		t.Error("GetTools() should return tools even without pre-configured client")
 	}
 }
 
 func TestServiceGetHandlersWhenDisabled(t *testing.T) {
 	service := NewService()
-	// Service is disabled by default
+	service.enabled = false // Explicitly disable
 
 	handlers := service.GetHandlers()
 
@@ -114,12 +111,12 @@ func TestServiceGetHandlersWhenDisabled(t *testing.T) {
 
 func TestServiceGetHandlersWhenClientIsNil(t *testing.T) {
 	service := NewService()
-	service.enabled = true // Enable service but keep client nil
+	service.enabled = true // Client is per-request from HTTP headers
 
 	handlers := service.GetHandlers()
 
-	if handlers != nil {
-		t.Error("GetHandlers() should return nil when client is nil")
+	if handlers == nil {
+		t.Error("GetHandlers() should return handlers even without pre-configured client")
 	}
 }
 
@@ -137,19 +134,13 @@ func TestServiceName(t *testing.T) {
 func TestServiceIsEnabledDefault(t *testing.T) {
 	service := NewService()
 
-	if service.IsEnabled() {
-		t.Error("Service should not be enabled by default")
+	if !service.IsEnabled() {
+		t.Error("Kubernetes service should be enabled by default")
 	}
 }
 
 func TestServiceGetClient(t *testing.T) {
-	service := NewService()
-
-	client := service.GetClient()
-
-	if client != nil {
-		t.Error("GetClient() should return nil when client is not initialized")
-	}
+	// client is per-request from HTTP headers
 }
 
 func TestWrapWithToolErrorsConvertsErrorToToolResult(t *testing.T) {
@@ -171,7 +162,6 @@ func TestWrapWithToolErrorsConvertsErrorToToolResult(t *testing.T) {
 func TestServiceGetHandlersIncludesRolloutAndNodeOperations(t *testing.T) {
 	service := NewService()
 	service.enabled = true
-	service.client = &client.Client{}
 
 	handlers := service.GetHandlers()
 	for _, name := range []string{

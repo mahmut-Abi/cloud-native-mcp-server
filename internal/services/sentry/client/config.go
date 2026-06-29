@@ -56,6 +56,10 @@ func parseRequestHeaders(h http.Header) *ClientOptions {
 
 // FromContext extracts the Sentry client from the request context.
 // Returns an error if no client was injected by the backend auth middleware.
+func NewContext(ctx context.Context, cli *Client) context.Context {
+	return context.WithValue(ctx, sentryContextKey{}, cli)
+}
+
 func FromContext(ctx context.Context) (*Client, error) {
 	cli, ok := ctx.Value(sentryContextKey{}).(*Client)
 	if !ok || cli == nil {

@@ -42,7 +42,7 @@ func newMockService(t *testing.T, handler http.HandlerFunc) *mockJaegerService {
 func TestGetTracesHandler_UsesDefaultsWithoutPanicking(t *testing.T) {
 	var capturedQuery url.Values
 
-	service := newMockService(t, func(w http.ResponseWriter, r *http.Request) {
+	svc := newMockService(t, func(w http.ResponseWriter, r *http.Request) {
 		if r.URL.Path != "/api/traces" {
 			t.Fatalf("expected path /api/traces, got %s", r.URL.Path)
 		}
@@ -51,7 +51,7 @@ func TestGetTracesHandler_UsesDefaultsWithoutPanicking(t *testing.T) {
 		_, _ = w.Write([]byte(`{"data":[]}`))
 	})
 
-	handler := GetTracesHandler(service)
+	handler := GetTracesHandler()
 	req := mcp.CallToolRequest{
 		Params: mcp.CallToolParams{
 			Arguments: map[string]interface{}{
@@ -60,7 +60,8 @@ func TestGetTracesHandler_UsesDefaultsWithoutPanicking(t *testing.T) {
 		},
 	}
 
-	result, err := handler(context.Background(), req)
+	ctx := client.NewContext(context.Background(), svc.GetClient())
+	result, err := handler(ctx, req)
 	if err != nil {
 		t.Fatalf("expected no error, got %v", err)
 	}
@@ -88,7 +89,7 @@ func TestGetTracesHandler_UsesDefaultsWithoutPanicking(t *testing.T) {
 }
 
 func TestGetTraceHandler_MissingTraceIDReturnsError(t *testing.T) {
-	handler := GetTraceHandler(&mockJaegerService{})
+	handler := GetTraceHandler()
 	req := mcp.CallToolRequest{
 		Params: mcp.CallToolParams{
 			Arguments: map[string]interface{}{},
@@ -105,7 +106,7 @@ func TestGetTraceHandler_MissingTraceIDReturnsError(t *testing.T) {
 }
 
 func TestGetTracesHandler_MissingServiceReturnsError(t *testing.T) {
-	handler := GetTracesHandler(&mockJaegerService{})
+	handler := GetTracesHandler()
 	req := mcp.CallToolRequest{
 		Params: mcp.CallToolParams{
 			Arguments: map[string]interface{}{},
@@ -122,7 +123,7 @@ func TestGetTracesHandler_MissingServiceReturnsError(t *testing.T) {
 }
 
 func TestGetServiceOperationsHandler_MissingServiceReturnsError(t *testing.T) {
-	handler := GetServiceOperationsHandler(&mockJaegerService{})
+	handler := GetServiceOperationsHandler()
 	req := mcp.CallToolRequest{
 		Params: mcp.CallToolParams{
 			Arguments: map[string]interface{}{},
@@ -141,7 +142,7 @@ func TestGetServiceOperationsHandler_MissingServiceReturnsError(t *testing.T) {
 func TestSearchTracesHandler_ParsesLimitAndTags(t *testing.T) {
 	var capturedQuery url.Values
 
-	service := newMockService(t, func(w http.ResponseWriter, r *http.Request) {
+	svc := newMockService(t, func(w http.ResponseWriter, r *http.Request) {
 		if r.URL.Path != "/api/traces" {
 			t.Fatalf("expected path /api/traces, got %s", r.URL.Path)
 		}
@@ -150,7 +151,7 @@ func TestSearchTracesHandler_ParsesLimitAndTags(t *testing.T) {
 		_, _ = w.Write([]byte(`{"data":[]}`))
 	})
 
-	handler := SearchTracesHandler(service)
+	handler := SearchTracesHandler()
 	req := mcp.CallToolRequest{
 		Params: mcp.CallToolParams{
 			Arguments: map[string]interface{}{
@@ -164,7 +165,8 @@ func TestSearchTracesHandler_ParsesLimitAndTags(t *testing.T) {
 		},
 	}
 
-	result, err := handler(context.Background(), req)
+	ctx := client.NewContext(context.Background(), svc.GetClient())
+	result, err := handler(ctx, req)
 	if err != nil {
 		t.Fatalf("expected no error, got %v", err)
 	}
@@ -186,12 +188,12 @@ func TestSearchTracesHandler_ParsesLimitAndTags(t *testing.T) {
 }
 
 func TestGetTracesSummaryHandler_UsesProcessMapForService(t *testing.T) {
-	service := newMockService(t, func(w http.ResponseWriter, r *http.Request) {
+	svc := newMockService(t, func(w http.ResponseWriter, r *http.Request) {
 		w.Header().Set("Content-Type", "application/json")
 		_, _ = w.Write([]byte(`{"data":[{"traceID":"trace-1","spans":[{"operationName":"GET /checkout","duration":1234,"processID":"p1"}],"processes":{"p1":{"serviceName":"checkout-service","tags":[]}}}]}`))
 	})
 
-	handler := GetTracesSummaryHandler(service)
+	handler := GetTracesSummaryHandler()
 	req := mcp.CallToolRequest{
 		Params: mcp.CallToolParams{
 			Arguments: map[string]interface{}{
@@ -200,7 +202,8 @@ func TestGetTracesSummaryHandler_UsesProcessMapForService(t *testing.T) {
 		},
 	}
 
-	result, err := handler(context.Background(), req)
+	ctx := client.NewContext(context.Background(), svc.GetClient())
+	result, err := handler(ctx, req)
 	if err != nil {
 		t.Fatalf("expected no error, got %v", err)
 	}
@@ -214,7 +217,7 @@ func TestGetTracesSummaryHandler_UsesProcessMapForService(t *testing.T) {
 }
 
 func TestGetServicesSummaryHandler_WithNilClientReturnsError(t *testing.T) {
-	handler := GetServicesSummaryHandler(&mockJaegerService{})
+	handler := GetServicesSummaryHandler()
 	req := mcp.CallToolRequest{
 		Params: mcp.CallToolParams{
 			Arguments: map[string]interface{}{},
@@ -225,7 +228,7 @@ func TestGetServicesSummaryHandler_WithNilClientReturnsError(t *testing.T) {
 	if err == nil {
 		t.Fatal("expected error for nil jaeger client")
 	}
-	if !strings.Contains(err.Error(), "jaeger client is not initialized") {
+	if !strings.Contains(err.Error(), "jaeger client not found in context") {
 		t.Fatalf("unexpected error: %v", err)
 	}
 }

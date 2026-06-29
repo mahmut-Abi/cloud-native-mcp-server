@@ -355,12 +355,12 @@ func setupTestServer(t *testing.T, responses []testResponse) (*httptest.Server, 
 
 func TestHandleHealthCheck(t *testing.T) {
 	response := `{"cluster_name":"test","status":"green","number_of_nodes":1}`
-	server, c := setupTestServer(t, []testResponse{
+	server, _ := setupTestServer(t, []testResponse{
 		{path: "/_cluster/health", response: response, statusCode: http.StatusOK},
 	})
 	defer server.Close()
 
-	handler := HandleHealthCheck(c)
+	handler := HandleHealthCheck()
 	ctx := context.Background()
 	request := mcp.CallToolRequest{
 		Params: mcp.CallToolParams{
@@ -379,13 +379,7 @@ func TestHandleHealthCheckError(t *testing.T) {
 	}))
 	defer server.Close()
 
-	opts := &client.ClientOptions{
-		Addresses: []string{server.URL},
-	}
-	c, err := client.NewClient(opts)
-	require.NoError(t, err)
-
-	handler := HandleHealthCheck(c)
+	handler := HandleHealthCheck()
 	ctx := context.Background()
 	request := mcp.CallToolRequest{
 		Params: mcp.CallToolParams{
@@ -400,12 +394,12 @@ func TestHandleHealthCheckError(t *testing.T) {
 
 func TestHandleListIndices(t *testing.T) {
 	response := `[{"index":"test-index","health":"green"}]`
-	server, c := setupTestServer(t, []testResponse{
+	server, _ := setupTestServer(t, []testResponse{
 		{path: "/_cat/indices", response: response, statusCode: http.StatusOK},
 	})
 	defer server.Close()
 
-	handler := HandleListIndices(c)
+	handler := HandleListIndices()
 	ctx := context.Background()
 	request := mcp.CallToolRequest{
 		Params: mcp.CallToolParams{
@@ -420,12 +414,12 @@ func TestHandleListIndices(t *testing.T) {
 
 func TestHandleIndexStats(t *testing.T) {
 	response := `{"indices":{"test-index":{"primaries":{"docs":{"count":100}}}}}`
-	server, c := setupTestServer(t, []testResponse{
+	server, _ := setupTestServer(t, []testResponse{
 		{path: "/test-index/_stats", response: response, statusCode: http.StatusOK},
 	})
 	defer server.Close()
 
-	handler := HandleIndexStats(c)
+	handler := HandleIndexStats()
 	ctx := context.Background()
 	request := mcp.CallToolRequest{
 		Params: mcp.CallToolParams{
@@ -444,13 +438,7 @@ func TestHandleIndexStatsMissingIndex(t *testing.T) {
 	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {}))
 	defer server.Close()
 
-	opts := &client.ClientOptions{
-		Addresses: []string{server.URL},
-	}
-	c, err := client.NewClient(opts)
-	require.NoError(t, err)
-
-	handler := HandleIndexStats(c)
+	handler := HandleIndexStats()
 	ctx := context.Background()
 	request := mcp.CallToolRequest{
 		Params: mcp.CallToolParams{
@@ -465,12 +453,12 @@ func TestHandleIndexStatsMissingIndex(t *testing.T) {
 
 func TestHandleNodes(t *testing.T) {
 	response := `{"nodes":{"node1":{"name":"node-1"}}}`
-	server, c := setupTestServer(t, []testResponse{
+	server, _ := setupTestServer(t, []testResponse{
 		{path: "/_nodes", response: response, statusCode: http.StatusOK},
 	})
 	defer server.Close()
 
-	handler := HandleNodes(c)
+	handler := HandleNodes()
 	ctx := context.Background()
 	request := mcp.CallToolRequest{
 		Params: mcp.CallToolParams{
@@ -485,12 +473,12 @@ func TestHandleNodes(t *testing.T) {
 
 func TestHandleInfo(t *testing.T) {
 	response := `{"name":"test-cluster","version":{"number":"8.0.0"}}`
-	server, c := setupTestServer(t, []testResponse{
+	server, _ := setupTestServer(t, []testResponse{
 		{path: "/", response: response, statusCode: http.StatusOK},
 	})
 	defer server.Close()
 
-	handler := HandleInfo(c)
+	handler := HandleInfo()
 	ctx := context.Background()
 	request := mcp.CallToolRequest{
 		Params: mcp.CallToolParams{
@@ -505,12 +493,12 @@ func TestHandleInfo(t *testing.T) {
 
 func TestHandleListIndicesPaginated(t *testing.T) {
 	response := `[{"index":"test-index","health":"green","status":"open","uuid":"1234","pri":"1","rep":"1","docs.count":"100","store.size":"1kb"}]`
-	server, c := setupTestServer(t, []testResponse{
+	server, _ := setupTestServer(t, []testResponse{
 		{path: "/_cat/indices", response: response, statusCode: http.StatusOK},
 	})
 	defer server.Close()
 
-	handler := HandleListIndicesPaginated(c)
+	handler := HandleListIndicesPaginated()
 	ctx := context.Background()
 	request := mcp.CallToolRequest{
 		Params: mcp.CallToolParams{
@@ -530,12 +518,12 @@ func TestHandleListIndicesPaginated(t *testing.T) {
 
 func TestHandleGetNodesSummary(t *testing.T) {
 	response := `{"nodes":[{"name":"node-1","roles":["data"]}],"count":1}`
-	server, c := setupTestServer(t, []testResponse{
+	server, _ := setupTestServer(t, []testResponse{
 		{path: "/_nodes", response: response, statusCode: http.StatusOK},
 	})
 	defer server.Close()
 
-	handler := HandleGetNodesSummary(c)
+	handler := HandleGetNodesSummary()
 	ctx := context.Background()
 	request := mcp.CallToolRequest{
 		Params: mcp.CallToolParams{
@@ -554,12 +542,12 @@ func TestHandleGetNodesSummary(t *testing.T) {
 
 func TestHandleGetClusterHealthSummary(t *testing.T) {
 	response := `{"status":"green","number_of_nodes":1,"active_shards":100}`
-	server, c := setupTestServer(t, []testResponse{
+	server, _ := setupTestServer(t, []testResponse{
 		{path: "/_cluster/health", response: response, statusCode: http.StatusOK},
 	})
 	defer server.Close()
 
-	handler := HandleGetClusterHealthSummary(c)
+	handler := HandleGetClusterHealthSummary()
 	ctx := context.Background()
 	request := mcp.CallToolRequest{
 		Params: mcp.CallToolParams{
@@ -581,10 +569,10 @@ func TestHandleGetIndexDetailAdvanced(t *testing.T) {
 		{path: "/test-index/_settings", response: `{"test-index":{"settings":{}}}`, statusCode: http.StatusOK},
 		{path: "/test-index/_stats", response: `{"indices":{"test-index":{"primaries":{}}}}`, statusCode: http.StatusOK},
 	}
-	server, c := setupTestServer(t, responses)
+	server, _ := setupTestServer(t, responses)
 	defer server.Close()
 
-	handler := HandleGetIndexDetailAdvanced(c)
+	handler := HandleGetIndexDetailAdvanced()
 	ctx := context.Background()
 	request := mcp.CallToolRequest{
 		Params: mcp.CallToolParams{
@@ -608,14 +596,13 @@ func TestHandleGetIndexDetailAdvancedMissingIndex(t *testing.T) {
 	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {}))
 	defer server.Close()
 
-	opts := &client.ClientOptions{
+	c, err := client.NewClient(&client.ClientOptions{
 		Addresses: []string{server.URL},
-	}
-	c, err := client.NewClient(opts)
+	})
 	require.NoError(t, err)
 
-	handler := HandleGetIndexDetailAdvanced(c)
-	ctx := context.Background()
+	handler := HandleGetIndexDetailAdvanced()
+	ctx := client.NewContext(context.Background(), c)
 	request := mcp.CallToolRequest{
 		Params: mcp.CallToolParams{
 			Arguments: map[string]interface{}{},
@@ -635,10 +622,10 @@ func TestHandleGetClusterDetailAdvanced(t *testing.T) {
 		{path: "/_cluster/stats", response: `{"indices":{"count":1}}`, statusCode: http.StatusOK},
 		{path: "/_cluster/settings", response: `{"persistent":{},"transient":{}}`, statusCode: http.StatusOK},
 	}
-	server, c := setupTestServer(t, responses)
+	server, _ := setupTestServer(t, responses)
 	defer server.Close()
 
-	handler := HandleGetClusterDetailAdvanced(c)
+	handler := HandleGetClusterDetailAdvanced()
 	ctx := context.Background()
 	request := mcp.CallToolRequest{
 		Params: mcp.CallToolParams{
@@ -660,12 +647,12 @@ func TestHandleGetClusterDetailAdvanced(t *testing.T) {
 
 func TestHandleSearchIndices(t *testing.T) {
 	response := `[{"index":"test-index","health":"green","status":"open","docs.count":"100","store.size":"1kb"}]`
-	server, c := setupTestServer(t, []testResponse{
+	server, _ := setupTestServer(t, []testResponse{
 		{path: "/_cat/indices", response: response, statusCode: http.StatusOK},
 	})
 	defer server.Close()
 
-	handler := HandleSearchIndices(c)
+	handler := HandleSearchIndices()
 	ctx := context.Background()
 	request := mcp.CallToolRequest{
 		Params: mcp.CallToolParams{

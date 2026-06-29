@@ -64,6 +64,11 @@ func parseRequestHeaders(h http.Header) *ClientOptions {
 	return opts
 }
 
+// NewContext returns a new context with the given OpenTelemetry client injected.
+func NewContext(ctx context.Context, cli *Client) context.Context {
+	return context.WithValue(ctx, opentelemetryContextKey{}, cli)
+}
+
 // FromContext extracts the OpenTelemetry client from the request context.
 // Returns an error if no client was injected by the backend auth middleware.
 func FromContext(ctx context.Context) (*Client, error) {

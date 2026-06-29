@@ -4,7 +4,6 @@ import (
 	"testing"
 
 	"github.com/mahmut-Abi/cloud-native-mcp-server/internal/config"
-	clientpkg "github.com/mahmut-Abi/cloud-native-mcp-server/internal/services/nacos/client"
 )
 
 func TestNacosServiceNew(t *testing.T) {
@@ -47,7 +46,6 @@ func TestNacosServiceInitializeNilConfig(t *testing.T) {
 func TestNacosServiceRegistersToolsAndHandlers(t *testing.T) {
 	svc := NewService()
 	svc.enabled = true
-	svc.client = &clientpkg.Client{}
 	svc.defaultGroup = "DEFAULT_GROUP"
 	svc.defaultNamespaceID = "public"
 

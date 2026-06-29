@@ -72,9 +72,7 @@ func TestServiceInitializeWithEnabledConfig(t *testing.T) {
 		t.Error("Service should be enabled when properly configured")
 	}
 
-	if service.GetClient() == nil {
-		t.Error("Client should not be nil when service is enabled")
-	}
+	// client is per-request from HTTP headers
 }
 
 func TestServiceGetToolsWhenEnabled(t *testing.T) {
@@ -205,10 +203,7 @@ func TestServiceConfigurationOptions(t *testing.T) {
 		t.Error("Service should be enabled with full config")
 	}
 
-	client := service.GetClient()
-	if client == nil {
-		t.Error("Client should not be nil")
-	}
+	// client is per-request from HTTP headers
 }
 
 func TestServiceName(t *testing.T) {

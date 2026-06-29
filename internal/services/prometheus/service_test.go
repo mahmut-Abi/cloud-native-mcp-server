@@ -2,8 +2,6 @@ package prometheus
 
 import (
 	"testing"
-
-	"github.com/mahmut-Abi/cloud-native-mcp-server/internal/services/prometheus/client"
 )
 
 func TestPrometheusServiceNew(t *testing.T) {
@@ -56,7 +54,6 @@ func TestPrometheusServiceName(t *testing.T) {
 func TestPrometheusServiceRegistersExtendedToolsAndHandlers(t *testing.T) {
 	svc := NewService()
 	svc.enabled = true
-	svc.client = &client.Client{}
 
 	tools := svc.GetTools()
 	handlers := svc.GetHandlers()

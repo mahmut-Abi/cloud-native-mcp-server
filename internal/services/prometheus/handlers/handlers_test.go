@@ -53,8 +53,8 @@ func TestHandleQuery(t *testing.T) {
 	})
 	defer server.Close()
 
-	handler := HandleQuery(c)
-	ctx := context.Background()
+	handler := HandleQuery()
+	ctx := client.NewContext(context.Background(), c)
 	request := mcp.CallToolRequest{
 		Params: mcp.CallToolParams{
 			Arguments: map[string]interface{}{
@@ -73,8 +73,8 @@ func TestHandleQueryMissingQuery(t *testing.T) {
 	server, c := setupTestServer(t, []testResponse{})
 	defer server.Close()
 
-	handler := HandleQuery(c)
-	ctx := context.Background()
+	handler := HandleQuery()
+	ctx := client.NewContext(context.Background(), c)
 	request := mcp.CallToolRequest{
 		Params: mcp.CallToolParams{
 			Arguments: map[string]interface{}{},
@@ -94,8 +94,8 @@ func TestHandleQueryRange(t *testing.T) {
 	})
 	defer server.Close()
 
-	handler := HandleQueryRange(c)
-	ctx := context.Background()
+	handler := HandleQueryRange()
+	ctx := client.NewContext(context.Background(), c)
 	start := time.Now().Add(-1 * time.Hour).Format(time.RFC3339)
 	end := time.Now().Format(time.RFC3339)
 	request := mcp.CallToolRequest{
@@ -122,8 +122,8 @@ func TestHandleQueryRangeMissingParameters(t *testing.T) {
 	server, c := setupTestServer(t, []testResponse{})
 	defer server.Close()
 
-	handler := HandleQueryRange(c)
-	ctx := context.Background()
+	handler := HandleQueryRange()
+	ctx := client.NewContext(context.Background(), c)
 	request := mcp.CallToolRequest{
 		Params: mcp.CallToolParams{
 			Arguments: map[string]interface{}{},
@@ -143,8 +143,8 @@ func TestHandleGetTargets(t *testing.T) {
 	})
 	defer server.Close()
 
-	handler := HandleGetTargets(c)
-	ctx := context.Background()
+	handler := HandleGetTargets()
+	ctx := client.NewContext(context.Background(), c)
 	request := mcp.CallToolRequest{
 		Params: mcp.CallToolParams{
 			Arguments: map[string]interface{}{
@@ -166,8 +166,8 @@ func TestHandleGetAlerts(t *testing.T) {
 	})
 	defer server.Close()
 
-	handler := HandleGetAlerts(c)
-	ctx := context.Background()
+	handler := HandleGetAlerts()
+	ctx := client.NewContext(context.Background(), c)
 	request := mcp.CallToolRequest{
 		Params: mcp.CallToolParams{
 			Arguments: map[string]interface{}{},
@@ -187,8 +187,8 @@ func TestHandleGetRules(t *testing.T) {
 	})
 	defer server.Close()
 
-	handler := HandleGetRules(c)
-	ctx := context.Background()
+	handler := HandleGetRules()
+	ctx := client.NewContext(context.Background(), c)
 	request := mcp.CallToolRequest{
 		Params: mcp.CallToolParams{
 			Arguments: map[string]interface{}{
@@ -210,8 +210,8 @@ func TestHandleGetLabelNames(t *testing.T) {
 	})
 	defer server.Close()
 
-	handler := HandleGetLabelNames(c)
-	ctx := context.Background()
+	handler := HandleGetLabelNames()
+	ctx := client.NewContext(context.Background(), c)
 	request := mcp.CallToolRequest{
 		Params: mcp.CallToolParams{
 			Arguments: map[string]interface{}{},
@@ -231,8 +231,8 @@ func TestHandleGetLabelValues(t *testing.T) {
 	})
 	defer server.Close()
 
-	handler := HandleGetLabelValues(c)
-	ctx := context.Background()
+	handler := HandleGetLabelValues()
+	ctx := client.NewContext(context.Background(), c)
 	request := mcp.CallToolRequest{
 		Params: mcp.CallToolParams{
 			Arguments: map[string]interface{}{
@@ -251,8 +251,8 @@ func TestHandleGetLabelValuesMissingLabel(t *testing.T) {
 	server, c := setupTestServer(t, []testResponse{})
 	defer server.Close()
 
-	handler := HandleGetLabelValues(c)
-	ctx := context.Background()
+	handler := HandleGetLabelValues()
+	ctx := client.NewContext(context.Background(), c)
 	request := mcp.CallToolRequest{
 		Params: mcp.CallToolParams{
 			Arguments: map[string]interface{}{},
@@ -272,8 +272,8 @@ func TestHandleGetSeries(t *testing.T) {
 	})
 	defer server.Close()
 
-	handler := HandleGetSeries(c)
-	ctx := context.Background()
+	handler := HandleGetSeries()
+	ctx := client.NewContext(context.Background(), c)
 	request := mcp.CallToolRequest{
 		Params: mcp.CallToolParams{
 			Arguments: map[string]interface{}{
@@ -295,8 +295,8 @@ func TestHandleGetSeriesMissingMatch(t *testing.T) {
 	server, c := setupTestServer(t, []testResponse{})
 	defer server.Close()
 
-	handler := HandleGetSeries(c)
-	ctx := context.Background()
+	handler := HandleGetSeries()
+	ctx := client.NewContext(context.Background(), c)
 	request := mcp.CallToolRequest{
 		Params: mcp.CallToolParams{
 			Arguments: map[string]interface{}{},
@@ -313,8 +313,8 @@ func TestHandleTestConnection(t *testing.T) {
 	server, c := setupTestServer(t, []testResponse{})
 	defer server.Close()
 
-	handler := HandleTestConnection(c)
-	ctx := context.Background()
+	handler := HandleTestConnection()
+	ctx := client.NewContext(context.Background(), c)
 	request := mcp.CallToolRequest{
 		Params: mcp.CallToolParams{
 			Arguments: map[string]interface{}{},
@@ -334,8 +334,8 @@ func TestHandleGetServerInfo(t *testing.T) {
 	})
 	defer server.Close()
 
-	handler := HandleGetServerInfo(c)
-	ctx := context.Background()
+	handler := HandleGetServerInfo()
+	ctx := client.NewContext(context.Background(), c)
 	request := mcp.CallToolRequest{
 		Params: mcp.CallToolParams{
 			Arguments: map[string]interface{}{},
@@ -355,8 +355,8 @@ func TestHandleGetMetricsMetadata(t *testing.T) {
 	})
 	defer server.Close()
 
-	handler := HandleGetMetricsMetadata(c)
-	ctx := context.Background()
+	handler := HandleGetMetricsMetadata()
+	ctx := client.NewContext(context.Background(), c)
 	request := mcp.CallToolRequest{
 		Params: mcp.CallToolParams{
 			Arguments: map[string]interface{}{
@@ -378,8 +378,8 @@ func TestHandleGetTargetMetadata(t *testing.T) {
 	})
 	defer server.Close()
 
-	handler := HandleGetTargetMetadata(c)
-	ctx := context.Background()
+	handler := HandleGetTargetMetadata()
+	ctx := client.NewContext(context.Background(), c)
 	request := mcp.CallToolRequest{
 		Params: mcp.CallToolParams{
 			Arguments: map[string]interface{}{
@@ -401,8 +401,8 @@ func TestHandleGetTSDBStats(t *testing.T) {
 	})
 	defer server.Close()
 
-	handler := HandleGetTSDBStats(c)
-	ctx := context.Background()
+	handler := HandleGetTSDBStats()
+	ctx := client.NewContext(context.Background(), c)
 	request := mcp.CallToolRequest{
 		Params: mcp.CallToolParams{
 			Arguments: map[string]interface{}{},
@@ -422,8 +422,8 @@ func TestHandleGetTSDBStatus(t *testing.T) {
 	})
 	defer server.Close()
 
-	handler := HandleGetTSDBStatus(c)
-	ctx := context.Background()
+	handler := HandleGetTSDBStatus()
+	ctx := client.NewContext(context.Background(), c)
 	request := mcp.CallToolRequest{
 		Params: mcp.CallToolParams{
 			Arguments: map[string]interface{}{},
@@ -443,8 +443,8 @@ func TestHandleGetRuntimeInfo(t *testing.T) {
 	})
 	defer server.Close()
 
-	handler := HandleGetRuntimeInfo(c)
-	ctx := context.Background()
+	handler := HandleGetRuntimeInfo()
+	ctx := client.NewContext(context.Background(), c)
 	request := mcp.CallToolRequest{
 		Params: mcp.CallToolParams{
 			Arguments: map[string]interface{}{},
@@ -464,8 +464,8 @@ func TestHandleCreateSnapshot(t *testing.T) {
 	})
 	defer server.Close()
 
-	handler := HandleCreateSnapshot(c)
-	ctx := context.Background()
+	handler := HandleCreateSnapshot()
+	ctx := client.NewContext(context.Background(), c)
 	request := mcp.CallToolRequest{
 		Params: mcp.CallToolParams{
 			Arguments: map[string]interface{}{
@@ -487,8 +487,8 @@ func TestHandleGetWALReplayStatus(t *testing.T) {
 	})
 	defer server.Close()
 
-	handler := HandleGetWALReplayStatus(c)
-	ctx := context.Background()
+	handler := HandleGetWALReplayStatus()
+	ctx := client.NewContext(context.Background(), c)
 	request := mcp.CallToolRequest{
 		Params: mcp.CallToolParams{
 			Arguments: map[string]interface{}{},
@@ -508,8 +508,8 @@ func TestHandleGetTargetsSummary(t *testing.T) {
 	})
 	defer server.Close()
 
-	handler := HandleGetTargetsSummary(c)
-	ctx := context.Background()
+	handler := HandleGetTargetsSummary()
+	ctx := client.NewContext(context.Background(), c)
 	request := mcp.CallToolRequest{
 		Params: mcp.CallToolParams{
 			Arguments: map[string]interface{}{
@@ -531,8 +531,8 @@ func TestHandleGetAlertsSummary(t *testing.T) {
 	})
 	defer server.Close()
 
-	handler := HandleGetAlertsSummary(c)
-	ctx := context.Background()
+	handler := HandleGetAlertsSummary()
+	ctx := client.NewContext(context.Background(), c)
 	request := mcp.CallToolRequest{
 		Params: mcp.CallToolParams{
 			Arguments: map[string]interface{}{},
@@ -552,8 +552,8 @@ func TestHandleGetRulesSummary(t *testing.T) {
 	})
 	defer server.Close()
 
-	handler := HandleGetRulesSummary(c)
-	ctx := context.Background()
+	handler := HandleGetRulesSummary()
+	ctx := client.NewContext(context.Background(), c)
 	request := mcp.CallToolRequest{
 		Params: mcp.CallToolParams{
 			Arguments: map[string]interface{}{

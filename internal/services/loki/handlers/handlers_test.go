@@ -41,7 +41,7 @@ func newMockService(t *testing.T, handler http.HandlerFunc) *mockLokiService {
 func TestQueryRangeHandlerAcceptsNestedParams(t *testing.T) {
 	var captured url.Values
 
-	service := newMockService(t, func(w http.ResponseWriter, r *http.Request) {
+	svc := newMockService(t, func(w http.ResponseWriter, r *http.Request) {
 		if r.URL.Path != "/loki/api/v1/query_range" {
 			t.Fatalf("expected path /loki/api/v1/query_range, got %s", r.URL.Path)
 		}
@@ -50,7 +50,7 @@ func TestQueryRangeHandlerAcceptsNestedParams(t *testing.T) {
 		_, _ = w.Write([]byte(`{"status":"success","data":{"resultType":"streams","result":[]}}`))
 	})
 
-	handler := QueryRangeHandler(service)
+	handler := QueryRangeHandler()
 	req := mcp.CallToolRequest{
 		Params: mcp.CallToolParams{
 			Arguments: map[string]interface{}{
@@ -62,7 +62,8 @@ func TestQueryRangeHandlerAcceptsNestedParams(t *testing.T) {
 		},
 	}
 
-	result, err := handler(context.Background(), req)
+	ctx := client.NewContext(context.Background(), svc.GetClient())
+	result, err := handler(ctx, req)
 	if err != nil {
 		t.Fatalf("expected no error, got %v", err)
 	}
@@ -78,7 +79,7 @@ func TestQueryRangeHandlerAcceptsNestedParams(t *testing.T) {
 }
 
 func TestGetSeriesHandlerMissingMatchers(t *testing.T) {
-	handler := GetSeriesHandler(&mockLokiService{})
+	handler := GetSeriesHandler()
 	req := mcp.CallToolRequest{
 		Params: mcp.CallToolParams{
 			Arguments: map[string]interface{}{},
@@ -95,7 +96,7 @@ func TestGetSeriesHandlerMissingMatchers(t *testing.T) {
 }
 
 func TestQueryLogsSummaryHandlerBuildsSummary(t *testing.T) {
-	service := newMockService(t, func(w http.ResponseWriter, r *http.Request) {
+	svc := newMockService(t, func(w http.ResponseWriter, r *http.Request) {
 		w.Header().Set("Content-Type", "application/json")
 		_, _ = w.Write([]byte(`{
 			"status":"success",
@@ -114,7 +115,7 @@ func TestQueryLogsSummaryHandlerBuildsSummary(t *testing.T) {
 		}`))
 	})
 
-	handler := QueryLogsSummaryHandler(service)
+	handler := QueryLogsSummaryHandler()
 	req := mcp.CallToolRequest{
 		Params: mcp.CallToolParams{
 			Arguments: map[string]interface{}{
@@ -123,7 +124,7 @@ func TestQueryLogsSummaryHandlerBuildsSummary(t *testing.T) {
 		},
 	}
 
-	result, err := handler(context.Background(), req)
+	result, err := handler(client.NewContext(context.Background(), svc.GetClient()), req)
 	if err != nil {
 		t.Fatalf("expected no error, got %v", err)
 	}

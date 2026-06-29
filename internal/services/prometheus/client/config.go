@@ -73,3 +73,8 @@ func FromContext(ctx context.Context) (*Client, error) {
 	}
 	return cli, nil
 }
+
+// NewContext returns a new context with the given Prometheus client injected.
+func NewContext(ctx context.Context, cli *Client) context.Context {
+	return context.WithValue(ctx, prometheusContextKey{}, cli)
+}

@@ -40,7 +40,7 @@ func newMockLangfuseService(t *testing.T, handler http.HandlerFunc) *mockLangfus
 }
 
 func TestHandleGetMetricsNormalizesTimestampFilters(t *testing.T) {
-	service := newMockLangfuseService(t, func(w http.ResponseWriter, r *http.Request) {
+	svc := newMockLangfuseService(t, func(w http.ResponseWriter, r *http.Request) {
 		if r.URL.Path != "/api/public/metrics" {
 			t.Fatalf("unexpected path: %s", r.URL.Path)
 		}
@@ -63,7 +63,7 @@ func TestHandleGetMetricsNormalizesTimestampFilters(t *testing.T) {
 		_, _ = w.Write([]byte(`{"data":[]}`))
 	})
 
-	handler := HandleGetMetrics(service)
+	handler := HandleGetMetrics()
 	req := mcp.CallToolRequest{
 		Params: mcp.CallToolParams{
 			Arguments: map[string]interface{}{
@@ -85,7 +85,7 @@ func TestHandleGetMetricsNormalizesTimestampFilters(t *testing.T) {
 		},
 	}
 
-	if _, err := handler(context.Background(), req); err != nil {
+	if _, err := handler(client.NewContext(context.Background(), svc.GetClient()), req); err != nil {
 		t.Fatalf("HandleGetMetrics() error = %v", err)
 	}
 }

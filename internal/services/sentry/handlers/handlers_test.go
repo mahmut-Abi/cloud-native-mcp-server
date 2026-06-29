@@ -91,7 +91,8 @@ func TestHandleTestConnectionListsOrganizationsWithoutDefaultScope(t *testing.T)
 		},
 	}
 
-	result, err := handler(context.Background(), req)
+	ctx := client.NewContext(context.Background(), service.GetClient())
+	result, err := handler(ctx, req)
 	if err != nil {
 		t.Fatalf("expected no error, got %v", err)
 	}
@@ -121,7 +122,8 @@ func TestHandleGetProjectUsesDefaultOrganizationAndProject(t *testing.T) {
 		},
 	}
 
-	result, err := handler(context.Background(), req)
+	ctx := client.NewContext(context.Background(), service.GetClient())
+	result, err := handler(ctx, req)
 	if err != nil {
 		t.Fatalf("expected no error, got %v", err)
 	}
@@ -165,7 +167,8 @@ func TestHandleListIssuesSummaryCompactsPayloadAndUsesDefaults(t *testing.T) {
 		},
 	}
 
-	result, err := handler(context.Background(), req)
+	ctx := client.NewContext(context.Background(), service.GetClient())
+	result, err := handler(ctx, req)
 	if err != nil {
 		t.Fatalf("expected no error, got %v", err)
 	}
@@ -222,7 +225,8 @@ func TestHandleListIssueEventsEncodesFilters(t *testing.T) {
 		},
 	}
 
-	result, err := handler(context.Background(), req)
+	ctx := client.NewContext(context.Background(), service.GetClient())
+	result, err := handler(ctx, req)
 	if err != nil {
 		t.Fatalf("expected no error, got %v", err)
 	}

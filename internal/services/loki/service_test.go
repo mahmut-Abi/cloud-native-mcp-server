@@ -4,7 +4,6 @@ import (
 	"testing"
 
 	"github.com/mahmut-Abi/cloud-native-mcp-server/internal/config"
-	"github.com/mahmut-Abi/cloud-native-mcp-server/internal/services/loki/client"
 )
 
 func TestLokiServiceNew(t *testing.T) {
@@ -33,7 +32,6 @@ func TestLokiServiceInitialize(t *testing.T) {
 func TestLokiServiceRegistersToolsAndHandlers(t *testing.T) {
 	svc := NewService()
 	svc.enabled = true
-	svc.client = &client.Client{}
 
 	tools := svc.GetTools()
 	handlers := svc.GetHandlers()

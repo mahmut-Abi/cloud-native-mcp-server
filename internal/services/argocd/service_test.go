@@ -2,8 +2,6 @@ package argocd
 
 import (
 	"testing"
-
-	clientpkg "github.com/mahmut-Abi/cloud-native-mcp-server/internal/services/argocd/client"
 )
 
 func TestArgoCDServiceNew(t *testing.T) {
@@ -36,7 +34,6 @@ func TestArgoCDServiceDisabledByDefault(t *testing.T) {
 func TestArgoCDServiceRegistersToolsAndHandlers(t *testing.T) {
 	svc := NewService()
 	svc.enabled = true
-	svc.client = &clientpkg.Client{}
 
 	expected := []string{
 		"argocd_test_connection",

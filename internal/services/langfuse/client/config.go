@@ -56,6 +56,11 @@ func parseRequestHeaders(h http.Header) *ClientOptions {
 	return opts
 }
 
+// NewContext returns a new context with the given Langfuse client injected.
+func NewContext(ctx context.Context, cli *Client) context.Context {
+	return context.WithValue(ctx, langfuseContextKey{}, cli)
+}
+
 // FromContext extracts the Langfuse client from the request context.
 // Returns an error if no client was injected by the backend auth middleware.
 func FromContext(ctx context.Context) (*Client, error) {

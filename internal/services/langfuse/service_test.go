@@ -2,8 +2,6 @@ package langfuse
 
 import (
 	"testing"
-
-	"github.com/mahmut-Abi/cloud-native-mcp-server/internal/services/langfuse/client"
 )
 
 func TestLangfuseServiceNew(t *testing.T) {
@@ -46,7 +44,6 @@ func TestLangfuseServiceInitializeNilConfig(t *testing.T) {
 func TestLangfuseServiceExposesProjectManagementTools(t *testing.T) {
 	svc := NewService()
 	svc.enabled = true
-	svc.client = &client.Client{}
 
 	tools := svc.GetTools()
 	if len(tools) != 37 {

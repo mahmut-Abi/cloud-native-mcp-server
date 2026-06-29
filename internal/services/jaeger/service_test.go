@@ -66,7 +66,5 @@ func TestJaegerServiceGetToolsCache(t *testing.T) {
 }
 
 func TestJaegerServiceGetClient(t *testing.T) {
-	svc := NewService()
-	client := svc.GetClient()
-	_ = client
+	// client is per-request from HTTP headers
 }

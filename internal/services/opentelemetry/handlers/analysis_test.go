@@ -58,8 +58,8 @@ service:
 `))
 	})
 
-	handler := HandleGetConfigSummary(c)
-	result, err := handler(context.Background(), mcp.CallToolRequest{})
+	handler := HandleGetConfigSummary()
+	result, err := handler(client.NewContext(context.Background(), c), mcp.CallToolRequest{})
 	if err != nil {
 		t.Fatalf("expected no error, got %v", err)
 	}

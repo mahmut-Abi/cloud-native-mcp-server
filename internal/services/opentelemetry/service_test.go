@@ -70,9 +70,7 @@ func TestOpenTelemetryServiceGetResourceHandlers(t *testing.T) {
 }
 
 func TestOpenTelemetryServiceGetClient(t *testing.T) {
-	svc := NewService()
-	client := svc.GetClient()
-	_ = client
+	// client is per-request from HTTP headers
 }
 
 func TestOpenTelemetryServiceName(t *testing.T) {
