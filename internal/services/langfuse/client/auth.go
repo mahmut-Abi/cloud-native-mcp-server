@@ -107,8 +107,7 @@ func (a *ConsoleAuthenticator) getCSRF() (string, error) {
 	if err != nil {
 		return "", fmt.Errorf("csrf request failed: %w", err)
 	}
-	defer resp.Body.Close()
-
+	defer func() { _ = resp.Body.Close() }()
 	body, err := io.ReadAll(resp.Body)
 	if err != nil {
 		return "", fmt.Errorf("reading csrf response: %w", err)
@@ -138,8 +137,7 @@ func (a *ConsoleAuthenticator) postCredentials(csrfToken, email, password string
 	if err != nil {
 		return fmt.Errorf("signin request failed: %w", err)
 	}
-	defer resp.Body.Close()
-
+	defer func() { _ = resp.Body.Close() }()
 	if resp.StatusCode != http.StatusOK && resp.StatusCode != http.StatusFound {
 		body, _ := io.ReadAll(resp.Body)
 		return fmt.Errorf("signin returned status %d: %s", resp.StatusCode, string(body))
@@ -153,8 +151,7 @@ func (a *ConsoleAuthenticator) getSession() (*Session, error) {
 	if err != nil {
 		return nil, fmt.Errorf("session request failed: %w", err)
 	}
-	defer resp.Body.Close()
-
+	defer func() { _ = resp.Body.Close() }()
 	body, err := io.ReadAll(resp.Body)
 	if err != nil {
 		return nil, fmt.Errorf("reading session: %w", err)
@@ -201,8 +198,7 @@ func (a *ConsoleAuthenticator) CreateAPIKey(projectID string) (*APIKey, error) {
 	if err != nil {
 		return nil, fmt.Errorf("TRPC request failed: %w", err)
 	}
-	defer resp.Body.Close()
-
+	defer func() { _ = resp.Body.Close() }()
 	body, err := io.ReadAll(resp.Body)
 	if err != nil {
 		return nil, fmt.Errorf("reading TRPC response: %w", err)

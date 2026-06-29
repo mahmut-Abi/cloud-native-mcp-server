@@ -471,23 +471,33 @@ alertmanager:
 
 ### Langfuse
 
+Langfuse supports three authentication modes via HTTP headers:
+
+1. **API Key (recommended)**: Use `pk-lf-*:sk-lf-*` as Basic Auth credentials
+2. **Console Credentials (self-hosted only)**: Use email:password, server auto-logins and creates API key
+3. **Admin API Key (self-hosted)**: Requires `ADMIN_API_KEY` env var on Langfuse deployment
+
 ```yaml
 langfuse:
   # Enable/disable Langfuse service
-  enabled: false
-
-  # Langfuse base URL
-  # Format: https://cloud.langfuse.com or your self-hosted Langfuse URL
-  url: "https://cloud.langfuse.com"
-
-  # Basic auth username for Langfuse Public API
-  username: ""
-
-  # Basic auth password for Langfuse Public API
-  password: ""
+  enabled: true    # Always enabled with header-based auth
 
   # Request timeout (seconds)
   timeoutSec: 30
+```
+
+**Usage with headers (API Key mode)**:
+```
+X-Mcp-Backend-Langfuse-Url: http://langfuse:3000
+X-Mcp-Backend-Langfuse-Username: pk-lf-xxxxxxxx
+X-Mcp-Backend-Langfuse-Password: sk-lf-xxxxxxxx
+```
+
+**Usage with headers (Console Credential mode)**:
+```
+X-Mcp-Backend-Langfuse-Url: http://langfuse:3000
+X-Mcp-Backend-Langfuse-Username: admin@example.org
+X-Mcp-Backend-Langfuse-Password: your-password
 ```
 
 ### Sentry

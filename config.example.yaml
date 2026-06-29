@@ -256,9 +256,19 @@ logging:
 #   X-Mcp-Backend-Opentelmetry-Tls-Skip-Verify skip TLS (true/false)
 #
 # Langfuse:
+#   --- API Key Mode (recommended) ---
 #   X-Mcp-Backend-Langfuse-Url                 base URL (required)
-#   X-Mcp-Backend-Langfuse-Username            API username
-#   X-Mcp-Backend-Langfuse-Password            API password
+#   X-Mcp-Backend-Langfuse-Username            public key (pk-lf-*)
+#   X-Mcp-Backend-Langfuse-Password            secret key (sk-lf-*)
+#
+#   --- Console Credential Mode (self-hosted only) ---
+#   When username is NOT pk-lf-* format, treated as console email.
+#   Server will auto-login, create a project API key, and use it.
+#   X-Mcp-Backend-Langfuse-Username            console email (e.g. admin@example.org)
+#   X-Mcp-Backend-Langfuse-Password            console password
+#
+#   --- Admin API Key Mode (self-hosted, requires ADMIN_API_KEY env) ---
+#   X-Mcp-Backend-Langfuse-Project-Id          target project ID
 #
 # Sentry:
 #   X-Mcp-Backend-Sentry-Url                   base URL (required)
@@ -676,6 +686,14 @@ opentelemetry:
 
 ################################################################################
 # Langfuse Configuration
+################################################################################
+# Authentication supports three modes via HTTP headers:
+#
+# 1. API Key (recommended): pk-lf-*:sk-lf-* as Basic Auth
+# 2. Console Credentials (self-hosted only): email:password, auto login + API key creation
+# 3. Admin API Key (self-hosted + ADMIN_API_KEY env): Bearer token with Project-Id
+#
+# See Backend Service Authentication section above for full header reference.
 ################################################################################
 langfuse:
   # Enable/disable Langfuse service
