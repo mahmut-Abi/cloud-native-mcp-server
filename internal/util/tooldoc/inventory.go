@@ -99,9 +99,9 @@ func RenderGeneratedInventory(inventory map[string][]string) string {
 		if len(tools) == 0 {
 			continue
 		}
-		b.WriteString(fmt.Sprintf("### %s (%d tools)\n\n", serviceDisplayNames[service], len(tools)))
+		fmt.Fprintf(&b, "### %s (%d tools)\n\n", serviceDisplayNames[service], len(tools))
 		for _, tool := range tools {
-			b.WriteString(fmt.Sprintf("- `%s`\n", tool))
+			fmt.Fprintf(&b, "- `%s`\n", tool)
 		}
 		b.WriteString("\n")
 	}

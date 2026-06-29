@@ -401,7 +401,7 @@ func parseECPublicKey(curveName, xCoord, yCoord string) (*ecdsa.PublicKey, error
 
 	x := new(big.Int).SetBytes(xBytes)
 	y := new(big.Int).SetBytes(yBytes)
-	if !curve.IsOnCurve(x, y) {
+	if !curve.IsOnCurve(x, y) { //nolint:staticcheck // SA1019: legacy EC key validation for JWT
 		return nil, fmt.Errorf("EC public key coordinates are not on curve")
 	}
 

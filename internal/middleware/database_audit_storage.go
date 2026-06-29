@@ -196,7 +196,7 @@ func (s *DatabaseAuditStorage) Query(criteria map[string]interface{}) ([]AuditLo
 
 	// Build query
 	queryBuilder := strings.Builder{}
-	queryBuilder.WriteString(fmt.Sprintf("SELECT timestamp, caller_ip, user_id, tool_name, service_name, action, input_params, output, duration_ms, status, error_msg FROM %s WHERE 1=1", s.tableName))
+	fmt.Fprintf(&queryBuilder, "SELECT timestamp, caller_ip, user_id, tool_name, service_name, action, input_params, output, duration_ms, status, error_msg FROM %s WHERE 1=1", s.tableName)
 
 	var args []interface{}
 	argIndex := 1
