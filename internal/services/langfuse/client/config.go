@@ -16,6 +16,7 @@ const (
 	hdrUsername   = "X-Mcp-Backend-Langfuse-Username"
 	hdrPassword   = "X-Mcp-Backend-Langfuse-Password"
 	hdrTimeoutSec = "X-Mcp-Backend-Langfuse-Timeout-Sec"
+	hdrProjectID  = "X-Mcp-Backend-Langfuse-Project-Id"
 )
 
 type langfuseContextKey struct{}
@@ -52,6 +53,9 @@ func parseRequestHeaders(h http.Header) *ClientOptions {
 		if sec, err := strconv.Atoi(v); err == nil && sec > 0 {
 			opts.Timeout = time.Duration(sec) * time.Second
 		}
+	}
+	if v := h.Get(hdrProjectID); v != "" {
+		opts.ProjectID = v
 	}
 	return opts
 }

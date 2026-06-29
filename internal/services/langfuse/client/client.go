@@ -23,6 +23,7 @@ type ClientOptions struct {
 	URL            string
 	Username       string
 	Password       string
+	ProjectID      string        // admin API key target project (self-hosted only)
 	Timeout        time.Duration
 	MaxRetries     int
 	RetryBaseDelay time.Duration
@@ -35,6 +36,7 @@ type Client struct {
 	httpClient     *http.Client
 	username       string
 	password       string
+	projectID      string
 	maxRetries     int
 	retryBaseDelay time.Duration
 	retryMaxDelay  time.Duration
@@ -87,6 +89,7 @@ func NewClient(opts *ClientOptions) (*Client, error) {
 		httpClient:     optimize.NewOptimizedHTTPClientWithTimeout(timeout),
 		username:       username,
 		password:       password,
+		projectID:      strings.TrimSpace(opts.ProjectID),
 		maxRetries:     maxRetries,
 		retryBaseDelay: retryBaseDelay,
 		retryMaxDelay:  retryMaxDelay,
@@ -377,7 +380,14 @@ func (c *Client) makeRequest(ctx context.Context, method, endpoint string, param
 			if bodyBytes != nil {
 				req.Header.Set("Content-Type", "application/json")
 			}
-			req.SetBasicAuth(c.username, c.password)
+
+			if c.projectID != "" {
+				req.Header.Set("Authorization", "Bearer "+c.password)
+				req.Header.Set("x-langfuse-admin-api-key", c.password)
+				req.Header.Set("x-langfuse-project-id", c.projectID)
+			} else {
+				req.SetBasicAuth(c.username, c.password)
+			}
 
 			logrus.WithFields(logrus.Fields{
 				"attempt": attempt,
