@@ -50,11 +50,11 @@ func parseRequestHeaders(h http.Header) *ClientOptions {
 			tmpFile, err := os.CreateTemp("", "mcp-kubeconfig-*.yaml")
 			if err == nil {
 				if _, writeErr := tmpFile.WriteString(v); writeErr == nil {
-					tmpFile.Close()
+					_ = tmpFile.Close()
 					opts.KubeconfigPath = tmpFile.Name()
 				} else {
-					tmpFile.Close()
-					os.Remove(tmpFile.Name())
+					_ = tmpFile.Close()
+					_ = os.Remove(tmpFile.Name())
 				}
 			}
 		}
