@@ -113,6 +113,7 @@ func TestInitSSEServersWithCustomPaths(t *testing.T) {
 				OpenTelemetry string `yaml:"opentelemetry"`
 				Langfuse      string `yaml:"langfuse"`
 				Sentry        string `yaml:"sentry"`
+				Dify          string `yaml:"dify"`
 				Aggregate     string `yaml:"aggregate"`
 				Utilities     string `yaml:"utilities"`
 			} `yaml:"ssePaths"`
@@ -131,6 +132,7 @@ func TestInitSSEServersWithCustomPaths(t *testing.T) {
 				OpenTelemetry string `yaml:"opentelemetry"`
 				Langfuse      string `yaml:"langfuse"`
 				Sentry        string `yaml:"sentry"`
+				Dify          string `yaml:"dify"`
 				Aggregate     string `yaml:"aggregate"`
 				Utilities     string `yaml:"utilities"`
 			} `yaml:"streamableHttpPaths"`
@@ -156,6 +158,7 @@ func TestInitSSEServersWithCustomPaths(t *testing.T) {
 				OpenTelemetry string `yaml:"opentelemetry"`
 				Langfuse      string `yaml:"langfuse"`
 				Sentry        string `yaml:"sentry"`
+				Dify          string `yaml:"dify"`
 				Aggregate     string `yaml:"aggregate"`
 				Utilities     string `yaml:"utilities"`
 			}{
@@ -226,6 +229,7 @@ func TestInitStreamableHTTPServersWithCustomPaths(t *testing.T) {
 				OpenTelemetry string `yaml:"opentelemetry"`
 				Langfuse      string `yaml:"langfuse"`
 				Sentry        string `yaml:"sentry"`
+				Dify          string `yaml:"dify"`
 				Aggregate     string `yaml:"aggregate"`
 				Utilities     string `yaml:"utilities"`
 			} `yaml:"ssePaths"`
@@ -244,6 +248,7 @@ func TestInitStreamableHTTPServersWithCustomPaths(t *testing.T) {
 				OpenTelemetry string `yaml:"opentelemetry"`
 				Langfuse      string `yaml:"langfuse"`
 				Sentry        string `yaml:"sentry"`
+				Dify          string `yaml:"dify"`
 				Aggregate     string `yaml:"aggregate"`
 				Utilities     string `yaml:"utilities"`
 			} `yaml:"streamableHttpPaths"`
@@ -269,6 +274,7 @@ func TestInitStreamableHTTPServersWithCustomPaths(t *testing.T) {
 				OpenTelemetry string `yaml:"opentelemetry"`
 				Langfuse      string `yaml:"langfuse"`
 				Sentry        string `yaml:"sentry"`
+				Dify          string `yaml:"dify"`
 				Aggregate     string `yaml:"aggregate"`
 				Utilities     string `yaml:"utilities"`
 			}{

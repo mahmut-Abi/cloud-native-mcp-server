@@ -193,6 +193,8 @@ func (s *ServerConfig) isServiceEnabled(serviceName string) bool {
 		return s.serviceManager.GetOpenTelemetryService() != nil && s.serviceManager.GetOpenTelemetryService().IsEnabled()
 	case "sentry":
 		return s.serviceManager.GetSentryService() != nil && s.serviceManager.GetSentryService().IsEnabled()
+	case "dify":
+		return s.serviceManager.GetDifyService() != nil && s.serviceManager.GetDifyService().IsEnabled()
 	case "langfuse":
 		return s.serviceManager.GetLangfuseService() != nil && s.serviceManager.GetLangfuseService().IsEnabled()
 	case "utilities":
@@ -880,6 +882,11 @@ func (s *ServerConfig) createServiceMCPServer(serviceName string) *server.MCPSer
 				s.registerTools(serviceServer, sentryService.GetTools(), sentryService.GetHandlers())
 				s.addServicePrompts(serviceServer, "sentry")
 			}
+		case "dify":
+			if difyService := s.serviceManager.GetDifyService(); difyService != nil && difyService.IsEnabled() {
+				s.registerTools(serviceServer, difyService.GetTools(), difyService.GetHandlers())
+				s.addServicePrompts(serviceServer, "dify")
+			}
 		case "opentelemetry":
 			if opentelemetryService := s.serviceManager.GetOpenTelemetryService(); opentelemetryService != nil && opentelemetryService.IsEnabled() {
 				s.registerTools(serviceServer, opentelemetryService.GetTools(), opentelemetryService.GetHandlers())
@@ -979,6 +986,11 @@ func (s *ServerConfig) createAggregateMCPServer() *server.MCPServer {
 		// Add Sentry service capabilities
 		if sentryService := s.serviceManager.GetSentryService(); sentryService != nil && sentryService.IsEnabled() {
 			s.registerTools(aggregateServer, sentryService.GetTools(), sentryService.GetHandlers())
+		}
+
+		// Add Dify service capabilities
+		if difyService := s.serviceManager.GetDifyService(); difyService != nil && difyService.IsEnabled() {
+			s.registerTools(aggregateServer, difyService.GetTools(), difyService.GetHandlers())
 		}
 
 		// Add OpenTelemetry service capabilities
@@ -1386,7 +1398,7 @@ func (s *ServerConfig) ApplyServiceFilters(disabledServices, enabledServices, di
 	disabledToolList := parseList(disabledTools)
 
 	// If specific services are enabled, disable all others
-	allServices := []string{"kubernetes", "grafana", "prometheus", "loki", "kibana", "helm", "argocd", "elasticsearch", "alertmanager", "jaeger", "nacos", "langfuse", "opentelemetry", "sentry", "utilities"}
+	allServices := []string{"kubernetes", "grafana", "prometheus", "loki", "kibana", "helm", "argocd", "elasticsearch", "alertmanager", "jaeger", "nacos", "langfuse", "opentelemetry", "sentry", "dify", "utilities"}
 	if len(enabledSvcs) > 0 {
 		for _, svc := range allServices {
 			if !enabledSvcs[svc] {
@@ -1532,10 +1544,11 @@ func (s *ServerConfig) SetupMultipleRoutes(mux *http.ServeMux, sseServers map[st
 	opentelemetryPath := "/api/opentelemetry/sse"
 	langfusePath := "/api/langfuse/sse"
 	sentryPath := "/api/sentry/sse"
+	difyPath := "/api/dify/sse"
 	aggregatePath := "/api/aggregate/sse"
 	utilitiesPath := "/api/utilities/sse"
 
-	// Override with config if provided
+	// Override with config if provided (discovery SSE)
 	if appConfig != nil {
 		if appConfig.Server.SSEPaths.Kubernetes != "" {
 			kubernetesPath = appConfig.Server.SSEPaths.Kubernetes
@@ -1572,6 +1585,9 @@ func (s *ServerConfig) SetupMultipleRoutes(mux *http.ServeMux, sseServers map[st
 		}
 		if appConfig.Server.SSEPaths.Sentry != "" {
 			sentryPath = appConfig.Server.SSEPaths.Sentry
+		}
+		if appConfig.Server.SSEPaths.Dify != "" {
+			difyPath = appConfig.Server.SSEPaths.Dify
 		}
 		if appConfig.Server.SSEPaths.Aggregate != "" {
 			aggregatePath = appConfig.Server.SSEPaths.Aggregate
@@ -1622,6 +1638,8 @@ func (s *ServerConfig) SetupMultipleRoutes(mux *http.ServeMux, sseServers map[st
 				sseEndpoint = opentelemetryPath
 			case "sentry":
 				sseEndpoint = sentryPath
+			case "dify":
+				sseEndpoint = difyPath
 			case "aggregate":
 				sseEndpoint = aggregatePath
 			case "utilities":
@@ -1751,6 +1769,7 @@ func (s *ServerConfig) SetupMultipleRoutes(mux *http.ServeMux, sseServers map[st
 		opentelemetryPath := "/api/opentelemetry/streamable-http"
 		langfusePath := "/api/langfuse/streamable-http"
 		sentryPath := "/api/sentry/streamable-http"
+		difyPath := "/api/dify/streamable-http"
 		aggregatePath := "/api/aggregate/streamable-http"
 		utilitiesPath := "/api/utilities/streamable-http"
 
@@ -1792,6 +1811,9 @@ func (s *ServerConfig) SetupMultipleRoutes(mux *http.ServeMux, sseServers map[st
 			if appConfig.Server.StreamableHTTPPaths.Sentry != "" {
 				sentryPath = appConfig.Server.StreamableHTTPPaths.Sentry
 			}
+			if appConfig.Server.StreamableHTTPPaths.Dify != "" {
+				difyPath = appConfig.Server.StreamableHTTPPaths.Dify
+			}
 			if appConfig.Server.StreamableHTTPPaths.Aggregate != "" {
 				aggregatePath = appConfig.Server.StreamableHTTPPaths.Aggregate
 			}
@@ -1829,6 +1851,8 @@ func (s *ServerConfig) SetupMultipleRoutes(mux *http.ServeMux, sseServers map[st
 				httpPath = langfusePath
 			case "sentry":
 				httpPath = sentryPath
+			case "dify":
+				httpPath = difyPath
 			case "aggregate":
 				httpPath = aggregatePath
 			case "utilities":
