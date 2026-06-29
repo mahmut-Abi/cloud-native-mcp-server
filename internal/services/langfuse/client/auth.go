@@ -78,9 +78,17 @@ func NewConsoleAuthenticator(baseURL string) (*ConsoleAuthenticator, error) {
 
 	trimmed := strings.TrimRight(baseURL, "/")
 	return &ConsoleAuthenticator{
-		baseURL:    trimmed,
-		httpClient: &http.Client{Jar: jar},
-		jar:        jar,
+		baseURL: trimmed,
+		httpClient: &http.Client{
+			Jar: jar,
+			CheckRedirect: func(req *http.Request, via []*http.Request) error {
+				if len(via) >= 1 && req.URL.Host != via[0].URL.Host {
+					return http.ErrUseLastResponse
+				}
+				return nil
+			},
+		},
+		jar: jar,
 	}, nil
 }
 

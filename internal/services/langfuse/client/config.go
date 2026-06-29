@@ -39,6 +39,7 @@ func parseHeadersAndInjectClient(r *http.Request) (*http.Request, error) {
 		} else {
 			opts.Username = apiKey.PublicKey
 			opts.Password = apiKey.SecretKey
+			opts.ProjectID = "" // API key uses Basic Auth, not Bearer admin key
 			logger.Printf("Langfuse console auth: created API key for project '%s' (pk=%s)", projectName, apiKey.PublicKey[:20]+"...")
 		}
 	}
