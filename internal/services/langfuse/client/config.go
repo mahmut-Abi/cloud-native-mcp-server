@@ -4,6 +4,7 @@ package client
 import (
 	"context"
 	"fmt"
+	"log"
 	"net/http"
 	"strconv"
 	"time"
@@ -30,6 +31,17 @@ func parseHeadersAndInjectClient(r *http.Request) (*http.Request, error) {
 	if opts.URL == "" {
 		return r, fmt.Errorf("no langfuse URL in headers")
 	}
+
+	if IsConsoleCredential(opts.Username) {
+		apiKey, projectName, err := TryConsoleAuth(opts.URL, opts.Username, opts.Password)
+		if err != nil {
+			return r, fmt.Errorf("langfuse console auth failed: %w", err)
+		}
+		opts.Username = apiKey.PublicKey
+		opts.Password = apiKey.SecretKey
+		logger.Printf("Langfuse console auth: created API key for project '%s' (pk=%s)", projectName, apiKey.PublicKey[:20]+"...")
+	}
+
 	cli, err := NewClient(opts)
 	if err != nil {
 		return r, err
@@ -37,6 +49,8 @@ func parseHeadersAndInjectClient(r *http.Request) (*http.Request, error) {
 	ctx := context.WithValue(r.Context(), langfuseContextKey{}, cli)
 	return r.WithContext(ctx), nil
 }
+
+var logger = log.Default()
 
 func parseRequestHeaders(h http.Header) *ClientOptions {
 	opts := &ClientOptions{Timeout: 30 * time.Second}
