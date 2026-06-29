@@ -203,42 +203,42 @@ func (s *DatabaseAuditStorage) Query(criteria map[string]interface{}) ([]AuditLo
 
 	// Add criteria
 	if userID, ok := criteria["user_id"]; ok {
-		queryBuilder.WriteString(fmt.Sprintf(" AND user_id = $%d", argIndex))
+		fmt.Fprintf(&queryBuilder, " AND user_id = $%d", argIndex)
 		args = append(args, userID)
 		argIndex++
 	}
 
 	if serviceName, ok := criteria["service_name"]; ok {
-		queryBuilder.WriteString(fmt.Sprintf(" AND service_name = $%d", argIndex))
+		fmt.Fprintf(&queryBuilder, " AND service_name = $%d", argIndex)
 		args = append(args, serviceName)
 		argIndex++
 	}
 
 	if toolName, ok := criteria["tool_name"]; ok {
-		queryBuilder.WriteString(fmt.Sprintf(" AND tool_name = $%d", argIndex))
+		fmt.Fprintf(&queryBuilder, " AND tool_name = $%d", argIndex)
 		args = append(args, toolName)
 		argIndex++
 	}
 
 	if status, ok := criteria["status"]; ok {
-		queryBuilder.WriteString(fmt.Sprintf(" AND status = $%d", argIndex))
+		fmt.Fprintf(&queryBuilder, " AND status = $%d", argIndex)
 		args = append(args, status)
 		argIndex++
 	}
 
 	if startTime, ok := criteria["start_time"]; ok {
-		queryBuilder.WriteString(fmt.Sprintf(" AND timestamp >= $%d", argIndex))
+		fmt.Fprintf(&queryBuilder, " AND timestamp >= $%d", argIndex)
 		args = append(args, startTime)
 		argIndex++
 	}
 
 	if endTime, ok := criteria["end_time"]; ok {
-		queryBuilder.WriteString(fmt.Sprintf(" AND timestamp <= $%d", argIndex))
+		fmt.Fprintf(&queryBuilder, " AND timestamp <= $%d", argIndex)
 		args = append(args, endTime)
 	}
 
 	queryBuilder.WriteString(" ORDER BY timestamp DESC")
-	queryBuilder.WriteString(fmt.Sprintf(" LIMIT %d OFFSET %d", pageSize, offset))
+	fmt.Fprintf(&queryBuilder, " LIMIT %d OFFSET %d", pageSize, offset)
 
 	rows, err := s.db.Query(queryBuilder.String(), args...)
 	if err != nil {
