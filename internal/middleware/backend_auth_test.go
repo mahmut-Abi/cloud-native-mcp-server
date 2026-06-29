@@ -7,12 +7,15 @@ import (
 	"testing"
 )
 
+type testContextKey string
+
 func TestRegisterBackendAuthHandler(t *testing.T) {
+	key := testContextKey("test-key")
 	RegisterBackendAuthHandler("test-service", func(r *http.Request) (*http.Request, error) {
-		return r.WithContext(context.WithValue(r.Context(), "test-key", "test-value")), nil
+		return r.WithContext(context.WithValue(r.Context(), key, "test-value")), nil
 	})
 	RegisterBackendAuthHandler("test-service", func(r *http.Request) (*http.Request, error) {
-		return r.WithContext(context.WithValue(r.Context(), "test-key", "overwritten")), nil
+		return r.WithContext(context.WithValue(r.Context(), key, "overwritten")), nil
 	})
 
 	backendHandlersMu.RLock()
@@ -27,7 +30,7 @@ func TestRegisterBackendAuthHandler(t *testing.T) {
 	if err != nil {
 		t.Fatalf("unexpected error: %v", err)
 	}
-	if v := r.Context().Value("test-key"); v != "overwritten" {
+	if v := r.Context().Value(key); v != "overwritten" {
 		t.Errorf("expected context value 'overwritten', got %v", v)
 	}
 }
@@ -58,8 +61,9 @@ func TestBackendAuthMiddlewareNoHandler(t *testing.T) {
 }
 
 func TestBackendAuthMiddlewareWithHandler(t *testing.T) {
+	key := testContextKey("prom-client")
 	RegisterBackendAuthHandler("prometheus", func(r *http.Request) (*http.Request, error) {
-		ctx := context.WithValue(r.Context(), "prom-client", "mock-client")
+		ctx := context.WithValue(r.Context(), key, "mock-client")
 		return r.WithContext(ctx), nil
 	})
 
@@ -77,7 +81,7 @@ func TestBackendAuthMiddlewareWithHandler(t *testing.T) {
 	if rec.Code != http.StatusOK {
 		t.Errorf("expected 200, got %d", rec.Code)
 	}
-	if v := capturedCtx.Value("prom-client"); v != "mock-client" {
+	if v := capturedCtx.Value(key); v != "mock-client" {
 		t.Errorf("expected context value 'mock-client', got %v", v)
 	}
 }
