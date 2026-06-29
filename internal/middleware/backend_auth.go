@@ -53,9 +53,7 @@ func BackendAuthMiddleware(serviceName string) func(http.Handler) http.Handler {
 
 			newReq, err := handler(r)
 			if err != nil {
-				// Could not create backend client (missing headers, invalid config, etc.)
-				// Pass through — the tool handler will return an appropriate error
-				// when it tries to access the missing client from context.
+				log.Printf("[backend-auth] %s handler failed: %v", serviceName, err)
 				next.ServeHTTP(w, r)
 				return
 			}
