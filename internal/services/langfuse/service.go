@@ -1,7 +1,6 @@
 package langfuse
 
 import (
-	"time"
 
 	"github.com/mark3labs/mcp-go/mcp"
 	server "github.com/mark3labs/mcp-go/server"
@@ -9,7 +8,6 @@ import (
 	"github.com/mahmut-Abi/cloud-native-mcp-server/internal/config"
 	"github.com/mahmut-Abi/cloud-native-mcp-server/internal/services/cache"
 	"github.com/mahmut-Abi/cloud-native-mcp-server/internal/services/framework"
-	"github.com/mahmut-Abi/cloud-native-mcp-server/internal/services/langfuse/client"
 	"github.com/mahmut-Abi/cloud-native-mcp-server/internal/services/langfuse/handlers"
 	"github.com/mahmut-Abi/cloud-native-mcp-server/internal/services/langfuse/tools"
 )
@@ -25,21 +23,14 @@ type Service struct {
 // NewService creates a new Langfuse service instance.
 func NewService() *Service {
 	checker := framework.NewServiceEnabled(
-		func(cfg *config.AppConfig) bool { return cfg.Langfuse.Enabled },
-		func(cfg *config.AppConfig) string { return cfg.Langfuse.URL },
+		func(cfg *config.AppConfig) bool { return true },
+		func(cfg *config.AppConfig) string { return "header-based-auth" },
 	)
 
 	initConfig := &framework.InitConfig{
 		Required:     false,
 		URLValidator: framework.SimpleURLValidator,
-		ClientBuilder: func(cfg *config.AppConfig) (interface{}, error) {
-			return client.NewClient(&client.ClientOptions{
-				URL:      cfg.Langfuse.URL,
-				Username: cfg.Langfuse.Username,
-				Password: cfg.Langfuse.Password,
-				Timeout:  time.Duration(cfg.Langfuse.TimeoutSec) * time.Second,
-			})
-		},
+		ClientBuilder: nil,
 	}
 
 	return &Service{

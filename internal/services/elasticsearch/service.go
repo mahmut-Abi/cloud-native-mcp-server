@@ -1,7 +1,6 @@
 package elasticsearch
 
 import (
-	"time"
 
 	"github.com/mark3labs/mcp-go/mcp"
 	server "github.com/mark3labs/mcp-go/server"
@@ -26,40 +25,15 @@ type Service struct {
 func NewService() *Service {
 	// Create service enable checker
 	checker := framework.NewServiceEnabled(
-		func(cfg *config.AppConfig) bool { return cfg.Elasticsearch.Enabled },
-		func(cfg *config.AppConfig) string {
-			if len(cfg.Elasticsearch.Addresses) > 0 {
-				return cfg.Elasticsearch.Addresses[0]
-			}
-			return cfg.Elasticsearch.Address
-		},
+		func(cfg *config.AppConfig) bool { return true },
+		func(cfg *config.AppConfig) string { return "header-based-auth" },
 	)
 
 	// Create init configuration
 	initConfig := &framework.InitConfig{
 		Required:     false,
 		URLValidator: framework.SimpleURLValidator,
-		ClientBuilder: func(cfg *config.AppConfig) (interface{}, error) {
-			addresses := cfg.Elasticsearch.Addresses
-			if len(addresses) == 0 && cfg.Elasticsearch.Address != "" {
-				addresses = []string{cfg.Elasticsearch.Address}
-			}
-
-			timeout := 30 * time.Second
-			if cfg.Elasticsearch.TimeoutSec > 0 {
-				timeout = time.Duration(cfg.Elasticsearch.TimeoutSec) * time.Second
-			}
-
-			return client.NewClient(&client.ClientOptions{
-				Addresses:     addresses,
-				Username:      cfg.Elasticsearch.Username,
-				Password:      cfg.Elasticsearch.Password,
-				BearerToken:   cfg.Elasticsearch.BearerToken,
-				APIKey:        cfg.Elasticsearch.APIKey,
-				TLSSkipVerify: cfg.Elasticsearch.TLSSkipVerify,
-				Timeout:       timeout,
-			})
-		},
+		ClientBuilder: nil,
 	}
 
 	return &Service{

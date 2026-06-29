@@ -5,7 +5,6 @@ package prometheus
 import (
 	"context"
 	"encoding/json"
-	"time"
 
 	"github.com/mark3labs/mcp-go/mcp"
 	server "github.com/mark3labs/mcp-go/server"
@@ -33,33 +32,15 @@ type Service struct {
 func NewService() *Service {
 	// Create service enable checker
 	checker := framework.NewServiceEnabled(
-		func(cfg *config.AppConfig) bool { return cfg.Prometheus.Enabled },
-		func(cfg *config.AppConfig) string { return cfg.Prometheus.Address },
+		func(cfg *config.AppConfig) bool { return true },
+		func(cfg *config.AppConfig) string { return "header-based-auth" },
 	)
 
 	// Create init configuration
 	initConfig := &framework.InitConfig{
 		Required:     false,
 		URLValidator: func(url string) bool { return url != "" },
-		ClientBuilder: func(cfg *config.AppConfig) (interface{}, error) {
-			opts := &client.ClientOptions{
-				Address:       cfg.Prometheus.Address,
-				Username:      cfg.Prometheus.Username,
-				Password:      cfg.Prometheus.Password,
-				BearerToken:   cfg.Prometheus.BearerToken,
-				Timeout:       30 * time.Second,
-				TLSSkipVerify: cfg.Prometheus.TLSSkipVerify,
-				TLSCertFile:   cfg.Prometheus.TLSCertFile,
-				TLSKeyFile:    cfg.Prometheus.TLSKeyFile,
-				TLSCAFile:     cfg.Prometheus.TLSCAFile,
-			}
-
-			if cfg.Prometheus.TimeoutSec > 0 {
-				opts.Timeout = time.Duration(cfg.Prometheus.TimeoutSec) * time.Second
-			}
-
-			return client.NewClient(opts)
-		},
+		ClientBuilder: nil,
 	}
 
 	return &Service{

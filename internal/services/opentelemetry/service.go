@@ -5,7 +5,6 @@ package opentelemetry
 import (
 	"context"
 	"encoding/json"
-	"time"
 
 	"github.com/mark3labs/mcp-go/mcp"
 	server "github.com/mark3labs/mcp-go/server"
@@ -32,33 +31,15 @@ type Service struct {
 func NewService() *Service {
 	// Create service enable checker
 	checker := framework.NewServiceEnabled(
-		func(cfg *config.AppConfig) bool { return cfg.OpenTelemetry.Enabled },
-		func(cfg *config.AppConfig) string { return cfg.OpenTelemetry.Address },
+		func(cfg *config.AppConfig) bool { return true },
+		func(cfg *config.AppConfig) string { return "header-based-auth" },
 	)
 
 	// Create init configuration
 	initConfig := &framework.InitConfig{
 		Required:     false,
 		URLValidator: func(url string) bool { return url != "" },
-		ClientBuilder: func(cfg *config.AppConfig) (interface{}, error) {
-			opts := &client.ClientOptions{
-				Address:       cfg.OpenTelemetry.Address,
-				Username:      cfg.OpenTelemetry.Username,
-				Password:      cfg.OpenTelemetry.Password,
-				BearerToken:   cfg.OpenTelemetry.BearerToken,
-				Timeout:       30 * time.Second,
-				TLSSkipVerify: cfg.OpenTelemetry.TLSSkipVerify,
-				TLSCertFile:   cfg.OpenTelemetry.TLSCertFile,
-				TLSKeyFile:    cfg.OpenTelemetry.TLSKeyFile,
-				TLSCAFile:     cfg.OpenTelemetry.TLSCAFile,
-			}
-
-			if cfg.OpenTelemetry.TimeoutSec > 0 {
-				opts.Timeout = time.Duration(cfg.OpenTelemetry.TimeoutSec) * time.Second
-			}
-
-			return client.NewClient(opts)
-		},
+		ClientBuilder: nil,
 	}
 
 	return &Service{

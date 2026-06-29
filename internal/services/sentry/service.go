@@ -1,7 +1,6 @@
 package sentry
 
 import (
-	"time"
 
 	"github.com/mark3labs/mcp-go/mcp"
 	server "github.com/mark3labs/mcp-go/server"
@@ -9,7 +8,6 @@ import (
 	"github.com/mahmut-Abi/cloud-native-mcp-server/internal/config"
 	"github.com/mahmut-Abi/cloud-native-mcp-server/internal/services/cache"
 	"github.com/mahmut-Abi/cloud-native-mcp-server/internal/services/framework"
-	"github.com/mahmut-Abi/cloud-native-mcp-server/internal/services/sentry/client"
 	"github.com/mahmut-Abi/cloud-native-mcp-server/internal/services/sentry/handlers"
 	"github.com/mahmut-Abi/cloud-native-mcp-server/internal/services/sentry/tools"
 )
@@ -27,20 +25,14 @@ type Service struct {
 // NewService creates a new Sentry service instance.
 func NewService() *Service {
 	checker := framework.NewServiceEnabled(
-		func(cfg *config.AppConfig) bool { return cfg.Sentry.Enabled },
-		func(cfg *config.AppConfig) string { return cfg.Sentry.URL },
+		func(cfg *config.AppConfig) bool { return true },
+		func(cfg *config.AppConfig) string { return "header-based-auth" },
 	)
 
 	initConfig := &framework.InitConfig{
 		Required:     false,
 		URLValidator: framework.SimpleURLValidator,
-		ClientBuilder: func(cfg *config.AppConfig) (interface{}, error) {
-			return client.NewClient(&client.ClientOptions{
-				URL:       cfg.Sentry.URL,
-				AuthToken: cfg.Sentry.AuthToken,
-				Timeout:   time.Duration(cfg.Sentry.TimeoutSec) * time.Second,
-			})
-		},
+		ClientBuilder: nil,
 	}
 
 	return &Service{

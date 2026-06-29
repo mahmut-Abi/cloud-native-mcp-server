@@ -52,8 +52,8 @@ func TestServiceInitializeWithEmptyConfig(t *testing.T) {
 		t.Errorf("Initialize with empty config should not return error, got %v", err)
 	}
 
-	if service.IsEnabled() {
-		t.Error("Service should be disabled when Alertmanager.Enabled is false")
+	if !service.IsEnabled() {
+		t.Error("Service should be enabled by default with header-based auth")
 	}
 }
 

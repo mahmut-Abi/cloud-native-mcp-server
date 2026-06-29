@@ -3,7 +3,6 @@
 package alertmanager
 
 import (
-	"time"
 
 	"github.com/mark3labs/mcp-go/mcp"
 	server "github.com/mark3labs/mcp-go/server"
@@ -30,7 +29,7 @@ type Service struct {
 func NewService() *Service {
 	// Create service enable checker
 	checker := framework.NewServiceEnabled(
-		func(cfg *config.AppConfig) bool { return cfg.Alertmanager.Enabled },
+		func(cfg *config.AppConfig) bool { return true },
 		func(cfg *config.AppConfig) string {
 			if cfg.Alertmanager.Address != "" {
 				return cfg.Alertmanager.Address
@@ -43,33 +42,7 @@ func NewService() *Service {
 	initConfig := &framework.InitConfig{
 		Required:     false,
 		URLValidator: framework.SimpleURLValidator,
-		ClientBuilder: func(cfg *config.AppConfig) (interface{}, error) {
-			opts := client.DefaultClientOptions()
-			if cfg.Alertmanager.Address != "" {
-				opts.Address = cfg.Alertmanager.Address
-			}
-			if cfg.Alertmanager.TimeoutSec > 0 {
-				opts.Timeout = time.Duration(cfg.Alertmanager.TimeoutSec) * time.Second
-			}
-			if cfg.Alertmanager.Username != "" {
-				opts.Username = cfg.Alertmanager.Username
-			}
-			if cfg.Alertmanager.Password != "" {
-				opts.Password = cfg.Alertmanager.Password
-			}
-			if cfg.Alertmanager.BearerToken != "" {
-				opts.BearerToken = cfg.Alertmanager.BearerToken
-			}
-			opts.TLSSkipVerify = cfg.Alertmanager.TLSSkipVerify
-			if cfg.Alertmanager.TLSCertFile != "" {
-				opts.TLSCertFile = cfg.Alertmanager.TLSCertFile
-			}
-			if cfg.Alertmanager.TLSKeyFile != "" {
-				opts.TLSKeyFile = cfg.Alertmanager.TLSKeyFile
-			}
-
-			return client.NewClientWithOptions(opts)
-		},
+		ClientBuilder: nil,
 	}
 
 	return &Service{

@@ -4,7 +4,6 @@ package kibana
 
 import (
 	"context"
-	"time"
 
 	"github.com/mark3labs/mcp-go/mcp"
 	server "github.com/mark3labs/mcp-go/server"
@@ -32,25 +31,15 @@ type Service struct {
 func NewService() *Service {
 	// Create service enable checker
 	checker := framework.NewServiceEnabled(
-		func(cfg *config.AppConfig) bool { return cfg.Kibana.Enabled },
-		func(cfg *config.AppConfig) string { return cfg.Kibana.URL },
+		func(cfg *config.AppConfig) bool { return true },
+		func(cfg *config.AppConfig) string { return "header-based-auth" },
 	)
 
 	// Create init configuration
 	initConfig := &framework.InitConfig{
 		Required:     false,
 		URLValidator: framework.SimpleURLValidator,
-		ClientBuilder: func(cfg *config.AppConfig) (interface{}, error) {
-			return client.NewClient(&client.ClientOptions{
-				URL:        cfg.Kibana.URL,
-				APIKey:     cfg.Kibana.APIKey,
-				Username:   cfg.Kibana.Username,
-				Password:   cfg.Kibana.Password,
-				Timeout:    time.Duration(cfg.Kibana.TimeoutSec) * time.Second,
-				SkipVerify: cfg.Kibana.SkipVerify,
-				Space:      cfg.Kibana.Space,
-			})
-		},
+		ClientBuilder: nil,
 	}
 
 	return &Service{

@@ -1,7 +1,6 @@
 package nacos
 
 import (
-	"time"
 
 	"github.com/mark3labs/mcp-go/mcp"
 	server "github.com/mark3labs/mcp-go/server"
@@ -9,7 +8,6 @@ import (
 	"github.com/mahmut-Abi/cloud-native-mcp-server/internal/config"
 	"github.com/mahmut-Abi/cloud-native-mcp-server/internal/services/cache"
 	"github.com/mahmut-Abi/cloud-native-mcp-server/internal/services/framework"
-	"github.com/mahmut-Abi/cloud-native-mcp-server/internal/services/nacos/client"
 	"github.com/mahmut-Abi/cloud-native-mcp-server/internal/services/nacos/handlers"
 	"github.com/mahmut-Abi/cloud-native-mcp-server/internal/services/nacos/tools"
 )
@@ -27,22 +25,14 @@ type Service struct {
 // NewService creates a new Nacos service instance.
 func NewService() *Service {
 	checker := framework.NewServiceEnabled(
-		func(cfg *config.AppConfig) bool { return cfg.Nacos.Enabled },
-		func(cfg *config.AppConfig) string { return cfg.Nacos.URL },
+		func(cfg *config.AppConfig) bool { return true },
+		func(cfg *config.AppConfig) string { return "header-based-auth" },
 	)
 
 	initConfig := &framework.InitConfig{
 		Required:     false,
 		URLValidator: framework.SimpleURLValidator,
-		ClientBuilder: func(cfg *config.AppConfig) (interface{}, error) {
-			return client.NewClient(&client.ClientOptions{
-				URL:         cfg.Nacos.URL,
-				Username:    cfg.Nacos.Username,
-				Password:    cfg.Nacos.Password,
-				AccessToken: cfg.Nacos.AccessToken,
-				Timeout:     time.Duration(cfg.Nacos.TimeoutSec) * time.Second,
-			})
-		},
+		ClientBuilder: nil,
 	}
 
 	return &Service{

@@ -2,7 +2,6 @@ package loki
 
 import (
 	"context"
-	"time"
 
 	"github.com/mahmut-Abi/cloud-native-mcp-server/internal/config"
 	"github.com/mahmut-Abi/cloud-native-mcp-server/internal/services/cache"
@@ -26,30 +25,14 @@ type Service struct {
 // NewService creates a new Loki service instance.
 func NewService() *Service {
 	checker := framework.NewServiceEnabled(
-		func(cfg *config.AppConfig) bool { return cfg.Loki.Enabled },
-		func(cfg *config.AppConfig) string { return cfg.Loki.Address },
+		func(cfg *config.AppConfig) bool { return true },
+		func(cfg *config.AppConfig) string { return "header-based-auth" },
 	)
 
 	initConfig := &framework.InitConfig{
 		Required:     false,
 		URLValidator: framework.SimpleURLValidator,
-		ClientBuilder: func(cfg *config.AppConfig) (interface{}, error) {
-			opts := &client.ClientOptions{
-				Address:       cfg.Loki.Address,
-				Username:      cfg.Loki.Username,
-				Password:      cfg.Loki.Password,
-				BearerToken:   cfg.Loki.BearerToken,
-				Timeout:       30 * time.Second,
-				TLSSkipVerify: cfg.Loki.TLSSkipVerify,
-				TLSCertFile:   cfg.Loki.TLSCertFile,
-				TLSKeyFile:    cfg.Loki.TLSKeyFile,
-				TLSCAFile:     cfg.Loki.TLSCAFile,
-			}
-			if cfg.Loki.TimeoutSec > 0 {
-				opts.Timeout = time.Duration(cfg.Loki.TimeoutSec) * time.Second
-			}
-			return client.NewClient(opts)
-		},
+		ClientBuilder: nil,
 	}
 
 	return &Service{

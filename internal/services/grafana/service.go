@@ -3,7 +3,6 @@
 package grafana
 
 import (
-	"time"
 
 	"github.com/mark3labs/mcp-go/mcp"
 	server "github.com/mark3labs/mcp-go/server"
@@ -30,23 +29,15 @@ type Service struct {
 func NewService() *Service {
 	// Create service enable checker
 	checker := framework.NewServiceEnabled(
-		func(cfg *config.AppConfig) bool { return cfg.Grafana.Enabled },
-		func(cfg *config.AppConfig) string { return cfg.Grafana.URL },
+		func(cfg *config.AppConfig) bool { return true },
+		func(cfg *config.AppConfig) string { return "header-based-auth" },
 	)
 
 	// Create init configuration
 	initConfig := &framework.InitConfig{
 		Required:     false,
 		URLValidator: framework.SimpleURLValidator,
-		ClientBuilder: func(cfg *config.AppConfig) (interface{}, error) {
-			return client.NewClient(&client.ClientOptions{
-				URL:      cfg.Grafana.URL,
-				APIKey:   cfg.Grafana.APIKey,
-				Username: cfg.Grafana.Username,
-				Password: cfg.Grafana.Password,
-				Timeout:  time.Duration(cfg.Grafana.TimeoutSec) * time.Second,
-			})
-		},
+		ClientBuilder: nil,
 	}
 
 	return &Service{
