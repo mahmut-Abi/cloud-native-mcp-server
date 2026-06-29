@@ -531,23 +531,33 @@ nacos:
 
 ### Langfuse
 
+Langfuse 支持三种认证方式，通过 HTTP Header 传递：
+
+1. **API Key（推荐）**: 使用 `pk-lf-*:sk-lf-*` 作为 Basic Auth 凭证
+2. **控制台凭据（仅自托管）**: 使用邮箱:密码，服务端自动登录并创建 API Key
+3. **Admin API Key（仅自托管）**: 需要在 Langfuse 部署中设置 `ADMIN_API_KEY` 环境变量
+
 ```yaml
 langfuse:
   # 启用/禁用 Langfuse 服务
-  enabled: false
-
-  # Langfuse 基础地址
-  # 格式: https://cloud.langfuse.com 或自建 Langfuse 地址
-  url: "https://cloud.langfuse.com"
-
-  # Langfuse Public API Basic Auth 用户名
-  username: ""
-
-  # Langfuse Public API Basic Auth 密码
-  password: ""
+  enabled: true    # header-based auth 下始终启用
 
   # 请求超时（秒）
   timeoutSec: 30
+```
+
+**Header 用法（API Key 模式）**:
+```
+X-Mcp-Backend-Langfuse-Url: http://langfuse:3000
+X-Mcp-Backend-Langfuse-Username: pk-lf-xxxxxxxx
+X-Mcp-Backend-Langfuse-Password: sk-lf-xxxxxxxx
+```
+
+**Header 用法（控制台凭据模式）**:
+```
+X-Mcp-Backend-Langfuse-Url: http://langfuse:3000
+X-Mcp-Backend-Langfuse-Username: admin@example.org
+X-Mcp-Backend-Langfuse-Password: your-password
 ```
 
 ### Sentry
