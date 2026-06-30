@@ -199,11 +199,16 @@ func (a *ConsoleAuthenticator) CreateOrgAPIKey(orgID string) (*APIKey, error) {
 }
 
 func (a *ConsoleAuthenticator) trpcCreate(procedure string, params map[string]interface{}) (*APIKey, error) {
-	// TRPC v10 httpBatchLink format: wrap in batch index, add ?batch=1
-	batchInput := map[string]interface{}{"0": params}
+	// TRPC v10 httpBatchLink: all procedures go to /api/trpc?batch=1
+	// Body: {"0": {"router.procedure": input}}
+	batchInput := map[string]interface{}{
+		"0": map[string]interface{}{
+			procedure: params,
+		},
+	}
 	inputJSON, _ := json.Marshal(batchInput)
 
-	reqURL := a.base("/api/trpc/" + procedure) + "?batch=1"
+	reqURL := a.base("/api/trpc?batch=1")
 
 	req, err := http.NewRequest("POST", reqURL, strings.NewReader(string(inputJSON)))
 	if err != nil {
