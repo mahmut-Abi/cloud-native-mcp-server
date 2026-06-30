@@ -35,13 +35,11 @@ func parseHeadersAndInjectClient(r *http.Request) (*http.Request, error) {
 	if IsConsoleCredential(opts.Username) {
 		apiKey, projectName, err := TryConsoleAuth(opts.URL, opts.Username, opts.Password)
 		if err != nil {
-			logger.Printf("Langfuse console auth failed (trying as API key): %v", err)
-		} else {
-			opts.Username = apiKey.PublicKey
-			opts.Password = apiKey.SecretKey
-			opts.ProjectID = "" // API key uses Basic Auth, not Bearer admin key
-			logger.Printf("Langfuse console auth: created API key for project '%s' (pk=%s)", projectName, apiKey.PublicKey[:20]+"...")
+			return r, fmt.Errorf("langfuse console auth failed: %w", err)
 		}
+		opts.Username = apiKey.PublicKey
+		opts.Password = apiKey.SecretKey
+		logger.Printf("Langfuse console auth: created API key for project '%s' (pk=%s)", projectName, apiKey.PublicKey[:20]+"...")
 	}
 
 	cli, err := NewClient(opts)
