@@ -98,12 +98,15 @@ func NewClient(opts *ClientOptions) (*Client, error) {
 		opts.RetryMaxDelay,
 	)
 
+	consoleURL := normalizeDifyURL(strings.TrimSpace(opts.ConsoleURL), "/console/api")
+	serviceURL := normalizeDifyURL(strings.TrimSpace(opts.ServiceURL), "/v1")
+
 	cli := &Client{
 		httpClient:      optimize.NewOptimizedHTTPClientWithTimeout(timeout),
-		consoleURL:      strings.TrimRight(strings.TrimSpace(opts.ConsoleURL), "/"),
+		consoleURL:      consoleURL,
 		consoleEmail:    strings.TrimSpace(opts.ConsoleEmail),
 		consolePassword: opts.ConsolePassword,
-		serviceURL:      strings.TrimRight(strings.TrimSpace(opts.ServiceURL), "/"),
+		serviceURL:      serviceURL,
 		apiKey:          strings.TrimSpace(opts.APIKey),
 		maxRetries:      maxRetries,
 		retryBaseDelay:  retryBaseDelay,
@@ -402,4 +405,17 @@ func ParsePagination(linkHeader string) *Pagination {
 		return nil
 	}
 	return pagination
+}
+
+// normalizeDifyURL ensures the URL includes the expected API path suffix.
+// e.g. https://dify.example.com → https://dify.example.com/console/api
+func normalizeDifyURL(rawURL, suffix string) string {
+	url := strings.TrimRight(strings.TrimSpace(rawURL), "/")
+	if url == "" {
+		return url
+	}
+	if strings.HasSuffix(url, suffix) {
+		return url
+	}
+	return url + suffix
 }
