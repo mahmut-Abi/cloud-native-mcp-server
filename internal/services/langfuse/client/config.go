@@ -32,7 +32,8 @@ func parseHeadersAndInjectClient(r *http.Request) (*http.Request, error) {
 		return r, fmt.Errorf("no langfuse URL in headers")
 	}
 
-	if IsConsoleCredential(opts.Username) {
+	// Admin API key mode: projectID is set, skip console auth
+	if opts.ProjectID == "" && IsConsoleCredential(opts.Username) {
 		apiKey, projectName, err := TryConsoleAuth(opts.URL, opts.Username, opts.Password)
 		if err != nil {
 			return r, fmt.Errorf("langfuse console auth failed: %w", err)
