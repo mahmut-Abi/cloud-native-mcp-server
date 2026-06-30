@@ -199,11 +199,8 @@ func (a *ConsoleAuthenticator) CreateOrgAPIKey(orgID string) (*APIKey, error) {
 }
 
 func (a *ConsoleAuthenticator) trpcCreate(procedure string, params map[string]interface{}) (*APIKey, error) {
-	// TRPC v10 non-batch mutation format: input as URL query parameter
-	input := map[string]interface{}{
-		"json": params,
-	}
-	inputJSON, _ := json.Marshal(input)
+	// TRPC v10 non-batch mutation: procedure input sent directly as JSON
+	inputJSON, _ := json.Marshal(params)
 	encoded := url.QueryEscape(string(inputJSON))
 
 	reqURL := a.base("/api/trpc/" + procedure) + "?input=" + encoded
