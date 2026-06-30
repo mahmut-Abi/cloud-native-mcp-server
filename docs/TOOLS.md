@@ -27,6 +27,7 @@ For the exact runtime inventory, prefer `--list tools`.
 - [Nacos (9 tools)](#nacos-9-tools)
 - [Langfuse (37 tools)](#langfuse-37-tools)
 - [Sentry (9 tools)](#sentry-9-tools)
+- [Dify (46 tools)](#dify-46-tools)
 - [OpenTelemetry (12 tools)](#opentelemetry-12-tools)
 - [Utilities (6 tools)](#utilities-6-tools)
 
@@ -789,6 +790,81 @@ Practical guidance:
 |------|-------------|----------|
 | `sentry_list_issue_events` | List events attached to a Sentry issue with optional filters. | - |
 | `sentry_get_issue_event` | Get a specific event for a Sentry issue. | - |
+
+---
+
+## Dify (46 tools)
+
+### Console API — Apps
+
+| Tool | Description | Parameters |
+|------|-------------|------------|
+| `dify_console_api_request` | Call any relative Dify Console API path. | `method`, `path`, `query`, `body` |
+| `dify_list_apps` | List Dify apps globally. | `page`, `limit`, `mode`, `name` |
+| `dify_get_app` | Get details for any Dify app. | `app_id` |
+| `dify_create_app` | Create a new Dify app. | `name`, `mode`, `description` |
+| `dify_set_app_api_status` | Enable/disable Service API access. | `app_id`, `enable_api` |
+| `dify_list_app_api_keys` | List Service API keys for an app. | `app_id` |
+| `dify_create_app_api_key` | Create a Service API key for an app. | `app_id` |
+
+### Console API — Tracing
+
+| Tool | Description | Parameters |
+|------|-------------|------------|
+| `dify_get_app_trace_status` | Get tracing status for an app. | `app_id` |
+| `dify_set_app_trace_status` | Enable/disable app tracing. | `app_id`, `enabled`, `tracing_provider` |
+| `dify_get_app_trace_config` | Get tracing provider config. | `app_id`, `tracing_provider` |
+| `dify_create_app_trace_config` | Create tracing provider config. | `app_id`, `tracing_provider`, `tracing_config` |
+| `dify_update_app_trace_config` | Update tracing provider config. | `app_id`, `tracing_provider`, `tracing_config` |
+| `dify_delete_app_trace_config` | Delete tracing provider config. | `app_id`, `tracing_provider` |
+
+### Console API — Workflows
+
+| Tool | Description | Parameters |
+|------|-------------|------------|
+| `dify_get_draft_workflow` | Get draft workflow graph/features. | `app_id` |
+| `dify_sync_draft_workflow` | Synchronize draft workflow. | `app_id`, `graph`, `features`, `hash` |
+| `dify_get_draft_workflow_environment_variables` | Get draft workflow env vars. | `app_id` |
+| `dify_update_draft_workflow_environment_variables` | Update draft workflow env vars. | `app_id`, `environment_variables` |
+| `dify_get_draft_workflow_conversation_variables` | Get draft workflow conversation vars. | `app_id` |
+| `dify_update_draft_workflow_conversation_variables` | Update draft workflow conversation vars. | `app_id`, `conversation_variables` |
+| `dify_get_published_workflow` | Get currently published workflow. | `app_id` |
+| `dify_publish_workflow` | Publish draft workflow. | `app_id`, `marked_name`, `marked_comment` |
+| `dify_list_published_workflows` | List published workflow versions. | `app_id`, `page`, `limit` |
+| `dify_restore_workflow_to_draft` | Restore published workflow to draft. | `app_id`, `workflow_id` |
+| `dify_run_draft_workflow` | Run workflow app draft. | `app_id`, `inputs` |
+| `dify_run_advanced_chat_draft_workflow` | Run advanced-chat app draft. | `app_id`, `query`, `inputs` |
+
+### Console API — Datasets
+
+| Tool | Description | Parameters |
+|------|-------------|------------|
+| `dify_list_datasets` | List knowledge bases. | `page`, `limit`, `keyword` |
+| `dify_get_dataset` | Get knowledge base details. | `dataset_id` |
+| `dify_create_dataset` | Create a knowledge base. | `name`, `description` |
+| `dify_delete_dataset` | Delete a knowledge base. | `dataset_id` |
+| `dify_update_dataset` | Update knowledge base settings. | `dataset_id`, `update` |
+| `dify_list_dataset_documents` | List documents in a knowledge base. | `dataset_id`, `page`, `limit` |
+| `dify_get_dataset_document` | Get a knowledge base document. | `dataset_id`, `document_id` |
+| `dify_set_dataset_api_status` | Enable/disable dataset API access. | `dataset_id`, `enabled` |
+| `dify_list_dataset_api_keys` | List workspace-level dataset API keys. | - |
+| `dify_create_dataset_api_key` | Create a workspace-level dataset API key. | - |
+
+### Service API
+
+| Tool | Description | Parameters |
+|------|-------------|------------|
+| `dify_dify_api_request` | Call any relative Dify Service API path. | `method`, `path`, `token_kind`, `query`, `body` |
+| `dify_dify_app_info` | Get basic app info. | - |
+| `dify_dify_app_meta` | Get app metadata. | - |
+| `dify_dify_app_parameters` | Get app input parameters. | - |
+| `dify_dify_app_site` | Get app site configuration. | - |
+| `dify_dify_chat_message` | Send a chat message. | `query`, `conversation_id`, `inputs` |
+| `dify_dify_completion_message` | Create a completion. | `query`, `inputs` |
+| `dify_dify_list_conversations` | List conversations. | `user`, `last_id`, `limit` |
+| `dify_dify_list_messages` | List messages in a conversation. | `conversation_id`, `user`, `limit` |
+| `dify_dify_retrieve_dataset` | Retrieve matching chunks from a dataset. | `dataset_id`, `query` |
+| `dify_dify_run_workflow` | Run a workflow app. | `inputs`, `app_id`, `workflow_id` |
 
 ---
 

@@ -55,6 +55,7 @@ server:
     opentelemetry: "/api/opentelemetry/sse"
     langfuse: "/api/langfuse/sse"
     sentry: "/api/sentry/sse"
+    dify: "/api/dify/sse"
     utilities: "/api/utilities/sse"
     aggregate: "/api/aggregate/sse"
 
@@ -73,6 +74,7 @@ server:
     opentelemetry: "/api/opentelemetry/streamable-http"
     langfuse: "/api/langfuse/streamable-http"
     sentry: "/api/sentry/streamable-http"
+    dify: "/api/dify/streamable-http"
     utilities: "/api/utilities/streamable-http"
     aggregate: "/api/aggregate/streamable-http"
 
@@ -159,6 +161,52 @@ Environment variables (OIDC):
 - `MCP_AUTH_OIDC_CLIENT_ID`
 - `MCP_AUTH_OIDC_HTTP_TIMEOUT`
 - `MCP_AUTH_OIDC_JWKS_CACHE_TTL`
+
+---
+
+## Backend Service Authentication (Header-Based)
+
+Credentials for backend services are passed **per-request via HTTP headers** instead
+of being stored in the config file. Each service parses only its own
+`X-Mcp-Backend-<Service>-*` headers, enabling multi-tenancy.
+
+### Header Reference
+
+**Langfuse:**
+```
+X-Mcp-Backend-Langfuse-Url           base URL (required)
+X-Mcp-Backend-Langfuse-Username      project public key (pk-lf-*) or console email
+X-Mcp-Backend-Langfuse-Password      project secret key (sk-lf-*) or console password
+X-Mcp-Backend-Langfuse-Timeout-Sec   request timeout (default: 30)
+X-Mcp-Backend-Langfuse-Project-Id    admin API key target project (self-hosted)
+```
+
+Auth modes (auto-detected):
+- **Project key**: Username starts with `pk-lf-*` → Basic auth with pk:sk pair
+- **Console**: Username is email → NextAuth login, discovers projects from session
+- **Admin key**: Project-Id header present → Bearer + x-langfuse-admin-api-key
+
+**Dify:**
+```
+X-Mcp-Backend-Dify-Console-Url        console base URL (auto-appends /console/api)
+X-Mcp-Backend-Dify-Console-Email      console login email
+X-Mcp-Backend-Dify-Console-Password   console login password
+X-Mcp-Backend-Dify-Service-Url        service API base URL (auto-appends /v1)
+X-Mcp-Backend-Dify-Api-Key            app or dataset API key
+X-Mcp-Backend-Dify-Timeout-Sec        request timeout (default: 30)
+```
+
+Both Console and Service modes can be active simultaneously. Console tools
+(apps, workflows, datasets CRUD) use session cookies. Service tools (chat,
+completion, workflow run) use Bearer token auth.
+
+**Sentry:**
+```
+X-Mcp-Backend-Sentry-Url              base URL (required)
+X-Mcp-Backend-Sentry-Auth-Token       auth token
+X-Mcp-Backend-Sentry-Organization     default organization slug
+X-Mcp-Backend-Sentry-Project          default project slug
+```
 
 ---
 
@@ -284,6 +332,15 @@ sentry:
   authToken: ""
   organization: ""
   project: ""
+  timeoutSec: 30
+
+dify:
+  enabled: false
+  consoleUrl: "https://cloud.dify.ai/console/api"
+  consoleEmail: ""
+  consolePassword: ""
+  serviceUrl: "https://cloud.dify.ai/v1"
+  apiKey: ""
   timeoutSec: 30
 
 opentelemetry:
