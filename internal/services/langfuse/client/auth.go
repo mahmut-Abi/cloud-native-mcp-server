@@ -199,8 +199,6 @@ func (a *ConsoleAuthenticator) CreateOrgAPIKey(orgID string) (*APIKey, error) {
 }
 
 func (a *ConsoleAuthenticator) trpcCreate(procedure string, params map[string]interface{}) (*APIKey, error) {
-	// TRPC v10 httpBatchLink: all procedures go to /api/trpc?batch=1
-	// Body: {"0": {"router.procedure": input}}
 	batchInput := map[string]interface{}{
 		"0": map[string]interface{}{
 			procedure: params,
@@ -226,6 +224,8 @@ func (a *ConsoleAuthenticator) trpcCreate(procedure string, params map[string]in
 	if err != nil {
 		return nil, fmt.Errorf("reading TRPC response: %w", err)
 	}
+
+	logger.Printf("TRPC %s status=%d body=%s", procedure, resp.StatusCode, string(body))
 
 	// Non-batch mutation response: {"result":{"data":{"json":{...}}}}
 	var singleResult struct {
