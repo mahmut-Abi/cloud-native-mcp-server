@@ -225,6 +225,14 @@ func (a *ConsoleAuthenticator) trpcCreate(procedure string, params map[string]in
 		return nil, fmt.Errorf("reading TRPC response: %w", err)
 	}
 
+	if resp.StatusCode >= 400 {
+		contentType := resp.Header.Get("Content-Type")
+		if strings.Contains(contentType, "text/html") || strings.HasPrefix(strings.TrimSpace(string(body)), "<!") {
+			return nil, fmt.Errorf("TRPC endpoint /api/trpc returned %d (HTML) — TRPC not available on this Langfuse instance. Use pk-lf-* API keys directly or enable TRPC", resp.StatusCode)
+		}
+		return nil, fmt.Errorf("TRPC returned status %d: %s", resp.StatusCode, string(body))
+	}
+
 	logger.Printf("TRPC %s status=%d body=%s", procedure, resp.StatusCode, string(body))
 
 	// Non-batch mutation response: {"result":{"data":{"json":{...}}}}
