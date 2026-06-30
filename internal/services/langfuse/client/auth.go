@@ -1,6 +1,7 @@
 package client
 
 import (
+	"context"
 	"encoding/base64"
 	"encoding/json"
 	"fmt"
@@ -402,6 +403,33 @@ func TryAdminKeyAuth(baseURL, username, password string) (*APIKey, string, error
 
 func basicAuth(username, password string) string {
 	return "Basic " + base64.StdEncoding.EncodeToString([]byte(username+":"+password))
+}
+
+// fetchOrCreateProjectKey gets or creates a project-level API key using the admin key.
+func fetchOrCreateProjectKey(ctx context.Context, apiBase, adminKey, projectID string) (*APIKey, error) {
+	client := &http.Client{Timeout: 30 * time.Second}
+	authHeader := basicAuth(adminKey, adminKey)
+
+	// Try to get existing project keys
+	keysResp, err := doJSON[struct {
+		Data []APIKey `json:"data"`
+	}](client, "GET", apiBase+"projects/"+projectID+"/apiKeys", authHeader)
+	if err == nil && len(keysResp.Data) > 0 {
+		k := keysResp.Data[0]
+		if k.PublicKey != "" && k.SecretKey != "" {
+			return &k, nil
+		}
+	}
+
+	// Create a new project API key
+	created, err := doJSON[APIKey](client, "POST", apiBase+"projects/"+projectID+"/apiKeys", authHeader)
+	if err != nil {
+		return nil, fmt.Errorf("creating project API key: %w", err)
+	}
+	if created.PublicKey == "" || created.SecretKey == "" {
+		return nil, fmt.Errorf("empty key data in create response")
+	}
+	return &created, nil
 }
 
 func doJSON[T any](client *http.Client, method, url, authHeader string) (T, error) {

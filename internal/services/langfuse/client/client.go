@@ -10,6 +10,7 @@ import (
 	"net/url"
 	"path"
 	"strings"
+	"sync"
 	"time"
 
 	optimize "github.com/mahmut-Abi/cloud-native-mcp-server/internal/util/performance"
@@ -40,6 +41,13 @@ type Client struct {
 	maxRetries     int
 	retryBaseDelay time.Duration
 	retryMaxDelay  time.Duration
+
+	adminKey    string             // original admin API key for project switching
+	projectKeys map[string]struct {
+		publicKey string
+		secretKey string
+	}
+	projectKeysMu sync.Mutex
 }
 
 // NewClient creates a new Langfuse client.
@@ -93,6 +101,8 @@ func NewClient(opts *ClientOptions) (*Client, error) {
 		maxRetries:     maxRetries,
 		retryBaseDelay: retryBaseDelay,
 		retryMaxDelay:  retryMaxDelay,
+		adminKey:       password,
+		projectKeys:    make(map[string]struct{ publicKey, secretKey string }),
 	}, nil
 }
 
@@ -435,4 +445,32 @@ func (c *Client) readJSON(resp *http.Response) (map[string]interface{}, error) {
 	}
 
 	return result, nil
+}
+
+// SwitchProject switches the client to use a project-level API key for the
+// given project. Uses the stored admin key to fetch or create a project key.
+func (c *Client) SwitchProject(ctx context.Context, targetProjectID string) error {
+	c.projectKeysMu.Lock()
+	defer c.projectKeysMu.Unlock()
+
+	if pk, ok := c.projectKeys[targetProjectID]; ok {
+		c.username = pk.publicKey
+		c.password = pk.secretKey
+		c.projectID = ""
+		return nil
+	}
+
+	pk, err := fetchOrCreateProjectKey(ctx, c.baseURL, c.adminKey, targetProjectID)
+	if err != nil {
+		return err
+	}
+
+	c.projectKeys[targetProjectID] = struct {
+		publicKey string
+		secretKey string
+	}{pk.PublicKey, pk.SecretKey}
+	c.username = pk.PublicKey
+	c.password = pk.SecretKey
+	c.projectID = ""
+	return nil
 }

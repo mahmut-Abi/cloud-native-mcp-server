@@ -14,6 +14,24 @@ import (
 	server "github.com/mark3labs/mcp-go/server"
 )
 
+// WithProjectSwitch wraps a handler to support per-call project switching via
+// the `project_id` argument. When provided, the handler switches the Langfuse
+// client to use the specified project's API key before executing.
+func WithProjectSwitch(handler server.ToolHandlerFunc) server.ToolHandlerFunc {
+	return func(ctx context.Context, request mcp.CallToolRequest) (*mcp.CallToolResult, error) {
+		c, err := client.FromContext(ctx)
+		if err != nil {
+			return nil, err
+		}
+		if pid := getStringArg(request.GetArguments(), "project_id"); pid != "" {
+			if err := c.SwitchProject(ctx, pid); err != nil {
+				return nil, fmt.Errorf("switching to project %s: %w", pid, err)
+			}
+		}
+		return handler(ctx, request)
+	}
+}
+
 
 // HandleCheckHealth handles Langfuse health checks.
 func HandleCheckHealth() server.ToolHandlerFunc {
@@ -1212,4 +1230,13 @@ func marshalResult(result interface{}) (*mcp.CallToolResult, error) {
 		return nil, fmt.Errorf("failed to serialize response: %w", err)
 	}
 	return mcp.NewToolResultText(string(jsonResponse)), nil
+}
+
+func getStringArg(args map[string]interface{}, key string) string {
+	if v, ok := args[key]; ok {
+		if s, ok := v.(string); ok {
+			return s
+		}
+	}
+	return ""
 }
