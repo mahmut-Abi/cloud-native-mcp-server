@@ -6,6 +6,7 @@ import (
 	"runtime"
 	"runtime/debug"
 	"strings"
+	"time"
 )
 
 // These values are intended to be injected at build time via -ldflags:
@@ -23,8 +24,11 @@ var (
 type BuildInfo struct {
 	Version   string
 	Commit    string
+	ShortCommit string
 	BuildTime string
 	GoVersion string
+	OS        string
+	Arch      string
 }
 
 // resolveBuildInfo returns build metadata from ldflags with runtime fallback.
@@ -33,7 +37,9 @@ func resolveBuildInfo() BuildInfo {
 		Version:   normalizeBuildValue(version, "dev"),
 		Commit:    normalizeBuildValue(commit, "unknown"),
 		BuildTime: normalizeBuildValue(buildTime, "unknown"),
-		GoVersion: runtime.Version(),
+		GoVersion: strings.TrimPrefix(runtime.Version(), "go"),
+		OS:        runtime.GOOS,
+		Arch:      runtime.GOARCH,
 	}
 
 	// Fallback to runtime build metadata if ldflags are missing.
@@ -56,6 +62,14 @@ func resolveBuildInfo() BuildInfo {
 		}
 	}
 
+	if len(info.Commit) >= 7 {
+		info.ShortCommit = info.Commit[:7]
+	} else if info.Commit != "unknown" {
+		info.ShortCommit = info.Commit
+	} else {
+		info.ShortCommit = "unknown"
+	}
+
 	return info
 }
 
@@ -76,14 +90,28 @@ func buildSettingValue(settings []debug.BuildSetting, key string) string {
 	return ""
 }
 
-// printStartupBuildInfo writes a first-line startup banner to stderr.
+// printStartupBuildInfo writes a startup banner to stdout as the first output.
 func printStartupBuildInfo(info BuildInfo) {
-	_, _ = fmt.Fprintf(
-		os.Stderr,
-		"cloud-native-mcp-server version=%s commit=%s build_time=%s go=%s\n",
+	// Parse build time for display
+	buildTimeDisplay := info.BuildTime
+	if t, err := time.Parse(time.RFC3339, info.BuildTime); err == nil {
+		buildTimeDisplay = t.UTC().Format("2006-01-02 15:04:05 UTC")
+	}
+
+	banner := fmt.Sprintf(`
+╔══════════════════════════════════════════════════════════════╗
+║  ☸  Cloud Native MCP Server
+║
+║  Version    %s
+║  Commit     %s
+║  Built      %s
+║  Runtime    %s  %s/%s
+╚══════════════════════════════════════════════════════════════╝`,
 		info.Version,
-		info.Commit,
-		info.BuildTime,
-		info.GoVersion,
+		info.ShortCommit,
+		buildTimeDisplay,
+		info.GoVersion, info.OS, info.Arch,
 	)
+
+	_, _ = fmt.Fprintln(os.Stderr, banner)
 }

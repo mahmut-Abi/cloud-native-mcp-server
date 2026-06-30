@@ -9,7 +9,9 @@ MAIN_PACKAGE=./cmd/server
 GO_VERSION=1.25.10
 
 # Go build flags
-LDFLAGS=-ldflags "-X main.version=$(VERSION) -s -w"
+COMMIT?=$(shell git rev-parse HEAD 2>/dev/null || echo "unknown")
+BUILD_TIME?=$(shell date -u +%Y-%m-%dT%H:%M:%SZ 2>/dev/null || echo "unknown")
+LDFLAGS=-ldflags "-X main.version=$(VERSION) -X main.commit=$(COMMIT) -X main.buildTime=$(BUILD_TIME) -s -w"
 BUILD_FLAGS=-trimpath
 
 # Default target
