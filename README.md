@@ -6,14 +6,14 @@
 
 [🇨🇳 中文文档](README-zh.md) | [🇬🇧 English](README.md)
 
-A high-performance Model Context Protocol (MCP) server for Kubernetes and cloud-native infrastructure management with 15 integrated services and 327 tools.
+A high-performance Model Context Protocol (MCP) server for Kubernetes and cloud-native infrastructure management with 16 integrated services and 381 tools.
 
 ---
 
 ## Features
 
-- **15 Integrated Services**: Kubernetes, Grafana, Prometheus, Loki, Kibana, Elasticsearch, Helm, Argo CD, Alertmanager, Jaeger, Nacos, Langfuse, Sentry, OpenTelemetry, Utilities
-- **327 MCP Tools**: Comprehensive toolset for infrastructure operations
+- **16 Integrated Services**: Kubernetes, Grafana, Prometheus, Loki, Kibana, Elasticsearch, Helm, Argo CD, Alertmanager, Jaeger, Nacos, Langfuse, Sentry, Dify, OpenTelemetry, Utilities
+- **381 MCP Tools**: Comprehensive toolset for infrastructure operations
 - **Built-in MCP Prompts**: Pre-authored troubleshooting and remediation workflows for agents
 - **Multi-Protocol Support**: SSE and streamable-http modes
 - **Smart Caching**: LRU cache with TTL support for optimal performance
@@ -52,10 +52,11 @@ A high-performance Model Context Protocol (MCP) server for Kubernetes and cloud-
 | **nacos** | 9 | Nacos namespace, config, service discovery, and node inspection |
 | **langfuse** | 37 | LLM observability, prompts, traces, scores, datasets, models, metrics, projects, memberships, and API key management |
 | **sentry** | 9 | Error monitoring, issue triage, and issue event inspection |
+| **dify** | 46 | Dify Console management (apps, workflows, datasets) and Service API (chat, completion, conversations) |
 | **opentelemetry** | 12 | Collector health, config, pipeline analysis, and telemetry diagnostics |
 | **utilities** | 6 | General-purpose utility tools |
 
-**Total: 327 tools**
+**Total: 381 tools**
 
 ---
 
