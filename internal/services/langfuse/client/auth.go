@@ -346,6 +346,38 @@ func TryConsoleAuth(baseURL, username, password string) (*APIKey, string, error)
 	return nil, "", fmt.Errorf("creating API key failed: org(%s), project: %s", orgErr, err.Error())
 }
 
+// TryConsoleAuthViaREST logs in via NextAuth with email/password, extracts
+// projects from the session, and returns the first project's info.
+// Does NOT create API keys (community edition restriction).
+func TryConsoleAuthViaREST(baseURL, email, password string) (projectID, projectName string, _ error) {
+	auth, err := NewConsoleAuthenticator(baseURL)
+	if err != nil {
+		return "", "", fmt.Errorf("console auth init: %w", err)
+	}
+
+	session, err := auth.Login(email, password)
+	if err != nil {
+		return "", "", fmt.Errorf("console login: %w", err)
+	}
+
+	// Collect all projects from all organizations
+	var projects []struct{ id, name string }
+	for _, org := range session.User.Organizations {
+		for _, p := range org.Projects {
+			projects = append(projects, struct{ id, name string }{p.ID, p.Name})
+		}
+	}
+
+	if len(projects) == 0 {
+		return "", "", fmt.Errorf("no projects found for user %s", email)
+	}
+
+	logger.Printf("Langfuse console auth: logged in as %s, found %d projects across %d orgs",
+		email, len(projects), len(session.User.Organizations))
+
+	return projects[0].id, projects[0].name, nil
+}
+
 // IsConsoleCredential returns true if the username is NOT a pk-lf-* API key.
 func IsConsoleCredential(username string) bool {
 	return !strings.HasPrefix(strings.TrimSpace(username), "pk-lf-")
@@ -360,7 +392,6 @@ func TryAdminKeyAuth(baseURL, username, password string) (*APIKey, string, error
 
 	adminHeaders := func(req *http.Request, projectID string) {
 		req.Header.Set("Accept", "application/json")
-		req.Header.Set("Authorization", "Bearer "+password)
 		req.Header.Set("x-langfuse-admin-api-key", password)
 		if projectID != "" {
 			req.Header.Set("x-langfuse-project-id", projectID)
@@ -412,15 +443,16 @@ func basicAuth(username, password string) string {
 // fetchOrCreateProjectKey gets or creates a project-level API key using the admin key.
 func fetchOrCreateProjectKey(ctx context.Context, apiBase, adminKey, projectID string) (*APIKey, error) {
 	client := &http.Client{Timeout: 30 * time.Second}
-	authHeader := "Bearer " + adminKey
+
+	hdr := func(req *http.Request) {
+		req.Header.Set("Accept", "application/json")
+		req.Header.Set("x-langfuse-admin-api-key", adminKey)
+		req.Header.Set("x-langfuse-project-id", projectID)
+	}
 
 	// Try to get existing project keys
 	req, _ := http.NewRequest("GET", apiBase+"projects/"+projectID+"/apiKeys", nil)
-	req.Header.Set("Accept", "application/json")
-	req.Header.Set("Authorization", authHeader)
-	req.Header.Set("x-langfuse-admin-api-key", adminKey)
-	req.Header.Set("x-langfuse-project-id", projectID)
-
+	hdr(req)
 	resp, err := client.Do(req)
 	if err == nil && resp.StatusCode < 400 {
 		defer resp.Body.Close()
@@ -438,11 +470,7 @@ func fetchOrCreateProjectKey(ctx context.Context, apiBase, adminKey, projectID s
 
 	// Create a new project API key
 	createReq, _ := http.NewRequest("POST", apiBase+"projects/"+projectID+"/apiKeys", nil)
-	createReq.Header.Set("Accept", "application/json")
-	createReq.Header.Set("Authorization", authHeader)
-	createReq.Header.Set("x-langfuse-admin-api-key", adminKey)
-	createReq.Header.Set("x-langfuse-project-id", projectID)
-
+	hdr(createReq)
 	resp2, err := client.Do(createReq)
 	if err != nil {
 		return nil, fmt.Errorf("creating project API key: %w", err)
@@ -451,7 +479,7 @@ func fetchOrCreateProjectKey(ctx context.Context, apiBase, adminKey, projectID s
 
 	if resp2.StatusCode >= 400 {
 		body, _ := io.ReadAll(resp2.Body)
-		return nil, fmt.Errorf("creating project API key: status %d: %s", resp2.StatusCode, strings.TrimSpace(string(body)))
+		return nil, fmt.Errorf("status %d: %s", resp2.StatusCode, strings.TrimSpace(string(body)))
 	}
 
 	var created APIKey

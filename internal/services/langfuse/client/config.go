@@ -32,26 +32,14 @@ func parseHeadersAndInjectClient(r *http.Request) (*http.Request, error) {
 		return r, fmt.Errorf("no langfuse URL in headers")
 	}
 
-	// Admin API key mode: projectID is set, skip all auth discovery
-	if opts.ProjectID == "" {
-		if IsConsoleCredential(opts.Username) {
-			// Console credential → try console auth first
-			apiKey, projectName, err := TryConsoleAuth(opts.URL, opts.Username, opts.Password)
-			if err != nil {
-				// Console failed → try admin key auto-discovery
-				apiKey, projectName, err = TryAdminKeyAuth(opts.URL, opts.Username, opts.Password)
-				if err != nil {
-					return r, fmt.Errorf("langfuse auth failed: %w", err)
-				}
-				opts.Username = apiKey.PublicKey
-				opts.Password = apiKey.SecretKey
-				logger.Printf("Langfuse admin key: using project key for '%s'", projectName)
-			} else {
-				opts.Username = apiKey.PublicKey
-				opts.Password = apiKey.SecretKey
-				logger.Printf("Langfuse console auth: created API key for project '%s' (pk=%s)", projectName, apiKey.PublicKey[:20]+"...")
-			}
+	// If username looks like a console credential (email, not pk-lf-*), try console auth
+	if IsConsoleCredential(opts.Username) {
+		projectID, projectName, err := TryConsoleAuthViaREST(opts.URL, opts.Username, opts.Password)
+		if err != nil {
+			return r, fmt.Errorf("langfuse console auth failed: %w", err)
 		}
+		logger.Printf("Langfuse console auth: logged in as %s, first project '%s' (id=%s). Use project-level pk:sk key for data access.", opts.Username, projectName, projectID)
+		return r, fmt.Errorf("console auth successful but data access requires a project-level API key. Found project '%s' (id=%s). Set Username=pk-lf-* and Password=sk-lf-* for that project.", projectName, projectID)
 	}
 
 	cli, err := NewClient(opts)
