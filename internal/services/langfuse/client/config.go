@@ -32,15 +32,26 @@ func parseHeadersAndInjectClient(r *http.Request) (*http.Request, error) {
 		return r, fmt.Errorf("no langfuse URL in headers")
 	}
 
-	// Admin API key mode: projectID is set, skip console auth
-	if opts.ProjectID == "" && IsConsoleCredential(opts.Username) {
-		apiKey, projectName, err := TryConsoleAuth(opts.URL, opts.Username, opts.Password)
-		if err != nil {
-			return r, fmt.Errorf("langfuse console auth failed: %w", err)
+	// Admin API key mode: projectID is set, skip all auth discovery
+	if opts.ProjectID == "" {
+		if IsConsoleCredential(opts.Username) {
+			// Console credential → try console auth first
+			apiKey, projectName, err := TryConsoleAuth(opts.URL, opts.Username, opts.Password)
+			if err != nil {
+				// Console failed → try admin key auto-discovery
+				apiKey, projectName, err = TryAdminKeyAuth(opts.URL, opts.Username, opts.Password)
+				if err != nil {
+					return r, fmt.Errorf("langfuse auth failed: %w", err)
+				}
+				opts.Username = apiKey.PublicKey
+				opts.Password = apiKey.SecretKey
+				logger.Printf("Langfuse admin key: using project key for '%s'", projectName)
+			} else {
+				opts.Username = apiKey.PublicKey
+				opts.Password = apiKey.SecretKey
+				logger.Printf("Langfuse console auth: created API key for project '%s' (pk=%s)", projectName, apiKey.PublicKey[:20]+"...")
+			}
 		}
-		opts.Username = apiKey.PublicKey
-		opts.Password = apiKey.SecretKey
-		logger.Printf("Langfuse console auth: created API key for project '%s' (pk=%s)", projectName, apiKey.PublicKey[:20]+"...")
 	}
 
 	cli, err := NewClient(opts)

@@ -1,6 +1,7 @@
 package client
 
 import (
+	"encoding/base64"
 	"encoding/json"
 	"fmt"
 	"io"
@@ -8,6 +9,7 @@ import (
 	"net/http/cookiejar"
 	"net/url"
 	"strings"
+	"time"
 )
 
 const csrfEndpoint = "/api/auth/csrf"
@@ -346,4 +348,84 @@ func TryConsoleAuth(baseURL, username, password string) (*APIKey, string, error)
 // IsConsoleCredential returns true if the username is NOT a pk-lf-* API key.
 func IsConsoleCredential(username string) bool {
 	return !strings.HasPrefix(strings.TrimSpace(username), "pk-lf-")
+}
+
+// TryAdminKeyAuth uses an admin/org-level key to auto-discover and create a
+// project-level API key via the Langfuse REST API (no TRPC required).
+// Returns the project API key or an error.
+func TryAdminKeyAuth(baseURL, username, password string) (*APIKey, string, error) {
+	apiBase := strings.TrimRight(baseURL, "/") + "/api/public"
+
+	client := &http.Client{Timeout: 30 * time.Second}
+	authHeader := basicAuth(username, password)
+
+	// Step 1: list projects
+	projects, err := doJSON[struct {
+		Data []struct {
+			ID   string `json:"id"`
+			Name string `json:"name"`
+		} `json:"data"`
+	}](client, "GET", apiBase+"/projects", authHeader)
+	if err != nil {
+		return nil, "", fmt.Errorf("admin key: listing projects: %w", err)
+	}
+	if len(projects.Data) == 0 {
+		return nil, "", fmt.Errorf("admin key: no projects found")
+	}
+
+	// Step 2: pick first project, try to get or create a project API key
+	projectID := projects.Data[0].ID
+	projectName := projects.Data[0].Name
+
+	keysResp, err := doJSON[struct {
+		Data []APIKey `json:"data"`
+	}](client, "GET", apiBase+"/projects/"+projectID+"/apiKeys", authHeader)
+	if err == nil && len(keysResp.Data) > 0 {
+		key := keysResp.Data[0]
+		if key.PublicKey != "" && key.SecretKey != "" {
+			logger.Printf("Langfuse admin key: using existing project key for '%s' (pk=%s)", projectName, key.PublicKey[:20]+"...")
+			return &key, projectName, nil
+		}
+	}
+
+	// Step 3: create a new project API key
+	created, err := doJSON[APIKey](client, "POST", apiBase+"/projects/"+projectID+"/apiKeys", authHeader)
+	if err != nil {
+		return nil, "", fmt.Errorf("admin key: creating project API key for '%s': %w", projectName, err)
+	}
+	if created.PublicKey == "" || created.SecretKey == "" {
+		return nil, "", fmt.Errorf("admin key: empty key data in create response")
+	}
+	logger.Printf("Langfuse admin key: created project key for '%s' (pk=%s)", projectName, created.PublicKey[:20]+"...")
+	return &created, projectName, nil
+}
+
+func basicAuth(username, password string) string {
+	return "Basic " + base64.StdEncoding.EncodeToString([]byte(username+":"+password))
+}
+
+func doJSON[T any](client *http.Client, method, url, authHeader string) (T, error) {
+	var result T
+	req, err := http.NewRequest(method, url, nil)
+	if err != nil {
+		return result, fmt.Errorf("creating request: %w", err)
+	}
+	req.Header.Set("Accept", "application/json")
+	req.Header.Set("Authorization", authHeader)
+
+	resp, err := client.Do(req)
+	if err != nil {
+		return result, fmt.Errorf("request failed: %w", err)
+	}
+	defer resp.Body.Close()
+
+	if resp.StatusCode >= 400 {
+		body, _ := io.ReadAll(resp.Body)
+		return result, fmt.Errorf("API error (status %d): %s", resp.StatusCode, strings.TrimSpace(string(body)))
+	}
+
+	if err := json.NewDecoder(resp.Body).Decode(&result); err != nil {
+		return result, fmt.Errorf("decoding response: %w", err)
+	}
+	return result, nil
 }
