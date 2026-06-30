@@ -100,6 +100,7 @@ func NewClient(opts *ClientOptions) (*Client, error) {
 
 	consoleURL := normalizeDifyURL(strings.TrimSpace(opts.ConsoleURL), "/console/api")
 	serviceURL := normalizeDifyURL(strings.TrimSpace(opts.ServiceURL), "/v1")
+	logrus.Infof("Dify client: consoleURL=%s serviceURL=%s", consoleURL, serviceURL)
 
 	cli := &Client{
 		httpClient:      optimize.NewOptimizedHTTPClientWithTimeout(timeout),
@@ -130,6 +131,7 @@ func (c *Client) ensureConsoleSession(ctx context.Context) error {
 	logrus.Debug("Starting Dify Console login flow")
 
 	loginURL := c.consoleURL + "/login"
+	logrus.Infof("Dify console login: POST %s (email=%s)", loginURL, c.consoleEmail)
 
 	loginBody := map[string]interface{}{
 		"email":       c.consoleEmail,
