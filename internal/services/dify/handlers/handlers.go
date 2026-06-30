@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"net/url"
+	"strings"
 
 	"github.com/mahmut-Abi/cloud-native-mcp-server/internal/services/dify/client"
 	"github.com/mark3labs/mcp-go/mcp"
@@ -43,12 +44,19 @@ func HandleDifyApiRequest(service ServiceInterface) server.ToolHandlerFunc {
 		if method == "" {
 			method = "GET"
 		}
-		query := parseQueryArgs(args["query"])
+		q := parseQueryArgs(args["query"])
 		var body interface{}
 		if b, ok := args["body"]; ok {
 			body = b
 		}
-		resp, err := c.ConsoleRequest(ctx, method, path, query, body)
+		if isConsolePath(path) {
+			resp, err := c.ConsoleRequest(ctx, method, path, q, body)
+			if err != nil {
+				return nil, fmt.Errorf("dify api request: %w", err)
+			}
+			return mcp.NewToolResultText(string(resp)), nil
+		}
+		resp, err := c.ServiceRequest(ctx, method, path, q, body)
 		if err != nil {
 			return nil, fmt.Errorf("dify api request: %w", err)
 		}
@@ -596,4 +604,22 @@ func getStringArg(args map[string]interface{}, key string) string {
 		return fmt.Sprint(v)
 	}
 	return ""
+}
+
+func isConsolePath(path string) bool {
+	p := path
+	if !strings.HasPrefix(p, "/") {
+		p = "/" + p
+	}
+	p = strings.Replace(p, "/console/api", "", 1)
+	switch {
+	case p == "/apps" || strings.HasPrefix(p, "/apps/"):
+		return true
+	case p == "/datasets" || strings.HasPrefix(p, "/datasets/"):
+		return !strings.HasSuffix(p, "/retrieve")
+	case strings.HasPrefix(p, "/rag/"):
+		return true
+	default:
+		return false
+	}
 }
