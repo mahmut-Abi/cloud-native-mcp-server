@@ -106,7 +106,7 @@ func NewClient(opts *ClientOptions) (*Client, error) {
 		httpClient:      optimize.NewOptimizedHTTPClientWithTimeout(timeout),
 		consoleURL:      consoleURL,
 		consoleEmail:    strings.TrimSpace(opts.ConsoleEmail),
-		consolePassword: opts.ConsolePassword,
+		consolePassword: strings.TrimSpace(opts.ConsolePassword),
 		serviceURL:      serviceURL,
 		apiKey:          strings.TrimSpace(opts.APIKey),
 		maxRetries:      maxRetries,
