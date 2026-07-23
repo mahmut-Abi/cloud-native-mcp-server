@@ -92,6 +92,10 @@ server:
     # Environment variable: MCP_SSE_PATH_DIFY
     dify: "/api/dify/sse"
 
+    # VictoriaMetrics SSE endpoint
+    # Environment variable: MCP_SSE_PATH_VICTORIAMETRICS
+    victoriametrics: "/api/victoriametrics/sse"
+
     # Utilities SSE endpoint
     # Environment variable: MCP_SSE_PATH_UTILITIES
     utilities: "/api/utilities/sse"
@@ -149,6 +153,9 @@ server:
 
     # Dify Streamable-HTTP endpoint
     dify: "/api/dify/streamable-http"
+
+    # VictoriaMetrics Streamable-HTTP endpoint
+    victoriametrics: "/api/victoriametrics/streamable-http"
 
     # Utilities Streamable-HTTP endpoint
     utilities: "/api/utilities/streamable-http"
@@ -371,6 +378,52 @@ prometheus:
 
   # TLS CA certificate file path
   # Environment variable: MCP_PROM_TLS_CA_FILE
+  tlsCAFile: ""
+
+################################################################################
+# VictoriaMetrics Configuration
+################################################################################
+victoriametrics:
+  # Enable/disable VictoriaMetrics service
+  # Environment variable: MCP_VM_ENABLED (1, true, yes, on)
+  enabled: false
+
+  # DEPRECATED: Use X-Mcp-Backend-VictoriaMetrics-Url header instead
+  # VictoriaMetrics server address
+  # Format: http://host:port or https://host:port
+  # Environment variable: MCP_VM_ADDRESS
+  address: "http://localhost:8428"
+
+  # Request timeout (seconds)
+  # Environment variable: MCP_VM_TIMEOUT
+  timeoutSec: 30
+
+  # Basic auth username (optional)
+  # Environment variable: MCP_VM_USERNAME
+  username: ""
+
+  # Basic auth password (optional)
+  # Environment variable: MCP_VM_PASSWORD
+  password: ""
+
+  # Bearer token for authentication (optional)
+  # Environment variable: MCP_VM_BEARER_TOKEN
+  bearerToken: ""
+
+  # Skip TLS certificate verification (optional)
+  # Environment variable: MCP_VM_TLS_SKIP_VERIFY
+  tlsSkipVerify: false
+
+  # TLS certificate file (optional)
+  # Environment variable: MCP_VM_TLS_CERT_FILE
+  tlsCertFile: ""
+
+  # TLS key file (optional)
+  # Environment variable: MCP_VM_TLS_KEY_FILE
+  tlsKeyFile: ""
+
+  # TLS CA file (optional)
+  # Environment variable: MCP_VM_TLS_CA_FILE
   tlsCAFile: ""
 
 ################################################################################
