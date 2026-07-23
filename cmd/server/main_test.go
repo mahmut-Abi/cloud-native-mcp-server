@@ -153,6 +153,8 @@ func TestApplyAppConfigWithValidConfig(t *testing.T) {
 				OpenTelemetry string `yaml:"opentelemetry"`
 				Langfuse      string `yaml:"langfuse"`
 				Sentry        string `yaml:"sentry"`
+				Dify          string `yaml:"dify"`
+				VictoriaMetrics string `yaml:"victoriametrics"`
 				Aggregate     string `yaml:"aggregate"`
 				Utilities     string `yaml:"utilities"`
 			} `yaml:"ssePaths"`
@@ -171,6 +173,8 @@ func TestApplyAppConfigWithValidConfig(t *testing.T) {
 				OpenTelemetry string `yaml:"opentelemetry"`
 				Langfuse      string `yaml:"langfuse"`
 				Sentry        string `yaml:"sentry"`
+				Dify          string `yaml:"dify"`
+				VictoriaMetrics string `yaml:"victoriametrics"`
 				Aggregate     string `yaml:"aggregate"`
 				Utilities     string `yaml:"utilities"`
 			} `yaml:"streamableHttpPaths"`
@@ -260,6 +264,8 @@ func TestApplyAppConfigCLITakesPrecedence(t *testing.T) {
 				OpenTelemetry string `yaml:"opentelemetry"`
 				Langfuse      string `yaml:"langfuse"`
 				Sentry        string `yaml:"sentry"`
+				Dify          string `yaml:"dify"`
+				VictoriaMetrics string `yaml:"victoriametrics"`
 				Aggregate     string `yaml:"aggregate"`
 				Utilities     string `yaml:"utilities"`
 			} `yaml:"ssePaths"`
@@ -278,6 +284,8 @@ func TestApplyAppConfigCLITakesPrecedence(t *testing.T) {
 				OpenTelemetry string `yaml:"opentelemetry"`
 				Langfuse      string `yaml:"langfuse"`
 				Sentry        string `yaml:"sentry"`
+				Dify          string `yaml:"dify"`
+				VictoriaMetrics string `yaml:"victoriametrics"`
 				Aggregate     string `yaml:"aggregate"`
 				Utilities     string `yaml:"utilities"`
 			} `yaml:"streamableHttpPaths"`

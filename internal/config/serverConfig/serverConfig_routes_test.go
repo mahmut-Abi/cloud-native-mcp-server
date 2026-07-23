@@ -68,7 +68,7 @@ func TestInitSSEServers(t *testing.T) {
 	sseServers := sc.InitSSEServers(mcpServer, "127.0.0.1:8080", appConfig)
 
 	assert.NotNil(t, sseServers)
-	assert.Len(t, sseServers, 16) // kubernetes, grafana, prometheus, loki, kibana, helm, argocd, elasticsearch, alertmanager, jaeger, nacos, langfuse, sentry, opentelemetry, aggregate, utilities
+	assert.Len(t, sseServers, 18) // kubernetes, grafana, prometheus, loki, kibana, helm, argocd, elasticsearch, alertmanager, jaeger, nacos, langfuse, sentry, dify, victoriametrics, opentelemetry, aggregate, utilities
 	assert.Contains(t, sseServers, "kubernetes")
 	assert.Contains(t, sseServers, "grafana")
 	assert.Contains(t, sseServers, "prometheus")
@@ -114,6 +114,7 @@ func TestInitSSEServersWithCustomPaths(t *testing.T) {
 				Langfuse      string `yaml:"langfuse"`
 				Sentry        string `yaml:"sentry"`
 				Dify          string `yaml:"dify"`
+				VictoriaMetrics string `yaml:"victoriametrics"`
 				Aggregate     string `yaml:"aggregate"`
 				Utilities     string `yaml:"utilities"`
 			} `yaml:"ssePaths"`
@@ -133,6 +134,7 @@ func TestInitSSEServersWithCustomPaths(t *testing.T) {
 				Langfuse      string `yaml:"langfuse"`
 				Sentry        string `yaml:"sentry"`
 				Dify          string `yaml:"dify"`
+				VictoriaMetrics string `yaml:"victoriametrics"`
 				Aggregate     string `yaml:"aggregate"`
 				Utilities     string `yaml:"utilities"`
 			} `yaml:"streamableHttpPaths"`
@@ -159,6 +161,7 @@ func TestInitSSEServersWithCustomPaths(t *testing.T) {
 				Langfuse      string `yaml:"langfuse"`
 				Sentry        string `yaml:"sentry"`
 				Dify          string `yaml:"dify"`
+				VictoriaMetrics string `yaml:"victoriametrics"`
 				Aggregate     string `yaml:"aggregate"`
 				Utilities     string `yaml:"utilities"`
 			}{
@@ -172,7 +175,8 @@ func TestInitSSEServersWithCustomPaths(t *testing.T) {
 	sseServers := sc.InitSSEServers(mcpServer, "127.0.0.1:8080", appConfig)
 
 	assert.NotNil(t, sseServers)
-	assert.Len(t, sseServers, 16)
+	assert.Len(t, sseServers, 18)
+	assert.NotNil(t, sseServers["victoriametrics"])
 }
 
 // Test InitStreamableHTTPServers
@@ -184,7 +188,7 @@ func TestInitStreamableHTTPServers(t *testing.T) {
 	httpServers := sc.InitStreamableHTTPServers(mcpServer, "127.0.0.1:8080", appConfig)
 
 	assert.NotNil(t, httpServers)
-	assert.Len(t, httpServers, 16) // Same services as SSE
+	assert.Len(t, httpServers, 18) // Same services as SSE
 	assert.Contains(t, httpServers, "kubernetes")
 	assert.Contains(t, httpServers, "grafana")
 	assert.Contains(t, httpServers, "prometheus")
@@ -230,6 +234,7 @@ func TestInitStreamableHTTPServersWithCustomPaths(t *testing.T) {
 				Langfuse      string `yaml:"langfuse"`
 				Sentry        string `yaml:"sentry"`
 				Dify          string `yaml:"dify"`
+				VictoriaMetrics string `yaml:"victoriametrics"`
 				Aggregate     string `yaml:"aggregate"`
 				Utilities     string `yaml:"utilities"`
 			} `yaml:"ssePaths"`
@@ -249,6 +254,7 @@ func TestInitStreamableHTTPServersWithCustomPaths(t *testing.T) {
 				Langfuse      string `yaml:"langfuse"`
 				Sentry        string `yaml:"sentry"`
 				Dify          string `yaml:"dify"`
+				VictoriaMetrics string `yaml:"victoriametrics"`
 				Aggregate     string `yaml:"aggregate"`
 				Utilities     string `yaml:"utilities"`
 			} `yaml:"streamableHttpPaths"`
@@ -275,6 +281,7 @@ func TestInitStreamableHTTPServersWithCustomPaths(t *testing.T) {
 				Langfuse      string `yaml:"langfuse"`
 				Sentry        string `yaml:"sentry"`
 				Dify          string `yaml:"dify"`
+				VictoriaMetrics string `yaml:"victoriametrics"`
 				Aggregate     string `yaml:"aggregate"`
 				Utilities     string `yaml:"utilities"`
 			}{
@@ -288,7 +295,7 @@ func TestInitStreamableHTTPServersWithCustomPaths(t *testing.T) {
 	httpServers := sc.InitStreamableHTTPServers(mcpServer, "127.0.0.1:8080", appConfig)
 
 	assert.NotNil(t, httpServers)
-	assert.Len(t, httpServers, 16)
+	assert.Len(t, httpServers, 18)
 }
 
 // Test SetupMultipleRoutes with SSE mode - only test mux creation, not actual HTTP handling
