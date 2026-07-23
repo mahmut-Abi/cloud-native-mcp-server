@@ -26,11 +26,12 @@ type AppConfig struct {
 			ArgoCD        string `yaml:"argocd"`        // SSE path for Argo CD service
 			Nacos         string `yaml:"nacos"`         // SSE path for Nacos service
 			OpenTelemetry string `yaml:"opentelemetry"` // SSE path for OpenTelemetry service
-			Langfuse      string `yaml:"langfuse"`      // SSE path for Langfuse service
-		Sentry        string `yaml:"sentry"`        // SSE path for Sentry service
-			Dify          string `yaml:"dify"`          // SSE path for Dify service
-			Aggregate     string `yaml:"aggregate"`     // SSE path for aggregated service
-			Utilities     string `yaml:"utilities"`     // SSE path for Utilities service
+			Langfuse        string `yaml:"langfuse"`        // SSE path for Langfuse service
+			Sentry          string `yaml:"sentry"`          // SSE path for Sentry service
+			Dify            string `yaml:"dify"`            // SSE path for Dify service
+			VictoriaMetrics string `yaml:"victoriametrics"`  // SSE path for VictoriaMetrics service
+			Aggregate       string `yaml:"aggregate"`       // SSE path for aggregated service
+			Utilities       string `yaml:"utilities"`       // SSE path for Utilities service
 		} `yaml:"ssePaths"`
 		StreamableHTTPPaths struct {
 			Kubernetes    string `yaml:"kubernetes"`    // Streamable-HTTP path for Kubernetes service
@@ -45,11 +46,12 @@ type AppConfig struct {
 			ArgoCD        string `yaml:"argocd"`        // Streamable-HTTP path for Argo CD service
 			Nacos         string `yaml:"nacos"`         // Streamable-HTTP path for Nacos service
 			OpenTelemetry string `yaml:"opentelemetry"` // Streamable-HTTP path for OpenTelemetry service
-			Langfuse      string `yaml:"langfuse"`      // Streamable-HTTP path for Langfuse service
-		Sentry        string `yaml:"sentry"`        // Streamable-HTTP path for Sentry service
-			Dify          string `yaml:"dify"`          // Streamable-HTTP path for Dify service
-			Aggregate     string `yaml:"aggregate"`     // Streamable-HTTP path for aggregated service
-			Utilities     string `yaml:"utilities"`     // Streamable-HTTP path for Utilities service
+			Langfuse        string `yaml:"langfuse"`        // Streamable-HTTP path for Langfuse service
+			Sentry          string `yaml:"sentry"`          // Streamable-HTTP path for Sentry service
+			Dify            string `yaml:"dify"`            // Streamable-HTTP path for Dify service
+			VictoriaMetrics string `yaml:"victoriametrics"`  // Streamable-HTTP path for VictoriaMetrics service
+			Aggregate       string `yaml:"aggregate"`       // Streamable-HTTP path for aggregated service
+			Utilities       string `yaml:"utilities"`       // Streamable-HTTP path for Utilities service
 		} `yaml:"streamableHttpPaths"`
 		CORS struct {
 			AllowedOrigins []string `yaml:"allowedOrigins"` // List of allowed CORS origins
@@ -89,6 +91,19 @@ type AppConfig struct {
 		TLSKeyFile    string `yaml:"tlsKeyFile"`    // TLS key file
 		TLSCAFile     string `yaml:"tlsCAFile"`     // TLS CA file
 	} `yaml:"prometheus"`
+
+	VictoriaMetrics struct {
+		Enabled       bool   `yaml:"enabled"`       // Enable VictoriaMetrics service
+		Address       string `yaml:"address"`       // VictoriaMetrics server address
+		TimeoutSec    int    `yaml:"timeoutSec"`    // Query timeout in seconds
+		Username      string `yaml:"username"`      // Basic auth username
+		Password      string `yaml:"password"`      // Basic auth password
+		BearerToken   string `yaml:"bearerToken"`   // Bearer token for auth
+		TLSSkipVerify bool   `yaml:"tlsSkipVerify"` // Skip TLS verification
+		TLSCertFile   string `yaml:"tlsCertFile"`   // TLS certificate file
+		TLSKeyFile    string `yaml:"tlsKeyFile"`    // TLS key file
+		TLSCAFile     string `yaml:"tlsCAFile"`     // TLS CA file
+	} `yaml:"victoriametrics"`
 
 	Loki struct {
 		Enabled       bool   `yaml:"enabled"`       // Enable Loki service

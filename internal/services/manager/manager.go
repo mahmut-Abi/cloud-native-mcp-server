@@ -12,6 +12,7 @@ import (
 	"github.com/mahmut-Abi/cloud-native-mcp-server/internal/services"
 	"github.com/mahmut-Abi/cloud-native-mcp-server/internal/services/alertmanager"
 	"github.com/mahmut-Abi/cloud-native-mcp-server/internal/services/argocd"
+	"github.com/mahmut-Abi/cloud-native-mcp-server/internal/services/dify"
 	"github.com/mahmut-Abi/cloud-native-mcp-server/internal/services/elasticsearch"
 	"github.com/mahmut-Abi/cloud-native-mcp-server/internal/services/grafana"
 	"github.com/mahmut-Abi/cloud-native-mcp-server/internal/services/helm"
@@ -24,8 +25,8 @@ import (
 	"github.com/mahmut-Abi/cloud-native-mcp-server/internal/services/opentelemetry"
 	"github.com/mahmut-Abi/cloud-native-mcp-server/internal/services/prometheus"
 	"github.com/mahmut-Abi/cloud-native-mcp-server/internal/services/sentry"
-	"github.com/mahmut-Abi/cloud-native-mcp-server/internal/services/dify"
 	"github.com/mahmut-Abi/cloud-native-mcp-server/internal/services/utilities"
+	"github.com/mahmut-Abi/cloud-native-mcp-server/internal/services/victoriametrics"
 )
 
 var logger = logrus.WithField("component", "manager")
@@ -48,6 +49,7 @@ type Manager struct {
 	opentelemetryService *opentelemetry.Service
 	sentryService        *sentry.Service
 	difyService          *dify.Service
+	victoriaMetricsService *victoriametrics.Service
 	utilitiesService     *utilities.Service
 	disabledTools        map[string]bool
 	disabledToolsMutex   sync.RWMutex     // Protect disabledTools from concurrent access
@@ -96,6 +98,7 @@ func (m *Manager) Initialize(appConfig *config.AppConfig) error {
 	m.opentelemetryService = opentelemetry.NewService()
 	m.sentryService = sentry.NewService()
 	m.difyService = dify.NewService()
+	m.victoriaMetricsService = victoriametrics.NewService()
 	m.utilitiesService = utilities.NewService()
 
 	// Apply service filters from configuration after service creation
@@ -150,6 +153,9 @@ func (m *Manager) Initialize(appConfig *config.AppConfig) error {
 	if m.difyService != nil {
 		m.registry.Register(m.difyService)
 	}
+	if m.victoriaMetricsService != nil {
+		m.registry.Register(m.victoriaMetricsService)
+	}
 	if m.utilitiesService != nil {
 		m.registry.Register(m.utilitiesService)
 	}
@@ -190,6 +196,7 @@ func (m *Manager) Initialize(appConfig *config.AppConfig) error {
 		{"opentelemetry", m.opentelemetryService != nil},
 		{"sentry", m.sentryService != nil},
 		{"dify", m.difyService != nil},
+		{"victoriametrics", m.victoriaMetricsService != nil},
 		{"utilities", m.utilitiesService != nil},
 	} {
 		if !svc.active {
@@ -297,6 +304,12 @@ func (m *Manager) Initialize(appConfig *config.AppConfig) error {
 			name     string
 			initFunc func() error
 		}{"dify", func() error { return m.difyService.Initialize(cfg) }})
+	}
+	if m.victoriaMetricsService != nil {
+		optionalServices = append(optionalServices, struct {
+			name     string
+			initFunc func() error
+		}{"victoriametrics", func() error { return m.victoriaMetricsService.Initialize(cfg) }})
 	}
 	if m.utilitiesService != nil {
 		optionalServices = append(optionalServices, struct {
@@ -513,6 +526,11 @@ func (m *Manager) GetDifyService() *dify.Service {
 	return m.difyService
 }
 
+// GetVictoriaMetricsService returns the VictoriaMetrics service
+func (m *Manager) GetVictoriaMetricsService() *victoriametrics.Service {
+	return m.victoriaMetricsService
+}
+
 // GetLangfuseService returns the Langfuse service
 func (m *Manager) GetLangfuseService() *langfuse.Service {
 	return m.langfuseService
@@ -659,7 +677,7 @@ func (m *Manager) ApplyServiceFilters(disabled, enabled []string) {
 		enabledMap[svc] = true
 	}
 
-	allServices := []string{"kubernetes", "grafana", "prometheus", "loki", "kibana", "helm", "argocd", "elasticsearch", "alertmanager", "jaeger", "nacos", "langfuse", "opentelemetry", "sentry", "dify", "utilities"}
+	allServices := []string{"kubernetes", "grafana", "prometheus", "loki", "kibana", "helm", "argocd", "elasticsearch", "alertmanager", "jaeger", "nacos", "langfuse", "opentelemetry", "sentry", "dify", "victoriametrics", "utilities"}
 
 	// If specific services are enabled, disable all others
 	if len(enabled) > 0 {
@@ -715,6 +733,9 @@ func (m *Manager) ApplyServiceFilters(disabled, enabled []string) {
 	}
 	if disabledMap["dify"] && m.difyService != nil {
 		m.difyService = nil
+	}
+	if disabledMap["victoriametrics"] && m.victoriaMetricsService != nil {
+		m.victoriaMetricsService = nil
 	}
 	if disabledMap["utilities"] && m.utilitiesService != nil {
 		m.utilitiesService = nil
@@ -820,6 +841,7 @@ func (m *Manager) Shutdown() error {
 		{"opentelemetry", m.opentelemetryService},
 		{"sentry", m.sentryService},
 		{"dify", m.difyService},
+		{"victoriametrics", m.victoriaMetricsService},
 		{"utilities", m.utilitiesService},
 	}
 

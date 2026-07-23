@@ -195,6 +195,8 @@ func (s *ServerConfig) isServiceEnabled(serviceName string) bool {
 		return s.serviceManager.GetSentryService() != nil && s.serviceManager.GetSentryService().IsEnabled()
 	case "dify":
 		return s.serviceManager.GetDifyService() != nil && s.serviceManager.GetDifyService().IsEnabled()
+	case "victoriametrics":
+		return s.serviceManager.GetVictoriaMetricsService() != nil && s.serviceManager.GetVictoriaMetricsService().IsEnabled()
 	case "langfuse":
 		return s.serviceManager.GetLangfuseService() != nil && s.serviceManager.GetLangfuseService().IsEnabled()
 	case "utilities":
@@ -291,6 +293,7 @@ func (s *ServerConfig) InitSSEServers(mcpServer *server.MCPServer, addr string, 
 	langfusePath := "/api/langfuse/sse"
 	sentryPath := "/api/sentry/sse"
 	difyPath := "/api/dify/sse"
+	victoriaMetricsPath := "/api/victoriametrics/sse"
 	aggregatePath := "/api/aggregate/sse"
 	utilitiesPath := "/api/utilities/sse"
 
@@ -338,6 +341,9 @@ func (s *ServerConfig) InitSSEServers(mcpServer *server.MCPServer, addr string, 
 		if appConfig.Server.SSEPaths.Dify != "" {
 			difyPath = appConfig.Server.SSEPaths.Dify
 		}
+		if appConfig.Server.SSEPaths.VictoriaMetrics != "" {
+			victoriaMetricsPath = appConfig.Server.SSEPaths.VictoriaMetrics
+		}
 		// Check for aggregate SSE path in config
 		if appConfig.Server.SSEPaths.Aggregate != "" {
 			aggregatePath = appConfig.Server.SSEPaths.Aggregate
@@ -363,6 +369,7 @@ func (s *ServerConfig) InitSSEServers(mcpServer *server.MCPServer, addr string, 
 	langfuseServer := s.createServiceMCPServer("langfuse")
 	sentryServer := s.createServiceMCPServer("sentry")
 	difyServer := s.createServiceMCPServer("dify")
+	victoriaMetricsServer := s.createServiceMCPServer("victoriametrics")
 	opentelemetryServer := s.createServiceMCPServer("opentelemetry")
 
 	// Create aggregated MCP server with all services
@@ -523,6 +530,17 @@ func (s *ServerConfig) InitSSEServers(mcpServer *server.MCPServer, addr string, 
 		server.WithUseFullURLForMessageEndpoint(true),
 	)
 
+	// Create VictoriaMetrics SSE server
+	sseServers["victoriametrics"] = server.NewSSEServer(victoriaMetricsServer,
+		server.WithStaticBasePath(""),
+		server.WithSSEEndpoint(victoriaMetricsPath),
+		server.WithMessageEndpoint(victoriaMetricsPath+"/message"),
+		server.WithKeepAlive(true),
+		server.WithKeepAliveInterval(30*time.Second),
+		server.WithAppendQueryToMessageEndpoint(),
+		server.WithUseFullURLForMessageEndpoint(true),
+	)
+
 	// Create opentelemetry SSE server
 	opentelemetryPath := "/api/opentelemetry/sse"
 	if appConfig != nil && appConfig.Server.SSEPaths.OpenTelemetry != "" {
@@ -592,6 +610,7 @@ func (s *ServerConfig) InitStreamableHTTPServers(mcpServer *server.MCPServer, ad
 	langfusePath := "/api/langfuse/streamable-http"
 	sentryPath := "/api/sentry/streamable-http"
 	difyPath := "/api/dify/streamable-http"
+	victoriaMetricsPath := "/api/victoriametrics/streamable-http"
 	aggregatePath := "/api/aggregate/streamable-http"
 	utilitiesPath := "/api/utilities/streamable-http"
 
@@ -639,6 +658,9 @@ func (s *ServerConfig) InitStreamableHTTPServers(mcpServer *server.MCPServer, ad
 		if appConfig.Server.StreamableHTTPPaths.Dify != "" {
 			difyPath = appConfig.Server.StreamableHTTPPaths.Dify
 		}
+		if appConfig.Server.StreamableHTTPPaths.VictoriaMetrics != "" {
+			victoriaMetricsPath = appConfig.Server.StreamableHTTPPaths.VictoriaMetrics
+		}
 		if appConfig.Server.StreamableHTTPPaths.Aggregate != "" {
 			aggregatePath = appConfig.Server.StreamableHTTPPaths.Aggregate
 		}
@@ -662,6 +684,7 @@ func (s *ServerConfig) InitStreamableHTTPServers(mcpServer *server.MCPServer, ad
 	langfuseServer := s.createServiceMCPServer("langfuse")
 	sentryServer := s.createServiceMCPServer("sentry")
 	difyServer := s.createServiceMCPServer("dify")
+	victoriaMetricsServer := s.createServiceMCPServer("victoriametrics")
 	opentelemetryServer := s.createServiceMCPServer("opentelemetry")
 
 	// Create aggregated MCP server with all services
@@ -758,6 +781,13 @@ func (s *ServerConfig) InitStreamableHTTPServers(mcpServer *server.MCPServer, ad
 	// Create dify StreamableHTTP server
 	streamableHTTPServers["dify"] = server.NewStreamableHTTPServer(difyServer,
 		server.WithEndpointPath(difyPath),
+		server.WithHeartbeatInterval(60*time.Second),
+		server.WithStateLess(true),
+	)
+
+	// Create VictoriaMetrics StreamableHTTP server
+	streamableHTTPServers["victoriametrics"] = server.NewStreamableHTTPServer(victoriaMetricsServer,
+		server.WithEndpointPath(victoriaMetricsPath),
 		server.WithHeartbeatInterval(60*time.Second),
 		server.WithStateLess(true),
 	)
