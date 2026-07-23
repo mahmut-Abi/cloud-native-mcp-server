@@ -39,7 +39,7 @@ func parseHeadersAndInjectClient(r *http.Request) (*http.Request, error) {
 			return r, fmt.Errorf("langfuse console auth failed: %w", err)
 		}
 		logger.Printf("Langfuse console auth: logged in as %s, first project '%s' (id=%s). Use project-level pk:sk key for data access.", opts.Username, projectName, projectID)
-		return r, fmt.Errorf("console auth successful but data access requires a project-level API key. Found project '%s' (id=%s). Set Username=pk-lf-* and Password=sk-lf-* for that project.", projectName, projectID)
+		return r, fmt.Errorf("console auth successful but data access requires a project-level API key. Found project '%s' (id=%s). Set Username=pk-lf-* and Password=sk-lf-* for that project", projectName, projectID)
 	}
 
 	cli, err := NewClient(opts)

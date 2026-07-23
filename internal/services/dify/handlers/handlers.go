@@ -117,7 +117,7 @@ func HandleDifyRetrieveDataset(service ServiceInterface) server.ToolHandlerFunc 
 		}
 		bodyJSON, _ := json.Marshal(body)
 		var bodyMap interface{}
-		json.Unmarshal(bodyJSON, &bodyMap)
+		_ = json.Unmarshal(bodyJSON, &bodyMap)
 		resp, err := c.ServiceRequest(ctx, "POST", "/v1/datasets/"+datasetID+"/retrieve", nil, bodyMap)
 		if err != nil {
 			return nil, fmt.Errorf("dify retrieve dataset: %w", err)
@@ -358,7 +358,7 @@ func servicePostHandler(path, label string) server.ToolHandlerFunc {
 		body := buildServiceBody(args)
 		bodyJSON, _ := json.Marshal(body)
 		var bodyMap interface{}
-		json.Unmarshal(bodyJSON, &bodyMap)
+		_ = json.Unmarshal(bodyJSON, &bodyMap)
 		resp, err := c.ServiceRequest(ctx, "POST", path, nil, bodyMap)
 		if err != nil {
 			return nil, fmt.Errorf("%s: %w", label, err)

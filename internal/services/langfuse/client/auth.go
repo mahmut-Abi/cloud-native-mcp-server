@@ -2,7 +2,6 @@ package client
 
 import (
 	"context"
-	"encoding/base64"
 	"encoding/json"
 	"fmt"
 	"io"
@@ -405,7 +404,7 @@ func TryAdminKeyAuth(baseURL, username, password string) (*APIKey, string, error
 	if err != nil {
 		return nil, "", fmt.Errorf("admin key: listing projects: %w", err)
 	}
-	defer resp.Body.Close()
+	defer func() { _ = resp.Body.Close() }()
 	if resp.StatusCode >= 400 {
 		body, _ := io.ReadAll(resp.Body)
 		return nil, "", fmt.Errorf("admin key: listing projects: status %d: %s", resp.StatusCode, strings.TrimSpace(string(body)))
@@ -436,10 +435,6 @@ func TryAdminKeyAuth(baseURL, username, password string) (*APIKey, string, error
 	return pk, projectName, nil
 }
 
-func basicAuth(username, password string) string {
-	return "Basic " + base64.StdEncoding.EncodeToString([]byte(username+":"+password))
-}
-
 // fetchOrCreateProjectKey gets or creates a project-level API key using the admin key.
 func fetchOrCreateProjectKey(ctx context.Context, apiBase, adminKey, projectID string) (*APIKey, error) {
 	client := &http.Client{Timeout: 30 * time.Second}
@@ -455,7 +450,7 @@ func fetchOrCreateProjectKey(ctx context.Context, apiBase, adminKey, projectID s
 	hdr(req)
 	resp, err := client.Do(req)
 	if err == nil && resp.StatusCode < 400 {
-		defer resp.Body.Close()
+		defer func() { _ = resp.Body.Close() }()
 		var result struct{ Data []APIKey `json:"data"` }
 		if json.NewDecoder(resp.Body).Decode(&result) == nil && len(result.Data) > 0 {
 			k := result.Data[0]
@@ -465,7 +460,7 @@ func fetchOrCreateProjectKey(ctx context.Context, apiBase, adminKey, projectID s
 		}
 	}
 	if resp != nil {
-		resp.Body.Close()
+		_ = resp.Body.Close()
 	}
 
 	// Create a new project API key
@@ -490,30 +485,4 @@ func fetchOrCreateProjectKey(ctx context.Context, apiBase, adminKey, projectID s
 		return nil, fmt.Errorf("empty key data in create response")
 	}
 	return &created, nil
-}
-
-func doJSON[T any](client *http.Client, method, url, authHeader string) (T, error) {
-	var result T
-	req, err := http.NewRequest(method, url, nil)
-	if err != nil {
-		return result, fmt.Errorf("creating request: %w", err)
-	}
-	req.Header.Set("Accept", "application/json")
-	req.Header.Set("Authorization", authHeader)
-
-	resp, err := client.Do(req)
-	if err != nil {
-		return result, fmt.Errorf("request failed: %w", err)
-	}
-	defer resp.Body.Close()
-
-	if resp.StatusCode >= 400 {
-		body, _ := io.ReadAll(resp.Body)
-		return result, fmt.Errorf("API error (status %d): %s", resp.StatusCode, strings.TrimSpace(string(body)))
-	}
-
-	if err := json.NewDecoder(resp.Body).Decode(&result); err != nil {
-		return result, fmt.Errorf("decoding response: %w", err)
-	}
-	return result, nil
 }
